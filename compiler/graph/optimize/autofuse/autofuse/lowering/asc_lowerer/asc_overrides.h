@@ -482,7 +482,7 @@ class AscOverrides final : public OpOverrides {
   }
 
   CseVar Acos(const CseVar &x) override {
-    GE_WARN_ASSERT(false, "Acos %s", CseKey<UnimplementOp>(x).c_str());
+    return AscOp<ascir_op::Acos>(x);
   }
 
   CseVar Acosh(const CseVar &x) override {
@@ -490,7 +490,7 @@ class AscOverrides final : public OpOverrides {
   }
 
   CseVar Asin(const CseVar &x) override {
-    GE_WARN_ASSERT(false, "Asin %s", CseKey<UnimplementOp>(x).c_str());
+    return AscOp<ascir_op::Asin>(x);
   }
 
   CseVar Asinh(const CseVar &x) override {

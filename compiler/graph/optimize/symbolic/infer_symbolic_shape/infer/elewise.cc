@@ -28,6 +28,7 @@ graphStatus InferShape4ElementWise(gert::InferSymbolShapeContext *context) {
 }
 
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(Abs).InferSymbolShape(InferShape4ElementWise);
+IMPL_OP_INFER_SYMBOL_SHAPE_INNER(Acos).InferSymbolShape(InferShape4ElementWise);
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(SoftmaxV2).InferSymbolShape(InferShape4ElementWise);
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(Relu).InferSymbolShape(InferShape4ElementWise);
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(Elu).InferSymbolShape(InferShape4ElementWise);
@@ -73,6 +74,7 @@ IMPL_OP_INFER_SYMBOL_SHAPE_INNER(ScatterNdUpdate).InferSymbolShape(InferShape4El
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(InplaceIndexAdd).InferSymbolShape(InferShape4ElementWise);
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(ViewCopy).InferSymbolShape(InferShape4ElementWise);
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(Cos).InferSymbolShape(InferShape4ElementWise);
+IMPL_OP_INFER_SYMBOL_SHAPE_INNER(Asin).InferSymbolShape(InferShape4ElementWise);
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(ScatterElements).InferSymbolShape(InferShape4ElementWise);
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(Swish).InferSymbolShape(InferShape4ElementWise);
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(Sin).InferSymbolShape(InferShape4ElementWise);
