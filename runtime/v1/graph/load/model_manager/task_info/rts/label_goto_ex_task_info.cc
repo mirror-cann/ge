@@ -11,6 +11,7 @@
 #include "graph/load/model_manager/task_info/rts/label_goto_ex_task_info.h"
 #include "acl/acl_rt.h"
 #include "graph/load/model_manager/davinci_model.h"
+#include "runtime/dev.h"
 
 namespace ge {
 constexpr uint32_t kGotoBranchMax = 1U;

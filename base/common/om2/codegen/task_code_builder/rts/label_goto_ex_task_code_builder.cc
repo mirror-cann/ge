@@ -16,6 +16,7 @@
 #include "graph/debug/ge_attr_define.h"
 #include "graph/utils/attr_utils.h"
 #include "common/om2/codegen/om2_codegen_utils.h"
+#include "runtime/dev.h"
 
 namespace ge {
 Status LabelGotoExTaskCodeBuilder::Contribute(TaskSemanticContributeContext &context) {

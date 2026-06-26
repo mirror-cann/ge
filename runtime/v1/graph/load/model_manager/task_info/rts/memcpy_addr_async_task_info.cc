@@ -14,6 +14,7 @@
 #include "graph/args_format_desc.h"
 #include "graph/load/model_manager/davinci_model.h"
 #include "graph/load/model_manager/model_utils.h"
+#include "runtime/dev.h"
 
 namespace {
 constexpr size_t kAlignment = 64U;

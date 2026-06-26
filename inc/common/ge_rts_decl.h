@@ -58,12 +58,6 @@ typedef struct {
   uint32_t rsv[4];
 } rtCpuKernelArgs_t;
 
-typedef enum tagRtMemRequestFeature {
-  MEM_REQUEST_FEATURE_DEFAULT = 0,
-  MEM_REQUEST_FEATURE_OPP,
-  MEM_REQUEST_FEATURE_RESERVED
-} rtMemRequestFeature_t;
-
 #define RT_MQ_QUERY_QUES_ATTR_ENTITY_TYPE ((rtMemQueueQueryCmd_t)2)
 
 typedef struct tagNodeInfo_t {
@@ -153,8 +147,6 @@ RTS_API rtError_t rtKernelGetAddrAndPrefCntV2(void *hdl, const uint64_t tilingKe
                                               const uint32_t flag, rtKernelDetailInfo_t *kernelInfo);
 
 RTS_API rtError_t rtQueryFunctionRegistered(const char_t *stubName);
-
-RTS_API uint32_t rtGetTsMemType(rtMemRequestFeature_t featureType, uint32_t memSize);
 
 RTS_API rtError_t rtCmoAddrTaskLaunch(void *cmoAddrInfo, uint64_t destMax, rtCmoOpCode_t cmoOpCode, rtStream_t stm,
                                       uint32_t flag);
