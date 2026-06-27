@@ -46,6 +46,7 @@
 #include "graph/utils/graph_utils_ex.h"
 #include "graph/utils/type_utils.h"
 #include "graph/utils/op_desc_utils_ex.h"
+#include "api/aclgrph/option_utils.h"
 #include "api/gelib/gelib.h"
 #include "common/ge_inner_attrs.h"
 #include "ge/ge_api_types.h"
@@ -417,6 +418,9 @@ class GeGenerator::Impl {
   Status SaveParams(GeModelPtr &ge_model, const std::string &type, const std::map<std::string, GeAttrValue> &attrs,
                     const std::vector<GeTensor> &inputs, const std::vector<GeTensor> &outputs);
 
+  Status CheckHostEnvOsAndCpuForUnknownShapeModel(
+      const GeRootModelPtr &ge_root_model,
+      OfflineModelFormat om_format = OfflineModelFormat::OM_FORMAT_DEFAULT) const;
   Status GenerateInfershapeGraph(const Graph &graph);
 
   OmgContext &omg_context_;
@@ -618,6 +622,27 @@ void GeGenerator::Impl::SetHostEnvOsCpuInfo(const GeRootModelPtr &ge_root_model,
   return;
 }
 
+Status GeGenerator::Impl::CheckHostEnvOsAndCpuForUnknownShapeModel(
+    const GeRootModelPtr &ge_root_model, OfflineModelFormat om_format) const {
+  bool is_unknown_shape = false;
+  GE_ASSERT_SUCCESS(ge_root_model->CheckIsUnknownShape(is_unknown_shape),
+                    "root model(id:%u) CheckIsUnknownShape failed", ge_root_model->GetModelId());
+  if (!is_unknown_shape || om_format == OfflineModelFormat::OM_FORMAT_OM2) {
+    return SUCCESS;
+  }
+  std::string host_env_os;
+  std::string host_env_cpu;
+  (void)GetThreadLocalContext().GetOption(OPTION_HOST_ENV_OS, host_env_os);
+  (void)GetThreadLocalContext().GetOption(OPTION_HOST_ENV_CPU, host_env_cpu);
+  SetDefaultHostEnvOsAndHostEnvCpu(host_env_os, host_env_cpu);
+  const Status ret = CheckHostEnvOsAndHostEnvCpuValid(host_env_os, host_env_cpu);
+  if (ret != SUCCESS) {
+    GELOGE(ret, "[Check][HostEnvOsCpu] failed, model id:%u.", ge_root_model->GetModelId());
+    return ret;
+  }
+  return SUCCESS;
+}
+
 Status GeGenerator::SetModelNameForDump(const GeRootModelPtr &ge_root_model) {
   bool is_unknown_shape = false;
   Status ret = ge_root_model->CheckIsUnknownShape(is_unknown_shape);
@@ -681,6 +706,14 @@ Status GeGenerator::GenerateModel(const Graph &graph, const std::string &file_na
   GE_CHECK_NOTNULL(ge_root_model);
   // Move weight files from "./tmp_weight" to "om_path + /weight" before generate om file
   if (is_offline) {
+    ret = impl_->CheckHostEnvOsAndCpuForUnknownShapeModel(ge_root_model, om_format);
+    if (ret != SUCCESS) {
+      GELOGE(ret, "[Check][HostEnvOsCpu] failed, ret:%u.", ret);
+      if (impl_->graph_manager_.Finalize() != SUCCESS) {
+        GELOGE(FAILED, "[Call][Finalize] graph_manager finalize fail.");
+      }
+      return ret;
+    }
     const auto &compute_graph = ge_root_model->GetRootGraph();
     GE_CHECK_NOTNULL(compute_graph);
     GE_CHK_STATUS_RET(FileConstantUtils::ChangeFilePath(compute_graph, file_name_prefix),
@@ -1100,6 +1133,9 @@ Status GeGenerator::BuildSingleOp(OpDescPtr &op_desc, const std::vector<GeTensor
   std::map<std::string, GeAttrValue> op_attrs = op_desc_tmp->GetAllAttrs();
   GE_CHECK_NOTNULL(ge_root_model);
   GE_CHECK_NOTNULL(ge_root_model->GetRootGraph());
+  if (is_offline) {
+    GE_CHK_STATUS_RET_NOLOG(impl_->CheckHostEnvOsAndCpuForUnknownShapeModel(ge_root_model));
+  }
   std::map<std::string, GeModelPtr> name_to_ge_model = ge_root_model->GetSubgraphInstanceNameToModel();
   if (name_to_ge_model.empty()) {
     REPORT_INNER_ERR_MSG("E19999", "GetSubgraphInstanceNameToModel failed.");

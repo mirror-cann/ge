@@ -61,6 +61,9 @@
 #include "utils/mock_ops_kernel_builder.h"
 #include "framework/common/taskdown_common.h"
 #include "common/opskernel/ops_kernel_info_types.h"
+#include "api/aclgrph/option_utils.h"
+#include "base/err_mgr.h"
+#include "graph/ge_local_context.h"
 
 namespace ge {
 namespace {
@@ -83,6 +86,20 @@ std::string WriteDynamicAippConfig() {
            << "}\n";
   return cfg_path;
 }
+class ScopedGraphOptions {
+ public:
+  explicit ScopedGraphOptions(const std::map<std::string, std::string> &options)
+      : old_options_(GetThreadLocalContext().GetAllGraphOptions()) {
+    GetThreadLocalContext().SetGraphOption(options);
+  }
+
+  ~ScopedGraphOptions() {
+    GetThreadLocalContext().SetGraphOption(old_options_);
+  }
+
+ private:
+  std::map<std::string, std::string> old_options_;
+};
 
 void MockGenerateTask() {
   auto aicore_func = [](const ge::Node &node, RunContext &context, std::vector<domi::TaskDef> &tasks) -> Status {
@@ -1700,6 +1717,48 @@ static Graph ConstructDynamicBinReuseGraph() {
     }
   }
   return graph;
+}
+
+TEST_F(GeIrBuildTest, GenerateOfflineModelDynamicInvalidHostEnvFailsDeferredCheck) {
+  GeRunningEnvFaker ge_env;
+  ge_env.InstallDefault();
+  ge_env.InstallDefault().Install(FakeOp(REDUCESUM).InfoStoreAndBuilder("AicoreLib").InferShape(StubInferFunction));
+  auto make_graph = []() {
+    return ConstructDynamicBinReuseGraph();
+  };
+
+  std::string valid_host_env_os;
+  std::string valid_host_env_cpu;
+  SetDefaultHostEnvOsAndHostEnvCpu(valid_host_env_os, valid_host_env_cpu);
+  ASSERT_FALSE(valid_host_env_os.empty());
+  ASSERT_FALSE(valid_host_env_cpu.empty());
+  {
+    const std::map<std::string, std::string> valid_options = {
+        {std::string(OPTION_HOST_ENV_OS), valid_host_env_os},
+        {std::string(OPTION_HOST_ENV_CPU), valid_host_env_cpu}};
+    GeGenerator generator;
+    ASSERT_EQ(generator.Initialize({}), SUCCESS);
+    ScopedGraphOptions guard(valid_options);
+    ASSERT_EQ(generator.GenerateOfflineModel(make_graph(), "./dynamic_valid_host_env_st"), SUCCESS);
+    EXPECT_EQ(generator.Finalize(), SUCCESS);
+  }
+
+  error_message::ErrMgrInit(error_message::ErrorMessageMode::INTERNAL_MODE);
+  {
+    const std::map<std::string, std::string> invalid_options = {
+        {std::string(OPTION_HOST_ENV_OS), "linux"},
+        {std::string(OPTION_HOST_ENV_CPU), "unsupported_cpu"}};
+    GeGenerator generator;
+    ASSERT_EQ(generator.Initialize({}), SUCCESS);
+    ScopedGraphOptions guard(invalid_options);
+    EXPECT_EQ(generator.GenerateOfflineModel(make_graph(), "./dynamic_invalid_host_env_st"), FAILED);
+    EXPECT_EQ(generator.Finalize(), SUCCESS);
+  }
+
+  const auto error_msg = error_message::GetErrMgrErrorMessage();
+  ASSERT_NE(error_msg.get(), nullptr);
+  EXPECT_NE(std::string(error_msg.get()).find("The CPU unsupported_cpu is not within the support list"),
+            std::string::npos);
 }
 
 TEST_F(GeIrBuildTest, recover_op_runinfo_dyn_graph) {

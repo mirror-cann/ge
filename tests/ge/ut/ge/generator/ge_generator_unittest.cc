@@ -905,6 +905,37 @@ TEST_F(UtestGeGenerator, GenerateModelAndDumpBuildGraph) {
   FinalizeGeLib();
 }
 
+TEST_F(UtestGeGenerator, GenerateModelOfflineUnknownShapeInvalidHostEnvFails) {
+  InitGeLib();
+  auto &instance = GeGenerator::GetInstance();
+  ASSERT_EQ(instance.Initialize({}), SUCCESS);
+  auto make_unknown_shape_graph = []() {
+    auto compute_graph = MakeGraph();
+    compute_graph->SetGraphUnknownFlag(true);
+    EXPECT_EQ(compute_graph->TopologicalSorting(), GRAPH_SUCCESS);
+    return ge::GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
+  };
+  const auto graph_options = GetThreadLocalContext().GetAllGraphOptions();
+
+  std::map<std::string, std::string> valid_options;
+  valid_options["ge.host_env_os"] = "linux";
+  valid_options["ge.host_env_cpu"] = "x86_64";
+  GetThreadLocalContext().SetGraphOption(valid_options);
+  ModelBufferData model;
+  EXPECT_EQ(instance.GenerateModel(make_unknown_shape_graph(), "prefix", {}, model, true), SUCCESS);
+
+  std::map<std::string, std::string> invalid_options;
+  invalid_options["ge.host_env_os"] = "linux";
+  invalid_options["ge.host_env_cpu"] = "unsupported_cpu";
+  GetThreadLocalContext().SetGraphOption(invalid_options);
+  ModelBufferData invalid_model;
+  EXPECT_NE(instance.GenerateModel(make_unknown_shape_graph(), "prefix", {}, invalid_model, true), SUCCESS);
+
+  GetThreadLocalContext().SetGraphOption(graph_options);
+  (void)instance.Finalize();
+  FinalizeGeLib();
+}
+
 TEST_F(UtestGeGenerator, GenerateFlowModelSetOmSysInfo_fail) {
   const auto back_up = GEThreadLocalContext().GetAllGraphOptions();
   InitGeLib();

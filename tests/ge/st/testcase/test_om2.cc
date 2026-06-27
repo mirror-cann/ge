@@ -13,6 +13,7 @@
 #include "common/helper/om2/json_file.h"
 #include "framework/omg/omg.h"
 #include "framework/runtime/om2_model_executor.h"
+#include "generator/ge_generator.h"
 #include "ge/ge_ir_build.h"
 #include "api/aclgrph/option_utils.h"
 #include "api/atc/main_impl.h"
@@ -36,6 +37,8 @@
 #include "graph/ge_global_options.h"
 #include "graph/utils/tensor_utils.h"
 #include "graph/utils/file_utils.h"
+#include "graph/utils/graph_utils.h"
+#include "graph/utils/graph_utils_ex.h"
 #include "graph_metadef/depends/checker/tensor_check_utils.h"
 #include "proto/ge_ir.pb.h"
 

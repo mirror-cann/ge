@@ -38,6 +38,7 @@
 #include "common/dump/dump_manager.h"
 #include "register/op_tiling_registry.h"
 #include "framework/executor/ge_executor.h"
+#include "framework/generator/ge_generator.h"
 #include "ge_running_env/fake_op.h"
 #include "ge_graph_dsl/graph_dsl.h"
 #include "ge/ge_api.h"
@@ -60,6 +61,7 @@
 #include "graph/utils/tensor_utils.h"
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/graph_utils_ex.h"
+#include "graph/ge_local_context.h"
 #include "graph/debug/ge_attr_define.h"
 #include "framework/ge_runtime_stub/include/common/share_graph.h"
 #include "register/node_converter_registry.h"
@@ -86,6 +88,21 @@ const string kaarch64OpsProtoPath = "/op_proto/lib/linux/aarch64/";
 const string kaarch64OpMasterPath = "/op_impl/ai_core/tbe/op_tiling/lib/linux/aarch64/";
 
 void *mock_host_cpu_handle = (void *)0x12345678;
+
+class ScopedGraphOptions {
+ public:
+  explicit ScopedGraphOptions(const std::map<std::string, std::string> &options)
+      : old_options_(GetThreadLocalContext().GetAllGraphOptions()) {
+    GetThreadLocalContext().SetGraphOption(options);
+  }
+
+  ~ScopedGraphOptions() {
+    GetThreadLocalContext().SetGraphOption(old_options_);
+  }
+
+ private:
+  std::map<std::string, std::string> old_options_;
+};
 optiling::OpRunInfoV2 tiling_run_info_;
 bool tiling_result_ = true;
 
@@ -1163,6 +1180,20 @@ Graph BuildDynamicGraphWithAicpu() {
 TEST_F(DynamicGraphTest, TestDynamicOfflineModel_aicore_with_atomic_output) {
   MockForGenerateTask("AIcoreEngine", GenerateTaskForAiCore);
   BuildAndExecDynamicOfflineModel();
+}
+
+TEST_F(DynamicGraphTest, GenerateOfflineModelInvalidHostEnvFailsAfterDynamicBuild) {
+  MockForGenerateTask("AIcoreEngine", GenerateTaskForAiCore);
+  const std::map<std::string, std::string> invalid_options = {
+      {std::string(OPTION_HOST_ENV_OS), "linux"},
+      {std::string(OPTION_HOST_ENV_CPU), "unsupported_cpu"}};
+  ScopedGraphOptions guard(invalid_options);
+
+  GeGenerator generator;
+  ASSERT_EQ(generator.Initialize({}), SUCCESS);
+  auto graph = BuildDynamicInputGraph();
+  EXPECT_EQ(generator.GenerateOfflineModel(graph, "./dynamic_invalid_host_env_st"), FAILED);
+  EXPECT_EQ(generator.Finalize(), SUCCESS);
 }
 
 TEST_F(DynamicGraphTest, TestDynamicOfflineModel_multi_thread) {

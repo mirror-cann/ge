@@ -364,6 +364,64 @@ TEST_F(UtestMain, MainImplTest_global_options) {
   AtcFileFactory::RemoveFile(AtcFileFactory::Generatefile1("", "tmp.om").c_str());
 }
 
+TEST_F(UtestMain, MainImplTest_static_shape_invalid_host_env_cpu_not_failed_in_flag_check) {
+  GetMutableGlobalOptions().clear();
+  GetThreadLocalContext().SetGlobalOption({});
+
+  std::string opp_path = "./opp/";
+  system(("mkdir -p " + opp_path).c_str());
+  setenv(kEnvName, opp_path.c_str(), 1);
+
+  std::string scene_path = opp_path + "scene.info";
+  system(("touch " + scene_path).c_str());
+  system(("echo 'os=linux' > " + scene_path).c_str());
+  system(("echo 'arch=x86_64' >> " + scene_path).c_str());
+
+  std::string path_vendors = opp_path + "vendors";
+  std::string path_config = path_vendors + "/config.ini";
+  system(("mkdir -p " + path_vendors).c_str());
+  system(("echo 'load_priority=customize' > " + path_config).c_str());
+
+  std::string inner_x86_proto_path = opp_path + kInner + kOpsProtoPath;
+  system(("mkdir -p " + inner_x86_proto_path).c_str());
+  inner_x86_proto_path += kOpsProto;
+  system(("touch " + inner_x86_proto_path).c_str());
+  system(("echo 'ops proto x86 ' > " + inner_x86_proto_path).c_str());
+
+  std::string inner_x86_tiling_path = opp_path + kInner + kOpMasterPath;
+  system(("mkdir -p " + inner_x86_tiling_path).c_str());
+  inner_x86_tiling_path += kOpMaster;
+  system(("touch " + inner_x86_tiling_path).c_str());
+  system(("echo 'op tiling_x86 ' > " + inner_x86_tiling_path).c_str());
+
+  std::string om_arg = AtcFileFactory::Generatefile1("--model=", "add.pb");
+  std::string output_arg = AtcFileFactory::Generatefile1("--output=", "tmp_invalid_host_env_cpu");
+  char *argv[] = {"atc",
+                  "--mode=0",
+                  "--framework=3",
+                  const_cast<char *>(om_arg.c_str()),
+                  const_cast<char *>(output_arg.c_str()),
+                  "--soc_version=\"Ascend310\"",
+                  "--deterministic=1",
+                  "--input_format=NCHW",
+                  "--host_env_os=linux",
+                  "--host_env_cpu=unsupported_cpu"};
+  int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  auto &options = GetMutableGlobalOptions();
+  auto deterministic_it = options.find(ge::DETERMINISTIC);
+  EXPECT_NE(deterministic_it, options.end());
+  if (deterministic_it != options.end()) {
+    EXPECT_EQ(deterministic_it->second, "1");
+  }
+  auto host_cpu_it = options.find(ge::OPTION_HOST_ENV_CPU);
+  EXPECT_NE(host_cpu_it, options.end());
+  if (host_cpu_it != options.end()) {
+    EXPECT_EQ(host_cpu_it->second, "unsupported_cpu");
+  }
+  EXPECT_NE(ret, 0);
+  AtcFileFactory::RemoveFile(AtcFileFactory::Generatefile1("", "tmp_invalid_host_env_cpu.om").c_str());
+}
+
 TEST_F(UtestMain, MainImplTest_generalized_build_mode_error) {
   std::string om_arg = AtcFileFactory::Generatefile1("--model=", "add.pb");
   std::string output_arg = AtcFileFactory::Generatefile1("--output=", "tmp");
