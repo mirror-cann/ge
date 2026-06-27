@@ -99,8 +99,6 @@ class AclRuntimeStubImpl : public ge::AclRuntimeStub {
 
   aclError aclrtDestroyStreamForce(aclrtStream stream) override;
 
-  aclError aclrtGetStreamAvailableNum(uint32_t *streamCount) override;
-
   aclError aclrtSetStreamResLimit(aclrtStream stream, aclrtDevResLimitType type, uint32_t value) override;
 
   aclError aclrtUseStreamResInCurrentThread(aclrtStream stream) override;

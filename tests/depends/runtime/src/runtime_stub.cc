@@ -536,24 +536,6 @@ rtError_t RuntimeStub::rtStreamDestroyForce(rtStream_t stream) {
   return RT_ERROR_NONE;
 }
 
-rtError_t RuntimeStub::rtGetAvailStreamNum(uint32_t streamType, uint32_t *const streamCount) {
-  const char *const kEnvRecordPath = "MOCK_AVAIL_STREAM_NUM";
-  char record_path[8] = {};
-  int32_t ret = mmGetEnv(kEnvRecordPath, &record_path[0], static_cast<uint32_t>(8));
-  if ((ret != EN_OK) || (strlen(record_path) == 0)) {
-    *streamCount = g_free_stream_num;
-    return RT_ERROR_NONE;
-  }
-  try {
-    *streamCount = std::stoi(std::string(record_path));
-    return RT_ERROR_NONE;
-  } catch (...) {
-    return 1;  // SOME ERROR
-  }
-  *streamCount = g_free_stream_num;
-  return RT_ERROR_NONE;
-}
-
 rtError_t RuntimeStub::rtCtxGetCurrentDefaultStream(rtStream_t *stream) {
   if (__FUNCTION__ == g_runtime_stub_mock) {
     return -1;
@@ -1739,10 +1721,6 @@ rtError_t rtNpuGetFloatStatus(void *outputAddr, uint64_t outputSize, uint32_t ch
 ADD_STUB_RETURN_VALUE(rtNpuClearFloatStatus, rtError_t);
 rtError_t rtNpuClearFloatStatus(uint32_t checkMode, rtStream_t stm) {
   return RT_ERROR_NONE;
-}
-
-rtError_t rtGetAvailStreamNum(const uint32_t streamType, uint32_t *const streamCount) {
-  return ge::RuntimeStub::GetInstance()->rtGetAvailStreamNum(streamType, streamCount);
 }
 
 rtError_t rtGetAvailEventNum(uint32_t *const eventCount) {

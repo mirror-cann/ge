@@ -198,7 +198,7 @@ class DavinciModelTest : public testing::Test {
  protected:
   void SetUp() override {
     RTS_STUB_SETUP();
-    VarManagerPool::Instance().Destory();
+    VarManagerPool::Instance().Destroy();
     char runtime2_env[MMPA_MAX_PATH] = {'0'};
     mmSetEnv("ENABLE_RUNTIME_V2", &(runtime2_env[0U]), static_cast<uint32_t>(MMPA_MAX_PATH));
     ReInitGe();
@@ -209,7 +209,7 @@ class DavinciModelTest : public testing::Test {
     MockGenerateTask();
   }
   void TearDown() override {
-    VarManagerPool::Instance().Destory();
+    VarManagerPool::Instance().Destroy();
     MockRuntime::Reset();
     actual_info_type.clear();
     char runtime2_env[MMPA_MAX_PATH] = {'1'};
@@ -3739,97 +3739,6 @@ TEST_F(DavinciModelTest, GetEventIdForBlockingAicpuOp_fail) {
 }
 
 /**
- * 用例描述：加载model时，设备上实际可用的stream数量小于model需要的值，已加载的model数量为1，
- *          已加载model占用的stream资源 + 设备可用的stream资源 = model需要的stream值，加载model成功
- * 预置条件：
- * 1.流创建及流销毁的桩函数中增加对g_free_stream_num的维护，
- *   g_free_stream_num初始值为2048，流创建时g_free_stream_num减1，流销毁时g_free_stream_num加1
- * 测试步骤
- * 1.构造单个计算图1，ATTR_MODEL_STREAM_NUM设置为32，并加载该子图
- * 2.构造单个计算图2，ATTR_MODEL_STREAM_NUM设置为设备上当前可用的stream数量 + 32
- * 预期结果
- * 1.model1 unload，model2 加载成功
- */
-TEST_F(DavinciModelTest, davinci_model_load_check_and_release_stream_resource_success) {
-  auto &model_mgr = ModelManager::GetInstance();
-  ModelExecutor model_executor;
-  EXPECT_EQ(model_executor.Initialize({}, 10086), SUCCESS);  // fixed sessionid
-  model_executor.StartRunThread();
-
-  GraphId graph_id_1 = 1;
-  GraphNodePtr graph_node_1;
-  GeRootModelPtr flow_root_model_1;
-  GeModelPtr ge_model_1;
-  (void)BuildGraphNode(graph_id_1, graph_node_1, flow_root_model_1, ge_model_1);
-
-  EXPECT_TRUE(AttrUtils::SetInt(ge_model_1, ATTR_MODEL_STREAM_NUM, 32));
-  EXPECT_EQ(model_executor.LoadGraph(flow_root_model_1, graph_node_1), SUCCESS);
-  EXPECT_EQ(model_mgr.model_map_.size(), 1);
-  model_mgr.model_map_.begin()->second->is_async_mode_ = true;
-
-  GraphId graph_id_2 = 2;
-  GraphNodePtr graph_node_2;
-  GeRootModelPtr flow_root_model_2;
-  GeModelPtr ge_model_2;
-  (void)BuildGraphNode(graph_id_2, graph_node_2, flow_root_model_2, ge_model_2);
-
-  uint32_t stream_num_dev_avail;
-  (void)aclrtGetStreamAvailableNum(&stream_num_dev_avail);
-  EXPECT_TRUE(AttrUtils::SetInt(ge_model_2, ATTR_MODEL_STREAM_NUM, stream_num_dev_avail + 32));
-  EXPECT_EQ(model_executor.LoadGraph(flow_root_model_2, graph_node_2), SUCCESS);
-  EXPECT_EQ(model_mgr.model_map_.size(), 1);
-
-  EXPECT_EQ(model_executor.UnloadGraph(flow_root_model_2, graph_id_2), SUCCESS);
-  EXPECT_EQ(model_executor.Finalize(), SUCCESS);
-  GetThreadLocalContext().SetGraphOption({});
-}
-
-/**
- * 用例描述：加载model时，设备上实际可用的stream数量小于model需要的值，已加载的model数量为1，
- *          已加载model占用的stream资源 + 设备可用的stream资源 < model需要的stream值，加载模型失败
- * 预置条件：
- * 1.流创建及流销毁的桩函数中增加对g_free_stream_num的维护，
- *   g_free_stream_num初始值为2048，流创建时g_free_stream_num减1，流销毁时g_free_stream_num加1
- * 测试步骤
- * 1.构造单个计算图1，ATTR_MODEL_STREAM_NUM设置为32，并加载该子图
- * 2.构造单个计算图2，ATTR_MODEL_STREAM_NUM设置为设备上当前可用的stream数量 + 33
- * 预期结果
- * 1.model1 unload，model2 加载失败
- */
-TEST_F(DavinciModelTest, davinci_model_load_check_and_release_stream_resource_failed) {
-  auto &model_mgr = ModelManager::GetInstance();
-  ModelExecutor model_executor;
-  EXPECT_EQ(model_executor.Initialize({}, 10086), SUCCESS);  // fixed sessionid
-  model_executor.StartRunThread();
-
-  GraphId graph_id_1 = 1;
-  GraphNodePtr graph_node_1;
-  GeRootModelPtr flow_root_model_1;
-  GeModelPtr ge_model_1;
-  (void)BuildGraphNode(graph_id_1, graph_node_1, flow_root_model_1, ge_model_1);
-
-  EXPECT_TRUE(AttrUtils::SetInt(ge_model_1, ATTR_MODEL_STREAM_NUM, 32));
-  EXPECT_EQ(model_executor.LoadGraph(flow_root_model_1, graph_node_1), SUCCESS);
-  EXPECT_EQ(model_mgr.model_map_.size(), 1);
-  model_mgr.model_map_.begin()->second->is_async_mode_ = true;
-
-  GraphId graph_id_2 = 2;
-  GraphNodePtr graph_node_2;
-  GeRootModelPtr flow_root_model_2;
-  GeModelPtr ge_model_2;
-  (void)BuildGraphNode(graph_id_2, graph_node_2, flow_root_model_2, ge_model_2);
-
-  uint32_t stream_num_dev_avail;
-  (void)aclrtGetStreamAvailableNum(&stream_num_dev_avail);
-  EXPECT_TRUE(AttrUtils::SetInt(ge_model_2, ATTR_MODEL_STREAM_NUM, stream_num_dev_avail + 33));
-  EXPECT_EQ(model_executor.LoadGraph(flow_root_model_2, graph_node_2), FAILED);
-  EXPECT_EQ(model_mgr.model_map_.size(), 0);
-
-  EXPECT_EQ(model_executor.Finalize(), SUCCESS);
-  GetThreadLocalContext().SetGraphOption({});
-}
-
-/**
  * 用例描述：加载model时，设备上实际可用的event数量小于model需要的值，已加载的model数量为1，
  *          已加载model占用的event资源 + 设备可用的event资源 = model需要的event值，加载模型成功
  * 预置条件：
@@ -3930,183 +3839,6 @@ TEST_F(DavinciModelTest, davinci_model_load_check_and_release_event_resource_fai
   EXPECT_EQ(model_executor.LoadGraph(flow_root_model_2, graph_node_2), FAILED);
   EXPECT_EQ(model_mgr.model_map_.size(), 0);
 
-  EXPECT_EQ(model_executor.Finalize(), SUCCESS);
-  GetThreadLocalContext().SetGraphOption({});
-}
-
-/**
- * 用例描述：加载model过程中，设备上实际可用的stream数量小于model需要的值，已加载的model数量大于1，
- *          已加载model占用的stream资源 + 设备可用的stream资源 = model需要的stream值, unload已加载model后，加载model成功
- * 预置条件：
- * 1.流创建及流销毁的桩函数中增加对g_free_stream_num的维护，
- *   g_free_stream_num初始值为2048，流创建时g_free_stream_num减1，流销毁时g_free_stream_num加1
- * 测试步骤
- * 1.构造单个计算图1，ATTR_MODEL_STREAM_NUM设置为32，并加载该子图
- * 2.构造单个计算图2，ATTR_MODEL_STREAM_NUM设置为32，并加载该子图
- * 3.构造单个计算图3，ATTR_MODEL_STREAM_NUM设置为设备上当前可用的stream数量 + 32 + 32
- *
- * 预期结果
- * 1.model1 unload，model2 unload，model3加载成功
- */
-TEST_F(DavinciModelTest, davinci_model_load_check_and_release_multi_model_stream_resource_success) {
-  auto &model_mgr = ModelManager::GetInstance();
-  ModelExecutor model_executor;
-  EXPECT_EQ(model_executor.Initialize({}, 10086), SUCCESS);  // fixed sessionid
-  model_executor.StartRunThread();
-
-  GraphId graph_id_1 = 1;
-  GraphNodePtr graph_node_1;
-  GeRootModelPtr flow_root_model_1;
-  GeModelPtr ge_model_1;
-  (void)BuildGraphNode(graph_id_1, graph_node_1, flow_root_model_1, ge_model_1);
-
-  EXPECT_TRUE(AttrUtils::SetInt(ge_model_1, ATTR_MODEL_STREAM_NUM, 32));
-  EXPECT_EQ(model_executor.LoadGraph(flow_root_model_1, graph_node_1), SUCCESS);
-  EXPECT_EQ(model_mgr.model_map_.size(), 1);
-  model_mgr.model_map_.begin()->second->is_async_mode_ = true;
-
-  GraphId graph_id_2 = 2;
-  GraphNodePtr graph_node_2;
-  GeRootModelPtr flow_root_model_2;
-  GeModelPtr ge_model_2;
-  (void)BuildGraphNode(graph_id_2, graph_node_2, flow_root_model_2, ge_model_2);
-
-  EXPECT_TRUE(AttrUtils::SetInt(ge_model_2, ATTR_MODEL_STREAM_NUM, 32));
-  EXPECT_EQ(model_executor.LoadGraph(flow_root_model_2, graph_node_2), SUCCESS);
-  EXPECT_EQ(model_mgr.model_map_.size(), 2);
-
-  GraphId graph_id_3 = 3;
-  GraphNodePtr graph_node_3;
-  GeRootModelPtr flow_root_model_3;
-  GeModelPtr ge_model_3;
-  (void)BuildGraphNode(graph_id_3, graph_node_3, flow_root_model_3, ge_model_3);
-
-  uint32_t stream_num_dev_avail;
-  (void)aclrtGetStreamAvailableNum(&stream_num_dev_avail);
-  EXPECT_TRUE(AttrUtils::SetInt(ge_model_3, ATTR_MODEL_STREAM_NUM, stream_num_dev_avail + 32 + 32));
-  EXPECT_EQ(model_executor.LoadGraph(flow_root_model_3, graph_node_3), SUCCESS);
-  EXPECT_EQ(model_mgr.model_map_.size(), 1);
-
-  EXPECT_EQ(model_executor.UnloadGraph(flow_root_model_3, graph_id_3), SUCCESS);
-  EXPECT_EQ(model_executor.Finalize(), SUCCESS);
-  GetThreadLocalContext().SetGraphOption({});
-}
-
-/**
- * 用例描述：加载model时，设备上实际可用的stream数量小于model需要的值，已加载的model数量为1，
- *          已加载model占用的tream资源 + 设备可用的stream资源 = model需要的stream值, model可以加载成功
- *          重新加载已经unload的model，可以加载成功
- * 预置条件：
- * 1.流创建及流销毁的桩函数中增加对g_free_stream_num的维护，
- *   g_free_stream_num初始值为2048，流创建时g_free_stream_num减1，流销毁时g_free_stream_num加1
- * 测试步骤
- * 1.构造单个计算图1，ATTR_MODEL_STREAM_NUM设置为32，并加载该子图
- * 2.构造单个计算图3，ATTR_MODEL_STREAM_NUM设置为设备上当前可用的stream数量 + 32，并加载该子图
- * 3.重新加载计算图1
- *
- * 预期结果
- * 1.model1 unload，model2 加载成功，model2 unload，model 1加载成功
- */
-TEST_F(DavinciModelTest, davinci_model_load_check_and_release_model_stream_resource_and_reload_model_success) {
-  auto &model_mgr = ModelManager::GetInstance();
-  ModelExecutor model_executor;
-  EXPECT_EQ(model_executor.Initialize({}, 10086), SUCCESS);  // fixed sessionid
-  model_executor.StartRunThread();
-
-  GraphId graph_id_1 = 1;
-  GraphNodePtr graph_node_1;
-  GeRootModelPtr flow_root_model_1;
-  GeModelPtr ge_model_1;
-  (void)BuildGraphNode(graph_id_1, graph_node_1, flow_root_model_1, ge_model_1);
-
-  EXPECT_TRUE(AttrUtils::SetInt(ge_model_1, ATTR_MODEL_STREAM_NUM, 32));
-  EXPECT_EQ(model_executor.LoadGraph(flow_root_model_1, graph_node_1), SUCCESS);
-  EXPECT_EQ(model_mgr.model_map_.size(), 1);
-  model_mgr.model_map_.begin()->second->is_async_mode_ = true;
-
-  GraphId graph_id_2 = 2;
-  GraphNodePtr graph_node_2;
-  GeRootModelPtr flow_root_model_2;
-  GeModelPtr ge_model_2;
-  (void)BuildGraphNode(graph_id_2, graph_node_2, flow_root_model_2, ge_model_2);
-
-  uint32_t stream_num_dev_avail;
-  (void)aclrtGetStreamAvailableNum(&stream_num_dev_avail);
-  EXPECT_TRUE(AttrUtils::SetInt(ge_model_2, ATTR_MODEL_STREAM_NUM, stream_num_dev_avail + 32));
-  EXPECT_EQ(model_executor.LoadGraph(flow_root_model_2, graph_node_2), SUCCESS);
-  EXPECT_EQ(model_mgr.model_map_.size(), 1);
-
-  EXPECT_EQ(model_executor.LoadGraph(flow_root_model_1, graph_node_1), SUCCESS);
-  EXPECT_EQ(model_mgr.model_map_.size(), 1);
-
-  EXPECT_EQ(model_executor.UnloadGraph(flow_root_model_1, graph_id_1), SUCCESS);
-  EXPECT_EQ(model_executor.Finalize(), SUCCESS);
-  GetThreadLocalContext().SetGraphOption({});
-}
-
-/**
- * 用例描述：加载model时，设备上实际可用的stream数量小于model需要的值，已加载的model数量为1，
- *          已加载model占用的stream资源 + 设备可用的stream资源 = model需要的stream值,
- *          已加载的model包含hccl任务，模型卸载失败，model加载失败
- * 预置条件：
- * 1.流创建及流销毁的桩函数中增加对g_free_stream_num的维护，
- *   g_free_stream_num初始值为2048，流创建时g_free_stream_num减1，流销毁时g_free_stream_num加1
- * 测试步骤
- * 1.构造单个计算图1，ATTR_MODEL_STREAM_NUM设置为32，并加载该子图计算图1包含hccl task
- * 2.构造单个计算图2，ATTR_MODEL_STREAM_NUM设置为设备上当前可用的stream数量 + 32，并加载该子图
- *
- * 预期结果
- * 1.model1 unload 失败，model2 加载失败
- */
-TEST_F(DavinciModelTest, davinci_model_load_check_and_release_model_stream_resource_which_has_hccl_task_failed) {
-  auto &model_mgr = ModelManager::GetInstance();
-  ModelExecutor model_executor;
-  EXPECT_EQ(model_executor.Initialize({}, 10086), SUCCESS);  // fixed sessionid
-  model_executor.StartRunThread();
-
-  // 构造包含hccl task的model1
-  GraphId graph_id_1 = 1;
-  GraphNodePtr graph_node_1;
-  GeModelPtr ge_model_1;
-
-  uint32_t mem_offset = 0;
-  ComputeGraphPtr graph;
-  BuildHcclSampleGraph(graph, mem_offset);
-  EXPECT_NE(graph, nullptr);
-
-  BuildGraphModel(graph, ge_model_1, mem_offset);
-  EXPECT_NE(ge_model_1, nullptr);
-
-  auto ge_root_model = MakeShared<GeRootModel>();
-  ge_root_model->Initialize(graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
-  ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model_1);
-
-  graph_node_1 = MakeShared<GraphNode>(graph_id_1);
-  graph_node_1->SetGeRootModel(ge_root_model);
-  graph_node_1->SetLoadFlag(true);
-  graph_node_1->SetAsync(true);
-
-  EXPECT_TRUE(AttrUtils::SetInt(ge_model_1, ATTR_MODEL_STREAM_NUM, 32));
-  EXPECT_EQ(model_executor.LoadGraph(ge_root_model, graph_node_1), SUCCESS);
-  EXPECT_EQ(model_mgr.model_map_.size(), 1);
-  model_mgr.model_map_.begin()->second->is_async_mode_ = true;
-
-  // 构造model2
-  GraphId graph_id_2 = 2;
-  GraphNodePtr graph_node_2;
-  GeRootModelPtr flow_root_model_2;
-  GeModelPtr ge_model_2;
-  (void)BuildGraphNode(graph_id_2, graph_node_2, flow_root_model_2, ge_model_2);
-
-  uint32_t stream_num_dev_avail;
-  (void)aclrtGetStreamAvailableNum(&stream_num_dev_avail);
-  EXPECT_TRUE(AttrUtils::SetInt(ge_model_2, ATTR_MODEL_STREAM_NUM, stream_num_dev_avail + 32));
-  EXPECT_EQ(model_executor.LoadGraph(flow_root_model_2, graph_node_2), FAILED);
-  EXPECT_EQ(model_mgr.model_map_.size(), 1);
-
-  EXPECT_EQ(model_executor.ReleaseMemory(ge_root_model, graph_node_1), false);
-  EXPECT_EQ(model_executor.UnloadGraph(ge_root_model, graph_id_1), SUCCESS);
   EXPECT_EQ(model_executor.Finalize(), SUCCESS);
   GetThreadLocalContext().SetGraphOption({});
 }

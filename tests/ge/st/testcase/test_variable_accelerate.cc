@@ -273,7 +273,7 @@ class VariableAccSt : public testing::Test {
     mmSetEnv("ENABLE_RUNTIME_V2", &(runtime2_env[0U]), static_cast<uint32_t>(MMPA_MAX_PATH));
   }
   void TearDown() {
-    VarManagerPool::Instance().Destory();
+    VarManagerPool::Instance().Destroy();
     char runtime2_env[MMPA_MAX_PATH] = {'1'};
     mmSetEnv("ENABLE_RUNTIME_V2", &(runtime2_env[0U]), static_cast<uint32_t>(MMPA_MAX_PATH));
   }

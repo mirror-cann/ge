@@ -27,7 +27,6 @@
 namespace ge {
 namespace {
 constexpr uint8_t kNeverLoaded = 0U;
-constexpr uint32_t kExecuteStreamNumPerModel = 1U;
 
 ge::GeModelPtr GetGeModel(const GeRootModelPtr &ge_root_model) {
   if (ge_root_model == nullptr) {
@@ -493,7 +492,6 @@ Status ModelExecutor::ModelLoad(const GeRootModelPtr &ge_root_model, const Graph
   GE_CHK_STATUS_RET(ge_root_model->CheckIsUnknownShape(is_unknown_shape));
   if (!is_unknown_shape) {
     GE_CHK_STATUS_RET(CheckAndReleaseMemory(ge_root_model, graph_node));
-    GE_CHK_STATUS_RET(CheckAndReleaseStream(ge_root_model, graph_node));
     GE_CHK_STATUS_RET(CheckAndReleaseEvent(ge_root_model, graph_node));
   }
 
@@ -823,84 +821,6 @@ Status ModelExecutor::CheckAndReleaseMemory(const GeRootModelPtr &ge_root_model,
 
 bool ModelExecutor::DoReleaseModel(const GeRootModelPtr &ge_root_model, const GraphNodePtr &loaded_graph_node) const {
   return ReleaseMemory(ge_root_model, loaded_graph_node);
-}
-
-Status ModelExecutor::GetStreamNum(const GeRootModelPtr &ge_root_model, uint32_t &stream_num,
-                                   uint64_t &hccl_follow_stream) const {
-  const auto ge_model = GetGeModel(ge_root_model);
-  GE_CHECK_NOTNULL(ge_model);
-
-  uint32_t model_stream_num = 0U;
-  (void)AttrUtils::GetInt(ge_model, ATTR_MODEL_STREAM_NUM, model_stream_num);
-
-  const Status status = ModelUtils::CalculateFollowStream(ge_model, hccl_follow_stream);
-  if (status != SUCCESS) {
-    GELOGE(FAILED, "[Calculate][stream] Calculate follow stream num failed");
-    return FAILED;
-  }
-  stream_num = model_stream_num + static_cast<uint32_t>(hccl_follow_stream) + kExecuteStreamNumPerModel;
-  GELOGI("model_id=%u, model total stream num: %u, model stream num: %u, hccl follow stream num: %zu",
-         ge_root_model->GetModelId(), stream_num, model_stream_num, hccl_follow_stream);
-
-  return SUCCESS;
-}
-
-Status ModelExecutor::CheckAndReleaseStream(const GeRootModelPtr &ge_root_model, const GraphNodePtr &graph_node) {
-  uint32_t required_stream_num = 0U;
-  uint64_t hccl_follow_stream_num = 0U;
-  if (GetStreamNum(ge_root_model, required_stream_num, hccl_follow_stream_num) != SUCCESS) {
-    return FAILED;
-  }
-
-  uint32_t available_stream_num = 0U;
-  GE_CHK_ACL_RET(aclrtSetDevice(static_cast<int32_t>(GetContext().DeviceId())));
-  GE_CHK_ACL_RET(aclrtGetStreamAvailableNum(&available_stream_num));
-
-  if (required_stream_num <= available_stream_num) {
-    GELOGI("Graph id[%u] no need to unload other models, required stream num[%u], available stream num[%u]",
-           graph_node->GetGraphId(), required_stream_num, available_stream_num);
-    GE_CHK_ACL_RET(aclrtResetDevice(static_cast<int32_t>(GetContext().DeviceId())));
-    return SUCCESS;
-  }
-
-  GEEVENT("Graph id[%u] need to unload other models, if have any, required stream num[%u], available stream num[%u]",
-          graph_node->GetGraphId(), required_stream_num, available_stream_num);
-
-  const std::lock_guard<std::mutex> lk(mutex_);
-  for (const auto &it : graph_nodes_) {
-    if ((it.second == nullptr) || (!it.second->GetLoadFlag())) {  // not loaded,no need unload
-      GELOGI("Check and release stream resource, graph[%u] has not been loaded.", it.first);
-      continue;
-    }
-
-    if (!ReleaseModel(it.second->GetGeRootModel(), it.second)) {
-      continue;
-    }
-
-    it.second->SetLoadFlag(false);
-    // Allow model to be loaded agagin without adding graph again
-    it.second->SetLoadCount(it.second->GetLoadRecord());
-    it.second->SetLoadRecord(kNeverLoaded);
-
-    GE_CHK_ACL_RET(aclrtGetStreamAvailableNum(&available_stream_num));
-    if (required_stream_num <= available_stream_num) {
-      GE_CHK_ACL_RET(aclrtResetDevice(static_cast<int32_t>(GetContext().DeviceId())));
-      return SUCCESS;
-    }
-  }
-
-  GE_CHK_ACL_RET(aclrtResetDevice(static_cast<int32_t>(GetContext().DeviceId())));
-  REPORT_INNER_ERR_MSG("E19999",
-                       "Graph id[%u] check and release stream failed, required total stream num[%u], required hccl "
-                       "follow stream num[%u], available stream num[%u]",
-                       graph_node->GetGraphId(), required_stream_num, static_cast<uint32_t>(hccl_follow_stream_num),
-                       available_stream_num);
-  GELOGE(FAILED,
-         "Graph id[%u] check and release stream failed, required total stream num[%u], required hccl follow stream "
-         "num[%u], available stream num[%u]",
-         graph_node->GetGraphId(), required_stream_num, hccl_follow_stream_num, available_stream_num);
-
-  return FAILED;
 }
 
 Status ModelExecutor::GetEventNum(const GeRootModelPtr &ge_root_model, uint32_t &event_num) const {

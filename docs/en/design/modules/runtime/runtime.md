@@ -345,7 +345,7 @@ ModelExecutor needs to handle "loading decision" — when resources are insuffic
 6. If still not enough, continue unloading next model
 ```
 
-Same logic also applies to stream (`CheckAndReleaseStream`) and event (`CheckAndReleaseEvent`) resource recycling. This design ensures in device resource-limited situations, system still can run new models through "replace old with new" way.
+Same logic also applies to event (`CheckAndReleaseEvent`) resource recycling. This design ensures in device resource-limited situations, system still can run new models through "replace old with new" way.
 
 HCCL (Huawei Collective Communication Library) involves cross-device communication, unloading will破坏 communication topology integrity. This is an important constraint in distributed training scenarios.
 

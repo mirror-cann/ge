@@ -342,22 +342,6 @@ rtError_t RuntimeStubImpl::rtStreamCreateWithFlags(rtStream_t *stream, int32_t p
   stream_stub_.CreateStream(stream);
   return RT_ERROR_NONE;
 }
-rtError_t RuntimeStubImpl::rtGetAvailStreamNum(uint32_t streamType, uint32_t *const streamCount) {
-  const char *const kEnvRecordPath = "MOCK_AVAIL_STREAM_NUM";
-  char record_path[8] = {};
-  int32_t ret = mmGetEnv(kEnvRecordPath, &record_path[0], static_cast<uint32_t>(8));
-  if ((ret != EN_OK) || (strlen(record_path) == 0)) {
-    *streamCount = 2048;
-    return RT_ERROR_NONE;
-  }
-  try {
-    *streamCount = std::stoi(std::string(record_path));
-    return RT_ERROR_NONE;
-  } catch (...) {
-  }
-  *streamCount = 2048;
-  return RT_ERROR_NONE;
-}
 rtError_t RuntimeStubImpl::rtStreamDestroyForce(rtStream_t stream) {
   stream_stub_.DestoryStream(stream);
   return RT_ERROR_NONE;
@@ -560,22 +544,6 @@ aclError AclRuntimeStubImpl::aclrtDestroyStream(aclrtStream stream) {
 
 aclError AclRuntimeStubImpl::aclrtDestroyStreamForce(aclrtStream stream) {
   stream_stub_.DestoryStream(stream);
-  return ACL_SUCCESS;
-}
-aclError AclRuntimeStubImpl::aclrtGetStreamAvailableNum(uint32_t *streamCount) {
-  const char *const kEnvRecordPath = "MOCK_AVAIL_STREAM_NUM";
-  char record_path[8] = {};
-  int32_t ret = mmGetEnv(kEnvRecordPath, &record_path[0], static_cast<uint32_t>(8));
-  if ((ret != EN_OK) || (strlen(record_path) == 0)) {
-    *streamCount = 2048;
-    return ACL_SUCCESS;
-  }
-  try {
-    *streamCount = std::stoi(std::string(record_path));
-    return ACL_SUCCESS;
-  } catch (...) {
-  }
-  *streamCount = 2048;
   return ACL_SUCCESS;
 }
 

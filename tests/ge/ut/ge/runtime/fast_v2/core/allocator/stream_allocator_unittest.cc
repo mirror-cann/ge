@@ -62,11 +62,4 @@ TEST_F(StreamAllocatorUT, AcquireStreams_FirstOneIsReserved) {
   streams->MutableData()[0] = (rtStream_t)(1);
   // 析构时不会释放第0个，所以即使是个非法stream也不会报错
 }
-
-TEST_F(StreamAllocatorUT, AcquireStreams_Fail_NoEnoughStreamResource) {
-  uint32_t system_stream_cap = 0;
-  ASSERT_EQ(aclrtGetStreamAvailableNum(&system_stream_cap), RT_ERROR_NONE);
-  StreamAllocator sa;
-  EXPECT_EQ(sa.AcquireStreams(system_stream_cap + 8U), nullptr);
-}
 }  // namespace gert

@@ -24,10 +24,10 @@ static uint64_t default_session_id = 0xff66ff;
 class UtestRtVarManager : public testing::Test {
  protected:
   void SetUp() {
-    VarManagerPool::Instance().Destory();
+    VarManagerPool::Instance().Destroy();
   }
   void TearDown() {
-    VarManagerPool::Instance().Destory();
+    VarManagerPool::Instance().Destroy();
   }
 };
 
@@ -69,7 +69,7 @@ TEST(UtestRtVarManager, restore_varibles) {
   EXPECT_EQ(rt_var_manager->GetVarShapeAndMemory("var0", rt_shape, rt_tensor_data), SUCCESS);
   EXPECT_NE(rt_var_manager->GetVarShapeAndMemory("constant", rt_shape, rt_tensor_data), SUCCESS);
   rt_var_manager->name_to_var_info_.clear();
-  VarManager::Instance(default_session_id)->Destory();
+  VarManager::Instance(default_session_id)->Destroy();
 }
 
 TEST(UtestRtVarManager, restore_varibles_auto_malloc) {
@@ -103,7 +103,7 @@ TEST(UtestRtVarManager, restore_varibles_auto_malloc) {
   gert::TensorData rt_tensor_data;
   EXPECT_EQ(rt_var_manager->GetVarShapeAndMemory("var0", rt_shape, rt_tensor_data), SUCCESS);
   EXPECT_NE(rt_var_manager->GetVarShapeAndMemory("constant", rt_shape, rt_tensor_data), SUCCESS);
-  VarManager::Instance(default_session_id)->Destory();
+  VarManager::Instance(default_session_id)->Destroy();
 }
 
 TEST(UtestRtVarManager, restore_varibles_auto_malloc_helper_enable) {
@@ -137,7 +137,7 @@ TEST(UtestRtVarManager, restore_varibles_auto_malloc_helper_enable) {
   gert::TensorData rt_tensor_data;
   EXPECT_EQ(rt_var_manager->GetVarShapeAndMemory("var0", rt_shape, rt_tensor_data), SUCCESS);
   EXPECT_NE(rt_var_manager->GetVarShapeAndMemory("constant", rt_shape, rt_tensor_data), SUCCESS);
-  VarManager::Instance(default_session_id)->Destory();
+  VarManager::Instance(default_session_id)->Destroy();
 }
 
 TEST(UtestRtVarManager, restore_varibles_external_var) {
@@ -174,6 +174,6 @@ TEST(UtestRtVarManager, restore_varibles_external_var) {
   EXPECT_EQ(rt_var_manager->GetVarShapeAndMemory("var0", rt_shape, rt_tensor_data), SUCCESS);
   EXPECT_NE(rt_var_manager->GetVarShapeAndMemory("constant", rt_shape, rt_tensor_data), SUCCESS);
   aclrtFree(var_addr);
-  VarManager::Instance(default_session_id)->Destory();
+  VarManager::Instance(default_session_id)->Destroy();
 }
 }  // namespace ge

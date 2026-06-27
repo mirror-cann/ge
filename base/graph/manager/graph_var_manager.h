@@ -292,7 +292,7 @@ class VarManager {
 
   void SetMemManager(MemoryManager *const mem_manager);
 
-  void Destory();
+  void Destroy();
 
   Status AssignVarMem(const std::string &var_name, const OpDescPtr &op_desc, const GeTensorDesc &tensor_desc,
                       rtMemType_t memory_type);
@@ -538,7 +538,7 @@ class VarManagerPool {
 
   void RemoveVarManager(const uint64_t session_id);
 
-  void Destory() noexcept;
+  void Destroy() noexcept;
 
  private:
   VarManagerPool() = default;

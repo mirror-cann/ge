@@ -51,7 +51,7 @@ TEST_F(UtestModelUtils, get_var_addr_hbm) {
   EXPECT_NE(ModelUtils::GetVarAddr(runtime_param, offset, var_addr), SUCCESS);
   EXPECT_NE(ModelUtils::GetRtAddress(runtime_param, 0, pf), SUCCESS);
   VarManager::Instance(runtime_param.session_id)->FreeVarMemory();
-  VarManager::Instance(runtime_param.session_id)->Destory();
+  VarManager::Instance(runtime_param.session_id)->Destroy();
 }
 
 TEST_F(UtestModelUtils, get_rt_address_and_mem_type) {
@@ -96,7 +96,7 @@ TEST_F(UtestModelUtils, get_rt_address_and_mem_type) {
   EXPECT_EQ(ModelUtils::GetRtAddress(runtime_param, 0x14000, pf, mem_type), SUCCESS);
   EXPECT_EQ(mem_type, RT_MEMORY_P2P_DDR);
   VarManager::Instance(runtime_param.session_id)->FreeVarMemory();
-  VarManager::Instance(runtime_param.session_id)->Destory();
+  VarManager::Instance(runtime_param.session_id)->Destroy();
 }
 
 TEST_F(UtestModelUtils, get_var_addr_rdma_hbm) {
@@ -133,7 +133,7 @@ TEST_F(UtestModelUtils, get_var_addr_rdma_hbm_negative_offset) {
   VarManager::Instance(runtime_param.session_id)->var_resource_->var_offset_map_[offset] = RT_MEMORY_RDMA_HBM;
   void *var_addr = nullptr;
   EXPECT_NE(ModelUtils::GetVarAddr(runtime_param, offset, var_addr), SUCCESS);
-  VarManager::Instance(runtime_param.session_id)->Destory();
+  VarManager::Instance(runtime_param.session_id)->Destroy();
 }
 
 TEST_F(UtestModelUtils, get_var_addr_with_invalid_mem_type) {
@@ -151,7 +151,7 @@ TEST_F(UtestModelUtils, get_var_addr_with_invalid_mem_type) {
   VarManager::Instance(runtime_param.session_id)->var_resource_->var_offset_map_[offset] = INT32_MAX;
   void *var_addr = nullptr;
   EXPECT_NE(ModelUtils::GetVarAddr(runtime_param, offset, var_addr), SUCCESS);
-  VarManager::Instance(runtime_param.session_id)->Destory();
+  VarManager::Instance(runtime_param.session_id)->Destroy();
 }
 
 TEST_F(UtestModelUtils, test_GetInputDataAddrs_input_const) {
@@ -283,7 +283,7 @@ TEST_F(UtestModelUtils, GetInputDataAddrs_tensor_mem_type_with_variable) {
   const vector<void *> output_data_addr = ModelUtils::GetOutputDataAddrs(runtime_param, op_desc);
   EXPECT_EQ(output_data_addr.size(), 1);
   VarManager::Instance(runtime_param.session_id)->FreeVarMemory();
-  VarManager::Instance(runtime_param.session_id)->Destory();
+  VarManager::Instance(runtime_param.session_id)->Destroy();
   runtime_param.ts_mem_mall->mem_store_size_.clear();
   runtime_param.ts_mem_mall->mem_store_addr_.clear();
 }

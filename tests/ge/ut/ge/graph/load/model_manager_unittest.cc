@@ -1185,12 +1185,6 @@ TEST_F(UtestModelManagerModelManager, TestLoadModelWithQueueParamNeedUpdateSessi
   ASSERT_EQ(model_manager.model_map_.count(model_id), 0);
 }
 
-TEST_F(UtestModelManagerModelManager, Cal_follow_stream_sum) {
-  std::multimap<int64_t, uint64_t> hccl_stream_map = {{1, 10}, {1, 20}, {2, 10}, {2, 5}};
-  uint64_t result = ModelUtils::CalFollowStreamSum(hccl_stream_map);
-  EXPECT_EQ(result, 30);
-}
-
 TEST_F(UtestModelManagerModelManager, record_ts_snapshot_success) {
   const std::string kTriggerFile = "exec_record_trigger";
   const char_t *const kEnvRecordPath = "NPU_COLLECT_PATH";

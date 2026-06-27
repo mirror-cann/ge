@@ -220,7 +220,6 @@ class RuntimeStub {
 
   virtual rtError_t rtStreamCreate(rtStream_t *stream, int32_t priority);
   virtual rtError_t rtStreamCreateWithFlags(rtStream_t *stream, int32_t priority, uint32_t flags);
-  virtual rtError_t rtGetAvailStreamNum(const uint32_t streamType, uint32_t *const streamCount);
   virtual rtError_t rtStreamDestroyForce(rtStream_t stream);
   virtual rtError_t rtStreamDestroy(rtStream_t stream);
   virtual rtError_t rtStreamSetMode(rtStream_t stm, const uint64_t stmMode);

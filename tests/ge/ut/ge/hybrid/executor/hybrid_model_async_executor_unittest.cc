@@ -300,7 +300,6 @@ TEST_F(UtestHybridModelAsyncExecutor, Test_multiStream_execute_by_runGraph_with_
 
 TEST_F(UtestHybridModelAsyncExecutor, Test_multiStream_execute_by_runGraph_with_rtv2_rollback_singleStream) {
   setenv("ENABLE_RUNTIME_V2", "1", 0);
-  setenv("MOCK_AVAIL_STREAM_NUM", "1", 0);  // only has 1 stream
   int64_t stream_num = 1;
   int64_t event_num = 0;
   auto graph = ShareGraph::MultiStreamTwoNodeGraph(stream_num, event_num);
@@ -348,12 +347,9 @@ TEST_F(UtestHybridModelAsyncExecutor, Test_multiStream_execute_by_runGraph_with_
     std::vector<gert::Tensor> gert_outputs_pro;
     ASSERT_EQ(executor.Execute(gert_inputs_pro, gert_outputs_pro), SUCCESS);
     EXPECT_EQ(executor.Init(stream), SUCCESS);
-    auto all_rt_streams = runtime_stub.GetAclRuntimeStub().GetAllRtStreams();
-    ASSERT_EQ(all_rt_streams.size(), 0);  // execute on 1 streams, use external stream, no need create streams
     ASSERT_EQ(executor.ExecuteWithStreamAsync(inputs, outputs, stream), SUCCESS);
   }
   unsetenv("ENABLE_RUNTIME_V2");
-  unsetenv("MOCK_AVAIL_STREAM_NUM");
   runtime_stub.Clear();
 }
 

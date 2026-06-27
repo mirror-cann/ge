@@ -86,7 +86,7 @@ struct ScaleAllocatorTest : public testing::Test {
  protected:
   void SetUp() {
     if (caching_allocator == nullptr) {
-      ge::VarManagerPool::Instance().Destory();
+      ge::VarManagerPool::Instance().Destroy();
       memory::RtsCachingMemAllocator::GetAllocator(0, RT_MEMORY_HBM)->Recycle();
       memory::RtsCachingMemAllocator::device_id_to_allocators_.clear();
       auto mock_runtime = std::make_shared<MockRuntime>();

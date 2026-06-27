@@ -2058,7 +2058,7 @@ TEST_F(GraphCompilerTest, test_graph_with_transdata) {
   auto ret = graph_manager.OptimizeStage1(graph);
   EXPECT_EQ(ret, SUCCESS);
   EXPECT_EQ(graph->TopologicalSorting(), SUCCESS);  // topo success, no cycle
-  session_0_var_manager->Destory();
+  session_0_var_manager->Destroy();
   VarManagerPool::Instance().RemoveVarManager(0);
 }
 
@@ -2078,7 +2078,7 @@ TEST_F(GraphCompilerTest, SetAllowMultiGraphParallelCompileTrue_Check_CloseVaria
       "get option ge.AllowMultiGraphParallelCompile = \"1\", turn off VariableOpPass");
   EXPECT_NE(log_check, -1);
   EXPECT_EQ(graph->TopologicalSorting(), SUCCESS);  // topo success, no cycle
-  session_0_var_manager->Destory();
+  session_0_var_manager->Destroy();
   VarManagerPool::Instance().RemoveVarManager(0);
 }
 
@@ -5589,7 +5589,7 @@ TEST_F(GraphCompilerTest, test_build_memory_var_assign) {
  *      print
  */
 TEST_F(GraphCompilerTest, test_build_memory_var_ref) {
-  VarManager::Instance(0)->Destory();
+  VarManager::Instance(0)->Destroy();
   VarManager::Instance(0)->Init(0, 0, 0, 0);
   vector<std::string> engine_list = {"AIcoreEngine"};
   auto hcom = OP_CFG(HCOMBROADCAST).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 224, 224});
@@ -7126,7 +7126,7 @@ TEST_F(GraphCompilerTest, test_graph_with_autofuse) {
   EXPECT_EQ(out_desc->GetAttrsGroup<SymbolicDescAttr>()->symbolic_tensor.GetOriginSymbolShape().GetDims(),
             std::vector<Expression>({Symbol(4), Symbol(5), Symbol(6)}));
 
-  session_0_var_manager->Destory();
+  session_0_var_manager->Destroy();
   VarManagerPool::Instance().RemoveVarManager(0);
   unsetenv("AUTOFUSE_FLAGS");
   mmSetEnv("ASCEND_OPP_PATH", old_opp_path_env, 1);
@@ -7174,7 +7174,7 @@ TEST_F(GraphCompilerTest, test_graph_with_autofuse_op_precisious) {
               "success");
   };
 
-  session_0_var_manager->Destory();
+  session_0_var_manager->Destroy();
   VarManagerPool::Instance().RemoveVarManager(0);
   unsetenv("AUTOFUSE_FLAGS");
   mmSetEnv("ASCEND_OPP_PATH", old_opp_path_env, 1);
@@ -7229,7 +7229,7 @@ TEST_F(GraphCompilerTest, test_graph_with_autofuse_op_precisious_with_subgraph) 
     EXPECT_EQ(gert::SummaryChecker(subgraph).StrictDirectNodeTypes({{"Data", 1}, {"Relu", 1}, {"NetOutput", 1}}),
               "success");
   }
-  session_0_var_manager->Destory();
+  session_0_var_manager->Destroy();
   VarManagerPool::Instance().RemoveVarManager(0);
   unsetenv("AUTOFUSE_FLAGS");
   mmSetEnv("ASCEND_OPP_PATH", old_opp_path_env, 1);
@@ -7280,7 +7280,7 @@ TEST_F(GraphCompilerTest, test_graph_with_autofuse_reshape_handle) {
       }
     }
   };
-  session_0_var_manager->Destory();
+  session_0_var_manager->Destroy();
   VarManagerPool::Instance().RemoveVarManager(0);
   unsetenv("AUTOFUSE_FLAGS");
   mmSetEnv("ASCEND_OPP_PATH", old_opp_path_env, 1);
@@ -7349,7 +7349,7 @@ TEST_F(GraphCompilerTest, test_graph_with_autofuse_withcontrolgraph) {
   AutofuseOptimize autofuser;
   ASSERT_EQ(autofuser.Run(graph, inputs), ge::GRAPH_SUCCESS);
 
-  session_0_var_manager->Destory();
+  session_0_var_manager->Destroy();
   VarManagerPool::Instance().RemoveVarManager(0);
   unsetenv("AUTOFUSE_FLAGS");
   mmSetEnv("ASCEND_OPP_PATH", old_opp_path_env, 1);
@@ -7393,7 +7393,7 @@ TEST_F(GraphCompilerTest, test_graph_with_autofuse_single_op) {
   EXPECT_NE(out_desc, nullptr);
   EXPECT_EQ(out_desc->GetAttrsGroup<SymbolicDescAttr>(), nullptr);
 
-  session_0_var_manager->Destory();
+  session_0_var_manager->Destroy();
   VarManagerPool::Instance().RemoveVarManager(0);
   unsetenv("AUTOFUSE_FLAGS");
   ge::GetThreadLocalContext().SetGlobalOption(global_options);

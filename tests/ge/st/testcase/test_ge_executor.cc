@@ -96,12 +96,12 @@ class GeExecutorTest : public testing::Test {
     BenchEnv::Init();
     actual_info_type.clear();
     ModelManager::GetInstance().cust_aicpu_so_.clear();
-    VarManagerPool::Instance().Destory();
+    VarManagerPool::Instance().Destroy();
   }
   void TearDown() override {
     actual_info_type.clear();
     ModelManager::GetInstance().cust_aicpu_so_.clear();
-    VarManagerPool::Instance().Destory();
+    VarManagerPool::Instance().Destroy();
   }
 
  public:
@@ -1382,7 +1382,7 @@ TEST_F(GeExecutorTest, sample_davinci_model_recover_single_model) {
 
 TEST_F(GeExecutorTest, sample_davinci_model_lora_format_changed) {
   dlog_setlevel(0, 0, 0);
-  VarManagerPool::Instance().Destory();
+  VarManagerPool::Instance().Destroy();
   int64_t value_0 = 127;
   int64_t value_1 = 100;
   int64_t value_2 = 258;

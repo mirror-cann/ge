@@ -58,10 +58,10 @@ OpDescPtr CreateFileConstOpDesc(const std::string &name, const GeTensorPtr &tens
 class UtestGraphVarManagerTest : public testing::Test {
  protected:
   void SetUp() {
-    VarManagerPool::Instance().Destory();
+    VarManagerPool::Instance().Destroy();
   }
   void TearDown() {
-    VarManagerPool::Instance().Destory();
+    VarManagerPool::Instance().Destroy();
   }
 };
 
@@ -592,7 +592,7 @@ TEST_F(UtestGraphVarManagerTest, test_var_manager_restore_var_mem) {
   tensor_desc2.SetDataType(DT_COMPLEX64);
   TensorUtils::SetSize(tensor_desc2, shape2.GetShapeSize());
   EXPECT_NE(var_manager->RestoreVarMem("tmp_var", desc, tensor_desc2, RT_MEMORY_HBM), SUCCESS);
-  var_manager->Destory();
+  var_manager->Destroy();
 }
 
 TEST_F(UtestGraphVarManagerTest, test_init_var_if_has_init_value_match) {

@@ -829,9 +829,9 @@ std::shared_ptr<VarManager> VarManager::Instance(const uint64_t session_id) {
   return VarManagerPool::Instance().GetVarManager(session_id);
 }
 
-void VarManager::Destory() {
+void VarManager::Destroy() {
   const std::lock_guard<std::recursive_mutex> lock(mutex_);
-  GELOGI("VarManager::Destory, session id = %" PRIu64 ".", session_id_);
+  GELOGI("VarManager::Destroy, session id = %" PRIu64 ".", session_id_);
   (void)FreeVarMemory();
   version_ = SessionVersion::OTHER_VERSION;
   device_id_ = kDefaultDeviceId;
@@ -1734,7 +1734,7 @@ bool VarManager::HasMemoryManager() const {
 }
 
 VarManagerPool::~VarManagerPool() {
-  Destory();
+  Destroy();
 }
 
 VarManagerPool &VarManagerPool::Instance() {
@@ -1742,11 +1742,11 @@ VarManagerPool &VarManagerPool::Instance() {
   return var_manager_pool;
 }
 
-void VarManagerPool::Destory() noexcept {
+void VarManagerPool::Destroy() noexcept {
   const std::lock_guard<std::mutex> lock(var_manager_mutex_);
   for (auto &it : var_manager_map_) {
     if (it.second != nullptr) {
-      it.second->Destory();
+      it.second->Destroy();
     }
   }
   var_manager_map_.clear();
@@ -1781,7 +1781,7 @@ void VarManagerPool::RemoveVarManager(const uint64_t session_id) {
   }
 
   if (var_manager != nullptr) {
-    var_manager->Destory();
+    var_manager->Destroy();
   }
 }
 }  // namespace ge

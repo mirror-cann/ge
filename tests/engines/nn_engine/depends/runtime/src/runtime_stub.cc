@@ -310,14 +310,6 @@ rtError_t rtCtxSetCurrent(rtContext_t ctx) {
   return RT_ERROR_NONE;
 }
 
-rtError_t rtGetAvailStreamNum(const uint32_t streamType, uint32_t *const streamCount) {
-  (void)streamType;
-  if (streamCount != nullptr) {
-    *streamCount = 2048;
-  }
-  return RT_ERROR_NONE;
-}
-
 rtError_t rtGetAvailEventNum(uint32_t *const eventCount) {
   if (eventCount != nullptr) {
     *eventCount = 2048;

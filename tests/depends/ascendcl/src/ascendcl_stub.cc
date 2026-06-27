@@ -686,11 +686,6 @@ aclError AclRuntimeStub::aclrtMemcpyAsync(void *dst, size_t dest_max, const void
   return ACL_SUCCESS;
 }
 
-aclError AclRuntimeStub::aclrtMemcpyAsyncWithCondition(void *dst, size_t destMax, const void *src, size_t count,
-                                                       aclrtMemcpyKind kind, aclrtStream stream) {
-  return aclrtMemcpyAsync(dst, destMax, src, count, kind, stream);
-}
-
 aclError AclRuntimeStub::aclrtGetMemInfo(aclrtMemAttr attr, size_t *free_size, size_t *total) {
   *free_size = 64UL * 1024UL * 1024UL;
   *total = 128UL * 1024UL * 1024UL;
@@ -959,24 +954,6 @@ aclError AclRuntimeStub::aclrtSetOpExecuteTimeOutWithMs(uint32_t timeout) {
 }
 
 aclError AclRuntimeStub::aclrtSetOpExecuteTimeOutV2(uint64_t timeout, uint64_t *actualTimeout) {
-  return ACL_SUCCESS;
-}
-
-aclError AclRuntimeStub::aclrtGetStreamAvailableNum(uint32_t *streamCount) {
-  const char *const kEnvRecordPath = "MOCK_AVAIL_STREAM_NUM";
-  char record_path[8] = {};
-  int32_t ret = mmGetEnv(kEnvRecordPath, &record_path[0], static_cast<uint32_t>(8));
-  if ((ret != EN_OK) || (strlen(record_path) == 0)) {
-    *streamCount = g_free_stream_num;
-    return ACL_SUCCESS;
-  }
-  try {
-    *streamCount = std::stoi(std::string(record_path));
-    return ACL_SUCCESS;
-  } catch (...) {
-    return 1;  // SOME ERROR
-  }
-  *streamCount = g_free_stream_num;
   return ACL_SUCCESS;
 }
 
@@ -1564,11 +1541,6 @@ aclError aclrtMemcpyAsync(void *dst, size_t dest_max, const void *src, size_t sr
   return ge::AclRuntimeStub::GetInstance()->aclrtMemcpyAsync(dst, dest_max, src, src_count, kind, stream);
 }
 
-aclError aclrtMemcpyAsyncWithCondition(void *dst, size_t destMax, const void *src, size_t count, aclrtMemcpyKind kind,
-                                       aclrtStream stream) {
-  return ge::AclRuntimeStub::GetInstance()->aclrtMemcpyAsyncWithCondition(dst, destMax, src, count, kind, stream);
-}
-
 aclError aclrtGetMemInfo(aclrtMemAttr attr, size_t *free_size, size_t *total) {
   return ge::AclRuntimeStub::GetInstance()->aclrtGetMemInfo(attr, free_size, total);
 }
@@ -1753,10 +1725,6 @@ aclError aclrtSetOpExecuteTimeOutWithMs(uint32_t timeout) {
 
 aclError aclrtSetOpExecuteTimeOutV2(uint64_t timeout, uint64_t *actualTimeout) {
   return ge::AclRuntimeStub::GetInstance()->aclrtSetOpExecuteTimeOutV2(timeout, actualTimeout);
-}
-
-aclError aclrtGetStreamAvailableNum(uint32_t *streamCount) {
-  return ge::AclRuntimeStub::GetInstance()->aclrtGetStreamAvailableNum(streamCount);
 }
 
 aclError aclrtSetStreamResLimit(aclrtStream stream, aclrtDevResLimitType type, uint32_t value) {
