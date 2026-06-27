@@ -363,14 +363,15 @@ void CreateBuiltInSplitAndUpgradedSo(std::vector<std::string> &paths) {
   auto path_infos = CreateSceneInfo();
   auto opp_path = path_infos[1U];
 
-  std::string proto_path = opp_path + "built-in/op_proto/lib/linux/x86_64";
+  const std::string arch = GetCurArch();
+  std::string proto_path = opp_path + "built-in/op_proto/lib/linux/" + arch;
   system(("mkdir -p " + proto_path).c_str());
   proto_path += "/a_rt.so";
   paths.emplace_back(proto_path);
   system(("touch " + proto_path).c_str());
   system(("echo 'ops proto 123' > " + proto_path).c_str());
 
-  std::string tiling_path = opp_path + "built-in/op_impl/ai_core/tbe/op_tiling/lib/linux/x86_64";
+  std::string tiling_path = opp_path + "built-in/op_impl/ai_core/tbe/op_tiling/lib/linux/" + arch;
   system(("mkdir -p " + tiling_path).c_str());
   tiling_path += "/b_rt.so";
   paths.emplace_back(tiling_path);
@@ -388,29 +389,30 @@ void CreateBuiltInSplitAndUpgradedSo(std::vector<std::string> &paths) {
 void CreateBuiltInSubPkgSo(std::vector<std::string> &paths) {
   auto path_infos = CreateSceneInfo();
   auto opp_path = path_infos[1U];
+  const std::string arch = GetCurArch();
 
-  std::string proto_path = opp_path + "built-in/op_proto/lib/linux/x86_64";
+  std::string proto_path = opp_path + "built-in/op_proto/lib/linux/" + arch;
   system(("mkdir -p " + proto_path).c_str());
   proto_path += "/a_rt.so";
   paths.emplace_back(proto_path);
   system(("touch " + proto_path).c_str());
   system(("echo 'ops proto 123' > " + proto_path).c_str());
 
-  std::string tiling_path = opp_path + "built-in/op_impl/ai_core/tbe/op_tiling/lib/linux/x86_64";
+  std::string tiling_path = opp_path + "built-in/op_impl/ai_core/tbe/op_tiling/lib/linux/" + arch;
   system(("mkdir -p " + tiling_path).c_str());
   tiling_path += "/b_rt.so";
   paths.emplace_back(tiling_path);
   system(("touch " + tiling_path).c_str());
   system(("echo 'op tiling 456' > " + tiling_path).c_str());
 
-  proto_path = opp_path + "built-in/op_graph/lib/linux/x86_64";
+  proto_path = opp_path + "built-in/op_graph/lib/linux/" + arch;
   system(("mkdir -p " + proto_path).c_str());
   proto_path += "/libopgraph_math.so";
   paths.emplace_back(proto_path);
   system(("touch " + proto_path).c_str());
   system(("echo 'ops proto 123' > " + proto_path).c_str());
 
-  tiling_path = opp_path + "built-in/op_impl/ai_core/tbe/op_host/lib/linux/x86_64";
+  tiling_path = opp_path + "built-in/op_impl/ai_core/tbe/op_host/lib/linux/" + arch;
   system(("mkdir -p " + tiling_path).c_str());
   tiling_path += "/libophost_math.so";
   paths.emplace_back(tiling_path);
