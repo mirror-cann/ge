@@ -60,6 +60,7 @@ using json = nlohmann::json;
 using amctStatus = int32_t;
 static bool is_dynamic_input = false;
 const char *const kAmctSo = "libamctacl.so";
+const char *const kLegacySoSuffix = "_legacy.so";
 const char *const kModeSupport =
     "The value must be selected from the following: 0(model to framework model), "
     "1(framework model to json), 3(only pre-check), "
@@ -1107,6 +1108,12 @@ class GFlagUtils {
   }
 };
 
+bool IsLegacySoFile(const std::string &file_path) {
+  return file_path.size() < std::strlen(kLegacySoSuffix) ||
+         file_path.compare((file_path.size() - std::strlen(kLegacySoSuffix)), std::strlen(kLegacySoSuffix),
+                           kLegacySoSuffix) != 0;
+}
+
 namespace {
 void SetDynamicInputSizeOptions() {
   if (!FLAGS_dynamic_batch_size.empty()) {
@@ -1252,6 +1259,9 @@ void LoadCustomOpLib(bool need_load_ops_plugin) {
 
   // whether there are files in the plugin so path
   GetPluginSoFileList(plugin_path, fileList, caffe_parser_path);
+
+  // sort, move "_legacy.so" to the end
+  std::stable_partition(fileList.begin(), fileList.end(), ge::IsLegacySoFile);
 
   // no file
   if (fileList.empty() && caffe_parser_path.empty()) {

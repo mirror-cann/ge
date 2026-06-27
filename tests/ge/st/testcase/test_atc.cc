@@ -3570,4 +3570,49 @@ TEST_F(AtcCommonSTest, pb_model_amct_interface_dlopen_fail_with_error) {
   MmpaStub::GetInstance().Reset();
   ReInitGe();
 }
+
+TEST_F(AtcCommonSTest, pb_model_load_custom_op_with_legacy_so) {
+  char_t orig_opp[MMPA_MAX_PATH] = {'\0'};
+  bool had_opp = (mmGetEnv("ASCEND_OPP_PATH", orig_opp, MMPA_MAX_PATH) == EN_OK);
+
+  std::string test_opp = PathJoin(GetRunPath().c_str(), "legacy_so_opp");
+  std::string plugin_dir = test_opp + "/built-in/framework/tensorflow/";
+  std::string lib_dir = test_opp + "/built-in/op_proto/lib/linux/x86_64/";
+  std::string cmd = "mkdir -p " + plugin_dir + " && mkdir -p " + lib_dir;
+  system(cmd.c_str());
+
+  std::vector<std::string> fake_sos = {"libcustom_op1.so", "libcustom_op2_legacy.so",
+                                        "libcustom_op3.so", "libcustom_op4_legacy.so"};
+  for (const auto &so_name : fake_sos) {
+    std::ofstream(plugin_dir + so_name) << "fake";
+  }
+
+  setenv("ASCEND_OPP_PATH", test_opp.c_str(), 1);
+  ReInitGe();
+  auto om_path = PathJoin(GetRunPath().c_str(), "temp");
+  Mkdir(om_path.c_str());
+  om_path = PathJoin(om_path.c_str(), "pb_legacy_so");
+  std::string model_arg = "--model=st_run_data/origin_model/add.pb";
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {"atc",
+                  const_cast<char *>(model_arg.c_str()),
+                  const_cast<char *>(output_arg.c_str()),
+                  "--framework=3",
+                  "--out_nodes=add_test_1:0",
+                  "--soc_version=Ascend910B2",
+                  "--output_type=FP32",
+                  "--input_shape=Placeholder_1:1,256,256,3",
+                  "--status_check=0"};
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_EQ(ret, 0);
+
+  if (had_opp) {
+    setenv("ASCEND_OPP_PATH", orig_opp, 1);
+  } else {
+    unsetenv("ASCEND_OPP_PATH");
+  }
+  cmd = "rm -rf " + test_opp;
+  system(cmd.c_str());
+  ReInitGe();
+}
 }  // namespace ge

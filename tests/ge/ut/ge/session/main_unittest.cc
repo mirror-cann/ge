@@ -17,6 +17,7 @@
 #include "framework/common/framework_types_internal.h"
 #include "graph/types.h"
 #include "graph/ge_global_options.h"
+#include <algorithm>
 #include <fstream>
 
 #include "ge_running_env/atc_utils.h"
@@ -1556,4 +1557,84 @@ TEST_F(UtestMain, MainImplTest_Om2Mode_StaticAipp_NotBlocked) {
   EXPECT_NE(ret, 0);  // still fails (no real compilation env), but not at ValidateStaticAippOnly
   AtcFileFactory::RemoveFile(AtcFileFactory::Generatefile1("", "tmp_om2_sta.om").c_str());
   AtcFileFactory::RemoveFile(cfg_path.c_str());
+}
+
+namespace ge {
+bool IsLegacySoFile(const std::string &file_path);
+}
+
+class UtestLegacySoPartition : public testing::Test {};
+
+TEST_F(UtestLegacySoPartition, MixedFiles_LegacyMovedToEnd) {
+  std::vector<std::string> fileList = {
+      "/path/to/libop1.so", "/path/to/libop2_legacy.so",
+      "/path/to/libop3.so", "/path/to/libop4_legacy.so",
+      "/path/to/libop5.so"};
+  std::stable_partition(fileList.begin(), fileList.end(), ge::IsLegacySoFile);
+  ASSERT_EQ(fileList.size(), 5u);
+  EXPECT_EQ(fileList[0], "/path/to/libop1.so");
+  EXPECT_EQ(fileList[1], "/path/to/libop3.so");
+  EXPECT_EQ(fileList[2], "/path/to/libop5.so");
+  EXPECT_EQ(fileList[3], "/path/to/libop2_legacy.so");
+  EXPECT_EQ(fileList[4], "/path/to/libop4_legacy.so");
+}
+
+TEST_F(UtestLegacySoPartition, OnlyNormalFiles_NoReorder) {
+  std::vector<std::string> fileList = {"/path/a.so", "/path/b.so", "/path/c.so"};
+  std::stable_partition(fileList.begin(), fileList.end(), ge::IsLegacySoFile);
+  EXPECT_EQ(fileList[0], "/path/a.so");
+  EXPECT_EQ(fileList[1], "/path/b.so");
+  EXPECT_EQ(fileList[2], "/path/c.so");
+}
+
+TEST_F(UtestLegacySoPartition, OnlyLegacyFiles_AllAtEnd) {
+  std::vector<std::string> fileList = {"/path/x_legacy.so", "/path/y_legacy.so"};
+  std::stable_partition(fileList.begin(), fileList.end(), ge::IsLegacySoFile);
+  EXPECT_EQ(fileList[0], "/path/x_legacy.so");
+  EXPECT_EQ(fileList[1], "/path/y_legacy.so");
+}
+
+TEST_F(UtestLegacySoPartition, EmptyList_NoCrash) {
+  std::vector<std::string> fileList;
+  std::stable_partition(fileList.begin(), fileList.end(), ge::IsLegacySoFile);
+  EXPECT_TRUE(fileList.empty());
+}
+
+TEST_F(UtestLegacySoPartition, ShortFileName_TreatedAsNonLegacy) {
+  std::vector<std::string> fileList = {"a.so", "/path/x_legacy.so", "b.so"};
+  std::stable_partition(fileList.begin(), fileList.end(), ge::IsLegacySoFile);
+  EXPECT_EQ(fileList[0], "a.so");
+  EXPECT_EQ(fileList[1], "b.so");
+  EXPECT_EQ(fileList[2], "/path/x_legacy.so");
+}
+
+TEST_F(UtestLegacySoPartition, StabilityPreserved_RelativeOrderMaintained) {
+  std::vector<std::string> fileList = {
+      "/path/first.so", "/path/alpha_legacy.so",
+      "/path/second.so", "/path/beta_legacy.so",
+      "/path/third.so"};
+  std::stable_partition(fileList.begin(), fileList.end(), ge::IsLegacySoFile);
+  EXPECT_EQ(fileList[0], "/path/first.so");
+  EXPECT_EQ(fileList[1], "/path/second.so");
+  EXPECT_EQ(fileList[2], "/path/third.so");
+  EXPECT_EQ(fileList[3], "/path/alpha_legacy.so");
+  EXPECT_EQ(fileList[4], "/path/beta_legacy.so");
+}
+
+TEST_F(UtestLegacySoPartition, ExactLegacySoName_MovedToEnd) {
+  std::vector<std::string> fileList = {"_legacy.so", "/path/normal.so"};
+  std::stable_partition(fileList.begin(), fileList.end(), ge::IsLegacySoFile);
+  EXPECT_EQ(fileList[0], "/path/normal.so");
+  EXPECT_EQ(fileList[1], "_legacy.so");
+}
+
+TEST_F(UtestLegacySoPartition, SimilarButNotLegacySuffix_NotMoved) {
+  std::vector<std::string> fileList = {
+      "/path/legacy.so", "/path/not_legacy.so.bak",
+      "/path/real_legacy.so", "/path/_legacy.sox"};
+  std::stable_partition(fileList.begin(), fileList.end(), ge::IsLegacySoFile);
+  EXPECT_EQ(fileList[0], "/path/legacy.so");
+  EXPECT_EQ(fileList[1], "/path/not_legacy.so.bak");
+  EXPECT_EQ(fileList[2], "/path/_legacy.sox");
+  EXPECT_EQ(fileList[3], "/path/real_legacy.so");
 }
