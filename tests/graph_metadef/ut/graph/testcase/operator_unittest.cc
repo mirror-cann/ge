@@ -2583,6 +2583,27 @@ TEST_F(UtestOperater, UpdateInputOutDesc_Success) {
   EXPECT_EQ(output_desc_0.GetFormat(), FORMAT_NCHW);
 }
 
+TEST_F(UtestOperater, UpdateOutputDesc_KeepReuseInputAfterGetOutputDesc) {
+  Operator op("Test");
+  op.OutputRegister("y");
+
+  TensorDesc output_desc;
+  output_desc.SetReuseInputIndex(1U);
+  ASSERT_EQ(op.UpdateOutputDesc("y", output_desc), GRAPH_SUCCESS);
+
+  auto get_output_desc = op.GetOutputDescByName("y");
+  ASSERT_EQ(op.UpdateOutputDesc("y", get_output_desc), GRAPH_SUCCESS);
+
+  const auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
+  ASSERT_NE(op_desc, nullptr);
+  bool reuse_input = false;
+  uint32_t reuse_input_index = 0U;
+  ASSERT_EQ(TensorUtils::GetReuseInput(op_desc->GetOutputDesc(0U), reuse_input), GRAPH_SUCCESS);
+  ASSERT_EQ(TensorUtils::GetReuseInputIndex(op_desc->GetOutputDesc(0U), reuse_input_index), GRAPH_SUCCESS);
+  EXPECT_TRUE(reuse_input);
+  EXPECT_EQ(reuse_input_index, 1U);
+}
+
 TEST_F(UtestOperater, AttrRegister_WithAttrValue_Success) {
   Operator op("Test");
 

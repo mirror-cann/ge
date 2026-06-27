@@ -1015,6 +1015,12 @@ TensorDesc TensorAdapter::GeTensorDesc2TensorDesc(const GeTensorDesc &ge_tensor_
   tensor_desc.SetRealDimCnt(static_cast<int64_t>(real_dim_cnt));
 
   tensor_desc.SetExpandDimsRule(AscendString(ge_tensor_desc.GetExpandDimsRule().c_str()));
+  bool reuse_input = false;
+  (void)TensorUtils::GetReuseInput(ge_tensor_desc, reuse_input);
+  tensor_desc.impl->reuse_input_ = reuse_input;
+  uint32_t reuse_input_index = 0U;
+  (void)TensorUtils::GetReuseInputIndex(ge_tensor_desc, reuse_input_index);
+  tensor_desc.impl->reuse_input_index_ = reuse_input_index;
   return tensor_desc;
 }
 
