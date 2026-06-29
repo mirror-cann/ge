@@ -56,7 +56,7 @@ enum class OoCategory : uint32_t {
 };
 
 struct OoShowInfo {
-  OoCategory catagory;
+  OoCategory category;
   std::string show_name;
 };
 

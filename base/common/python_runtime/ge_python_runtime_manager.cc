@@ -36,11 +36,11 @@ Status GePythonRuntimeManager::EnsureReadyLocked() {
   }
   if (!ResolvePythonCApi(nullptr, false)) {
     if (!EnsureLibpythonLoaded(&libpython_handle_)) {
-      GELOGE(FAILED, "[GePythonRuntime] Load libpython failed.");
+      GELOGW("[GePythonRuntime] Load libpython failed.");
       return FAILED;
     }
     if (!ResolvePythonCApi(libpython_handle_, true)) {
-      GELOGE(FAILED, "[GePythonRuntime] Resolve Python C API failed after loading libpython.");
+      GELOGW("[GePythonRuntime] Resolve Python C API failed after loading libpython.");
       ResetStateLocked();
       return FAILED;
     }

@@ -1093,7 +1093,7 @@ class GFlagUtils {
       (void)ge::flgs::RegisterParamString(opt.first, "false", opt.second.help_text);
       const auto iter = opt.second.show_infos.find(OoEntryPoint::kAtc);
       GE_ASSERT_TRUE(iter != opt.second.show_infos.end(), "option [%s] not register help info", opt.first.c_str());
-      oo_help_info[static_cast<size_t>(iter->second.catagory)]
+      oo_help_info[static_cast<size_t>(iter->second.category)]
           .append("  --")
           .append(opt.first)
           .append("           ")
@@ -1502,13 +1502,14 @@ Status CallAmctInterface(Graph &graph, std::map<std::string, std::string> &optio
   auto it = options.find(std::string(ge::COMPRESSION_OPTIMIZE_CONF));
   if ((it != options.end()) && (!it->second.empty())) {
     options.insert(std::pair<std::string, std::string>("build_graph_already_initialized", "1"));
-    void* handle = mmDlopen(kAmctSo, static_cast<int32_t>(MMPA_RTLD_NOW));
+    void *handle = mmDlopen(kAmctSo, static_cast<int32_t>(MMPA_RTLD_NOW));
     if (handle == nullptr) {
       const char_t *error = mmDlerror();
       error = (error == nullptr) ? "" : error;
       string errmsg = "AMCT is not installed, error: " + string(error);
-      (void)REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"parameter", "value", "reason"}),
-            std::vector<const char *>({"--compression_optimize_conf", it->second.c_str(), errmsg.c_str()}));
+      (void)REPORT_PREDEFINED_ERR_MSG(
+          "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
+          std::vector<const char *>({"--compression_optimize_conf", it->second.c_str(), errmsg.c_str()}));
       GELOGE(FAILED, "[Open][AmctSo] %s failed, error: %s", kAmctSo, error);
       return FAILED;
     }
@@ -1654,12 +1655,15 @@ Status GenerateModel(std::map<std::string, std::string> &options, const std::str
   std::shared_ptr<GELib> instance_ptr = GELib::GetInstance();
   bool release_python_runtime = false;
   GE_DISMISSABLE_GUARD(release_python_runtime_guard, ([&release_python_runtime]() {
-    if (release_python_runtime) {
-      (void)GePythonRuntimeManager::Instance().ShutdownProcess();
-    }
-  }));
+                         if (release_python_runtime) {
+                           (void)GePythonRuntimeManager::Instance().ShutdownProcess();
+                         }
+                       }));
   if (instance_ptr == nullptr || !instance_ptr->InitFlag()) {
-    GE_ASSERT_SUCCESS(GePythonRuntimeManager::Instance().EnsureReady());
+    ret = GePythonRuntimeManager::Instance().EnsureReady();
+    if (ret != SUCCESS) {
+      GELOGW("[Ensure][PythonRuntime] failed, continue initialization, ret[%u].", ret);
+    }
     release_python_runtime = true;
     ret = GELib::Initialize(options);
     if (ret != SUCCESS) {
@@ -1786,9 +1790,12 @@ Status GenerateSingleOp(const std::string &json_file_path) {
   // print single op option map
   PrintOptionMap(options, "single op option");
 
-  GE_ASSERT_SUCCESS(GePythonRuntimeManager::Instance().EnsureReady());
+  auto ret = GePythonRuntimeManager::Instance().EnsureReady();
+  if (ret != SUCCESS) {
+    GELOGW("[Ensure][PythonRuntime] failed before generating single op, continue initialization, ret[%u].", ret);
+  }
   GE_MAKE_GUARD(release_python_runtime, []() { (void)GePythonRuntimeManager::Instance().ShutdownProcess(); });
-  auto ret = GELib::Initialize(options);
+  ret = GELib::Initialize(options);
   if (ret != SUCCESS) {
     DOMI_LOGE("GE initialize failed!");
     return FAILED;

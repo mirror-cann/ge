@@ -60,7 +60,9 @@ class PythonBuildInfo:
 
 def _repo_root() -> Path:
     for parent in Path(__file__).resolve().parents:
-        if (parent / "api" / "python" / "ge").is_dir() and (parent / "CMakeLists.txt").is_file():
+        if (parent / "api" / "python" / "ge").is_dir() and (
+            parent / "CMakeLists.txt"
+        ).is_file():
             return parent
     raise RuntimeError("Cannot locate repository root")
 
@@ -184,7 +186,9 @@ def _conda_python_candidates() -> Iterable[str]:
     return candidates
 
 
-def _discover_pythons(explicit_pythons: Sequence[str], requested_tags: Sequence[str]) -> Dict[str, str]:
+def _discover_pythons(
+    explicit_pythons: Sequence[str], requested_tags: Sequence[str]
+) -> Dict[str, str]:
     requested = set(requested_tags or SUPPORTED_TAGS)
     discovered: Dict[str, str] = {}
     seen = set()
@@ -226,19 +230,33 @@ except Exception:
     pybind_include = ""
 
 version = sysconfig.get_config_var("VERSION") or f"{sys.version_info.major}.{sys.version_info.minor}"
-libdir = sysconfig.get_config_var("LIBDIR") or ""
+lib_version = version + ("m" if sys.version_info[:2] <= (3, 7) else "") if version else ""
+libdirs = []
+for item in [
+    os.path.join(sys.prefix, "lib"),
+    os.path.join(sys.exec_prefix, "lib"),
+    os.path.abspath(os.path.join(os.path.dirname(sys.executable), "..", "lib")),
+    sysconfig.get_config_var("LIBDIR") or "",
+]:
+    if item and item not in libdirs:
+        libdirs.append(item)
 candidates = [
     sysconfig.get_config_var("LDLIBRARY"),
     sysconfig.get_config_var("INSTSONAME"),
     sysconfig.get_config_var("LIBRARY"),
-    f"libpython{version}.so.1.0" if version else "",
-    f"libpython{version}.so" if version else "",
+    f"libpython{lib_version}.so.1.0" if lib_version else "",
+    f"libpython{lib_version}.so" if lib_version else "",
 ]
 seen = []
 for candidate in candidates:
     if candidate and candidate not in seen:
         seen.append(candidate)
-matches = [os.path.join(libdir, item) for item in seen if libdir and os.path.exists(os.path.join(libdir, item))]
+matches = [
+    os.path.join(directory, item)
+    for item in seen
+    for directory in libdirs
+    if os.path.exists(os.path.join(directory, item))
+]
 shared = next((item for item in matches if ".so" in os.path.basename(item)), "")
 print(json.dumps({
     "version": sys.version.split()[0],
@@ -258,7 +276,9 @@ print(json.dumps({
     include_dir = Path(info.get("include", ""))
     library_value = info.get("library", "")
     library = Path(library_value) if library_value else None
-    pybind_include = Path(info["pybind_include"]) if info.get("pybind_include") else None
+    pybind_include = (
+        Path(info["pybind_include"]) if info.get("pybind_include") else None
+    )
     if not include_dir.is_dir():
         return None
     if library is not None and not library.is_file():
@@ -277,18 +297,23 @@ print(json.dumps({
 
 def _read_make_variable(path: Path, name: str) -> List[str]:
     prefix = f"{name} = "
+    prefix_len = len(prefix)
     for line in path.read_text(encoding="utf-8").splitlines():
         if line.startswith(prefix):
-            return shlex.split(line[len(prefix) :])
+            return shlex.split(line[prefix_len:])
     return []
 
 
-def _load_target_build_info(build_dir: Path, relative_dir: str, target_name: str) -> TargetBuildInfo:
+def _load_target_build_info(
+    build_dir: Path, relative_dir: str, target_name: str
+) -> TargetBuildInfo:
     target_dir = build_dir / relative_dir / "CMakeFiles" / f"{target_name}.dir"
     flags_path = target_dir / "flags.make"
     link_path = target_dir / "link.txt"
     if not flags_path.is_file() or not link_path.is_file():
-        raise RuntimeError(f"Cannot find generated build metadata for target {target_name} under {target_dir}")
+        raise RuntimeError(
+            f"Cannot find generated build metadata for target {target_name} under {target_dir}"
+        )
     return TargetBuildInfo(
         cwd=build_dir / relative_dir,
         defines=_read_make_variable(flags_path, "CXX_DEFINES"),
@@ -298,7 +323,9 @@ def _load_target_build_info(build_dir: Path, relative_dir: str, target_name: str
     )
 
 
-def _python_include_args(_target: TargetBuildInfo, python_info: PythonBuildInfo) -> List[str]:
+def _python_include_args(
+    _target: TargetBuildInfo, python_info: PythonBuildInfo
+) -> List[str]:
     pybind_include = python_info.pybind_include
     if pybind_include is None:
         raise RuntimeError(
@@ -327,7 +354,11 @@ def _filter_python_related_includes(tokens: Sequence[str]) -> List[str]:
             filtered.extend([token, path])
             index += 2
             continue
-        if token.startswith("-I") and len(token) > 2 and _is_python_or_pybind_include(token[2:]):
+        if (
+            token.startswith("-I")
+            and len(token) > 2
+            and _is_python_or_pybind_include(token[2:])
+        ):
             index += 1
             continue
         filtered.append(token)
@@ -335,7 +366,9 @@ def _filter_python_related_includes(tokens: Sequence[str]) -> List[str]:
     return filtered
 
 
-def _compile_base_args(target: TargetBuildInfo, python_info: PythonBuildInfo) -> List[str]:
+def _compile_base_args(
+    target: TargetBuildInfo, python_info: PythonBuildInfo
+) -> List[str]:
     return (
         target.defines
         + _python_include_args(target, python_info)
@@ -426,10 +459,16 @@ def _compile_sources(
     base_args = _compile_base_args(target, python_info)
     for index, source in enumerate(sources):
         obj = output_dir / f"{index}_{source.stem}.o"
-        command = _compiler_command(args) + base_args + ["-c", os.fspath(source), "-o", os.fspath(obj)]
+        command = (
+            _compiler_command(args)
+            + base_args
+            + ["-c", os.fspath(source), "-o", os.fspath(obj)]
+        )
         completed = _run(command, cwd=target.cwd, extra_env=compile_env)
         if completed.returncode != 0:
-            raise RuntimeError(f"Compile failed for {source} with {python_info.executable}:\n{completed.stdout}")
+            raise RuntimeError(
+                f"Compile failed for {source} with {python_info.executable}:\n{completed.stdout}"
+            )
         objects.append(obj)
     return objects
 
@@ -444,7 +483,9 @@ def _is_libpython_arg(token: str) -> bool:
 
 def _looks_like_python_lib_dir(path: str) -> bool:
     normalized = path.replace("\\", "/").lower()
-    if ("/python-" in normalized or "/python3." in normalized) and normalized.endswith("/lib"):
+    if ("/python-" in normalized or "/python3." in normalized) and normalized.endswith(
+        "/lib"
+    ):
         return True
     path_obj = Path(path)
     return path_obj.is_dir() and any(path_obj.glob("libpython*.so*"))
@@ -455,7 +496,8 @@ def _filter_rpath(token: str, removed_paths: List[str]) -> Optional[str]:
     if not token.startswith(prefix):
         return token
     kept_paths = []
-    for path in token[len(prefix) :].split(":"):
+    prefix_len = len(prefix)
+    for path in token[prefix_len:].split(":"):
         if _looks_like_python_lib_dir(path):
             removed_paths.append(path)
         else:
@@ -469,6 +511,26 @@ def _filter_rpath(token: str, removed_paths: List[str]) -> Optional[str]:
 class LinkRewriteReport:
     replaced_libpython_args: List[str]
     removed_python_paths: List[str]
+
+
+def _consume_libpath_arg(
+    args: List[str], index: int, removed_python_paths: List[str]
+) -> Tuple[List[str], int]:
+    token = args[index]
+    if token == "-L" and index + 1 < len(args):
+        path = args[index + 1]
+        if _looks_like_python_lib_dir(path):
+            removed_python_paths.append(path)
+            return [], index + 2
+        return [token, path], index + 2
+    if (
+        token.startswith("-L")
+        and len(token) > 2
+        and _looks_like_python_lib_dir(token[2:])
+    ):
+        removed_python_paths.append(token[2:])
+        return [], index + 1
+    return None, index
 
 
 def _rewrite_link_args(
@@ -501,18 +563,12 @@ def _rewrite_link_args(
                 replaced_libpython_args.append(token)
             index += 1
             continue
-        if token == "-L" and index + 1 < len(args):
-            path = args[index + 1]
-            if _looks_like_python_lib_dir(path):
-                removed_python_paths.append(path)
-                index += 2
-                continue
-            rewritten.extend([token, path])
-            index += 2
-            continue
-        if token.startswith("-L") and len(token) > 2 and _looks_like_python_lib_dir(token[2:]):
-            removed_python_paths.append(token[2:])
-            index += 1
+        libpath_tokens, next_idx = _consume_libpath_arg(
+            args, index, removed_python_paths
+        )
+        if next_idx != index:
+            rewritten.extend(libpath_tokens)
+            index = next_idx
             continue
         if token.startswith("-Wl,-rpath,"):
             rewritten_rpath = _filter_rpath(token, removed_python_paths)
@@ -535,14 +591,26 @@ def _format_optional_path(path: Optional[Path]) -> str:
     return os.fspath(path) if path is not None else "not-found"
 
 
+def _rpath_paths(token: str) -> List[str]:
+    prefix = "-Wl,-rpath,"
+    if not token.startswith(prefix):
+        return []
+    start = len(prefix)
+    return token[start:].split(":")
+
+
 def _link_command_has_python(command: Sequence[str]) -> bool:
     return (
         any(_is_libpython_arg(token) for token in command)
-        or any(token.startswith("-L") and _looks_like_python_lib_dir(token[2:]) for token in command if len(token) > 2)
         or any(
-            token.startswith("-Wl,-rpath,")
-            and any(_looks_like_python_lib_dir(path) for path in token[len("-Wl,-rpath,") :].split(":"))
+            token.startswith("-L") and _looks_like_python_lib_dir(token[2:])
             for token in command
+            if len(token) > 2
+        )
+        or any(
+            _looks_like_python_lib_dir(path)
+            for token in command
+            for path in _rpath_paths(token)
         )
     )
 
@@ -559,7 +627,9 @@ def _link_shared(
     command = [args.cxx_compiler] + link_args
     completed = _run(command, cwd=target.cwd)
     if completed.returncode != 0:
-        raise RuntimeError(f"Link failed for {output} with {python_info.executable}:\n{completed.stdout}")
+        raise RuntimeError(
+            f"Link failed for {output} with {python_info.executable}:\n{completed.stdout}"
+        )
     print(
         f"Linked {python_info.tag} {output.name}: output[{output}], "
         f"python_link[{'yes' if _link_command_has_python(command) else 'no'}], "
@@ -569,7 +639,9 @@ def _link_shared(
     )
 
 
-def _write_manifest(artifact_dir: Path, python_info: PythonBuildInfo, platform_tag: str, bridge_abi: int) -> None:
+def _write_manifest(
+    artifact_dir: Path, python_info: PythonBuildInfo, platform_tag: str, bridge_abi: int
+) -> None:
     manifest = {
         "python_tag": python_info.tag,
         "python_version": python_info.version,
@@ -588,7 +660,9 @@ def _write_manifest(artifact_dir: Path, python_info: PythonBuildInfo, platform_t
             "native": "_ge_pass_native.so",
         },
     }
-    (artifact_dir / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    (artifact_dir / "manifest.json").write_text(
+        json.dumps(manifest, indent=2) + "\n", encoding="utf-8"
+    )
 
 
 def _log_python_build_info(python_info: PythonBuildInfo) -> None:
@@ -606,7 +680,9 @@ def _strip_optional_werror(
     bridge_target, removed_bridge_flags = _without_werror(bridge_target)
     native_target, removed_native_flags = _without_werror(native_target)
     removed_flags = removed_bridge_flags + removed_native_flags
-    print(f"Build optional {tag} native artifacts without Werror: stripped_flags[{_format_list(removed_flags)}]")
+    print(
+        f"Build optional {tag} native artifacts without Werror: stripped_flags[{_format_list(removed_flags)}]"
+    )
     return bridge_target, native_target
 
 
@@ -619,10 +695,16 @@ def _build_native_artifacts(
     artifact_dir = tag_work_dir / "artifact"
     artifact_dir.mkdir(parents=True, exist_ok=True)
 
-    bridge_target = _load_target_build_info(args.build_dir, "compiler", "ge_python_pass_bridge")
-    native_target = _load_target_build_info(args.build_dir, "api/python/ge/ge/passes", "_ge_pass_native")
+    bridge_target = _load_target_build_info(
+        args.build_dir, "compiler", "ge_python_pass_bridge"
+    )
+    native_target = _load_target_build_info(
+        args.build_dir, "api/python/ge/ge/passes", "_ge_pass_native"
+    )
     if not is_current_tag:
-        bridge_target, native_target = _strip_optional_werror(python_info.tag, bridge_target, native_target)
+        bridge_target, native_target = _strip_optional_werror(
+            python_info.tag, bridge_target, native_target
+        )
     header_ok, header_error = _can_compile_python_header(
         args, bridge_target, tag_work_dir / "header_probe", python_info
     )
@@ -633,30 +715,39 @@ def _build_native_artifacts(
             file=sys.stderr,
         )
         return None
-    bridge_objects = _compile_sources(
-        args,
-        bridge_target,
-        [args.source_dir / BRIDGE_SOURCE],
-        tag_work_dir / "bridge_obj",
-        python_info,
-    )
-    native_sources = [args.source_dir / source for source in NATIVE_SOURCES]
-    native_objects = _compile_sources(args, native_target, native_sources, tag_work_dir / "native_obj", python_info)
 
-    _link_shared(
-        args,
-        bridge_target,
-        artifact_dir / "libge_python_pass_bridge.so",
-        bridge_objects,
-        python_info,
-    )
-    _link_shared(
-        args,
-        native_target,
-        artifact_dir / "_ge_pass_native.so",
-        native_objects,
-        python_info,
-    )
+    def _compile_and_link() -> None:
+        bridge_objects = _compile_sources(
+            args,
+            bridge_target,
+            [args.source_dir / BRIDGE_SOURCE],
+            tag_work_dir / "bridge_obj",
+            python_info,
+        )
+        native_sources = [args.source_dir / source for source in NATIVE_SOURCES]
+        native_objects = _compile_sources(
+            args,
+            native_target,
+            native_sources,
+            tag_work_dir / "native_obj",
+            python_info,
+        )
+        _link_shared(
+            args,
+            bridge_target,
+            artifact_dir / "libge_python_pass_bridge.so",
+            bridge_objects,
+            python_info,
+        )
+        _link_shared(
+            args,
+            native_target,
+            artifact_dir / "_ge_pass_native.so",
+            native_objects,
+            python_info,
+        )
+
+    _compile_and_link()
     _write_manifest(artifact_dir, python_info, args.platform_tag, args.bridge_abi)
     return artifact_dir
 
@@ -687,7 +778,11 @@ def _build_wheel(args: argparse.Namespace, tag: str, artifact_dir: Path) -> Path
 
 
 def _copy_current_wheel(args: argparse.Namespace, tag: str) -> Optional[Path]:
-    if tag != args.current_tag or not args.current_wheel or not args.current_wheel.is_file():
+    if (
+        tag != args.current_tag
+        or not args.current_wheel
+        or not args.current_wheel.is_file()
+    ):
         return None
     args.dist_dir.mkdir(parents=True, exist_ok=True)
     target = args.dist_dir / args.current_wheel.name
@@ -695,7 +790,9 @@ def _copy_current_wheel(args: argparse.Namespace, tag: str) -> Optional[Path]:
     return target
 
 
-def _build_one(args: argparse.Namespace, tag: str, python: str, is_current_tag: bool) -> List[Path]:
+def _build_one(
+    args: argparse.Namespace, tag: str, python: str, is_current_tag: bool
+) -> List[Path]:
     if args.dry_run:
         print(f"{tag}: {python} -> {args.work_dir / tag}")
         return []
@@ -722,7 +819,9 @@ def _build_one(args: argparse.Namespace, tag: str, python: str, is_current_tag: 
     _log_python_build_info(python_info)
     copied = _copy_current_wheel(args, tag)
     if copied is not None:
-        print(f"Reuse current native wheel for {tag}: wheel[{copied}], link_result[parent ge_python_native_wheel]")
+        print(
+            f"Reuse current native wheel for {tag}: wheel[{copied}], link_result[parent ge_python_native_wheel]"
+        )
         return [copied]
     artifact_dir = _build_native_artifacts(args, python_info, is_current_tag)
     if artifact_dir is None:
@@ -766,9 +865,13 @@ def parse_args() -> argparse.Namespace:
     args = parser.parse_args()
     args.source_dir = args.source_dir.resolve()
     args.build_dir = args.build_dir.resolve()
-    args.work_dir = (args.work_dir or (args.build_dir / "python_pass_native_matrix_build")).resolve()
+    args.work_dir = (
+        args.work_dir or (args.build_dir / "python_pass_native_matrix_build")
+    ).resolve()
     args.dist_dir = (args.dist_dir or (args.work_dir / "dist")).resolve()
-    args.current_wheel = args.current_wheel.resolve() if args.current_wheel is not None else None
+    args.current_wheel = (
+        args.current_wheel.resolve() if args.current_wheel is not None else None
+    )
     return args
 
 
@@ -776,7 +879,9 @@ def main() -> None:
     args = parse_args()
     pythons = _discover_pythons(args.python, args.tag)
     if not pythons:
-        raise RuntimeError("No supported Python interpreter found for native wheel matrix")
+        raise RuntimeError(
+            "No supported Python interpreter found for native wheel matrix"
+        )
     if not args.dry_run:
         args.dist_dir.mkdir(parents=True, exist_ok=True)
         for wheel in args.dist_dir.glob("ge_py_pass_bridge-*.whl"):
@@ -806,7 +911,9 @@ def main() -> None:
             built_tags.append(tag)
     for wheel in built_wheels:
         print(os.fspath(wheel))
-    print(f"GE python pass native wheel matrix built {len(built_tags)} tag(s): {', '.join(built_tags)}")
+    print(
+        f"GE python pass native wheel matrix built {len(built_tags)} tag(s): {', '.join(built_tags)}"
+    )
 
 
 if __name__ == "__main__":

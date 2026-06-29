@@ -98,11 +98,6 @@ class GeFakeOpsKernelBuilder : public OpsKernelBuilder {
 class UtestGeApiDflow : public testing::Test {
  protected:
   static void SetUpTestSuite() {
-    const auto env_ptr = getenv("LD_PRELOAD");
-    if (env_ptr != nullptr) {
-      suite_env = env_ptr;
-      unsetenv("LD_PRELOAD");
-    }
     // Init running dir env
     ge::DirEnv::GetInstance().InitEngineConfJson();
     const std::map<AscendString, AscendString> options{};
@@ -114,9 +109,6 @@ class UtestGeApiDflow : public testing::Test {
   static void TearDownTestSuite() {
     ge::GEFinalizeV2();
     unsetenv("RESOURCE_CONFIG_PATH");
-    if (!suite_env.empty()) {
-      setenv("LD_PRELOAD", suite_env.c_str(), 1);
-    }
   }
 
   void SetUp() override {
@@ -145,10 +137,7 @@ class UtestGeApiDflow : public testing::Test {
   }
 
   std::string env;
-  static std::string suite_env;
 };
-
-std::string UtestGeApiDflow::suite_env;
 
 TEST_F(UtestGeApiDflow, Feed_test_not_init) {
   std::map<std::string, std::string> options;

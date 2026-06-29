@@ -173,10 +173,10 @@ OptionRegister &OptionRegister::SetHelpText(std::string opt_help) {
   return *this;
 }
 
-OptionRegister &OptionRegister::SetShowName(OoEntryPoint entry_point, std::string show_name, ge::OoCategory catagory) {
+OptionRegister &OptionRegister::SetShowName(OoEntryPoint entry_point, std::string show_name, ge::OoCategory category) {
   if (opt_reg_data_ != nullptr) {
     if (opt_reg_data_->show_infos.count(entry_point) == 0UL) {
-      opt_reg_data_->show_infos.emplace(entry_point, OoShowInfo{catagory, std::move(show_name)});
+      opt_reg_data_->show_infos.emplace(entry_point, OoShowInfo{category, std::move(show_name)});
     }
   }
   return *this;

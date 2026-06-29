@@ -60,13 +60,19 @@ constexpr const char *kPyGILStateCheckSymbol = "PyGILState_Check";
 constexpr const char *kPythonRuntimeProbeScript =
     " -c \"import sys; print('cp%d%d' % sys.version_info[:2])\" 2>/dev/null";
 constexpr const char *kLibpythonProbeScript =
-    " -c \"import os, sysconfig\n"
+    " -c \"import os, sys, sysconfig\n"
     "version = sysconfig.get_config_var('VERSION') or ''\n"
-    "libdir = sysconfig.get_config_var('LIBDIR') or ''\n"
+    "lib_version = version + ('m' if sys.version_info[:2] <= (3, 7) else '') if version else ''\n"
+    "libdirs = []\n"
+    "for item in [os.path.join(sys.prefix, 'lib'), os.path.join(sys.exec_prefix, 'lib'), "
+    "os.path.abspath(os.path.join(os.path.dirname(sys.executable), '..', 'lib')), "
+    "sysconfig.get_config_var('LIBDIR') or '']:\n"
+    "    if item and item not in libdirs:\n"
+    "        libdirs.append(item)\n"
     "candidates = [sysconfig.get_config_var('LDLIBRARY'), sysconfig.get_config_var('INSTSONAME'), "
     "sysconfig.get_config_var('LIBRARY')]\n"
-    "candidates.extend([('libpython%s.so.1.0' % version) if version else '', "
-    "('libpython%s.so' % version) if version else ''])\n"
+    "candidates.extend([('libpython%s.so.1.0' % lib_version) if lib_version else '', "
+    "('libpython%s.so' % lib_version) if lib_version else ''])\n"
     "seen = []\n"
     "for item in candidates:\n"
     "    if item and item not in seen:\n"
@@ -74,23 +80,28 @@ constexpr const char *kLibpythonProbeScript =
     "for item in seen:\n"
     "    if '.so' not in item:\n"
     "        continue\n"
-    "    path = os.path.join(libdir, item) if libdir else ''\n"
-    "    if path and os.path.exists(path):\n"
-    "        print(path)\n"
+    "    for directory in libdirs:\n"
+    "        path = os.path.join(directory, item)\n"
+    "        if os.path.exists(path):\n"
+    "            print(path)\n"
+    "            sys.exit(0)\n"
+    "for item in seen:\n"
+    "    if '.so' in item:\n"
+    "        print(item)\n"
     "        break\" 2>/dev/null";
 constexpr int kOpenFlags = RTLD_NOW | RTLD_GLOBAL;
 
 inline PythonCApi g_python_api;
 
-#define GE_BIND_PY_SYMBOL(func_field, py_symbol) \
-  do { \
+#define GE_BIND_PY_SYMBOL(func_field, py_symbol)                                                     \
+  do {                                                                                               \
     resolved.func_field = reinterpret_cast<decltype(resolved.func_field)>(dlsym(handle, py_symbol)); \
-    if (resolved.func_field == nullptr) { \
-      if (log_failure) { \
-        GELOGW("[GePythonRuntime] Failed to dlsym python symbol[%s].", py_symbol); \
-      } \
-      return false; \
-    } \
+    if (resolved.func_field == nullptr) {                                                            \
+      if (log_failure) {                                                                             \
+        GELOGW("[GePythonRuntime] Failed to dlsym python symbol[%s].", py_symbol);                   \
+      }                                                                                              \
+      return false;                                                                                  \
+    }                                                                                                \
   } while (0)
 
 inline bool ResolvePythonCApi(void *libpython_handle, const bool log_failure) {
@@ -112,7 +123,7 @@ inline bool ResolvePythonCApi(void *libpython_handle, const bool log_failure) {
 #undef GE_BIND_PY_SYMBOL
 
 inline void ResetPythonCApi() {
-  g_python_api = PythonCApi {};
+  g_python_api = PythonCApi{};
 }
 
 inline std::string FirstLine(const std::string &text) {
@@ -211,10 +222,10 @@ inline bool EnsureLibpythonLoaded(void **handle) {
   }
 
   if (!has_probe_result) {
-    GELOGE(FAILED, "[GePythonRuntime] Probe target python runtime failed.");
+    GELOGW("[GePythonRuntime] Probe target python runtime failed.");
     return false;
   }
-  GELOGE(FAILED, "[GePythonRuntime] Load libpython failed for all probed python runtime candidates.");
+  GELOGW("[GePythonRuntime] Load libpython failed for all probed python runtime candidates.");
   return false;
 }
 

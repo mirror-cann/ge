@@ -404,6 +404,22 @@ static void LoadOpsProto() {
   (void)manager->Initialize(option_tmp);
 }
 
+static graphStatus CheckAutoTuneMode(const std::map<std::string, std::string> &global_options) {
+  auto iter = global_options.find("ge.autoTuneMode");
+  if (iter != global_options.end() && !iter->second.empty()) {
+    const std::string reason =
+        "The configured value is not supported. The Auto Tune function has been deprecated. "
+        "Please use the AOE tool for tuning";
+    REPORT_PREDEFINED_ERR_MSG("E10055", std::vector<const char_t *>({"reason"}),
+                              std::vector<const char_t *>({reason.c_str()}));
+    GELOGE(GRAPH_FAILED,
+           "[Check][Param]Options unsupported, The Auto Tune function has been discarded. Please use the AOE tool for "
+           "tuning.");
+    return GRAPH_FAILED;
+  }
+  return GRAPH_SUCCESS;
+}
+
 static graphStatus aclgrphBuildInitializeImpl(std::map<std::string, std::string> &global_options) {
   GELOGD("Enter aclgrphInitialize start!");
   // 备份并清空注册信息map
@@ -424,24 +440,16 @@ static graphStatus aclgrphBuildInitializeImpl(std::map<std::string, std::string>
   }
   ScreenPrinter::GetInstance().Init(global_options[OPTION_SCREEN_PRINT_MODE]);
 
-  auto iter = global_options.find("ge.autoTuneMode");
-  if (iter != global_options.end() && !iter->second.empty()) {
-    const std::string reason =
-        "The configured value is not supported. The Auto Tune function has been deprecated. "
-        "Please use the AOE tool for tuning";
-    REPORT_PREDEFINED_ERR_MSG("E10055", std::vector<const char_t *>({"reason"}),
-                              std::vector<const char_t *>({reason.c_str()}));
-    GELOGE(GRAPH_FAILED,
-           "[Check][Param]Options unsupported, The Auto Tune function has been discarded. Please use the AOE tool for "
-           "tuning.");
-    return GRAPH_FAILED;
-  }
+  GE_ASSERT_GRAPH_SUCCESS(CheckAutoTuneMode(global_options));
   GE_ASSERT_GRAPH_SUCCESS(CheckInputHintShape(global_options));
   // print global option map
   ge::PrintOptionMap(global_options, "global option");
   GE_ASSERT_GRAPH_SUCCESS(OpLibRegistry::GetInstance().PreProcessForCustomOp());
   LoadOpsProto();
-  GE_ASSERT_SUCCESS(GePythonRuntimeManager::Instance().EnsureReady());
+  auto python_runtime_ret = GePythonRuntimeManager::Instance().EnsureReady();
+  if (python_runtime_ret != SUCCESS) {
+    GELOGW("[Ensure][PythonRuntime] failed, continue initialization, ret[%u].", python_runtime_ret);
+  }
   GE_DISMISSABLE_GUARD(release_python_runtime, []() { (void)GePythonRuntimeManager::Instance().ShutdownProcess(); });
   GE_ASSERT_SUCCESS(fusion::LoadPassPlugins());
 

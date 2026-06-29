@@ -74,38 +74,73 @@ def _fallback_artifact_dir() -> Path:
     return artifacts_root() / f"{current_python_tag()}-{current_platform_tag()}"
 
 
-def _query_current_python_build_info() -> Optional[PythonBuildInfo]:
+def _resolve_pybind_include() -> Optional[Path]:
     try:
         import pybind11
 
-        pybind_include = Path(pybind11.get_include())
-        if not pybind_include.is_dir():
-            pybind_include = None
+        include = Path(pybind11.get_include())
+        if not include.is_dir():
+            return None
+        return include
     except Exception:
-        pybind_include = None
+        return None
 
-    version = sysconfig.get_config_var("VERSION") or f"{sys.version_info.major}.{sys.version_info.minor}"
-    libdir = sysconfig.get_config_var("LIBDIR") or ""
+
+def _resolve_libpython_dirs() -> List[Path]:
+    libdirs: List[Path] = []
+    for item in [
+        Path(sys.prefix) / "lib",
+        Path(sys.exec_prefix) / "lib",
+        Path(sys.executable).resolve().parent.parent / "lib",
+        sysconfig.get_config_var("LIBDIR") or "",
+    ]:
+        path = Path(item)
+        if item and path not in libdirs:
+            libdirs.append(path)
+    return libdirs
+
+
+def _resolve_python_library(lib_version: str) -> Optional[Path]:
     candidates = [
         sysconfig.get_config_var("LDLIBRARY"),
         sysconfig.get_config_var("INSTSONAME"),
         sysconfig.get_config_var("LIBRARY"),
-        f"libpython{version}.so.1.0" if version else "",
-        f"libpython{version}.so" if version else "",
+        f"libpython{lib_version}.so.1.0" if lib_version else "",
+        f"libpython{lib_version}.so" if lib_version else "",
     ]
     seen: List[str] = []
     for candidate in candidates:
         if candidate and candidate not in seen:
             seen.append(candidate)
-    matches = [Path(libdir) / item for item in seen if libdir and (Path(libdir) / item).exists()]
+    libdirs = _resolve_libpython_dirs()
+    matches: List[Path] = []
+    for name in seen:
+        for directory in libdirs:
+            candidate_path = directory / name
+            if candidate_path.exists():
+                matches.append(candidate_path)
     shared = next((item for item in matches if ".so" in item.name), None)
     library = shared or (matches[0] if matches else None)
-
-    include_dir = Path(sysconfig.get_path("include") or sysconfig.get_config_var("INCLUDEPY") or "")
-    if not include_dir.is_dir():
-        return None
     if library is not None and not library.is_file():
         library = None
+    return library
+
+
+def _query_current_python_build_info() -> Optional[PythonBuildInfo]:
+    pybind_include = _resolve_pybind_include()
+    version = (
+        sysconfig.get_config_var("VERSION")
+        or f"{sys.version_info.major}.{sys.version_info.minor}"
+    )
+    lib_version = (
+        version + ("m" if sys.version_info[:2] <= (3, 7) else "") if version else ""
+    )
+    library = _resolve_python_library(lib_version)
+    include_dir = Path(
+        sysconfig.get_path("include") or sysconfig.get_config_var("INCLUDEPY") or ""
+    )
+    if not include_dir.is_dir():
+        return None
     return PythonBuildInfo(
         tag=current_python_tag(),
         executable=sys.executable,
@@ -131,7 +166,9 @@ def _build_inputs_from_root(root: Path, config: dict) -> Optional[_BuildInputs]:
     include_dir = root / "include"
     if not src_dir.is_dir() or not include_dir.is_dir():
         return None
-    return _BuildInputs(config=config, root=root, src_dir=src_dir, include_dir=include_dir)
+    return _BuildInputs(
+        config=config, root=root, src_dir=src_dir, include_dir=include_dir
+    )
 
 
 def _resolve_build_inputs() -> Optional[_BuildInputs]:
@@ -143,7 +180,9 @@ def _resolve_build_inputs() -> Optional[_BuildInputs]:
 
 
 def _load_fallback_resources_module(module_path: Path) -> Optional[ModuleType]:
-    spec = importlib.util.spec_from_file_location("_ge_pass_fallback_resources", module_path)
+    spec = importlib.util.spec_from_file_location(
+        "_ge_pass_fallback_resources", module_path
+    )
     if spec is None or spec.loader is None:
         return None
     module = importlib.util.module_from_spec(spec)
@@ -154,7 +193,9 @@ def _load_fallback_resources_module(module_path: Path) -> Optional[ModuleType]:
     return module
 
 
-def _materialize_fallback_resources(codegen_dir: Path, config: dict, work_dir: Path) -> Optional[_BuildInputs]:
+def _materialize_fallback_resources(
+    codegen_dir: Path, config: dict, work_dir: Path
+) -> Optional[_BuildInputs]:
     module_path = codegen_dir / _FALLBACK_RESOURCES_MODULE
     if not module_path.is_file():
         return None
@@ -226,11 +267,17 @@ def _replace_placeholders(value: str, replacements: Dict[str, str]) -> str:
     return resolved
 
 
-def _resolve_build_config(config: dict, python_info: PythonBuildInfo, fallback_root: Path) -> dict:
+def _resolve_build_config(
+    config: dict, python_info: PythonBuildInfo, fallback_root: Path
+) -> dict:
     if python_info.pybind_include is None:
-        raise RuntimeError("Cannot resolve pybind11 include. Please install pybind11 for this Python.")
+        raise RuntimeError(
+            "Cannot resolve pybind11 include. Please install pybind11 for this Python."
+        )
     if python_info.library is None:
-        raise RuntimeError("Cannot resolve libpython shared library for current Python.")
+        raise RuntimeError(
+            "Cannot resolve libpython shared library for current Python."
+        )
     cann_paths = _resolve_cann_paths()
     if cann_paths is None:
         raise RuntimeError("Cannot resolve CANN include/lib64/pkg_inc.")
@@ -267,10 +314,14 @@ def _run_command(command: List[str]) -> None:
         check=False,
     )
     if completed.returncode != 0:
-        raise RuntimeError("Command failed: {}\n{}".format(" ".join(command), completed.stdout))
+        raise RuntimeError(
+            "Command failed: {}\n{}".format(" ".join(command), completed.stdout)
+        )
 
 
-def _iter_target_sources(target_name: str, build_inputs: _BuildInputs) -> Iterable[Path]:
+def _iter_target_sources(
+    target_name: str, build_inputs: _BuildInputs
+) -> Iterable[Path]:
     source_dir = build_inputs.root / "src" / target_name
     if not source_dir.is_dir():
         raise RuntimeError(f"Cannot find fallback source dir: {source_dir}")
@@ -305,9 +356,15 @@ def _compile_target_objects(
     obj_dir.mkdir(parents=True, exist_ok=True)
     base_args = _target_compile_base_args(target_config)
     objects: List[Path] = []
-    for index, source_path in enumerate(_iter_target_sources(target_name, build_inputs)):
+    for index, source_path in enumerate(
+        _iter_target_sources(target_name, build_inputs)
+    ):
         object_path = obj_dir / f"{index}_{source_path.stem}.o"
-        command = [compiler] + base_args + ["-c", os.fspath(source_path), "-o", os.fspath(object_path)]
+        command = (
+            [compiler]
+            + base_args
+            + ["-c", os.fspath(source_path), "-o", os.fspath(object_path)]
+        )
         _run_command(command)
         objects.append(object_path)
     return objects
@@ -323,12 +380,18 @@ def _link_target(target_config: dict, objects: List[Path], work_dir: Path) -> Pa
     return output
 
 
-def _build_target(target_name: str, target_config: dict, build_inputs: _BuildInputs, work_dir: Path) -> Path:
-    objects = _compile_target_objects(target_name, target_config, build_inputs, work_dir)
+def _build_target(
+    target_name: str, target_config: dict, build_inputs: _BuildInputs, work_dir: Path
+) -> Path:
+    objects = _compile_target_objects(
+        target_name, target_config, build_inputs, work_dir
+    )
     return _link_target(target_config, objects, work_dir)
 
 
-def _build_targets(config: dict, build_inputs: _BuildInputs, work_dir: Path) -> Dict[str, Path]:
+def _build_targets(
+    config: dict, build_inputs: _BuildInputs, work_dir: Path
+) -> Dict[str, Path]:
     targets = config.get("targets", {})
     if not isinstance(targets, dict) or not targets:
         raise RuntimeError("Missing fallback target configs.")
@@ -342,11 +405,15 @@ def _build_targets(config: dict, build_inputs: _BuildInputs, work_dir: Path) -> 
         for key in ("cxx_defines", "cxx_includes", "cxx_flags", "link_args"):
             if not isinstance(target_config.get(key), list):
                 raise RuntimeError(f"Missing fallback target {key}: {target_name}")
-        built_targets[output_name] = _build_target(target_name, target_config, build_inputs, work_dir)
+        built_targets[output_name] = _build_target(
+            target_name, target_config, build_inputs, work_dir
+        )
     return built_targets
 
 
-def _compile_artifact_set(build_inputs: _BuildInputs, work_dir: Path) -> _CompiledArtifactSet:
+def _compile_artifact_set(
+    build_inputs: _BuildInputs, work_dir: Path
+) -> _CompiledArtifactSet:
     python_info = _query_current_python_build_info()
     if python_info is None:
         raise RuntimeError("Cannot resolve current Python build info.")
@@ -411,9 +478,12 @@ def _format_missing_artifact_error(load_errors: List[str]) -> str:
     python_tag = current_python_tag()
     platform_tag = current_platform_tag()
     discovered_artifacts = sorted(
-        f"{artifact.python_tag}-{artifact.platform_tag}-abi{artifact.bridge_abi}" for artifact in iter_artifacts()
+        f"{artifact.python_tag}-{artifact.platform_tag}-abi{artifact.bridge_abi}"
+        for artifact in iter_artifacts()
     )
-    discovered_text = ", ".join(discovered_artifacts) if discovered_artifacts else "none"
+    discovered_text = (
+        ", ".join(discovered_artifacts) if discovered_artifacts else "none"
+    )
     expected_wheel = f"ge_py_pass_bridge-*-{python_tag}-{python_tag}-*.whl"
     load_error_text = "; ".join(load_errors) if load_errors else "none"
     return (
@@ -441,7 +511,9 @@ def ensure_native_module() -> ModuleType:
             native = load_native_module(artifact.native_path)
             break
         except Exception as err:
-            load_errors.append(f"load native artifact '{artifact.native_path}' failed: {err}")
+            load_errors.append(
+                f"load native artifact '{artifact.native_path}' failed: {err}"
+            )
             continue
 
     if native is None:
@@ -453,7 +525,9 @@ def ensure_native_module() -> ModuleType:
             try:
                 native = load_native_module(artifact.native_path)
             except Exception as err:
-                load_errors.append(f"load fallback native artifact '{artifact.native_path}' failed: {err}")
+                load_errors.append(
+                    f"load fallback native artifact '{artifact.native_path}' failed: {err}"
+                )
 
     if native is None:
         raise ImportError(_format_missing_artifact_error(load_errors))
@@ -467,15 +541,21 @@ def run_fallback_codegen() -> PythonPassArtifact:
     try:
         build_inputs = _resolve_fallback_build_inputs(work_dir)
         if build_inputs is None:
-            raise RuntimeError("Fallback codegen unavailable: codegen resources are invalid or unavailable.")
+            raise RuntimeError(
+                "Fallback codegen unavailable: codegen resources are invalid or unavailable."
+            )
         compiled = _compile_artifact_set(build_inputs, work_dir)
         for filename, path in compiled.artifact_paths.items():
             _atomic_publish_file(path, final_dir / filename)
-        _atomic_write(final_dir / "manifest.json", _build_manifest_json(compiled.python_info))
+        _atomic_write(
+            final_dir / "manifest.json", _build_manifest_json(compiled.python_info)
+        )
     finally:
         _remove_tree_quietly(work_dir)
 
     artifact = load_artifact_from_dir(final_dir)
     if artifact is None:
-        raise RuntimeError(f"Fallback codegen completed but published artifact is incomplete: {final_dir}")
+        raise RuntimeError(
+            f"Fallback codegen completed but published artifact is incomplete: {final_dir}"
+        )
     return artifact

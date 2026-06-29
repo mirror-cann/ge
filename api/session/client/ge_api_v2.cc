@@ -282,9 +282,11 @@ static Status GEInitializeImpl(const std::map<std::string, std::string> &options
         std::vector<const char *>({opsproto_path.c_str(), "failed to load the OpsProto lib plugin"}));
     return FAILED;
   }
-  GE_ASSERT_SUCCESS(GePythonRuntimeManager::Instance().EnsureReady());
-  GE_DISMISSABLE_GUARD(release_python_runtime,
-                       ([]() { (void)GePythonRuntimeManager::Instance().ShutdownProcess(); }));
+  ret = GePythonRuntimeManager::Instance().EnsureReady();
+  if (ret != SUCCESS) {
+    GELOGW("[Ensure][PythonRuntime] failed, continue initialization, ret[%u].", ret);
+  }
+  GE_DISMISSABLE_GUARD(release_python_runtime, ([]() { (void)GePythonRuntimeManager::Instance().ShutdownProcess(); }));
   GE_ASSERT_SUCCESS(fusion::LoadPassPlugins());
 
   ge::GetContext().Init();

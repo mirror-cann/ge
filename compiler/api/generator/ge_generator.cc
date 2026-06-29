@@ -419,8 +419,7 @@ class GeGenerator::Impl {
                     const std::vector<GeTensor> &inputs, const std::vector<GeTensor> &outputs);
 
   Status CheckHostEnvOsAndCpuForUnknownShapeModel(
-      const GeRootModelPtr &ge_root_model,
-      OfflineModelFormat om_format = OfflineModelFormat::OM_FORMAT_DEFAULT) const;
+      const GeRootModelPtr &ge_root_model, OfflineModelFormat om_format = OfflineModelFormat::OM_FORMAT_DEFAULT) const;
   Status GenerateInfershapeGraph(const Graph &graph);
 
   OmgContext &omg_context_;
@@ -471,9 +470,11 @@ Status GeGenerator::Initialize(const std::map<std::string, std::string> &options
   std::map<std::string, std::string> option_tmp;
   option_tmp.emplace(std::pair<std::string, std::string>(string("ge.opsProtoLibPath"), opsproto_path));
   (void)manager->Initialize(option_tmp);
-  GE_ASSERT_SUCCESS(GePythonRuntimeManager::Instance().EnsureReady());
-  GE_DISMISSABLE_GUARD(release_python_runtime,
-                       ([]() { (void)GePythonRuntimeManager::Instance().ShutdownProcess(); }));
+  ret = GePythonRuntimeManager::Instance().EnsureReady();
+  if (ret != SUCCESS) {
+    GELOGW("[Ensure][PythonRuntime] failed, continue initialization, ret[%u].", ret);
+  }
+  GE_DISMISSABLE_GUARD(release_python_runtime, ([]() { (void)GePythonRuntimeManager::Instance().ShutdownProcess(); }));
   GE_ASSERT_SUCCESS(fusion::LoadPassPlugins());
 
   ret = impl_->graph_manager_.Initialize(options);
@@ -622,8 +623,8 @@ void GeGenerator::Impl::SetHostEnvOsCpuInfo(const GeRootModelPtr &ge_root_model,
   return;
 }
 
-Status GeGenerator::Impl::CheckHostEnvOsAndCpuForUnknownShapeModel(
-    const GeRootModelPtr &ge_root_model, OfflineModelFormat om_format) const {
+Status GeGenerator::Impl::CheckHostEnvOsAndCpuForUnknownShapeModel(const GeRootModelPtr &ge_root_model,
+                                                                   OfflineModelFormat om_format) const {
   bool is_unknown_shape = false;
   GE_ASSERT_SUCCESS(ge_root_model->CheckIsUnknownShape(is_unknown_shape),
                     "root model(id:%u) CheckIsUnknownShape failed", ge_root_model->GetModelId());

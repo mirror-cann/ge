@@ -69,7 +69,7 @@ class OptionRegister {
   OptionRegister &SetVisibility(const std::vector<OoEntryPoint> &entry_points);
   OptionRegister &SetOptValueChecker(OoInfo::ValueChecker opt_checker);
   OptionRegister &SetHelpText(std::string opt_help);
-  OptionRegister &SetShowName(OoEntryPoint entry_point, std::string show_name, OoCategory catagory = OoCategory::kEnd);
+  OptionRegister &SetShowName(OoEntryPoint entry_point, std::string show_name, OoCategory category = OoCategory::kEnd);
 
   OptionRegister &operator=(const OptionRegister &) = delete;
   OptionRegister &operator=(OptionRegister &&) = delete;

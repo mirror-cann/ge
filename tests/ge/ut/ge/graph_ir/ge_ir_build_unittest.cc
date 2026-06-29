@@ -853,7 +853,7 @@ TEST(UtestIrBuild, check_aclgrphBundle) {
   global_options[ge::OPTION_EXEC_HCCL_FLAG] = "0";
   global_options[ge::OPTION_HOST_ENV_OS] = "linux";
   global_options[ge::OPTION_HOST_ENV_CPU] = "x86_64";
-  AclgrphBuildInitializeWithoutLdPreload(global_options);
+  ge::aclgrphBuildInitialize(global_options);
 
   Graph graph = BuildIrConstGraph1();
   WeightRefreshableGraphs split_graphs;

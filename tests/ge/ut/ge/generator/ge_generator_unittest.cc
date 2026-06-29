@@ -10,7 +10,6 @@
 
 #include <gtest/gtest.h>
 
-#include "common/python_runtime/ge_python_runtime_manager.h"
 #include "macro_utils/dt_public_scope.h"
 #include "generator/ge_generator.h"
 #include "graph/utils/tensor_utils.h"
@@ -45,11 +44,6 @@ const char *const kKernelLibName = "DNN_VM_GE_LOCAL";
 class UtestGeGenerator : public testing::Test {
  protected:
   void SetUp() {
-    const auto env_ptr = getenv("LD_PRELOAD");
-    if (env_ptr != nullptr) {
-      env = env_ptr;
-      unsetenv("LD_PRELOAD");
-    }
     std::string opp_path = __FILE__;
     opp_path = opp_path.substr(0, opp_path.rfind("/") + 1);
     mmSetEnv(kEnvName, opp_path.c_str(), 1);
@@ -87,10 +81,6 @@ class UtestGeGenerator : public testing::Test {
     system(("rm -rf " + path_so).c_str());
     OperatorFactoryImpl::operator_infershape_funcs_->erase("Data");
     OperatorFactoryImpl::operator_infershape_funcs_->erase("NetOutput");
-    (void)GePythonRuntimeManager::Instance().ShutdownProcess();
-    if (!env.empty()) {
-      setenv("LD_PRELOAD", env.c_str(), 1);
-    }
   }
 
   class FakeOpsKernelInfoStore : public OpsKernelInfoStore {
@@ -115,8 +105,6 @@ class UtestGeGenerator : public testing::Test {
       infos = op_info_map_;
     };
   };
-
-  std::string env;
 
   class FakeOpsKernelBuilder : public OpsKernelBuilder {
    public:
