@@ -271,13 +271,13 @@ execute_gen_esb() {
     trap \"rm -f '\${INPROGRESS_FILE}'\" EXIT INT TERM
     log_debug \"Waiting for filesystem sync...\"
     sleep 0.3
-    sync
+    sync \"\${INPROGRESS_FILE}\" 2>/dev/null || true
 
     while [ \$RETRY_COUNT -lt \$MAX_RETRIES ]; do
         if [ ! -x \"\${GEN_ESB_EXE}\" ]; then
             log_debug \"[Retry \$((RETRY_COUNT + 1))/\$MAX_RETRIES] gen_esb not executable, waiting...\"
             sleep 0.3
-            sync
+            sync \"\${GEN_ESB_EXE}\" 2>/dev/null || true
             RETRY_COUNT=\$((RETRY_COUNT + 1))
             continue
         fi
@@ -304,17 +304,17 @@ execute_gen_esb() {
             if [ \$EXIT_CODE -eq 139 ]; then
                 log_debug \"[Retriable] SIGSEGV (ASan shadow memory conflict), retrying...\"
                 sleep 0.5
-                sync
+                sync \"\${OUTPUT_DIR}\" 2>/dev/null || true
                 RETRY_COUNT=\$((RETRY_COUNT + 1))
             elif [ \$EXIT_CODE -eq 126 ] || [ \$EXIT_CODE -eq 127 ]; then
                 log_debug \"[Retriable] Exit code \$EXIT_CODE, retrying...\"
                 sleep 0.5
-                sync
+                sync \"\${OUTPUT_DIR}\" 2>/dev/null || true
                 RETRY_COUNT=\$((RETRY_COUNT + 1))
             elif [[ \"${ENABLE_ASAN_NORMALIZED}\" == \"true\" ]] && [ \$EXIT_CODE -eq 1 ]; then
                 log_debug \"[Retriable] Exit code 1 under ASan (likely nested bug or shadow-memory conflict), retrying...\"
                 sleep 0.5
-                sync
+                sync \"\${OUTPUT_DIR}\" 2>/dev/null || true
                 RETRY_COUNT=\$((RETRY_COUNT + 1))
             else
                 log_debug \"[Non-retriable] Exit code \$EXIT_CODE\"
