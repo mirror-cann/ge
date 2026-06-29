@@ -138,9 +138,10 @@ Status LoadAndRunFileCodeGenerator::BuildRunBodyImpl(std::vector<BodyItem> &body
   auto exe_stream = ast_.Var("aclrtStream &", "exe_stream");
   auto body_item = is_async ? ast_.Str("RunAsync begin") : ast_.Str("Run begin");
   body.push_back(ast_.Call("OM2_LOGI", {body_item}));
-  body.push_back(ast_.If((input_count != "om2::INPUT_NUM") || (output_count != "om2::OUTPUT_NUM"), {
-      ast_.Return("ACL_ERROR_FAILURE"),
-  }));
+  body.push_back(ast_.If((input_count != "om2::INPUT_NUM") || (output_count != "om2::OUTPUT_NUM"),
+                         {
+                             ast_.Return("ACL_ERROR_FAILURE"),
+                         }));
   // 声明 input_data_N_tensor / output_data_N_tensor 变量（按 index 去重）。
   BuildRunBodyDeclareTensorIoVars(body, codegen_model.model_io.entries, input_data, output_data);
 
@@ -167,9 +168,9 @@ Status LoadAndRunFileCodeGenerator::BuildRunBodyImpl(std::vector<BodyItem> &body
   return SUCCESS;
 }
 
-void LoadAndRunFileCodeGenerator::BuildRunBodyDeclareTensorIoVars(
-    std::vector<BodyItem> &body, const std::vector<ModelIoEntry> &entries,
-    const VarRef &input_data, const VarRef &output_data) {
+void LoadAndRunFileCodeGenerator::BuildRunBodyDeclareTensorIoVars(std::vector<BodyItem> &body,
+                                                                  const std::vector<ModelIoEntry> &entries,
+                                                                  const VarRef &input_data, const VarRef &output_data) {
   std::set<uint32_t> declared_input_indices;
   std::set<uint32_t> declared_output_indices;
   for (const auto &entry : entries) {
@@ -184,19 +185,18 @@ void LoadAndRunFileCodeGenerator::BuildRunBodyDeclareTensorIoVars(
     }
     if (should_declare_tensor) {
       auto tensor = ast_.Var("auto", tensor_var_name);
-      body.push_back(ast_.VarDecl(tensor, ast_.ReinterpretCast("gert::Tensor *",
-          (entry.is_input ? input_data : output_data)[entry.index])));
+      body.push_back(ast_.VarDecl(
+          tensor, ast_.ReinterpretCast("gert::Tensor *", (entry.is_input ? input_data : output_data)[entry.index])));
     }
   }
 }
 
-void LoadAndRunFileCodeGenerator::BuildRunBodyProcessInputsAndAddrRefresh(
-    std::vector<BodyItem> &body, const std::vector<ModelIoEntry> &entries,
-    const VarRef &exe_stream, bool is_async) {
+void LoadAndRunFileCodeGenerator::BuildRunBodyProcessInputsAndAddrRefresh(std::vector<BodyItem> &body,
+                                                                          const std::vector<ModelIoEntry> &entries,
+                                                                          const VarRef &exe_stream, bool is_async) {
   for (const auto &entry : entries) {
-    const std::string tensor_var_name = entry.is_input ?
-        ("input_data_" + std::to_string(entry.index) + "_tensor") :
-        ("output_data_" + std::to_string(entry.index) + "_tensor");
+    const std::string tensor_var_name = entry.is_input ? ("input_data_" + std::to_string(entry.index) + "_tensor")
+                                                       : ("output_data_" + std::to_string(entry.index) + "_tensor");
     auto tensor = ast_.Var("auto", tensor_var_name);
     if (entry.is_addr_refreshable) {
       // OM2 临时处理：NoTask 连续输入复用输出展开为多段地址刷新。
@@ -210,9 +210,9 @@ void LoadAndRunFileCodeGenerator::BuildRunBodyProcessInputsAndAddrRefresh(
       auto dev_addr = ast_.Var("auto", addr_var_name);
       body.push_back(ast_.VarDecl(dev_addr, GetAddr(ast_.Var("void *", "total_dev_mem_ptr_"), entry.memory_offset)));
       if (is_async) {
-        body.push_back(ChkStatus(AclrtMemcpyAsync(dev_addr, tensor.Arrow("GetSize")(), tensor.Arrow("GetAddr")(),
-                                                   tensor.Arrow("GetSize")(), "ACL_MEMCPY_DEVICE_TO_DEVICE",
-                                                   exe_stream)));
+        body.push_back(
+            ChkStatus(AclrtMemcpyAsync(dev_addr, tensor.Arrow("GetSize")(), tensor.Arrow("GetAddr")(),
+                                       tensor.Arrow("GetSize")(), "ACL_MEMCPY_DEVICE_TO_DEVICE", exe_stream)));
       } else {
         body.push_back(ChkStatus(AclrtMemcpy(dev_addr, tensor.Arrow("GetSize")(), tensor.Arrow("GetAddr")(),
                                              tensor.Arrow("GetSize")(), "ACL_MEMCPY_DEVICE_TO_DEVICE")));
@@ -221,9 +221,9 @@ void LoadAndRunFileCodeGenerator::BuildRunBodyProcessInputsAndAddrRefresh(
   }
 }
 
-void LoadAndRunFileCodeGenerator::BuildRunBodyCopyOutputs(
-    std::vector<BodyItem> &body, const std::vector<ModelIoEntry> &entries,
-    const VarRef &exe_stream, bool is_async) {
+void LoadAndRunFileCodeGenerator::BuildRunBodyCopyOutputs(std::vector<BodyItem> &body,
+                                                          const std::vector<ModelIoEntry> &entries,
+                                                          const VarRef &exe_stream, bool is_async) {
   for (const auto &entry : entries) {
     if (entry.is_input || entry.is_addr_refreshable) {
       continue;
@@ -235,8 +235,7 @@ void LoadAndRunFileCodeGenerator::BuildRunBodyCopyOutputs(
     body.push_back(ast_.VarDecl(dev_addr, GetAddr(ast_.Var("void *", "total_dev_mem_ptr_"), entry.memory_offset)));
     if (is_async) {
       body.push_back(ChkStatus(AclrtMemcpyAsync(tensor.Arrow("GetAddr")(), tensor.Arrow("GetSize")(), dev_addr,
-                                                tensor.Arrow("GetSize")(), "ACL_MEMCPY_DEVICE_TO_DEVICE",
-                                                exe_stream)));
+                                                tensor.Arrow("GetSize")(), "ACL_MEMCPY_DEVICE_TO_DEVICE", exe_stream)));
     } else {
       body.push_back(ChkStatus(AclrtMemcpy(tensor.Arrow("GetAddr")(), tensor.Arrow("GetSize")(), dev_addr,
                                            tensor.Arrow("GetSize")(), "ACL_MEMCPY_DEVICE_TO_DEVICE")));
@@ -244,7 +243,51 @@ void LoadAndRunFileCodeGenerator::BuildRunBodyCopyOutputs(
   }
 }
 
+Status LoadAndRunFileCodeGenerator::BuildAclrtMallocFunction(std::vector<DeclNode *> &items) const {
+  auto ptr = ast_.Var("void **", "ptr");
+  auto size = ast_.Var("size_t", "size");
+  auto mem_type = ast_.Var("uint32_t", "mem_type");
+  auto module_id = ast_.Var("uint16_t", "module_id");
+  auto attr = ast_.Var("aclrtMallocAttribute", "attr");
+  auto cfg = ast_.Var("aclrtMallocConfig", "cfg");
+
+  std::vector<BodyItem> body;
+  body.push_back(ast_.Assign(ast_.Deref(ptr), Arg(nullptr)));
+  body.push_back(ast_.If(size == ast_.UInt(0), {ast_.Return("ACL_SUCCESS")}));
+  body.push_back(ast_.VarDecl(attr));
+  body.push_back(ast_.Assign(attr.Attr("attr"), "ACL_RT_MEM_ATTR_MODULE_ID"));
+  body.push_back(ast_.Assign(attr.Attr("value").Attr("moduleId"), module_id));
+  body.push_back(ast_.VarDecl(cfg));
+  body.push_back(ast_.Assign(cfg.Attr("attrs"), attr.Addr()));
+  body.push_back(ast_.Assign(cfg.Attr("numAttrs"), ast_.UInt(1)));
+
+  std::vector<BodyItem> switch_body;
+  switch_body.push_back(ast_.Case("RT_MEMORY_TS"));
+  switch_body.push_back(
+      ast_.Return(ast_.Call("aclrtMallocForTaskScheduler", {ptr, size, "ACL_MEM_MALLOC_HUGE_FIRST", cfg.Addr()})));
+  switch_body.push_back(ast_.Case("RT_MEMORY_HOST"));
+  switch_body.push_back(ast_.Return(ast_.Call("aclrtMallocHostWithCfg", {ptr, size, cfg.Addr()})));
+  switch_body.push_back(ast_.Case("RT_MEMORY_P2P_HBM"));
+  switch_body.push_back(ast_.Case("RT_MEMORY_P2P_DDR"));
+  switch_body.push_back(
+      ast_.Return(ast_.Call("aclrtMallocWithCfg", {ptr, size, "ACL_MEM_MALLOC_HUGE_FIRST_P2P", cfg.Addr()})));
+  switch_body.push_back(ast_.Case("RT_MEMORY_DDR"));
+  switch_body.push_back(ast_.Case("RT_MEMORY_DDR_NC"));
+  switch_body.push_back(
+      ast_.Return(ast_.Call("aclrtMallocWithCfg", {ptr, size, "ACL_MEM_TYPE_LOW_BAND_WIDTH", cfg.Addr()})));
+  switch_body.push_back(ast_.Case(Arg(nullptr)));
+  switch_body.push_back(
+      ast_.Return(ast_.Call("aclrtMallocWithCfg", {ptr, size, "ACL_MEM_TYPE_HIGH_BAND_WIDTH", cfg.Addr()})));
+
+  body.push_back(ast_.Switch(mem_type, switch_body));
+
+  items.push_back(ast_.DefineFunction("AclrtMalloc", {ptr, size, mem_type, module_id}, "aclError", ast_.Body(body)));
+  return SUCCESS;
+}
+
 Status LoadAndRunFileCodeGenerator::BuildCommonHelperFunctions(std::vector<DeclNode *> &items) const {
+  GE_ASSERT_SUCCESS(BuildAclrtMallocFunction(items));
+
   auto dev_ptr = ast_.Var("void *&", "dev_ptr");
   auto size = ast_.Var("const size_t", "size");
   auto mem_type = ast_.Var("const uint32_t", "mem_type");
@@ -265,12 +308,12 @@ Status LoadAndRunFileCodeGenerator::BuildCommonHelperFunctions(std::vector<DeclN
                   }),
           ast_.VarDecl(aligned_size, ((size + kMemAlignSize) - 1) / kMemAlignSize * kMemAlignSize),
           ast_.VarDecl(final_block_size, ((aligned_size + block_size) - 1) / block_size * block_size),
-          ast_.VarDecl(rt_ret, RtMalloc(dev_ptr.Addr(), final_block_size, mem_type, "GE_MODULE_NAME_U16")),
-          ast_.If((rt_ret != "RT_ERROR_NONE") || (dev_ptr == nullptr),
+          ast_.VarDecl(rt_ret, AclrtMallocHelper(dev_ptr.Addr(), final_block_size, mem_type, "GE_MODULE_NAME_U16")),
+          ast_.If((rt_ret != "ACL_SUCCESS") || (dev_ptr == nullptr),
                   {
                       ast_.Return("ACL_ERROR_FAILURE"),
                   }),
-          ChkTrue(RtMemset(dev_ptr, block_size, 0, block_size) == "RT_ERROR_NONE"),
+          ChkStatus(AclrtMemset(dev_ptr, block_size, 0, block_size)),
           mem_ptrs.PushBack(dev_ptr),
           ast_.Return("ACL_SUCCESS"),
       }));

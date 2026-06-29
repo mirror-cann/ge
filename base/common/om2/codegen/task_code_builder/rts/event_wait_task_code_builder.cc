@@ -41,7 +41,7 @@ Status EventWaitTaskCodeBuilder::RenderDistHelper(std::vector<DeclNode *> &items
   items.push_back(ast_.DefineFunction("KernelEventWaitDistribute", {op_name, event, stream}, "aclError",
                                       {
                                           ChkRt(RtSetTaskTag(op_name)),
-                                          ChkRt(RtStreamWaitEvent(stream, event)),
+                                          ChkStatus(AclrtStreamWaitEvent(stream, event)),
                                           ChkRt(RtSetTaskTag(op_name)),
                                           ChkStatus(AclrtResetEvent(event, stream)),
                                           ast_.Return("ACL_SUCCESS"),

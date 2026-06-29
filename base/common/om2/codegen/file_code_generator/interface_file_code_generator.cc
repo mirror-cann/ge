@@ -167,6 +167,27 @@ void InterfaceFileCodeGenerator::DealParamForOm2ModelClass(std::vector<DeclNode 
   }
 }
 
+std::vector<DeclNode *> InterfaceFileCodeGenerator::BuildRtForwardDecls() {
+  // rtLabelDevInfo / rtCmoAddrTaskLaunch 不在 rt_external*.h 中，前向声明以供 sizeof/调用使用
+  return {
+      ast_.Struct("rtLabelDevInfo",
+                  {
+                      ast_.Field("uint16_t", "modelId"),
+                      ast_.Field("uint16_t", "streamId"),
+                      ast_.Field("uint16_t", "labelId"),
+                      ast_.Field("uint16_t", "reserved[7]"),
+                  }),
+      ast_.ExternBlock("C",
+                       {
+                           ast_.DeclareFunction("rtCmoAddrTaskLaunch",
+                                                {ast_.Var("void *", "cmoAddrInfo"), ast_.Var("uint64_t", "destMax"),
+                                                 ast_.Var("rtCmoOpCode_t", "cmoOpCode"), ast_.Var("rtStream_t", "stm"),
+                                                 ast_.Var("uint32_t", "flag")},
+                                                "rtError_t"),
+                       }),
+  };
+}
+
 std::vector<DeclNode *> InterfaceFileCodeGenerator::BuildExternalApiDecls() {
   return {
       ast_.DeclareFunction(

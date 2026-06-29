@@ -237,13 +237,13 @@ Status MemcpyAddrAsyncTaskCodeBuilder::RenderDistHelper(std::vector<DeclNode *> 
   auto kind = ast_.Var("const rtMemcpyKind_t", "kind");
   auto stream = ast_.Var("aclrtStream &", "stream");
   auto qos_cfg = ast_.Var("const uint32_t", "qos_cfg");
-  items.push_back(ast_.DefineFunction(
-      "KernelMemcpyAddrAsyncDistribute", {op_name, src_addr, dst_max, count, kind, stream, qos_cfg}, "aclError",
-      {
-          ChkRt(RtSetTaskTag(op_name)),
-          ChkRt(ast_.Call("rtMemcpyAsyncPtr", {src_addr, dst_max, count, kind, stream, qos_cfg})),
-          ast_.Return("ACL_SUCCESS"),
-      }));
+  items.push_back(ast_.DefineFunction("KernelMemcpyAddrAsyncDistribute",
+                                      {op_name, src_addr, dst_max, count, kind, stream, qos_cfg}, "aclError",
+                                      {
+                                          ChkRt(RtSetTaskTag(op_name)),
+                                          ChkRt(RtMemcpyAsyncPtr(src_addr, dst_max, count, kind, stream, qos_cfg)),
+                                          ast_.Return("ACL_SUCCESS"),
+                                      }));
   return SUCCESS;
 }
 

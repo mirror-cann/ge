@@ -28,6 +28,7 @@ class InterfaceFileCodeGenerator : public CodeGeneratorBase {
   ClassDecl *BuildOm2ArgsTableClass();
   ClassDecl *BuildOm2ModelClass(const Om2CodegenModel &codegen_model);
   std::vector<DeclNode *> BuildExternalApiDecls();
+  std::vector<DeclNode *> BuildRtForwardDecls();
 
  private:
   void DealParamForOm2ModelClass(std::vector<DeclNode *> &items, const RuntimeResourceSemantic &runtime);

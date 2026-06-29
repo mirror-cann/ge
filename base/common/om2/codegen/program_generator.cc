@@ -50,10 +50,8 @@ Status ProgramGenerator::GenerateProgram(Om2CodePrinter &code_printer) {
   return SUCCESS;
 }
 
-Status ProgramGenerator::GenerateInterfaceHeader(Om2CodePrinter &code_printer) {
-  InterfaceFileCodeGenerator interface_handler(ast_);
-  auto external_api_decls = interface_handler.BuildExternalApiDecls();
-  auto *translation_unit = ast_.File({
+std::vector<DeclNode *> ProgramGenerator::BuildInterfaceHeaderIncludes() const {
+  return {
       ast_.Include("iostream", IncludeDecl::Kind::kAngle),
       ast_.Include("cstddef", IncludeDecl::Kind::kAngle),
       ast_.Include("ctime", IncludeDecl::Kind::kAngle),
@@ -72,34 +70,42 @@ Status ProgramGenerator::GenerateInterfaceHeader(Om2CodePrinter &code_printer) {
       ast_.Include("acl/acl.h"),
       ast_.Include("acl/acl_base.h"),
       ast_.Include("exe_graph/runtime/tensor.h"),
-      ast_.Include("rt.h"),
+      ast_.Include("rt_external.h"),
       ast_.Include("dlog_pub.h", IncludeDecl::Kind::kQuote),
       ast_.Include("sys/syscall.h", IncludeDecl::Kind::kAngle),
       ast_.Include("unistd.h", IncludeDecl::Kind::kAngle),
       ast_.Include("cinttypes", IncludeDecl::Kind::kAngle),
-      ast_.Space(),
-      ast_.StablePart(StablePartId::kOm2LogMacros, StablePartPlacement::kTranslationUnit),
-      ast_.StablePart(StablePartId::kInterfaceMacros),
-      ast_.StablePart(StablePartId::kInterfacePointerHelpers),
-      ast_.StablePart(StablePartId::kInterfaceDumpApis),
-      ast_.Namespace(
-          "om2",
-          {
-              ast_.Field("constexpr int32_t", "INPUT_NUM", static_cast<int>(codegen_model_.model_io.input_count)),
-              ast_.Field("constexpr int32_t", "OUTPUT_NUM", static_cast<int>(codegen_model_.model_io.output_count)),
-              interface_handler.BuildOm2ModelHandleAlias(),
-              interface_handler.BuildBinDataInfoStruct(),
-              interface_handler.BuildAicpuParamHeadStruct(),
-              interface_handler.BuildAicpuSessionInfoStruct(),
-              interface_handler.BuildArgsInfoStruct(),
-              interface_handler.BuildTfAiCpuExInfoStruct(),
-              ast_.StablePart(StablePartId::kScopeGuard, StablePartPlacement::kNamespace),
-              interface_handler.BuildOm2ArgsTableClass(),
-              ast_.StablePart(StablePartId::kOpDefStructs, StablePartPlacement::kNamespace),
-              interface_handler.BuildOm2ModelClass(codegen_model_),
-          }),
-      ast_.ExternBlock("C", external_api_decls),
-  });
+  };
+}
+
+Status ProgramGenerator::GenerateInterfaceHeader(Om2CodePrinter &code_printer) {
+  InterfaceFileCodeGenerator interface_handler(ast_);
+  auto external_api_decls = interface_handler.BuildExternalApiDecls();
+  auto rt_forward_decls = interface_handler.BuildRtForwardDecls();
+  auto file_items = BuildInterfaceHeaderIncludes();
+  file_items.push_back(ast_.Space());
+  file_items.push_back(ast_.StablePart(StablePartId::kOm2LogMacros, StablePartPlacement::kTranslationUnit));
+  file_items.push_back(ast_.StablePart(StablePartId::kInterfaceMacros));
+  file_items.push_back(ast_.StablePart(StablePartId::kInterfacePointerHelpers));
+  file_items.push_back(ast_.StablePart(StablePartId::kInterfaceDumpApis));
+  file_items.insert(file_items.end(), rt_forward_decls.begin(), rt_forward_decls.end());
+  file_items.push_back(ast_.Namespace(
+      "om2", {
+                 ast_.Field("constexpr int32_t", "INPUT_NUM", static_cast<int>(codegen_model_.model_io.input_count)),
+                 ast_.Field("constexpr int32_t", "OUTPUT_NUM", static_cast<int>(codegen_model_.model_io.output_count)),
+                 interface_handler.BuildOm2ModelHandleAlias(),
+                 interface_handler.BuildBinDataInfoStruct(),
+                 interface_handler.BuildAicpuParamHeadStruct(),
+                 interface_handler.BuildAicpuSessionInfoStruct(),
+                 interface_handler.BuildArgsInfoStruct(),
+                 interface_handler.BuildTfAiCpuExInfoStruct(),
+                 ast_.StablePart(StablePartId::kScopeGuard, StablePartPlacement::kNamespace),
+                 interface_handler.BuildOm2ArgsTableClass(),
+                 ast_.StablePart(StablePartId::kOpDefStructs, StablePartPlacement::kNamespace),
+                 interface_handler.BuildOm2ModelClass(codegen_model_),
+             }));
+  file_items.push_back(ast_.ExternBlock("C", external_api_decls));
+  auto *translation_unit = ast_.File(file_items);
   GE_ASSERT_SUCCESS(EmitFile(GeneratedFileIndex::kInterfaceHeaderFile, translation_unit, code_printer));
   return SUCCESS;
 }
@@ -223,7 +229,6 @@ CPPFLAGS := \
   -I$(CANN_ROOT)/pkg_inc \
   -I$(CANN_ROOT)/pkg_inc/base \
   -I$(CANN_ROOT)/pkg_inc/runtime \
-  -I$(CANN_ROOT)/pkg_inc/runtime/runtime \
   -I$(CANN_ROOT)/pkg_inc/profiling \
   -I$(CURDIR)/include
 endif

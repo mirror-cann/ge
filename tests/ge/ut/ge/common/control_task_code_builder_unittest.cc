@@ -363,7 +363,7 @@ TEST_F(ControlTaskCodeGeneratorUt, GenerateControlTaskFiles_Ok) {
 #include "acl/acl.h"
 #include "acl/acl_base.h"
 #include "exe_graph/runtime/tensor.h"
-#include "rt.h"
+#include "rt_external.h"
 #include "dlog_pub.h"
 #include <sys/syscall.h>
 #include <unistd.h>
@@ -604,6 +604,23 @@ __attribute__((weak)) int32_t IsDataDumpEnabled(uint32_t model_id,
                                                       const char* op_name,
                                                       uint8_t* is_data_dump);
 }
+
+struct rtLabelDevInfo {
+  uint16_t modelId;
+  uint16_t streamId;
+  uint16_t labelId;
+  uint16_t reserved[7];
+};
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+rtError_t rtCmoAddrTaskLaunch(void *cmoAddrInfo, uint64_t destMax, rtCmoOpCode_t cmoOpCode, rtStream_t stm, uint32_t flag);
+
+#ifdef __cplusplus
+}
+#endif
 
 namespace om2 {
 constexpr int32_t INPUT_NUM = 1;
@@ -898,15 +915,15 @@ aclError Om2Model::InitResources() {
   uint32_t stream0_flag = RT_STREAM_PERSISTENT;
   OM2_CHK_RT(rtStreamCreateWithFlags(&stream_list_[0], 0, stream0_flag));
   auto bind0_flag = RT_HEAD_STREAM;
-  OM2_CHK_RT(rtModelBindStream(model_handle_, stream_list_[0], bind0_flag));
+  OM2_CHK_STATUS(aclmdlRIBindStream(model_handle_, stream_list_[0], bind0_flag));
   uint32_t stream1_flag = RT_STREAM_PERSISTENT;
   OM2_CHK_RT(rtStreamCreateWithFlags(&stream_list_[1], 0, stream1_flag));
   auto bind1_flag = RT_HEAD_STREAM;
-  OM2_CHK_RT(rtModelBindStream(model_handle_, stream_list_[1], bind1_flag));
+  OM2_CHK_STATUS(aclmdlRIBindStream(model_handle_, stream_list_[1], bind1_flag));
   uint32_t stream2_flag = RT_STREAM_PERSISTENT;
   OM2_CHK_RT(rtStreamCreateWithFlags(&stream_list_[2], 0, stream2_flag));
   auto bind2_flag = RT_HEAD_STREAM;
-  OM2_CHK_RT(rtModelBindStream(model_handle_, stream_list_[2], bind2_flag));
+  OM2_CHK_STATUS(aclmdlRIBindStream(model_handle_, stream_list_[2], bind2_flag));
   is_stream_list_bind_ = true;
   // 创建Notify
   for (size_t i = 0; (i < 1); ++i) {

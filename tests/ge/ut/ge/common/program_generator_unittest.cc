@@ -1301,8 +1301,8 @@ GeRootModelPtr CreateGeRootModelWithNoTaskConcatOutput() {
   (void)netoutput_desc->AddInputDesc(out_tensor_desc);
   auto netoutput = graph->AddNode(netoutput_desc);
 
-  if ((data0 == nullptr) || (data1 == nullptr) || (add0 == nullptr) ||
-      (add1 == nullptr) || (concat == nullptr) || (netoutput == nullptr)) {
+  if ((data0 == nullptr) || (data1 == nullptr) || (add0 == nullptr) || (add1 == nullptr) || (concat == nullptr) ||
+      (netoutput == nullptr)) {
     return nullptr;
   }
   GraphUtils::AddEdge(data0->GetOutDataAnchor(0), add0->GetInDataAnchor(0));
@@ -1315,9 +1315,9 @@ GeRootModelPtr CreateGeRootModelWithNoTaskConcatOutput() {
   gert::GeModelBuilder builder(graph);
   auto ge_root_model =
       builder.AddTaskDef("add0", gert::AiCoreTaskDefFaker("add0_stub").ArgsFormat("{i_instance0*}{o_instance0*}"))
-             .AddTaskDef("add1", gert::AiCoreTaskDefFaker("add1_stub").ArgsFormat("{i_instance0*}{o_instance0*}"))
-             .FakeTbeBin({"Add"})
-             .BuildGeRootModel();
+          .AddTaskDef("add1", gert::AiCoreTaskDefFaker("add1_stub").ArgsFormat("{i_instance0*}{o_instance0*}"))
+          .FakeTbeBin({"Add"})
+          .BuildGeRootModel();
   auto &compute_graph = ge_root_model->GetRootGraph();
   compute_graph->SetGraphUnknownFlag(false);
 
@@ -1536,7 +1536,6 @@ CPPFLAGS := \
   -I$(CANN_ROOT)/pkg_inc \
   -I$(CANN_ROOT)/pkg_inc/base \
   -I$(CANN_ROOT)/pkg_inc/runtime \
-  -I$(CANN_ROOT)/pkg_inc/runtime/runtime \
   -I$(CANN_ROOT)/pkg_inc/profiling \
   -I$(CURDIR)/include
 endif
@@ -1609,7 +1608,7 @@ aclError Om2Model::InitResources() {
   uint32_t stream0_flag = RT_STREAM_PERSISTENT;
   OM2_CHK_RT(rtStreamCreateWithFlags(&stream_list_[0], 0, stream0_flag));
   auto bind0_flag = RT_HEAD_STREAM;
-  OM2_CHK_RT(rtModelBindStream(model_handle_, stream_list_[0], bind0_flag));
+  OM2_CHK_STATUS(aclmdlRIBindStream(model_handle_, stream_list_[0], bind0_flag));
   is_stream_list_bind_ = true;
   args_table_.Init();
   OM2_LOGI("InitResources done");
@@ -1682,7 +1681,7 @@ TEST_F(ProgramGeneratorUt, GenerateInterfaceHeader_Ok) {
 #include "acl/acl.h"
 #include "acl/acl_base.h"
 #include "exe_graph/runtime/tensor.h"
-#include "rt.h"
+#include "rt_external.h"
 #include "dlog_pub.h"
 #include <sys/syscall.h>
 #include <unistd.h>
@@ -1923,6 +1922,23 @@ __attribute__((weak)) int32_t IsDataDumpEnabled(uint32_t model_id,
                                                       const char* op_name,
                                                       uint8_t* is_data_dump);
 }
+
+struct rtLabelDevInfo {
+  uint16_t modelId;
+  uint16_t streamId;
+  uint16_t labelId;
+  uint16_t reserved[7];
+};
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+rtError_t rtCmoAddrTaskLaunch(void *cmoAddrInfo, uint64_t destMax, rtCmoOpCode_t cmoOpCode, rtStream_t stm, uint32_t flag);
+
+#ifdef __cplusplus
+}
+#endif
 
 namespace om2 {
 constexpr int32_t INPUT_NUM = 2;
@@ -2471,6 +2487,33 @@ uint8_t GetIsDataDump(const char *op_name, uint32_t model_id, void *instance_han
   }
   return 0U;
 }
+
+aclError AclrtMalloc(void **ptr, size_t size, uint32_t mem_type, uint16_t module_id) {
+  *ptr = nullptr;
+  if ((size == 0U)) {
+    return ACL_SUCCESS;
+  }
+  aclrtMallocAttribute attr;
+  attr.attr = ACL_RT_MEM_ATTR_MODULE_ID;
+  attr.value.moduleId = module_id;
+  aclrtMallocConfig cfg;
+  cfg.attrs = &attr;
+  cfg.numAttrs = 1U;
+  switch (mem_type) {
+    case RT_MEMORY_TS:
+    return aclrtMallocForTaskScheduler(ptr, size, ACL_MEM_MALLOC_HUGE_FIRST, &cfg);
+    case RT_MEMORY_HOST:
+    return aclrtMallocHostWithCfg(ptr, size, &cfg);
+    case RT_MEMORY_P2P_HBM:
+    case RT_MEMORY_P2P_DDR:
+    return aclrtMallocWithCfg(ptr, size, ACL_MEM_MALLOC_HUGE_FIRST_P2P, &cfg);
+    case RT_MEMORY_DDR:
+    case RT_MEMORY_DDR_NC:
+    return aclrtMallocWithCfg(ptr, size, ACL_MEM_TYPE_LOW_BAND_WIDTH, &cfg);
+    default:
+    return aclrtMallocWithCfg(ptr, size, ACL_MEM_TYPE_HIGH_BAND_WIDTH, &cfg);
+  }
+}
 constexpr uint16_t GE_MODULE_NAME_U16 = 45;
 aclError MallocDeviceMemory(void *&dev_ptr, const size_t size, const uint32_t mem_type, std::vector<void *> &mem_ptrs) {
   uint64_t block_size = 2097152;
@@ -2479,11 +2522,11 @@ aclError MallocDeviceMemory(void *&dev_ptr, const size_t size, const uint32_t me
   }
   const auto aligned_size = ((((size + 512) - 1) / 512) * 512);
   const auto final_block_size = ((((aligned_size + block_size) - 1) / block_size) * block_size);
-  const auto rt_ret = rtMalloc(&dev_ptr, final_block_size, mem_type, GE_MODULE_NAME_U16);
-  if (((rt_ret != RT_ERROR_NONE) || (dev_ptr == nullptr))) {
+  const auto rt_ret = AclrtMalloc(&dev_ptr, final_block_size, mem_type, GE_MODULE_NAME_U16);
+  if (((rt_ret != ACL_SUCCESS) || (dev_ptr == nullptr))) {
     return ACL_ERROR_FAILURE;
   }
-  OM2_CHK_TRUE((rtMemset(dev_ptr, block_size, 0, block_size) == RT_ERROR_NONE));
+  OM2_CHK_STATUS(aclrtMemset(dev_ptr, block_size, 0, block_size));
   mem_ptrs.push_back(dev_ptr);
   return ACL_SUCCESS;
 }
@@ -2959,6 +3002,33 @@ uint8_t GetIsDataDump(const char *op_name, uint32_t model_id, void *instance_han
   }
   return 0U;
 }
+
+aclError AclrtMalloc(void **ptr, size_t size, uint32_t mem_type, uint16_t module_id) {
+  *ptr = nullptr;
+  if ((size == 0U)) {
+    return ACL_SUCCESS;
+  }
+  aclrtMallocAttribute attr;
+  attr.attr = ACL_RT_MEM_ATTR_MODULE_ID;
+  attr.value.moduleId = module_id;
+  aclrtMallocConfig cfg;
+  cfg.attrs = &attr;
+  cfg.numAttrs = 1U;
+  switch (mem_type) {
+    case RT_MEMORY_TS:
+    return aclrtMallocForTaskScheduler(ptr, size, ACL_MEM_MALLOC_HUGE_FIRST, &cfg);
+    case RT_MEMORY_HOST:
+    return aclrtMallocHostWithCfg(ptr, size, &cfg);
+    case RT_MEMORY_P2P_HBM:
+    case RT_MEMORY_P2P_DDR:
+    return aclrtMallocWithCfg(ptr, size, ACL_MEM_MALLOC_HUGE_FIRST_P2P, &cfg);
+    case RT_MEMORY_DDR:
+    case RT_MEMORY_DDR_NC:
+    return aclrtMallocWithCfg(ptr, size, ACL_MEM_TYPE_LOW_BAND_WIDTH, &cfg);
+    default:
+    return aclrtMallocWithCfg(ptr, size, ACL_MEM_TYPE_HIGH_BAND_WIDTH, &cfg);
+  }
+}
 constexpr uint16_t GE_MODULE_NAME_U16 = 45;
 aclError MallocDeviceMemory(void *&dev_ptr, const size_t size, const uint32_t mem_type, std::vector<void *> &mem_ptrs) {
   uint64_t block_size = 2097152;
@@ -2967,11 +3037,11 @@ aclError MallocDeviceMemory(void *&dev_ptr, const size_t size, const uint32_t me
   }
   const auto aligned_size = ((((size + 512) - 1) / 512) * 512);
   const auto final_block_size = ((((aligned_size + block_size) - 1) / block_size) * block_size);
-  const auto rt_ret = rtMalloc(&dev_ptr, final_block_size, mem_type, GE_MODULE_NAME_U16);
-  if (((rt_ret != RT_ERROR_NONE) || (dev_ptr == nullptr))) {
+  const auto rt_ret = AclrtMalloc(&dev_ptr, final_block_size, mem_type, GE_MODULE_NAME_U16);
+  if (((rt_ret != ACL_SUCCESS) || (dev_ptr == nullptr))) {
     return ACL_ERROR_FAILURE;
   }
-  OM2_CHK_TRUE((rtMemset(dev_ptr, block_size, 0, block_size) == RT_ERROR_NONE));
+  OM2_CHK_STATUS(aclrtMemset(dev_ptr, block_size, 0, block_size));
   mem_ptrs.push_back(dev_ptr);
   return ACL_SUCCESS;
 }
@@ -3479,6 +3549,33 @@ uint8_t GetIsDataDump(const char *op_name, uint32_t model_id, void *instance_han
   }
   return 0U;
 }
+
+aclError AclrtMalloc(void **ptr, size_t size, uint32_t mem_type, uint16_t module_id) {
+  *ptr = nullptr;
+  if ((size == 0U)) {
+    return ACL_SUCCESS;
+  }
+  aclrtMallocAttribute attr;
+  attr.attr = ACL_RT_MEM_ATTR_MODULE_ID;
+  attr.value.moduleId = module_id;
+  aclrtMallocConfig cfg;
+  cfg.attrs = &attr;
+  cfg.numAttrs = 1U;
+  switch (mem_type) {
+    case RT_MEMORY_TS:
+    return aclrtMallocForTaskScheduler(ptr, size, ACL_MEM_MALLOC_HUGE_FIRST, &cfg);
+    case RT_MEMORY_HOST:
+    return aclrtMallocHostWithCfg(ptr, size, &cfg);
+    case RT_MEMORY_P2P_HBM:
+    case RT_MEMORY_P2P_DDR:
+    return aclrtMallocWithCfg(ptr, size, ACL_MEM_MALLOC_HUGE_FIRST_P2P, &cfg);
+    case RT_MEMORY_DDR:
+    case RT_MEMORY_DDR_NC:
+    return aclrtMallocWithCfg(ptr, size, ACL_MEM_TYPE_LOW_BAND_WIDTH, &cfg);
+    default:
+    return aclrtMallocWithCfg(ptr, size, ACL_MEM_TYPE_HIGH_BAND_WIDTH, &cfg);
+  }
+}
 constexpr uint16_t GE_MODULE_NAME_U16 = 45;
 aclError MallocDeviceMemory(void *&dev_ptr, const size_t size, const uint32_t mem_type, std::vector<void *> &mem_ptrs) {
   uint64_t block_size = 2097152;
@@ -3487,11 +3584,11 @@ aclError MallocDeviceMemory(void *&dev_ptr, const size_t size, const uint32_t me
   }
   const auto aligned_size = ((((size + 512) - 1) / 512) * 512);
   const auto final_block_size = ((((aligned_size + block_size) - 1) / block_size) * block_size);
-  const auto rt_ret = rtMalloc(&dev_ptr, final_block_size, mem_type, GE_MODULE_NAME_U16);
-  if (((rt_ret != RT_ERROR_NONE) || (dev_ptr == nullptr))) {
+  const auto rt_ret = AclrtMalloc(&dev_ptr, final_block_size, mem_type, GE_MODULE_NAME_U16);
+  if (((rt_ret != ACL_SUCCESS) || (dev_ptr == nullptr))) {
     return ACL_ERROR_FAILURE;
   }
-  OM2_CHK_TRUE((rtMemset(dev_ptr, block_size, 0, block_size) == RT_ERROR_NONE));
+  OM2_CHK_STATUS(aclrtMemset(dev_ptr, block_size, 0, block_size));
   mem_ptrs.push_back(dev_ptr);
   return ACL_SUCCESS;
 }
@@ -3886,6 +3983,33 @@ uint8_t GetIsDataDump(const char *op_name, uint32_t model_id, void *instance_han
   }
   return 0U;
 }
+
+aclError AclrtMalloc(void **ptr, size_t size, uint32_t mem_type, uint16_t module_id) {
+  *ptr = nullptr;
+  if ((size == 0U)) {
+    return ACL_SUCCESS;
+  }
+  aclrtMallocAttribute attr;
+  attr.attr = ACL_RT_MEM_ATTR_MODULE_ID;
+  attr.value.moduleId = module_id;
+  aclrtMallocConfig cfg;
+  cfg.attrs = &attr;
+  cfg.numAttrs = 1U;
+  switch (mem_type) {
+    case RT_MEMORY_TS:
+    return aclrtMallocForTaskScheduler(ptr, size, ACL_MEM_MALLOC_HUGE_FIRST, &cfg);
+    case RT_MEMORY_HOST:
+    return aclrtMallocHostWithCfg(ptr, size, &cfg);
+    case RT_MEMORY_P2P_HBM:
+    case RT_MEMORY_P2P_DDR:
+    return aclrtMallocWithCfg(ptr, size, ACL_MEM_MALLOC_HUGE_FIRST_P2P, &cfg);
+    case RT_MEMORY_DDR:
+    case RT_MEMORY_DDR_NC:
+    return aclrtMallocWithCfg(ptr, size, ACL_MEM_TYPE_LOW_BAND_WIDTH, &cfg);
+    default:
+    return aclrtMallocWithCfg(ptr, size, ACL_MEM_TYPE_HIGH_BAND_WIDTH, &cfg);
+  }
+}
 constexpr uint16_t GE_MODULE_NAME_U16 = 45;
 aclError MallocDeviceMemory(void *&dev_ptr, const size_t size, const uint32_t mem_type, std::vector<void *> &mem_ptrs) {
   uint64_t block_size = 2097152;
@@ -3894,11 +4018,11 @@ aclError MallocDeviceMemory(void *&dev_ptr, const size_t size, const uint32_t me
   }
   const auto aligned_size = ((((size + 512) - 1) / 512) * 512);
   const auto final_block_size = ((((aligned_size + block_size) - 1) / block_size) * block_size);
-  const auto rt_ret = rtMalloc(&dev_ptr, final_block_size, mem_type, GE_MODULE_NAME_U16);
-  if (((rt_ret != RT_ERROR_NONE) || (dev_ptr == nullptr))) {
+  const auto rt_ret = AclrtMalloc(&dev_ptr, final_block_size, mem_type, GE_MODULE_NAME_U16);
+  if (((rt_ret != ACL_SUCCESS) || (dev_ptr == nullptr))) {
     return ACL_ERROR_FAILURE;
   }
-  OM2_CHK_TRUE((rtMemset(dev_ptr, block_size, 0, block_size) == RT_ERROR_NONE));
+  OM2_CHK_STATUS(aclrtMemset(dev_ptr, block_size, 0, block_size));
   mem_ptrs.push_back(dev_ptr);
   return ACL_SUCCESS;
 }
@@ -5635,7 +5759,8 @@ TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSource_NoTaskConcatOutput_Ok) {
   const auto &interface_source = outputs[GeneratedFileIndex::kInterfaceHeaderFile];
 
   // 每个 Run/RunAsync 作用域只声明一次输出 tensor。
-  size_t first_decl = load_and_run_source.find("auto output_data_0_tensor = reinterpret_cast<gert::Tensor *>(output_data[0])");
+  size_t first_decl =
+      load_and_run_source.find("auto output_data_0_tensor = reinterpret_cast<gert::Tensor *>(output_data[0])");
   EXPECT_NE(first_decl, std::string::npos);
   // 第二次声明来自另一个方法，不应出现第三次。
   size_t second_decl = load_and_run_source.find("auto output_data_0_tensor", first_decl + 1);
@@ -5645,13 +5770,13 @@ TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSource_NoTaskConcatOutput_Ok) {
 
   // 首段直接刷新输出地址。
   EXPECT_NE(load_and_run_source.find(
-      "args_table_.UpdateHostArgs(2, reinterpret_cast<uintptr_t>(output_data_0_tensor->GetAddr()))"),
-      std::string::npos);
+                "args_table_.UpdateHostArgs(2, reinterpret_cast<uintptr_t>(output_data_0_tensor->GetAddr()))"),
+            std::string::npos);
 
   // 第二段刷新输出地址偏移。
   EXPECT_NE(load_and_run_source.find(
-      "args_table_.UpdateHostArgs(3, (reinterpret_cast<uintptr_t>(output_data_0_tensor->GetAddr()) + 512))"),
-      std::string::npos);
+                "args_table_.UpdateHostArgs(3, (reinterpret_cast<uintptr_t>(output_data_0_tensor->GetAddr()) + 512))"),
+            std::string::npos);
 
   // 输出个数保持真实模型输出数。
   EXPECT_NE(interface_source.find("OUTPUT_NUM = 1"), std::string::npos);
@@ -5668,11 +5793,11 @@ TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSource_NoTaskConcatReuseDimOne_Copy
   const auto &load_and_run_source = outputs[GeneratedFileIndex::kLoadingAndRunningFile];
 
   EXPECT_EQ(load_and_run_source.find(
-      "args_table_.UpdateHostArgs(2, reinterpret_cast<uintptr_t>(output_data_0_tensor->GetAddr()))"),
-      std::string::npos);
+                "args_table_.UpdateHostArgs(2, reinterpret_cast<uintptr_t>(output_data_0_tensor->GetAddr()))"),
+            std::string::npos);
   EXPECT_EQ(load_and_run_source.find(
-      "args_table_.UpdateHostArgs(3, (reinterpret_cast<uintptr_t>(output_data_0_tensor->GetAddr()) + 512))"),
-      std::string::npos);
+                "args_table_.UpdateHostArgs(3, (reinterpret_cast<uintptr_t>(output_data_0_tensor->GetAddr()) + 512))"),
+            std::string::npos);
 
   const std::string execute_call = "aclmdlRIExecute(model_handle_, stream_sync_timeout)";
   const std::string copy_call =

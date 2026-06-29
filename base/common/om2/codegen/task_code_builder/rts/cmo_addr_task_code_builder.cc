@@ -211,13 +211,13 @@ Status CmoAddrTaskCodeBuilder::RenderDistHelper(std::vector<DeclNode *> &items) 
   auto stream = ast_.Var("aclrtStream", "stream");
   auto flag = ast_.Var("uint32_t", "flag");
 
-  items.push_back(ast_.DefineFunction(
-      "KernelCmoAddrTaskDistribute", {op_name, args_addr, args_size, cmo_op_code, stream, flag}, "aclError",
-      {
-          ChkRt(RtSetTaskTag(op_name)),
-          ChkRt(ast_.Call("rtCmoAddrTaskLaunch", {args_addr, args_size, cmo_op_code, stream, flag})),
-          ast_.Return("ACL_SUCCESS"),
-      }));
+  items.push_back(ast_.DefineFunction("KernelCmoAddrTaskDistribute",
+                                      {op_name, args_addr, args_size, cmo_op_code, stream, flag}, "aclError",
+                                      {
+                                          ChkRt(RtSetTaskTag(op_name)),
+                                          ChkRt(RtCmoAddrTaskLaunch(args_addr, args_size, cmo_op_code, stream, flag)),
+                                          ast_.Return("ACL_SUCCESS"),
+                                      }));
 
   return SUCCESS;
 }

@@ -40,10 +40,11 @@ class LoadAndRunFileCodeGenerator : public Om2ModelClassGeneratorBase {
   void BuildRunBodyDeclareTensorIoVars(std::vector<BodyItem> &body, const std::vector<ModelIoEntry> &entries,
                                        const VarRef &input_data, const VarRef &output_data);
   void BuildRunBodyProcessInputsAndAddrRefresh(std::vector<BodyItem> &body, const std::vector<ModelIoEntry> &entries,
-                                                const VarRef &exe_stream, bool is_async);
+                                               const VarRef &exe_stream, bool is_async);
   void BuildRunBodyCopyOutputs(std::vector<BodyItem> &body, const std::vector<ModelIoEntry> &entries,
-                                const VarRef &exe_stream, bool is_async);
+                               const VarRef &exe_stream, bool is_async);
   Status BuildCommonHelperFunctions(std::vector<DeclNode *> &items) const;
+  Status BuildAclrtMallocFunction(std::vector<DeclNode *> &items) const;
   Status BuildDispatchOp(std::vector<DeclNode *> &items,
                          const std::vector<TaskCodeBuilderPtr> &task_code_builders) const;
 };

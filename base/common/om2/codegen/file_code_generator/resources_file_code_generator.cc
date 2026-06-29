@@ -107,7 +107,7 @@ void ResourcesFileCodeGenerator::BuildInitStreamResources(std::vector<BodyItem> 
     (void)body.emplace_back(ChkRt(RtStreamCreateWithFlags(stream_list_[i].Addr(), 0, stream_flag)));
     const auto bind_flag = ast_.Var("auto", "bind" + std::to_string(i) + "_flag");
     (void)body.emplace_back(ast_.VarDecl(bind_flag, runtime.bind_flag_values[i]));
-    (void)body.emplace_back(ChkRt(RtModelBindStream(model_handle_, stream_list_[i], bind_flag)));
+    (void)body.emplace_back(ChkStatus(AclmdlRIBindStream(model_handle_, stream_list_[i], bind_flag)));
   }
   (void)body.emplace_back(ast_.Assign(is_stream_list_bind_, true));
 }

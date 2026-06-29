@@ -34,6 +34,7 @@ class ProgramGenerator {
 
  private:
   Status GenerateInterfaceHeader(Om2CodePrinter &code_printer);
+  std::vector<DeclNode *> BuildInterfaceHeaderIncludes() const;
   Status GenerateResourcesSource(Om2CodePrinter &code_printer);
   Status GenerateKernelRegSource(Om2CodePrinter &code_printer);
   Status GenerateArgsManagerSource(Om2CodePrinter &code_printer);

@@ -152,11 +152,17 @@ class CodeGeneratorBase {
   ExprRef RtSetTaskTag(Arg op_name) const {
     return ast_.Call("rtSetTaskTag", {op_name});
   }
-  ExprRef RtStreamWaitEvent(Arg stream, Arg event) const {
-    return ast_.Call("rtStreamWaitEvent", {stream, event});
+  ExprRef AclrtStreamWaitEvent(Arg stream, Arg event) const {
+    return ast_.Call("aclrtStreamWaitEvent", {stream, event});
   }
   ExprRef AclrtSwitchStream(Arg input_ptr, Arg cond, Arg value_ptr, Arg data_type, Arg true_stream, Arg stream) const {
     return ast_.Call("aclrtSwitchStream", {input_ptr, cond, value_ptr, data_type, true_stream, nullptr, stream});
+  }
+  ExprRef RtMemcpyAsyncPtr(Arg src_addr, Arg dst_max, Arg count, Arg kind, Arg stream, Arg qos_cfg) const {
+    return ast_.Call("rtMemcpyAsyncPtr", {src_addr, dst_max, count, kind, stream, qos_cfg});
+  }
+  ExprRef RtCmoAddrTaskLaunch(Arg args_addr, Arg args_size, Arg cmo_op_code, Arg stream, Arg flag) const {
+    return ast_.Call("rtCmoAddrTaskLaunch", {args_addr, args_size, cmo_op_code, stream, flag});
   }
   ExprRef RtGeneralCtrl(Arg inputs, Arg size, Arg type) const {
     return ast_.Call("rtGeneralCtrl", {inputs, size, type});
@@ -164,20 +170,17 @@ class CodeGeneratorBase {
   ExprRef RtStreamCreateWithFlags(Arg stream, Arg priority, Arg stream_flag) const {
     return ast_.Call("rtStreamCreateWithFlags", {stream, priority, stream_flag});
   }
-  ExprRef RtModelBindStream(Arg model, Arg stream, Arg bind_flag) const {
-    return ast_.Call("rtModelBindStream", {model, stream, bind_flag});
-  }
   ExprRef RtKernelFusionStart(Arg stream) const {
     return ast_.Call("rtKernelFusionStart", {stream});
   }
   ExprRef RtKernelFusionEnd(Arg stream) const {
     return ast_.Call("rtKernelFusionEnd", {stream});
   }
-  ExprRef RtMalloc(Arg dev_ptr, Arg size, Arg mem_type, Arg module_name) const {
-    return ast_.Call("rtMalloc", {dev_ptr, size, mem_type, module_name});
+  ExprRef AclrtMallocHelper(Arg dev_ptr, Arg size, Arg mem_type, Arg module_name) const {
+    return ast_.Call("AclrtMalloc", {dev_ptr, size, mem_type, module_name});
   }
-  ExprRef RtMemset(Arg dev_ptr, Arg max_count, Arg value, Arg count) const {
-    return ast_.Call("rtMemset", {dev_ptr, max_count, value, count});
+  ExprRef AclrtMemset(Arg dev_ptr, Arg max_count, Arg value, Arg count) const {
+    return ast_.Call("aclrtMemset", {dev_ptr, max_count, value, count});
   }
   ExprRef AclmdlRIEndTask(Arg model_handle, Arg stream) const {
     return ast_.Call("aclmdlRIEndTask", {model_handle, stream});
