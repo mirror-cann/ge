@@ -18,6 +18,7 @@
 #include "common/util/log.h"
 #include "common/constant/constant.h"
 #include "../../../inc/framework/common/runtime_model_ge.h"
+#include "graph/debug/ge_attr_define.h"
 
 using namespace ge;
 namespace cce {
@@ -33,6 +34,11 @@ Status CmoAddrOp::Init() {
 }
 
 Status CmoAddrOp::Run(vector<TaskDef> &tasks) {
+  OpDescPtr opDesc = node_.GetOpDesc();
+  if (opDesc != nullptr) {
+    (void)AttrUtils::SetInt(opDesc, ATTR_NAME_RTS_OP_IMPL_TYPE, RT_OP_IMPL_STARS);
+  }
+
   // Get rtCmoAddrTaskLaunch input of Op
   for (size_t index = 0; index < v_input_data_addr_.size(); index++) {
     int32_t cmoOpCode = RT_CMO_RESERVED;

@@ -33,6 +33,7 @@ Status MemcpyAddrAsyncOp::Init() {
 
 Status MemcpyAddrAsyncOp::Run(vector<TaskDef> &tasks) {
   RTS_LOGI("MemcpyAddrAsync Op Init start, node:%s.", name_.c_str());
+  SetOpImplType(node_.GetOpDesc());
   if (v_output_data_addr_.size() != v_input_data_addr_.size() || v_output_data_addr_.size() != v_output_size_.size() ||
       v_input_data_addr_.size() != v_input_size_.size()) {
     RTS_REPORT_CALL_ERROR(

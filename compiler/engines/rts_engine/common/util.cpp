@@ -16,10 +16,15 @@
 #include <cstring>
 #include <string.h>
 #include "securec.h"
+#include "common/constant/constant.h"
 using namespace ge;
 using namespace std;
 namespace cce {
 namespace runtime {
+namespace {
+const std::set<std::string> kTsCpuOpArch = {"1001", "2002"};  // 80, 51
+}  // namespace
+
 ge::Status GetSocVersion(char_t *version, int32_t socVersionLen) {
   if (version == nullptr || socVersionLen <= 0) {
     RTS_LOGE("Invalid input parameters");
@@ -88,6 +93,24 @@ ge::Status IsSupportFftsPlus(bool &isSupportFlag) {
 
   isSupportFlag = true;
   return SUCCESS;
+}
+
+void SetOpImplType(OpDescPtr opDesc) {
+  if (opDesc == nullptr) {
+    return;
+  }
+  char_t npuArch[MAX_NPU_ARCH_LEN] = {0};
+  if (rtGetSocSpec("version", "NpuArch", npuArch, sizeof(npuArch)) != RT_ERROR_NONE) {
+    RTS_LOGE("Get npu arch failed.");
+    return;
+  }
+  RTS_LOGI("Get npu arch is %s.", npuArch);
+  if (kTsCpuOpArch.find(npuArch) != kTsCpuOpArch.end()) {
+    (void)AttrUtils::SetInt(opDesc, ATTR_NAME_RTS_OP_IMPL_TYPE, RT_OP_IMPL_TSCPU);
+  } else {
+    (void)AttrUtils::SetInt(opDesc, ATTR_NAME_RTS_OP_IMPL_TYPE, RT_OP_IMPL_STARS);
+  }
+  return;
 }
 }  // namespace runtime
 }  // namespace cce

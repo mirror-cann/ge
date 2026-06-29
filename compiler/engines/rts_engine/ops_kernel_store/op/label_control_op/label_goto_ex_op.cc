@@ -13,6 +13,7 @@
 #include "graph/debug/ge_attr_define.h"
 #include "common/util/log.h"
 #include "../../../inc/framework/common/runtime_model_ge.h"
+#include "common/util.h"
 
 using namespace ge;
 namespace cce {
@@ -42,6 +43,7 @@ Status LabelGotoExOp::Init() {
 }
 
 Status LabelGotoExOp::Run(vector<TaskDef> &tasks) {
+  SetOpImplType(node_.GetOpDesc());
   const uint32_t streamId = op_desc_->GetStreamId();
   TaskDef taskDef = {};
   taskDef.set_type(ACL_RT_MODEL_TASK_STREAM_LABEL_GOTO);

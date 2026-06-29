@@ -1168,6 +1168,7 @@ const std::string ATTR_NAME_HCCL_TASK_NUM = "_hccl_task_num";
 const std::string ATTR_NAME_HCCL_ATTACHED_TASK_NUM = "_hccl_attached_task_num";
 // used for recording task num of RTS nodes such as MemcpyAsync
 const std::string ATTR_NAME_NODE_SQE_NUM = "_node_sqe_num";
+const std::string ATTR_NAME_RTS_OP_IMPL_TYPE = "_rts_op_impl_type";
 // used for parallel group
 const std::string ATTR_NAME_PARALLEL_GROUP = "_parallel_group";
 

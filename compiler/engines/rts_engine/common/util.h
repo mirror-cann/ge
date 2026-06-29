@@ -14,6 +14,7 @@
 #include "rt_external_base.h"
 #include "external/ge/ge_api_error_codes.h"
 #include "graph/utils/node_utils.h"
+#include "graph/op_desc.h"
 
 namespace cce {
 namespace runtime {
@@ -26,6 +27,8 @@ ge::Status GetSocVersion(char_t *version, int32_t socVersionLen);
 ge::Status IsNeedCalcOpRunningParam(const ge::Node &geNode, bool &isNeed);
 
 ge::Status IsSupportFftsPlus(bool &isSupportFlag);
+
+void SetOpImplType(ge::OpDescPtr opDesc);
 }  // namespace runtime
 }  // namespace cce
 #endif

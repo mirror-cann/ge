@@ -35,6 +35,8 @@ const std::string ATTR_NAME_SEND_ATTR_NOTIFY_ID = "notify_id";
 // attr name for recv op notify id
 const std::string ATTR_NAME_RECV_ATTR_NOTIFY_ID = "notify_id";
 
+constexpr uint32_t MAX_NPU_ARCH_LEN = 32U;
+
 // 芯片版本列表
 constexpr const char_t *kSocType[] = {
     "15",  // CHIP_DAVID
@@ -43,6 +45,8 @@ constexpr const char_t *kSocType[] = {
     "18",  // CHIP_MC32XX
     "19"   // CHIP_ASCEND_350
 };
+
+enum RtOpImplType { RT_OP_IMPL_STARS = 0, RT_OP_IMPL_TSCPU = 1 };
 
 inline bool IsStarsV2Series(const char_t *type) {
   if (type == nullptr) {
