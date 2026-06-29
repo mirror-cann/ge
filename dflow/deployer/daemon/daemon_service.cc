@@ -51,12 +51,17 @@ Status DaemonService::VerifyIpaddr(const std::string &peer_uri) {
     return SUCCESS;
   }
 
+  DaemonClientManager::ClientAddr client;
+  GE_CHK_STATUS_RET(DaemonClientManager::GetClientIpAndPort(peer_uri, client), "Failed to parse ip from peer_uri[%s].",
+                    peer_uri.c_str());
+
   for (const auto &config : remote_configs) {
-    if (peer_uri.find(config.ipaddr) != std::string::npos) {
+    if (client.ip == config.ipaddr) {
       return SUCCESS;
     }
   }
-  GELOGE(FAILED, "Failed to match ipaddr with remote configs, remote size = %zu.", remote_configs.size());
+  GELOGE(FAILED, "Failed to match ipaddr[%s] with remote configs, remote size = %zu.", client.ip.c_str(),
+         remote_configs.size());
   return FAILED;
 }
 

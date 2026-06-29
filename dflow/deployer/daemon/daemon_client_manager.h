@@ -88,13 +88,14 @@ class DaemonClientManager {
 
   void GenDgwPortOffset(const int32_t dev_count, int32_t &offset);
 
- private:
   struct ClientAddr {
     std::string ip;
     std::string port;
   };
 
   static Status GetClientIpAndPort(const std::string &uri, ClientAddr &client);
+
+ private:
   Status UpdateJsonFile();
   void DeleteAllClientInfo();
   void EvictExpiredClients();

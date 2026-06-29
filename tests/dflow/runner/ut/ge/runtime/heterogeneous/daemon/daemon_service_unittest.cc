@@ -279,4 +279,18 @@ TEST_F(DaemonServiceUnittest, TestProcessInitRequestVerifyToolSuccess) {
   daemon_service.ProcessInitRequest("xxx:10.216.56.15:8080", request, response);
   ASSERT_EQ(response.error_code(), SUCCESS);
 }
+
+TEST_F(DaemonServiceUnittest, TestVerifyIpaddrExactMatch) {
+  ge::DaemonService daemon_service;
+  SetNumaConfigEnv("valid/server/numa_config2.json");
+
+  EXPECT_EQ(daemon_service.VerifyIpaddr("ipv4:10.216.56.15:8080"), SUCCESS);
+
+  EXPECT_NE(daemon_service.VerifyIpaddr("ipv4:10.216.56.150:8080"), SUCCESS);
+  EXPECT_NE(daemon_service.VerifyIpaddr("ipv4:210.216.56.15:8080"), SUCCESS);
+  EXPECT_NE(daemon_service.VerifyIpaddr("ipv4:10.216.56.1:8080"), SUCCESS);
+  EXPECT_NE(daemon_service.VerifyIpaddr("ipv4:192.168.1.1:8080"), SUCCESS);
+
+  EXPECT_NE(daemon_service.VerifyIpaddr("invalid_uri"), SUCCESS);
+}
 }  // namespace ge

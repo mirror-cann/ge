@@ -16,6 +16,8 @@
 #include "macro_utils/dt_public_scope.h"
 #include "common/data_flow/queue/heterogeneous_exchange_service.h"
 #include "daemon/model_deployer_daemon.h"
+#include "daemon/daemon_service.h"
+#include "common/config/configurations.h"
 #include "deploy/flowrm/tsd_client.h"
 #include "macro_utils/dt_public_unscope.h"
 #include "common/env_path.h"
@@ -162,5 +164,16 @@ TEST_F(ModelDeployerDaemonTest, TestInitializeAndFinalizeOnCpu) {
     start.join();
   }
   EXPECT_EQ(ret, SUCCESS);
+}
+
+TEST_F(ModelDeployerDaemonTest, TestVerifyIpaddrRejectBypass) {
+  MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpaDeployer>());
+  EXPECT_EQ(Configurations::GetInstance().InitInformation(), SUCCESS);
+  DaemonService daemon_service;
+
+  EXPECT_EQ(daemon_service.VerifyIpaddr("ipv4:127.0.0.2:8080"), SUCCESS);
+
+  EXPECT_NE(daemon_service.VerifyIpaddr("ipv4:127.0.0.20:8080"), SUCCESS);
+  EXPECT_NE(daemon_service.VerifyIpaddr("ipv4:127.0.0.1:8080"), SUCCESS);
 }
 }  // namespace ge
