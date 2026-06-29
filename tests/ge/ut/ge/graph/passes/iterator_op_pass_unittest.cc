@@ -45,7 +45,7 @@ class IteratorOpPassTest : public testing::Test {
     EXPECT_EQ(SUCCESS, ge::VarManager::Instance(0)->Init(session_version, session_id, device_id, job_id));
   }
   void TearDown() {
-    VarManagerPool::Instance().Destory();
+    VarManagerPool::Instance().Destroy();
   }
 
   void MakeGraph(ge::ComputeGraphPtr &graph) {

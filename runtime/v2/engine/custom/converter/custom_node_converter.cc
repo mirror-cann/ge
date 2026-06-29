@@ -18,6 +18,7 @@
 #include "graph/custom_op_registry.h"
 #include "lowering/placement/placed_lowering_result.h"
 #include "exe_graph/lowering/lowering_definitions.h"
+#include "exe_graph/runtime/eager_op_execution_context.h"
 #include "common/ge_common/ge_types.h"
 #include "graph/utils/inference_rule.h"
 
@@ -106,9 +107,11 @@ LowerResult LoweringCustomNode(const ge::NodePtr &node, const LowerInput &lower_
     infer_output_shapes = bg::InferCustomOpShape(node, lower_input.input_shapes, *lower_input.global_data);
     input_holders.insert(input_holders.end(), infer_output_shapes.begin(), infer_output_shapes.end());
   }
-  // 最后需要一个workspace地址
+  // 最后需要workspace地址和args_handler地址
   std::vector<bg::ValueHolderPtr> output_tensor_holders =
-      bg::ValueHolder::CreateDataOutput(kernel_type.c_str(), input_holders, node->GetAllOutDataAnchorsSize() + 1);
+      bg::ValueHolder::CreateDataOutput(kernel_type.c_str(),
+      input_holders, node->GetAllOutDataAnchorsSize() +
+      static_cast<size_t>(gert::EagerOpExecutionContext::AdditionalOutputIndex::kNum));
   std::vector<bg::ValueHolderPtr> output_shapes;
   std::vector<bg::DevMemValueHolderPtr> output_addrs;
   for (size_t i = 0UL; i < node->GetAllOutDataAnchorsSize(); i++) {
@@ -121,8 +124,11 @@ LowerResult LoweringCustomNode(const ge::NodePtr &node, const LowerInput &lower_
     output_shapes.emplace_back(split_outputs[static_cast<size_t>(kernel::SplitTensorOutputs::kShape)]);
     output_addrs.emplace_back(split_outputs[static_cast<size_t>(kernel::SplitTensorOutputs::kTensorData)]);
   }
-  LOWER_REQUIRE_NOTNULL(
-      bg::ValueHolder::CreateVoidGuarder("FreeCustomOpWorkspaces", output_tensor_holders.back(), {allocator_holder}));
+  LOWER_REQUIRE_NOTNULL(bg::ValueHolder::CreateVoidGuarder("FreeCustomOpWorkspaces",
+      output_tensor_holders[node->GetAllOutDataAnchorsSize()], {allocator_holder}));
+  LOWER_REQUIRE_NOTNULL(bg::ValueHolder::CreateVoidGuarder("FreeArgsGuarder",
+      output_tensor_holders[node->GetAllOutDataAnchorsSize() +
+      static_cast<size_t>(gert::EagerOpExecutionContext::AdditionalOutputIndex::kArgsHandler)], {}));
   // 输入tensor需要添加对地址guard的依赖边，否则会出现提前释放
   for (auto &addr : input_addr_holders) {
     auto guarder = addr->GetGuarder();

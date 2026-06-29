@@ -10,6 +10,7 @@
 
 #include <gtest/gtest.h>
 
+#include "common/python_runtime/ge_python_runtime_manager.h"
 #include "macro_utils/dt_public_scope.h"
 #include "generator/ge_generator.h"
 #include "graph/utils/tensor_utils.h"
@@ -44,6 +45,11 @@ const char *const kKernelLibName = "DNN_VM_GE_LOCAL";
 class UtestGeGenerator : public testing::Test {
  protected:
   void SetUp() {
+    const auto env_ptr = getenv("LD_PRELOAD");
+    if (env_ptr != nullptr) {
+      env = env_ptr;
+      unsetenv("LD_PRELOAD");
+    }
     std::string opp_path = __FILE__;
     opp_path = opp_path.substr(0, opp_path.rfind("/") + 1);
     mmSetEnv(kEnvName, opp_path.c_str(), 1);
@@ -81,6 +87,10 @@ class UtestGeGenerator : public testing::Test {
     system(("rm -rf " + path_so).c_str());
     OperatorFactoryImpl::operator_infershape_funcs_->erase("Data");
     OperatorFactoryImpl::operator_infershape_funcs_->erase("NetOutput");
+    (void)GePythonRuntimeManager::Instance().ShutdownProcess();
+    if (!env.empty()) {
+      setenv("LD_PRELOAD", env.c_str(), 1);
+    }
   }
 
   class FakeOpsKernelInfoStore : public OpsKernelInfoStore {
@@ -105,6 +115,8 @@ class UtestGeGenerator : public testing::Test {
       infos = op_info_map_;
     };
   };
+
+  std::string env;
 
   class FakeOpsKernelBuilder : public OpsKernelBuilder {
    public:
@@ -890,6 +902,37 @@ TEST_F(UtestGeGenerator, GenerateModelAndDumpBuildGraph) {
   EXPECT_EQ(instance.GenerateModel(graph, file_name_prefix, inputs, model, is_offline), SUCCESS);
   GetThreadLocalContext().SetGraphOption(graph_option);
   EXPECT_EQ(instance.Finalize(), SUCCESS);
+  FinalizeGeLib();
+}
+
+TEST_F(UtestGeGenerator, GenerateModelOfflineUnknownShapeInvalidHostEnvFails) {
+  InitGeLib();
+  auto &instance = GeGenerator::GetInstance();
+  ASSERT_EQ(instance.Initialize({}), SUCCESS);
+  auto make_unknown_shape_graph = []() {
+    auto compute_graph = MakeGraph();
+    compute_graph->SetGraphUnknownFlag(true);
+    EXPECT_EQ(compute_graph->TopologicalSorting(), GRAPH_SUCCESS);
+    return ge::GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
+  };
+  const auto graph_options = GetThreadLocalContext().GetAllGraphOptions();
+
+  std::map<std::string, std::string> valid_options;
+  valid_options["ge.host_env_os"] = "linux";
+  valid_options["ge.host_env_cpu"] = "x86_64";
+  GetThreadLocalContext().SetGraphOption(valid_options);
+  ModelBufferData model;
+  EXPECT_EQ(instance.GenerateModel(make_unknown_shape_graph(), "prefix", {}, model, true), SUCCESS);
+
+  std::map<std::string, std::string> invalid_options;
+  invalid_options["ge.host_env_os"] = "linux";
+  invalid_options["ge.host_env_cpu"] = "unsupported_cpu";
+  GetThreadLocalContext().SetGraphOption(invalid_options);
+  ModelBufferData invalid_model;
+  EXPECT_NE(instance.GenerateModel(make_unknown_shape_graph(), "prefix", {}, invalid_model, true), SUCCESS);
+
+  GetThreadLocalContext().SetGraphOption(graph_options);
+  (void)instance.Finalize();
   FinalizeGeLib();
 }
 

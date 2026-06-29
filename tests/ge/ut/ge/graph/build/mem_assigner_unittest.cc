@@ -2420,18 +2420,18 @@ TEST_F(UtestMemoryAssignerTest, graph_memory_assign_src_const) {
 
 TEST_F(UtestMemoryAssignerTest, graph_memory_assign_set_input_offset) {
   ge::ComputeGraphPtr graph = MakeRefNodeGraph();
-  auto assgin = graph->FindNode("assign");
-  EXPECT_EQ(assgin->GetOpDesc()->GetOutputOffset()[0], 10000);
-  EXPECT_EQ(assgin->GetOpDesc()->GetInputOffset()[0], 100);
-  EXPECT_EQ(assgin->GetOpDesc()->GetInputOffset()[1], 0);
+  auto assign = graph->FindNode("assign");
+  EXPECT_EQ(assign->GetOpDesc()->GetOutputOffset()[0], 10000);
+  EXPECT_EQ(assign->GetOpDesc()->GetInputOffset()[0], 100);
+  EXPECT_EQ(assign->GetOpDesc()->GetInputOffset()[1], 0);
   GraphMemoryAssigner memory_assigner(graph);
   memory_assigner.mem_assigner_.reset(new (std::nothrow) HybridMemAssigner(graph));
   MemoryOffset memory_offset(RT_MEMORY_HBM, 0);
   memory_assigner.memory_offset_.emplace(RT_MEMORY_HBM, memory_offset);
   EXPECT_EQ(memory_assigner.SetInputOffset(), GRAPH_SUCCESS);
-  EXPECT_EQ(assgin->GetOpDesc()->GetOutputOffset()[0], 10100);
-  EXPECT_EQ(assgin->GetOpDesc()->GetInputOffset()[0], 10100);
-  EXPECT_EQ(assgin->GetOpDesc()->GetInputOffset()[1], 0);
+  EXPECT_EQ(assign->GetOpDesc()->GetOutputOffset()[0], 10100);
+  EXPECT_EQ(assign->GetOpDesc()->GetInputOffset()[0], 10100);
+  EXPECT_EQ(assign->GetOpDesc()->GetInputOffset()[1], 0);
   EXPECT_EQ(memory_assigner.CheckOffset(), GRAPH_SUCCESS);
 }
 
@@ -3602,7 +3602,7 @@ TEST_F(UtestMemoryAssignerTest, graph_not_first_continuous_input_as_symbol_reuse
 }
 
 TEST_F(UtestMemoryAssignerTest, graph_ref_variable) {
-  VarManager::Instance(0)->Destory();
+  VarManager::Instance(0)->Destroy();
   VarManager::Instance(0)->Init(0, 0, 0, 0);
   ge::ComputeGraphPtr graph = MakeRefVariableGraph();
   MemoryAssigner memory_assigner(graph);
@@ -3627,7 +3627,7 @@ TEST_F(UtestMemoryAssignerTest, graph_ref_variable) {
 }
 
 TEST_F(UtestMemoryAssignerTest, graph_sort_test) {
-  VarManager::Instance(0)->Destory();
+  VarManager::Instance(0)->Destroy();
   VarManager::Instance(0)->Init(0, 0, 0, 0);
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("graph1_sort_test");
   MakeSortTestGraph(graph);
@@ -3769,7 +3769,7 @@ TEST_F(UtestMemoryAssignerTest, test_p2p_memory_type) {
 }
 
 TEST_F(UtestMemoryAssignerTest, graph_option_test) {
-  VarManager::Instance(0)->Destory();
+  VarManager::Instance(0)->Destroy();
   VarManager::Instance(0)->Init(0, 0, 0, 0);
   OptionSetter option({{OPTION_EXEC_DISABLE_REUSED_MEMORY, "1"}});
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("graph_option_test");

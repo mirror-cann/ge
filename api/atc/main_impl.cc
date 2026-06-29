@@ -42,6 +42,7 @@
 #include "api/gelib/gelib.h"
 #include "graph/preprocess/insert_op/insert_aipp_op_util.h"
 #include "api/aclgrph/option_utils.h"
+#include "common/python_runtime/ge_python_runtime_manager.h"
 #include "mmpa/mmpa_api.h"
 #include "common/single_op_parser.h"
 #include "parser/common/op_registration_tbe.h"
@@ -59,6 +60,7 @@ using json = nlohmann::json;
 using amctStatus = int32_t;
 static bool is_dynamic_input = false;
 const char *const kAmctSo = "libamctacl.so";
+const char *const kLegacySoSuffix = "_legacy.so";
 const char *const kModeSupport =
     "The value must be selected from the following: 0(model to framework model), "
     "1(framework model to json), 3(only pre-check), "
@@ -811,6 +813,18 @@ class GFlagUtils {
     return ge::SUCCESS;
   }
 
+  static Status CheckPrecisionRelatedFlags() {
+    GE_ASSERT_SUCCESS(CheckIsWeightClipParamValid(FLAGS_is_weight_clip), "[Check][is_weight_clip]failed!");
+    GE_ASSERT_SUCCESS(CheckPrecisionModeParamValid(FLAGS_precision_mode), "[Check][PrecisionMode]failed!");
+    GE_ASSERT_SUCCESS(CheckPrecisionModeV2ParamValid(FLAGS_precision_mode_v2), "[Check][PrecisionModeV2]failed!");
+    GE_ASSERT_SUCCESS(CheckPrecisionModeV2Conflict(FLAGS_precision_mode, FLAGS_precision_mode_v2),
+                      "[Check][PrecisionModeV2Conflict]failed!");
+    if (CheckModifyMixlistParamValid(FLAGS_precision_mode, FLAGS_precision_mode_v2, FLAGS_modify_mixlist) != SUCCESS) {
+      return FAILED;
+    }
+    return SUCCESS;
+  }
+
   static Status CheckFlags() {
     const bool is_mode_om = ((FLAGS_mode == static_cast<int32_t>(RunMode::GEN_OM_MODEL)) ||
                              (FLAGS_mode == static_cast<int32_t>(RunMode::GEN_EXE_OM_FOR_NANO)) ||
@@ -858,14 +872,7 @@ class GFlagUtils {
       GELOGE(FAILED, "[Check][op_precision_mode] %s not found", FLAGS_op_precision_mode.c_str());
       return FAILED;
     }
-    GE_ASSERT_SUCCESS(CheckIsWeightClipParamValid(FLAGS_is_weight_clip), "[Check][is_weight_clip]failed!");
-    GE_ASSERT_SUCCESS(CheckPrecisionModeParamValid(FLAGS_precision_mode), "[Check][PrecisionMode]failed!");
-    GE_ASSERT_SUCCESS(CheckPrecisionModeV2ParamValid(FLAGS_precision_mode_v2), "[Check][PrecisionModeV2]failed!");
-    GE_ASSERT_SUCCESS(CheckPrecisionModeV2Conflict(FLAGS_precision_mode, FLAGS_precision_mode_v2),
-                      "[Check][PrecisionModeV2Conflict]failed!");
-    if (CheckModifyMixlistParamValid(FLAGS_precision_mode, FLAGS_precision_mode_v2, FLAGS_modify_mixlist) != SUCCESS) {
-      return FAILED;
-    }
+    GE_ASSERT_SUCCESS(CheckPrecisionRelatedFlags());
 
     if (CheckAndTransferInputShapeToRange(FLAGS_input_shape, FLAGS_input_shape_range, FLAGS_dynamic_batch_size,
                                           FLAGS_dynamic_image_size, FLAGS_dynamic_dims) != SUCCESS) {
@@ -962,10 +969,6 @@ class GFlagUtils {
       if (!FLAGS_insert_op_conf.empty()) {
         GE_CHK_BOOL_EXEC(ge::InsertAippOpUtil::ValidateStaticAippOnly(FLAGS_insert_op_conf) == ge::SUCCESS,
                          return FAILED, "[Check][OM2][InsertOpConf] Dynamic AIPP is not supported in OM2 mode.");
-      }
-    } else {
-      if (CheckHostEnvOsAndHostEnvCpuValid(FLAGS_host_env_os, FLAGS_host_env_cpu) != SUCCESS) {
-        return PARAM_INVALID;
       }
     }
 
@@ -1100,6 +1103,12 @@ class GFlagUtils {
     return flgs::GF_SUCCESS;
   }
 };
+
+bool IsLegacySoFile(const std::string &file_path) {
+  return file_path.size() < std::strlen(kLegacySoSuffix) ||
+         file_path.compare((file_path.size() - std::strlen(kLegacySoSuffix)), std::strlen(kLegacySoSuffix),
+                           kLegacySoSuffix) != 0;
+}
 
 namespace {
 void SetDynamicInputSizeOptions() {
@@ -1246,6 +1255,9 @@ void LoadCustomOpLib(bool need_load_ops_plugin) {
 
   // whether there are files in the plugin so path
   GetPluginSoFileList(plugin_path, fileList, caffe_parser_path);
+
+  // sort, move "_legacy.so" to the end
+  std::stable_partition(fileList.begin(), fileList.end(), ge::IsLegacySoFile);
 
   // no file
   if (fileList.empty() && caffe_parser_path.empty()) {
@@ -1417,6 +1429,7 @@ Status GenerateInfershapeJson() {
     DOMI_LOGE("GeGenerator initialize failed!");
     return FAILED;
   }
+  GE_MAKE_GUARD(release_python_runtime, []() { (void)GePythonRuntimeManager::Instance().ShutdownProcess(); });
 
   Graph graph;
   std::map<std::string, std::string> atc_params;
@@ -1489,8 +1502,16 @@ Status CallAmctInterface(Graph &graph, std::map<std::string, std::string> &optio
   auto it = options.find(std::string(ge::COMPRESSION_OPTIMIZE_CONF));
   if ((it != options.end()) && (!it->second.empty())) {
     options.insert(std::pair<std::string, std::string>("build_graph_already_initialized", "1"));
-    void *handle = mmDlopen(kAmctSo, static_cast<int32_t>(MMPA_RTLD_NOW));
-    GE_CHECK_NOTNULL(handle);
+    void* handle = mmDlopen(kAmctSo, static_cast<int32_t>(MMPA_RTLD_NOW));
+    if (handle == nullptr) {
+      const char_t *error = mmDlerror();
+      error = (error == nullptr) ? "" : error;
+      string errmsg = "AMCT is not installed, error: " + string(error);
+      (void)REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"parameter", "value", "reason"}),
+            std::vector<const char *>({"--compression_optimize_conf", it->second.c_str(), errmsg.c_str()}));
+      GELOGE(FAILED, "[Open][AmctSo] %s failed, error: %s", kAmctSo, error);
+      return FAILED;
+    }
     GE_MAKE_GUARD(close_handle, [&handle]() {
       // dlClose 前先析构 IAmctCalibration
       GeAmctRegistry::GetInstance().Unregister();
@@ -1631,7 +1652,15 @@ Status GenerateModel(std::map<std::string, std::string> &options, const std::str
   GeGenerator ge_generator;
   Status ret = SUCCESS;
   std::shared_ptr<GELib> instance_ptr = GELib::GetInstance();
+  bool release_python_runtime = false;
+  GE_DISMISSABLE_GUARD(release_python_runtime_guard, ([&release_python_runtime]() {
+    if (release_python_runtime) {
+      (void)GePythonRuntimeManager::Instance().ShutdownProcess();
+    }
+  }));
   if (instance_ptr == nullptr || !instance_ptr->InitFlag()) {
+    GE_ASSERT_SUCCESS(GePythonRuntimeManager::Instance().EnsureReady());
+    release_python_runtime = true;
     ret = GELib::Initialize(options);
     if (ret != SUCCESS) {
       DOMI_LOGE("GE initialize failed!");
@@ -1647,8 +1676,10 @@ Status GenerateModel(std::map<std::string, std::string> &options, const std::str
   const std::function<void()> callback = [&ge_generator]() {
     (void)ge_generator.Finalize();
     (void)GELib::GetInstance()->Finalize();
+    (void)GePythonRuntimeManager::Instance().ShutdownProcess();
   };
   GE_MAKE_GUARD(release, callback);
+  release_python_runtime = false;
   GELOGD("Current input is single graph to generate model.");
   return GenerateModelBySingleGraph(ge_generator, output, options);
 }
@@ -1697,7 +1728,7 @@ static void SetEnvForSingleOp(std::map<std::string, std::string> &options) {
   SetOptionNameMap(options);
 }
 
-Status GenerateSingleOp(const std::string &json_file_path) {
+Status CheckSingleOpOptions() {
   if ((!GFlagUtils::IsRequiredParameterExists("--output", FLAGS_output)) ||
       (!GFlagUtils::IsRequiredParameterExists("--soc_version", FLAGS_soc_version))) {
     return FAILED;
@@ -1720,15 +1751,34 @@ Status GenerateSingleOp(const std::string &json_file_path) {
     return FAILED;
   }
 
-  GE_ASSERT_SUCCESS(CheckIsWeightClipParamValid(FLAGS_is_weight_clip), "[Check][is_weight_clip]failed!");
-  GE_ASSERT_SUCCESS(CheckPrecisionModeParamValid(FLAGS_precision_mode), "[Check][PrecisionMode]failed!");
-  GE_ASSERT_SUCCESS(CheckPrecisionModeV2ParamValid(FLAGS_precision_mode_v2), "[Check][PrecisionModeV2]failed!");
-  GE_ASSERT_SUCCESS(CheckPrecisionModeV2Conflict(FLAGS_precision_mode, FLAGS_precision_mode_v2),
-                    "[Check][PrecisionModeV2Conflict]failed!");
-  if (CheckModifyMixlistParamValid(FLAGS_precision_mode, FLAGS_precision_mode_v2, FLAGS_modify_mixlist) != SUCCESS) {
-    return FAILED;
-  }
+  GE_ASSERT_SUCCESS(GFlagUtils::CheckPrecisionRelatedFlags());
   GE_ASSERT_SUCCESS(CheckAllowHF32ParamValid(FLAGS_allow_hf32), "[Check][AllowHF32]failed!");
+  return SUCCESS;
+}
+
+Status BuildSingleOpModels(GeGenerator &generator, std::vector<SingleOpBuildParam> &build_params) {
+  Status ret = SUCCESS;
+  int32_t index = 0;
+  for (auto &param : build_params) {
+    std::string output_path;
+    if (!FLAGS_output.empty()) {
+      output_path = FLAGS_output + "/";
+    }
+    output_path += param.file_name;
+    ret = generator.BuildSingleOpModel(param.op_desc, param.inputs, param.outputs, output_path, param.compile_flag);
+    if (ret != SUCCESS) {
+      DOMI_LOGE("Compile op failed. ge ret = %u, op index = %d", ret, index);
+      ret = FAILED;
+    } else {
+      GELOGI("Compile op success. op index = %d, output = %s", index, output_path.c_str());
+    }
+    index += 1;
+  }
+  return ret;
+}
+
+Status GenerateSingleOp(const std::string &json_file_path) {
+  GE_ASSERT_SUCCESS(CheckSingleOpOptions());
   GE_ASSERT_GRAPH_SUCCESS(OpLibRegistry::GetInstance().PreProcessForCustomOp());
   std::map<std::string, std::string> options;
   // need to be changed when ge.ini plan is done
@@ -1736,6 +1786,8 @@ Status GenerateSingleOp(const std::string &json_file_path) {
   // print single op option map
   PrintOptionMap(options, "single op option");
 
+  GE_ASSERT_SUCCESS(GePythonRuntimeManager::Instance().EnsureReady());
+  GE_MAKE_GUARD(release_python_runtime, []() { (void)GePythonRuntimeManager::Instance().ShutdownProcess(); });
   auto ret = GELib::Initialize(options);
   if (ret != SUCCESS) {
     DOMI_LOGE("GE initialize failed!");
@@ -1758,23 +1810,7 @@ Status GenerateSingleOp(const std::string &json_file_path) {
     return FAILED;
   }
 
-  int32_t index = 0;
-  for (auto &param : build_params) {
-    std::string output_path;
-    if (!FLAGS_output.empty()) {
-      output_path = FLAGS_output + "/";
-    }
-    output_path += param.file_name;
-    ret = generator.BuildSingleOpModel(param.op_desc, param.inputs, param.outputs, output_path, param.compile_flag);
-    if (ret != SUCCESS) {
-      DOMI_LOGE("Compile op failed. ge ret = %u, op index = %d", ret, index);
-      ret = FAILED;
-    } else {
-      GELOGI("Compile op success. op index = %d, output = %s", index, output_path.c_str());
-    }
-    index += 1;
-  }
-
+  ret = BuildSingleOpModels(generator, build_params);
   (void)generator.Finalize();
   (void)GELib::GetInstance()->Finalize();
   return ret;

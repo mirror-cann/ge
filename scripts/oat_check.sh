@@ -133,15 +133,14 @@ fi
 echo "[OAT] Checking $FILE_COUNT staged file(s)..."
 
 # ---------------------------------------------------------------------------
-# 4. Ensure oat_reports/ exists and is in .gitignore
+# 4. Ensure oat_reports/ exists
 # ---------------------------------------------------------------------------
 mkdir -p "$OAT_REPORT_DIR"
 
 _GITIGNORE="$REPO_ROOT/.gitignore"
 for _entry in "oat_reports" "log"; do
     if ! grep -qE "^${_entry}/?$" "$_GITIGNORE" 2>/dev/null; then
-        printf "\n%s/\n" "$_entry" >> "$_GITIGNORE" 2>/dev/null || true
-        echo "[OAT] Added ${_entry}/ to .gitignore"
+        echo "[OAT] [WARNING] '${_entry}/' is not in .gitignore. Consider adding it to avoid committing scan artifacts."
     fi
 done
 

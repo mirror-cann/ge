@@ -66,8 +66,15 @@ const char *const kEnvNameCustom = "ASCEND_CUSTOM_OPP_PATH";
 const string kOpsProto = "libopsproto_rt2.0.so";
 const string kOpMaster = "libopmaster_rt2.0.so";
 const string kInner = "built-in";
-const string kOpsProtoPath = "/op_proto/lib/linux/x86_64/";
-const string kOpMasterPath = "/op_impl/ai_core/tbe/op_tiling/lib/linux/x86_64/";
+std::string GetCurArch() {
+#if defined(__aarch64__) || defined(__arm64__)
+  return "aarch64";
+#else
+  return "x86_64";
+#endif
+}
+const string kOpsProtoPath = "/op_proto/lib/linux/" + GetCurArch() + "/";
+const string kOpMasterPath = "/op_impl/ai_core/tbe/op_tiling/lib/linux/" + GetCurArch() + "/";
 
 constexpr const char *kPortableOpTypeForModelHelper = "ModelHelperPortableOpForUt";
 constexpr const char *kPortableOpEmptyTypeForModelHelper = "ModelHelperPortableOpEmptyForUt";
@@ -669,7 +676,7 @@ static GeRootModelPtr ConstructGeRootModel(bool is_dynamic_shape = true,
   ge_root_model->subgraph_instance_name_to_model_["graph"] = ge_model;
   ge_model->SetGraph(graph);
   (void)ge::AttrUtils::SetStr(ge_model, ATTR_MODEL_HOST_ENV_OS, "linux");
-  (void)ge::AttrUtils::SetStr(ge_model, ATTR_MODEL_HOST_ENV_CPU, "x86_64");
+  (void)ge::AttrUtils::SetStr(ge_model, ATTR_MODEL_HOST_ENV_CPU, GetCurArch());
 
   GeModelPtr ge_model1 = std::make_shared<GeModel>();
   ge::ComputeGraphPtr graph1 = std::make_shared<ge::ComputeGraph>("graph1");
@@ -916,7 +923,7 @@ TEST_F(UtestModelHelper, CheckOsCpuInfoAndOppVersion) {
   model_helper.file_header_ = file_header;
 
   std::string host_env_os = "linux";
-  std::string host_env_cpu = "x86_64";
+  std::string host_env_cpu = GetCurArch();
   model_helper.model_ = std::make_shared<GeModel>();
   ge::AttrUtils::SetStr(*(model_helper.model_.get()), "host_env_os", host_env_os);
   ge::AttrUtils::SetStr(*(model_helper.model_.get()), "host_env_cpu", host_env_cpu);
@@ -961,7 +968,7 @@ TEST_F(UtestModelHelper, SoBinSaveToOmRootModel) {
   system(("touch " + inner_tiling_path).c_str());
   system(("echo 'op tiling:456 ' > " + inner_tiling_path).c_str());
 
-  string cpu_info = "x86_64";
+  string cpu_info = GetCurArch();
   string os_info = "linux";
   EXPECT_EQ(ge_root_model->CheckAndSetNeedSoInOM(), SUCCESS);
   EXPECT_EQ(ge_root_model->GetSoInOmFlag(), 0x8000);
@@ -977,7 +984,7 @@ TEST_F(UtestModelHelper, SoBinSaveToOmRootModel) {
 
   EXPECT_EQ(model_helper.SaveToOmRootModel(ge_root_model, output_file, model, is_unknown_shape), SUCCESS);
 
-  output_file += "_linux_x86_64.om";
+  output_file += "_linux_" + GetCurArch() + ".om";
   system(("rm -rf " + path_vendors).c_str());
   system(("rm -rf " + output_file).c_str());
   system(("rm -rf " + opp_path + kInner).c_str());
@@ -1045,7 +1052,7 @@ TEST_F(UtestModelHelper, RepackSoToOm) {
   system(("touch " + inner_tiling_path).c_str());
   system(("echo 'op tiling:456 ' > " + inner_tiling_path).c_str());
 
-  string cpu_info = "x86_64";
+  string cpu_info = GetCurArch();
   string os_info = "linux";
   std::map<std::string, std::string> options_map;
   options_map["ge.host_env_os"] = os_info;
@@ -1067,7 +1074,7 @@ TEST_F(UtestModelHelper, RepackSoToOm) {
     ModelBufferData buffer;
     ASSERT_EQ(model_helper.LoadRootModel(model_data), SUCCESS);
     EXPECT_EQ(model_helper.PackSoToModelData(model_data, output_file, buffer), SUCCESS);
-    system("rm -rf outputfile_linux_x86_64.om");
+    system(("rm -rf outputfile_linux_" + GetCurArch() + ".om").c_str());
   }
 
   {
@@ -1237,7 +1244,7 @@ TEST_F(UtestModelHelper, SoBinSaveToOmModel) {
   system(("touch " + inner_tiling_path).c_str());
   system(("echo 'op tiling:456 ' > " + inner_tiling_path).c_str());
 
-  string cpu_info = "x86_64";
+  string cpu_info = GetCurArch();
   string os_info = "linux";
   EXPECT_EQ(ge_root_model->CheckAndSetNeedSoInOM(), SUCCESS);
   EXPECT_EQ(ge_root_model->GetSoInOmFlag(), 0x8000);
@@ -1254,7 +1261,7 @@ TEST_F(UtestModelHelper, SoBinSaveToOmModel) {
 
   EXPECT_EQ(model_helper.SaveToOmRootModel(ge_root_model, output_file, model, is_unknown_shape), SUCCESS);
 
-  output_file += "_linux_x86_64.om";
+  output_file += "_linux_" + GetCurArch() + ".om";
   system(("rm -rf " + path_vendors).c_str());
   system(("rm -rf " + inner_proto_path).c_str());
   system(("rm -rf " + output_file).c_str());
@@ -2308,7 +2315,7 @@ TEST_F(UtestModelHelper, GetBinDataSuccess) {
   system(("echo 'op tiling:456 ' > " + inner_tiling_path).c_str());
 
   ModelHelper model_helper;
-  string cpu_info = "x86_64";
+  string cpu_info = GetCurArch();
   string os_info = "linux";
   auto ret = model_helper.GetSoBinData(cpu_info, os_info);
   EXPECT_EQ(ret, SUCCESS);
@@ -2365,7 +2372,7 @@ TEST_F(UtestModelHelper, SoBinSaveToOmModel_CPU_OS_EMPTY) {
   system(("touch " + inner_tiling_path).c_str());
   system(("echo 'op tiling:456 ' > " + inner_tiling_path).c_str());
 
-  string cpu_info = "x86_64";
+  string cpu_info = GetCurArch();
   string os_info = "linux";
   EXPECT_EQ(ge_root_model->CheckAndSetNeedSoInOM(), SUCCESS);
   EXPECT_EQ(ge_root_model->GetSoInOmFlag(), 0x8000);
@@ -2432,7 +2439,7 @@ TEST_F(UtestModelHelper, SoBinSaveToOmRootModelErrByFileNameTooLong) {
   system(("touch " + inner_tiling_path).c_str());
   system(("echo 'op tiling:456 ' > " + inner_tiling_path).c_str());
 
-  string cpu_info = "x86_64";
+  string cpu_info = GetCurArch();
   string os_info = "linux";
   EXPECT_EQ(ge_root_model->CheckAndSetNeedSoInOM(), SUCCESS);
   EXPECT_EQ(ge_root_model->GetSoInOmFlag(), 0x8000);
@@ -2486,7 +2493,7 @@ TEST_F(UtestModelHelper, GetSoBinData_fail) {
   system(("echo 'compiler_version=6.4.T5.0.B121' > " + opp_path + "customize" + "/version.info").c_str());
   mmSetEnv(kEnvNameCustom, (opp_path + "customize").c_str(), 1);
 
-  string cpu_info = "x86_64";
+  string cpu_info = GetCurArch();
   string os_info = "linux";
   ModelHelper model_helper;
   EXPECT_EQ(model_helper.GetSoBinData(cpu_info, os_info), PARAM_INVALID);
@@ -2542,7 +2549,7 @@ TEST_F(UtestModelHelper, GetSoBinData_upgraded_opp_success) {
   std::vector<std::string> paths;
   gert::CreateBuiltInSplitAndUpgradedSo(paths);
   std::string os_info{"linux"};
-  std::string cpu_info{"x86_64"};
+  std::string cpu_info{GetCurArch()};
   ModelHelper model_helper;
   EXPECT_EQ(model_helper.GetSoBinData(cpu_info, os_info), SUCCESS);
   EXPECT_EQ(model_helper.op_so_store_.kernels_.size(), 4U);
@@ -2604,14 +2611,14 @@ TEST_F(UtestModelHelper, SaveOpMasterDevice_WithSpaceRegistry_Success) {
 
   std::map<std::string, std::string> options_map;
   options_map["ge.host_env_os"] = "linux";
-  options_map["ge.host_env_cpu"] = "x86_64";
+  options_map["ge.host_env_cpu"] = GetCurArch();
   GetThreadLocalContext().SetGlobalOption(options_map);
   std::string output_file = opp_path + "/output.om";
   EXPECT_EQ(model_helper.SaveToOmRootModel(ge_root_model, output_file, model, false), SUCCESS);
 
   ge::ModelParserBase base;
   ge::ModelData model_data;
-  EXPECT_EQ(base.LoadFromFile((opp_path + "output_linux_x86_64.om").c_str(), -1, model_data), SUCCESS);
+  EXPECT_EQ(base.LoadFromFile((opp_path + "output_linux_" + GetCurArch() + ".om").c_str(), -1, model_data), SUCCESS);
   EXPECT_EQ(model_helper.LoadRootModel(model_data), SUCCESS);
   if (model_data.model_data != nullptr) {
     delete[] reinterpret_cast<char_t *>(model_data.model_data);
@@ -2704,9 +2711,17 @@ TEST_F(UtestModelHelper, SaveToOm_for_SubPkg_Opp) {
   EXPECT_EQ(ge_root_model->CheckAndSetNeedSoInOM(), SUCCESS);
   EXPECT_EQ(ge_root_model->GetSoInOmFlag(), 0x8000);
   FillModelTaskDef(ge_model);
+  std::string host_env_cpu;
+#if defined(__aarch64__) || defined(__arm64__)
+  host_env_cpu = "aarch64";
+#elif defined(__x86_64__) || defined(__amd64__)
+  host_env_cpu = "x86_64";
+#else
+  host_env_cpu = "x86_64";
+#endif
   std::map<string, string> env_options;
   env_options["ge.host_env_os"] = "linux";
-  env_options["ge.host_env_cpu"] = "x86_64";
+  env_options["ge.host_env_cpu"] = host_env_cpu;
   (void)GetThreadLocalContext().SetGlobalOption(env_options);
 
   ModelHelper model_helper;

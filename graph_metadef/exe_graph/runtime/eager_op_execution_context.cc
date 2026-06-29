@@ -127,12 +127,13 @@ void *EagerOpExecutionContext::MallocWorkSpace(size_t size) {
   return mem_block->GetAddr();
 }
 
-const KernelArgs *EagerOpExecutionContext::MallocReadOnlyDevArgs(void *host_args, size_t args_size) const {
-  auto additional_start_index = GetAdditionalInputStartIndex();
-  GE_ASSERT_TRUE(additional_start_index >= 0);
+const KernelArgs* EagerOpExecutionContext::MallocReadOnlyDevArgs(void *host_args, size_t args_size) const {
+  auto additional_output_start = GetAdditionalOutputStartIndex();
+  GE_ASSERT_TRUE(additional_output_start >= 0);
 
-  auto *handler =
-      GetInputValue<ArgsHandler *>(additional_start_index + static_cast<int64_t>(AdditionalInputIndex::kArgsHandler));
+  auto *chain = GetOutput(static_cast<size_t>(additional_output_start) + static_cast<size_t>(AdditionalOutputIndex::kArgsHandler));
+  GE_ASSERT_NOTNULL(chain);
+  auto *handler = chain->GetValue<ArgsHandler *>();
   GE_ASSERT_NOTNULL(handler);
 
   return handler->MallocReadOnlyDevArgs(host_args, args_size);

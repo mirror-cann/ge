@@ -8593,7 +8593,7 @@ TEST_F(UtestDavinciModel, test_restore_variable) {
   model.runtime_param_.logic_var_base = 137438959572U;
   model.runtime_param_.var_size = 1024U;
   EXPECT_EQ(model.RestoreDeviceVarMem(variable_nodes, default_parm), SUCCESS);
-  VarManager::Instance(model.session_id_)->Destory();
+  VarManager::Instance(model.session_id_)->Destroy();
 }
 
 TEST_F(UtestDavinciModel, davinci_dump_by_original_name) {

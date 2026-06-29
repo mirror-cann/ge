@@ -9,6 +9,7 @@
  */
 
 #include <stdio.h>
+#include <cstdlib>
 #include <fstream>
 #include <gtest/gtest.h>
 #include "api/aclgrph/option_utils.h"
@@ -47,6 +48,7 @@
 #include "ge_running_env/fake_op.h"
 #include "ge_running_env/fake_graph_optimizer.h"
 #include "ge_running_env/fake_engine.h"
+#include "ge_running_env/scoped_unset_ld_preload.h"
 
 const string AddNYes = "AddNYes";
 const char *const kEnvName = "ASCEND_OPP_PATH";
@@ -103,6 +105,12 @@ class UtestIrBuild : public testing::Test {
 
   void TearDown() {}
 };
+
+template <typename Options>
+static ge::graphStatus AclgrphBuildInitializeWithoutLdPreload(Options &options) {
+  ScopedUnsetLdPreload guard;
+  return ge::aclgrphBuildInitialize(options);
+}
 
 static std::vector<uint8_t> ReadFileToVector(const std::string &path) {
   std::ifstream file(path, std::ios::binary);
@@ -845,7 +853,7 @@ TEST(UtestIrBuild, check_aclgrphBundle) {
   global_options[ge::OPTION_EXEC_HCCL_FLAG] = "0";
   global_options[ge::OPTION_HOST_ENV_OS] = "linux";
   global_options[ge::OPTION_HOST_ENV_CPU] = "x86_64";
-  ge::aclgrphBuildInitialize(global_options);
+  AclgrphBuildInitializeWithoutLdPreload(global_options);
 
   Graph graph = BuildIrConstGraph1();
   WeightRefreshableGraphs split_graphs;
@@ -1300,7 +1308,7 @@ TEST(UtestIrBuild, aclgrphBuildInitialize_test) {
   global_options[ge::OPTION_EXEC_HCCL_FLAG] = "0";
   global_options[ge::OPTION_HOST_ENV_OS] = "linux";
   global_options[ge::OPTION_HOST_ENV_CPU] = "x86_64";
-  ge::graphStatus ret = ge::aclgrphBuildInitialize(global_options);
+  ge::graphStatus ret = AclgrphBuildInitializeWithoutLdPreload(global_options);
   ge::aclgrphBuildFinalize();
   EXPECT_EQ(ret, ge::GRAPH_SUCCESS);
 
@@ -1309,13 +1317,13 @@ TEST(UtestIrBuild, aclgrphBuildInitialize_test) {
   global_options1[ge::OPTION_HOST_ENV_OS] = "linux";
   global_options1[ge::OPTION_HOST_ENV_CPU] = "x86_64";
   global_options1[ge::OPTION_SCREEN_PRINT_MODE] = "enable";
-  ret = ge::aclgrphBuildInitialize(global_options1);
+  ret = AclgrphBuildInitializeWithoutLdPreload(global_options1);
   ge::aclgrphBuildFinalize();
   EXPECT_EQ(ret, ge::GRAPH_SUCCESS);
 
   std::map<AscendString, AscendString> global_options2;
   global_options1["ge.autoTuneMode"] = "RA";
-  ret = ge::aclgrphBuildInitialize(global_options1);
+  ret = AclgrphBuildInitializeWithoutLdPreload(global_options1);
   ge::aclgrphBuildFinalize();
   EXPECT_NE(ret, ge::GRAPH_SUCCESS);
 
@@ -1324,7 +1332,7 @@ TEST(UtestIrBuild, aclgrphBuildInitialize_test) {
   global_options3["ge.deterministicLevel"] = "1";
   global_options3[ge::OPTION_HOST_ENV_OS] = "linux";
   global_options3[ge::OPTION_HOST_ENV_CPU] = "x86_64";
-  ret = ge::aclgrphBuildInitialize(global_options3);
+  ret = AclgrphBuildInitializeWithoutLdPreload(global_options3);
   auto &options = GetMutableGlobalOptions();
   auto it = options.find(ge::DETERMINISTIC);
   EXPECT_NE(it, options.end());
@@ -1343,7 +1351,7 @@ TEST(UtestIrBuild, aclgrphBuildInitialize_test) {
   global_options4[ge::OP_PRECISION_MODE] = "op_precision.ini";
   global_options4[ge::OPTION_HOST_ENV_OS] = "linux";
   global_options4[ge::OPTION_HOST_ENV_CPU] = "x86_64";
-  ret = ge::aclgrphBuildInitialize(global_options4);
+  ret = AclgrphBuildInitializeWithoutLdPreload(global_options4);
   options = GetMutableGlobalOptions();
   it = options.find(ge::OP_PRECISION_MODE);
   EXPECT_NE(it, options.end());
@@ -1355,13 +1363,13 @@ TEST(UtestIrBuild, aclgrphBuildInitialize_test) {
 
   std::map<std::string, std::string> global_options5;
   global_options5[ge::ALLOW_HF32] = "1";
-  ret = ge::aclgrphBuildInitialize(global_options5);
+  ret = AclgrphBuildInitializeWithoutLdPreload(global_options5);
   ge::aclgrphBuildFinalize();
   EXPECT_EQ(ret, ge::GRAPH_PARAM_INVALID);
 
   std::map<std::string, std::string> global_options6;
   global_options6[ge::OPTION_SCREEN_PRINT_MODE] = "0";
-  ret = ge::aclgrphBuildInitialize(global_options6);
+  ret = AclgrphBuildInitializeWithoutLdPreload(global_options6);
   ge::aclgrphBuildFinalize();
   EXPECT_EQ(ret, ge::GRAPH_PARAM_INVALID);
 }
@@ -1371,7 +1379,7 @@ TEST(UtestIrBuild, aclgrphBuildInitialize_test_fail) {
   global_options2["ge.optionInvalid"] = "invalid";
   global_options2[ge::OPTION_HOST_ENV_OS] = "linux";
   global_options2[ge::OPTION_HOST_ENV_CPU] = "x86_64";
-  EXPECT_EQ(ge::aclgrphBuildInitialize(global_options2), ge::GRAPH_SUCCESS);
+  EXPECT_EQ(AclgrphBuildInitializeWithoutLdPreload(global_options2), ge::GRAPH_SUCCESS);
   ge::aclgrphBuildFinalize();
 }
 
@@ -1380,7 +1388,7 @@ TEST(UtestIrBuild, check_compression_optimize_conf_test) {
   global_options2[ge::COMPRESSION_OPTIMIZE_CONF] = "0";
   global_options2[ge::OPTION_HOST_ENV_OS] = "linux";
   global_options2[ge::OPTION_HOST_ENV_CPU] = "x86_64";
-  ge::graphStatus ret = ge::aclgrphBuildInitialize(global_options2);
+  ge::graphStatus ret = AclgrphBuildInitializeWithoutLdPreload(global_options2);
   ge::aclgrphBuildFinalize();
   EXPECT_EQ(ret, ge::GRAPH_SUCCESS);
 }
@@ -1390,7 +1398,7 @@ TEST(UtestIrBuild, check_virtual_type_test_success) {
   global_options2[ge::VIRTUAL_TYPE] = "1";
   global_options2[ge::OPTION_HOST_ENV_OS] = "linux";
   global_options2[ge::OPTION_HOST_ENV_CPU] = "x86_64";
-  ge::graphStatus ret = ge::aclgrphBuildInitialize(global_options2);
+  ge::graphStatus ret = AclgrphBuildInitializeWithoutLdPreload(global_options2);
   ge::aclgrphBuildFinalize();
   EXPECT_EQ(ret, ge::GRAPH_SUCCESS);
 }
@@ -1400,7 +1408,7 @@ TEST(UtestIrBuild, aclgrphBuildInitializeCheckJitCompileTrue) {
   global_options2[ge::VIRTUAL_TYPE] = "1";
   global_options2[ge::OPTION_HOST_ENV_OS] = "linux";
   global_options2[ge::OPTION_HOST_ENV_CPU] = "x86_64";
-  ge::graphStatus ret = ge::aclgrphBuildInitialize(global_options2);
+  ge::graphStatus ret = AclgrphBuildInitializeWithoutLdPreload(global_options2);
   ge::aclgrphBuildFinalize();
   EXPECT_EQ(ret, ge::GRAPH_SUCCESS);
 
@@ -1821,7 +1829,7 @@ TEST(UtestIrBuild, aclgrphBuildModelOm2UnsupportedGlobalOptionTest) {
       {ge::OPTION_HOST_ENV_OS, "linux"},
       {ge::OPTION_HOST_ENV_CPU, "x86_64"},
   };
-  ASSERT_EQ(ge::aclgrphBuildInitialize(global_options), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(AclgrphBuildInitializeWithoutLdPreload(global_options), ge::GRAPH_SUCCESS);
   GE_MAKE_GUARD(finalize_guard, [] { ge::aclgrphBuildFinalize(); });
 
   Graph graph = BuildIrGraph1();
@@ -1884,7 +1892,7 @@ TEST(UtestIrBuild, check_os_err) {
   global_options2[ge::COMPRESSION_OPTIMIZE_CONF] = "0";
   global_options2[ge::OPTION_HOST_ENV_OS] = "Linux";
   global_options2[ge::OPTION_HOST_ENV_CPU] = "x86_64";
-  ge::graphStatus ret = ge::aclgrphBuildInitialize(global_options2);
+  ge::graphStatus ret = AclgrphBuildInitializeWithoutLdPreload(global_options2);
   ge::aclgrphBuildFinalize();
   EXPECT_EQ(ret, ge::GRAPH_PARAM_INVALID);
 }
@@ -1894,7 +1902,7 @@ TEST(UtestIrBuild, check_cpu_err) {
   global_options2[ge::COMPRESSION_OPTIMIZE_CONF] = "0";
   global_options2[ge::OPTION_HOST_ENV_OS] = "linux";
   global_options2[ge::OPTION_HOST_ENV_CPU] = "aaaaa";
-  ge::graphStatus ret = ge::aclgrphBuildInitialize(global_options2);
+  ge::graphStatus ret = AclgrphBuildInitializeWithoutLdPreload(global_options2);
   ge::aclgrphBuildFinalize();
   EXPECT_EQ(ret, ge::GRAPH_PARAM_INVALID);
 }
@@ -2047,7 +2055,7 @@ TEST(UtestIrBuild, ir_build_oo_init) {
                                                        {ge::OPTION_HOST_ENV_CPU, "x86_64"},
                                                        {ge::OO_LEVEL, "O1"},
                                                        {OO_CONSTANT_FOLDING, "false"}};
-  EXPECT_EQ(ge::aclgrphBuildInitialize(global_options), GRAPH_SUCCESS);
+  EXPECT_EQ(AclgrphBuildInitializeWithoutLdPreload(global_options), GRAPH_SUCCESS);
 
   const std::map<std::string, std::string> build_options = {{ge::OO_LEVEL, "O1"}, {OO_CONSTANT_FOLDING, "true"}};
   EXPECT_NE(ge::aclgrphBuildModel(graph_1, build_options, model_1), GRAPH_SUCCESS);
@@ -2070,14 +2078,14 @@ TEST(UtestIrBuild, ir_build_oo_init_param_invalid) {
 
   std::map<std::string, std::string> global_options;
   global_options[OO_LEVEL] = "O4";
-  EXPECT_NE(ge::aclgrphBuildInitialize(global_options), GRAPH_SUCCESS);
+  EXPECT_NE(AclgrphBuildInitializeWithoutLdPreload(global_options), GRAPH_SUCCESS);
 
   global_options[OO_LEVEL] = "O1";
   global_options[OO_CONSTANT_FOLDING] = "False";
-  EXPECT_NE(ge::aclgrphBuildInitialize(global_options), GRAPH_SUCCESS);
+  EXPECT_NE(AclgrphBuildInitializeWithoutLdPreload(global_options), GRAPH_SUCCESS);
 
   global_options[OO_CONSTANT_FOLDING] = "0";
-  EXPECT_NE(ge::aclgrphBuildInitialize(global_options), GRAPH_SUCCESS);
+  EXPECT_NE(AclgrphBuildInitializeWithoutLdPreload(global_options), GRAPH_SUCCESS);
 
   std::map<std::string, std::string> build_options;
   build_options[OO_LEVEL] = "O4";
@@ -2112,7 +2120,7 @@ TEST(UtestIrBuild, ir_build_export_compile_stat_valid) {
   global_options[OPTION_EXPORT_COMPILE_STAT] = "0";
   global_options[ge::OPTION_HOST_ENV_OS] = "linux";
   global_options[ge::OPTION_HOST_ENV_CPU] = "x86_64";
-  EXPECT_EQ(ge::aclgrphBuildInitialize(global_options), GRAPH_SUCCESS);
+  EXPECT_EQ(AclgrphBuildInitializeWithoutLdPreload(global_options), GRAPH_SUCCESS);
   EXPECT_NE(ge::aclgrphBuildModel(graph_1, build_options, model_1), GRAPH_SUCCESS);
   EXPECT_EQ(GetThreadLocalContext().GetOption(OPTION_EXPORT_COMPILE_STAT, opt_value), ge::GRAPH_SUCCESS);
   EXPECT_EQ(opt_value, "0");
@@ -2140,7 +2148,7 @@ TEST(UtestIrBuild, ir_build_export_compile_stat_invalid) {
   std::string opt_value("-1");
   std::map<std::string, std::string> global_options;
   global_options[OPTION_EXPORT_COMPILE_STAT] = "3";
-  EXPECT_NE(ge::aclgrphBuildInitialize(global_options), GRAPH_SUCCESS);
+  EXPECT_NE(AclgrphBuildInitializeWithoutLdPreload(global_options), GRAPH_SUCCESS);
 
   aclgrphBuildFinalize();
   system(("rm -rf " + opp_path).c_str());

@@ -37,6 +37,7 @@ set(SRC_FORMAT_TRANSFERS
 )
 
 set(SRC_LIST
+    "common/python_runtime/ge_python_runtime_manager.cc"
     "common/b_cast/b_cast.cc"
     "common/plugin/runtime_plugin_loader.cc"
     "common/plugin/plugin_caller.cc"

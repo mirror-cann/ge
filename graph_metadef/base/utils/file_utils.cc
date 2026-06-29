@@ -77,6 +77,9 @@ static inline int32_t CheckAndMkdir(const char_t *tmp_dir_path, mmMode_t mode) {
   if (mmAccess2(tmp_dir_path, M_F_OK) != EN_OK) {
     const int32_t ret = mmMkdir(tmp_dir_path, mode);
     if (ret != 0) {
+      if (errno == EEXIST) {
+        return 0;
+      }
       std::vector<char_t> err_buf(kMaxErrorStrLen + 1U, '\0');
       const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), err_buf.data(), kMaxErrorStrLen);
       std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);

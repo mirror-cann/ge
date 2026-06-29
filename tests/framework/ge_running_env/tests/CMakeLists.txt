@@ -23,6 +23,8 @@ target_compile_options(ge_running_env_test PRIVATE
 
 target_link_options(ge_running_env_test PRIVATE
     -Wl,--disable-new-dtags
+    -rdynamic
+    -Wl,-Bsymbolic
 )
 
 target_link_libraries(ge_running_env_test PUBLIC intf_llt_pub GTestShared::gtest ge_running_env ge_common_base

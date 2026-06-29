@@ -17,6 +17,7 @@ list(REMOVE_ITEM RUNTIME2_TEST_SRCS
 
 add_executable(ut_fast_runtime2_test
         "${AIR_CODE_DIR}/tests/depends/graph_tuner/rt2_src/graph_tunner_rt2_stub.cc"
+        "${AIR_CODE_DIR}/tests/graph_metadef/depends/faker/allocator_faker.cc"
         "${AIR_CODE_DIR}/tests/ge/ut/ge/ffts_plus_proto_tools.cc"
         "${AIR_CODE_DIR}/tests/ge/ut/ge/test_tools_task_info.cc"
         "${AIR_CODE_DIR}/tests/depends/op_stub/op_impl/autotiling/norm.cc"

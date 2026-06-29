@@ -308,10 +308,8 @@ Status CustomTaskInfo::Distribute() {
 
   args_handler_ = ge::ComGraphMakeUnique<SinkOpArgsHandler>(this);
   GE_ASSERT_NOTNULL(args_handler_);
-  std::vector<void *> additional_inputs = {sink_only_allocator_.get(), stream_, args_handler_.get()};
-
-  std::vector<void *> additional_outputs;
-  additional_outputs.push_back(&ws_vec_);
+  std::vector<void*> additional_inputs = {sink_only_allocator_.get(), stream_};
+  std::vector<void*> additional_outputs = {&ws_vec_, args_handler_.get()};
 
   eager_context_holder_ = gert::KernelRunContextBuilder()
                               .Inputs(GetHoldersRawPtr(inputs_holder_))

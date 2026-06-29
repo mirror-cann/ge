@@ -1010,7 +1010,7 @@ TEST_F(FlowModelBuilderTest, FlowModelBuildWithCache) {
   FlowModelPtr flow_model1;
   FlowModelBuilder flow_model_builder;
   EXPECT_EQ(flow_model_builder.BuildModel(ge_graph, {}, {}, flow_model1), SUCCESS);
-  VarManager::Instance(0)->Destory();
+  VarManager::Instance(0)->Destroy();
 }
 
 TEST_F(FlowModelBuilderTest, FlowModelBuildWithCacheIOChkSucc) {
@@ -1042,7 +1042,7 @@ TEST_F(FlowModelBuilderTest, FlowModelBuildWithCacheIOChkSucc) {
   FlowModelPtr flow_model1;
   FlowModelBuilder flow_model_builder;
   EXPECT_EQ(flow_model_builder.BuildModel(ge_graph, {}, {}, flow_model1), SUCCESS);
-  VarManager::Instance(0)->Destory();
+  VarManager::Instance(0)->Destroy();
 }
 
 TEST_F(FlowModelBuilderTest, FlowModelBuildWithCacheIOChkOutputFailed) {
@@ -1094,7 +1094,7 @@ TEST_F(FlowModelBuilderTest, FlowModelBuildWithCacheIOChkOutputFailed) {
   FlowModelPtr flow_model1;
   FlowModelBuilder flow_model_builder;
   EXPECT_EQ(flow_model_builder.BuildModel(ge_graph, {}, {}, flow_model1), FAILED);
-  VarManager::Instance(0)->Destory();
+  VarManager::Instance(0)->Destroy();
 }
 
 TEST_F(FlowModelBuilderTest, FlowModelBuildWithCacheIOChkInputNumFailed) {
@@ -1144,7 +1144,7 @@ TEST_F(FlowModelBuilderTest, FlowModelBuildWithCacheIOChkInputNumFailed) {
   FlowModelPtr flow_model1;
   FlowModelBuilder flow_model_builder;
   EXPECT_EQ(flow_model_builder.BuildModel(ge_graph, {}, {}, flow_model1), FAILED);
-  VarManager::Instance(0)->Destory();
+  VarManager::Instance(0)->Destroy();
 }
 
 TEST_F(FlowModelBuilderTest, FlowModelBuildWithCacheIOChkInputNameFailed) {
@@ -1193,7 +1193,7 @@ TEST_F(FlowModelBuilderTest, FlowModelBuildWithCacheIOChkInputNameFailed) {
   FlowModelPtr flow_model1;
   FlowModelBuilder flow_model_builder;
   EXPECT_EQ(flow_model_builder.BuildModel(ge_graph, {}, {}, flow_model1), FAILED);
-  VarManager::Instance(0)->Destory();
+  VarManager::Instance(0)->Destroy();
 }
 
 TEST_F(FlowModelBuilderTest, FlowModelBuildWithCacheRemoveSubgraphs) {

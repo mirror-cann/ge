@@ -20,6 +20,20 @@
 using namespace std;
 using namespace ge;
 
+extern "C" const char *__lsan_default_suppressions() {
+    return "leak:_PyObject_Malloc\n"
+           "leak:_PyObject_Realloc\n"
+           "leak:PyType_GenericAlloc\n"
+           "leak:PyType_Ready\n"
+           "leak:PyObject_GC_New\n"
+           "leak:PyObject_GC_NewVar\n"
+           "leak:_PyObject_GC_Malloc\n"
+           "leak:PyUnicode_New\n"
+           "leak:Py_InitializeEx\n"
+           "leak:PyImport_ImportModuleLevelObject\n"
+           "leak:libpython\n";
+}
+
 int main(int argc, char **argv) {
   setenv("GE_PROFILING_TO_STD_OUT", "1", true);
   // Init running dir env

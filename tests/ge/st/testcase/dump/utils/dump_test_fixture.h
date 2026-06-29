@@ -20,6 +20,7 @@
 #include <gtest/gtest.h>
 #include "framework/ge_runtime_stub/include/common/dump_checker.h"  // DumpCheckRuntimeStub
 #include "ge_running_env/ge_running_env_faker.h"                    // GeRunningEnvFaker
+#include "ge_running_env/scoped_unset_ld_preload.h"                 // GeRunningEnvFaker
 #include "ge/st/stubs/utils/mock_ops_kernel_builder.h"              // MockForGenerateTask
 #include "ge/st/stubs/utils/taskdef_builder.h"                      // AiCoreTaskDefBuilder
 #include "common/opskernel/ops_kernel_info_types.h"
@@ -57,6 +58,7 @@ template <bool dynamic>
 class DumpST : public ::testing::Test {
  public:
   static void SetUpTestSuite() {
+    ScopedUnsetLdPreload guard;
     const std::map<AscendString, AscendString> options = {
         {OPTION_HOST_ENV_OS, "linux"},
         {OPTION_HOST_ENV_CPU, "x86_64"},

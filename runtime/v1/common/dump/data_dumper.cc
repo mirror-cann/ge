@@ -218,10 +218,11 @@ std::vector<Adx::DumpAttr> DataDumper::BuildDumpAttrs() const {
   auto addAttr = [&attrs, this, &dumpStep](Adx::DumpAttrId id) {
     Adx::DumpAttr attr;
     attr.id = id;
+    const std::string &dump_model_name = om_name_.empty() ? model_name_ : om_name_;
     if (id == Adx::DUMP_ATTR_MODEL_NAME) {
-      attr.value.modelName = const_cast<char *>(model_name_.c_str());
+      attr.value.modelName = const_cast<char *>(dump_model_name.c_str());
     } else if (id == Adx::DUMP_ATTR_MODEL_NAMESIZE) {
-      attr.value.modelNameSize = model_name_.size();
+      attr.value.modelNameSize = dump_model_name.size();
     } else if (id == Adx::DUMP_ATTR_MODEL_ID) {
       attr.value.modelId = model_id_;
     } else if (id == Adx::DUMP_ATTR_STEP_ID_ADDR) {

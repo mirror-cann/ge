@@ -19,6 +19,7 @@
 #include "common/plugin/tbe_plugin_manager.h"
 #include "common/profiling/profiling_init.h"
 #include "common/profiling/profiling_properties.h"
+#include "common/python_runtime/ge_python_runtime_manager.h"
 #include "base/err_msg.h"
 #include "rt_error_codes.h"
 #include "ge/ge_api_types.h"
@@ -281,6 +282,9 @@ static Status GEInitializeImpl(const std::map<std::string, std::string> &options
         std::vector<const char *>({opsproto_path.c_str(), "failed to load the OpsProto lib plugin"}));
     return FAILED;
   }
+  GE_ASSERT_SUCCESS(GePythonRuntimeManager::Instance().EnsureReady());
+  GE_DISMISSABLE_GUARD(release_python_runtime,
+                       ([]() { (void)GePythonRuntimeManager::Instance().ShutdownProcess(); }));
   GE_ASSERT_SUCCESS(fusion::LoadPassPlugins());
 
   ge::GetContext().Init();
@@ -334,6 +338,7 @@ static Status GEInitializeImpl(const std::map<std::string, std::string> &options
   if (!g_ge_initialized) {
     g_ge_initialized = true;
   }
+  GE_DISMISS_GUARD(release_python_runtime);
 
   GELOGT(TRACE_STOP, "GEInitialize finished");
   GE_TIMESTAMP_EVENT_END(GEInitializeAll, "GEInitialize::All");
@@ -408,6 +413,7 @@ Status GEFinalizeV2() {
     ret = middle_ret;
   }
 
+  (void)GePythonRuntimeManager::Instance().ShutdownProcess();
   if (g_ge_initialized && (ret == SUCCESS)) {
     // Unified destruct rt_context
     RtContextUtil::GetInstance().DestroyAllRtContexts();

@@ -92,8 +92,6 @@ class JitExecutor {
   Status ProcessAndExecuteGraphAsync(UserGraphExecution &task, aclrtStream const stream,
                                      const std::vector<gert::Tensor> &inputs, std::vector<gert::Tensor> &outputs,
                                      ExecutionPoint *ep, bool need_malloc_output = false);
-  Status ExecuteFirstPoint(UserGraphExecution &task, aclrtStream const stream, std::vector<gert::Tensor> &outputs,
-                           std::vector<GeTensor> &ge_tensors, ExecutionPoint *&ep, bool need_malloc_output);
   Status TryExecuteWithoutProcess(UserGraphExecution &task);
   Status MallocOutputsForStatic(uint32_t guarded_ep_instance_id, const GuardedExecutionPoint *gep,
                                 std::vector<gert::Tensor> &outputs);

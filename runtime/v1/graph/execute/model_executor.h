@@ -115,14 +115,12 @@ class ModelExecutor : public Executor {
                                       const FeatureMemoryPtr &fixed_feature_mem, const rtMemType_t rt_mem_type,
                                       const GeRootModelPtr &ge_root_model);
   static Status FreeFixedFeatureMemoryIfNeed(const GeRootModelPtr &ge_root_model);
-  Status GetStreamNum(const GeRootModelPtr &ge_root_model, uint32_t &stream_num, uint64_t &hccl_follow_stream) const;
   Status GetEventNum(const GeRootModelPtr &ge_root_model, uint32_t &event_num) const;
   static Status UnloadModel(const GeRootModelPtr &ge_root_model, const uint32_t graph_id);
   static Status UnloadPneModel(const uint32_t model_id, const uint64_t session_id, const uint32_t graph_id);
   bool ReleaseMemory(const GeRootModelPtr &ge_root_model, const GraphNodePtr &loaded_graph_node) const;
   bool ReleaseModel(const GeRootModelPtr &ge_root_model, const GraphNodePtr &loaded_graph_node) const;
   Status CheckAndReleaseMemory(const GeRootModelPtr &ge_root_model, const GraphNodePtr &graph_node);
-  Status CheckAndReleaseStream(const GeRootModelPtr &ge_root_model, const GraphNodePtr &graph_node);
   Status CheckAndReleaseEvent(const GeRootModelPtr &ge_root_model, const GraphNodePtr &graph_node);
   static Status GetMemoryInfo(size_t &free);
 

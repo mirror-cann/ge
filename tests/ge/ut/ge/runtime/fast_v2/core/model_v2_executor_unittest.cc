@@ -737,7 +737,6 @@ TEST_F(ExecutorUnitTest, LoadExecutorFromModelDataWithOnlyExternalStreamAllocato
 }
 
 TEST_F(ExecutorUnitTest, LoadExecutorFromModelDataWithVariableGraph_session_mismatch) {
-  setenv("MOCK_AVAIL_STREAM_NUM", "1", 0);  // only has 1 stream
   int64_t stream_num = 1;
   int64_t event_num = 0;
   auto graph = ShareGraph::GraphDynamicAndStaticGraphWithVariables(stream_num, event_num);
@@ -779,12 +778,10 @@ TEST_F(ExecutorUnitTest, LoadExecutorFromModelDataWithVariableGraph_session_mism
   gert::ModelLoadArg load_arg1(&session1);
   EXPECT_NE(executor->Load({}, load_arg1), ge::GRAPH_SUCCESS);
 
-  unsetenv("MOCK_AVAIL_STREAM_NUM");
   ASSERT_EQ(rts_stub.GetAllRtStreams().size(), 0);
 }
 
 TEST_F(ExecutorUnitTest, LoadExecutorFromModelDataWithRollbackSingleStream) {
-  setenv("MOCK_AVAIL_STREAM_NUM", "1", 0);  // only has 1 stream
   int64_t stream_num = 1;
   int64_t event_num = 0;
   auto graph = ShareGraph::MultiStreamTwoNodeGraph(stream_num, event_num);
@@ -811,9 +808,8 @@ TEST_F(ExecutorUnitTest, LoadExecutorFromModelDataWithRollbackSingleStream) {
   ASSERT_EQ(error_code, ge::GRAPH_SUCCESS);
   ASSERT_NE(executor, nullptr);
 
-  ASSERT_EQ(executor->GetModelDesc().GetReusableStreamNum(), 1);
-  ASSERT_EQ(executor->GetModelDesc().GetReusableEventNum(), 0);
-  unsetenv("MOCK_AVAIL_STREAM_NUM");
+  ASSERT_EQ(executor->GetModelDesc().GetReusableStreamNum(), 2);
+  ASSERT_EQ(executor->GetModelDesc().GetReusableEventNum(), 3);
   ASSERT_EQ(rts_stub.GetAllRtStreams().size(), 0);
 }
 

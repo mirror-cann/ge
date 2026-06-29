@@ -190,7 +190,7 @@ Status TraceManager::Initialize(const char_t *file_save_path) {
      << MMPA_PATH_SEPARATOR_STR << ge::GetContext().DeviceId() << MMPA_PATH_SEPARATOR_STR;
   trace_save_file_path_ = ss.str();
   if (CreateDir(trace_save_file_path_) != 0) {
-    GELOGE(INTERNAL_ERROR, "[trace] Trace not enabled as failed create trace file save directory[%s]",
+    GELOGE(INTERNAL_ERROR, "[trace] Trace not enabled: failed to create trace file save directory[%s]",
            trace_save_file_path_.c_str());
     return FAILED;
   }

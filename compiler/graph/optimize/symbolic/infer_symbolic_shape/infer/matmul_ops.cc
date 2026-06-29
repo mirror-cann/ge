@@ -8,7 +8,6 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#include <cstdlib>
 #include "common/checker.h"
 #include "common/framework_types_internal.h"
 #include "graph/compute_graph.h"
@@ -163,6 +162,7 @@ graphStatus InferShape4BatchMatMulV2(gert::InferSymbolShapeContext *context) {
 
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(MatMul).InferSymbolShape(InferShape4MatMul);
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(MatMulV2).InferSymbolShape(InferShape4MatMul);
+IMPL_OP_INFER_SYMBOL_SHAPE_INNER(MatMulV3).InferSymbolShape(InferShape4MatMul);
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(BatchMatMulV2).InferSymbolShape(InferShape4BatchMatMulV2);
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(BatchMatMulV3).InferSymbolShape(InferShape4BatchMatMulV2);
 }  // namespace

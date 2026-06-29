@@ -335,6 +335,14 @@ TEST_F(SymbolicShapeComputeST, InferShapeForSimpleGraphShapeNEOriginShape) {
 
   SymbolicShapeInference ssi;
   ASSERT_EQ(SymbolicShapeSymbolizer::Symbolize(cg, input_vec), ge::SUCCESS);
+  for (auto &n : cg->GetDirectNode()) {
+    auto t = n->GetType();
+    if (!t.empty() && t != "Data" && t != "NETOUTPUT") {
+      for (size_t i = 0; i < n->GetOpDesc()->GetOutputsSize(); ++i) {
+        n->GetOpDesc()->MutableOutputDesc(i)->SetOriginShape(GeShape({-2}));
+      }
+    }
+  }
   ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
   auto node = cg->FindNode("Relu_2");
   ASSERT_NE(node, nullptr);
@@ -1360,6 +1368,7 @@ TEST_F(SymbolicShapeComputeST, test_tile_2nd_input_dims_invalid) {
   auto op_desc = tile_node->GetOpDesc();
   op_desc->MutableInputDesc(0)->SetShape(GeShape({3}));
   op_desc->MutableInputDesc(1)->SetShape(GeShape({3}));
+  op_desc->MutableOutputDesc(0)->SetOriginShape(GeShape({-2}));
 
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
@@ -1383,6 +1392,7 @@ TEST_F(SymbolicShapeComputeST, test_tile_kMultiplesInputIndex_symbols_value_inva
   auto op_desc = tile_node->GetOpDesc();
   op_desc->MutableInputDesc(0)->SetShape(GeShape({3}));
   op_desc->MutableInputDesc(1)->SetShape(GeShape({3}));
+  op_desc->MutableOutputDesc(0)->SetOriginShape(GeShape({-2}));
 
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
@@ -1737,6 +1747,7 @@ TEST_F(SymbolicShapeComputeST, test_stridedslice_AttrStartInput_symbols_value_in
   op_desc->MutableInputDesc(1)->SetShape(GeShape({1}));
   op_desc->MutableInputDesc(2)->SetShape(GeShape({1}));
   op_desc->MutableInputDesc(3)->SetShape(GeShape({1}));
+  op_desc->MutableOutputDesc(0)->SetOriginShape(GeShape({-2}));
 
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
@@ -3077,9 +3088,18 @@ TEST_F(SymbolicShapeComputeST, InferShapeForGraphWithNodeNotSupportSymbolInfer) 
                                                      squared_difference_node->GetInDataAnchor(1), foo_node),
             SUCCESS);
 
+  for (auto &n : cg->GetDirectNode()) {
+    auto t = n->GetType();
+    if (!t.empty() && t != "Data" && t != "NETOUTPUT") {
+      for (size_t i = 0; i < n->GetOpDesc()->GetOutputsSize(); ++i) {
+        n->GetOpDesc()->MutableOutputDesc(i)->SetOriginShape(GeShape({-2}));
+      }
+    }
+  }
+
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
-  auto foo_attr = foo_op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
+  auto foo_attr = foo_node->GetOpDesc()->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_EQ(foo_attr, nullptr);
   auto neg_node = cg->FindNode("Neg_3");
   ASSERT_NE(neg_node, nullptr);
@@ -4378,6 +4398,9 @@ TEST_F(SymbolicShapeComputeST, test_symbols_value_format_invalid) {
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
   cg->FindFirstNodeMatchType(REDUCEPROD)->GetOpDesc()->MutableInputDesc(1)->SetDataType(DT_INT32);
   ASSERT_NE(cg, nullptr);
+  auto ss_pre = cg->FindFirstNodeMatchType(STRIDEDSLICE);
+  ASSERT_NE(ss_pre, nullptr);
+  ss_pre->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({-2}));
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
   auto strided_slice_node = cg->FindFirstNodeMatchType(STRIDEDSLICE);

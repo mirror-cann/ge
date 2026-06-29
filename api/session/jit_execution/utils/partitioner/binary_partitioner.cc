@@ -62,8 +62,7 @@ std::vector<NodePtr> BinaryPartitioner::GetRemainingNodes(const ComputeGraphPtr 
                                                           const std::vector<NodePtr> &infered_nodes) {
   std::vector<NodePtr> uninfer_nodes;
   for (const auto &node : graph->GetDirectNode()) {
-    const auto num = std::count(infered_nodes.begin(), infered_nodes.end(), node);
-    if (num == 0) {
+    if (std::find(infered_nodes.begin(), infered_nodes.end(), node) == infered_nodes.end()) {
       GE_ASSERT_TRUE(!ge::OpTypeUtils::IsDataNode(node->GetType()), "graph:%s data node:%s is not symbolize",
                      graph->GetName().c_str(), node->GetName().c_str());
       uninfer_nodes.push_back(node);
@@ -76,21 +75,23 @@ std::vector<NodePtr> BinaryPartitioner::GetRemainingNodes(const ComputeGraphPtr 
 
 bool BinaryPartitioner::CheckNodesContainsCycle(const std::vector<NodePtr> &infered_nodes,
                                                 const std::vector<NodePtr> &uninfer_nodes) {
+  const auto in_uninfer = [&uninfer_nodes](const NodePtr &n) {
+    return std::find(uninfer_nodes.begin(), uninfer_nodes.end(), n) != uninfer_nodes.end();
+  };
   for (const auto &node : infered_nodes) {
-    GELOGD("inferred node:%s", node->GetName().c_str());
-    for (auto &out_data_node : node->GetInDataNodes()) {
-      if (std::count(uninfer_nodes.begin(), uninfer_nodes.end(), out_data_node) != 0) {
-        GELOGE(ge::FAILED, "CheckNodesContainsCycle node:%s is uninfered, but it is inferred node:%s input",
-               out_data_node->GetName().c_str(), node->GetName().c_str());
-        return true;
-      }
+    const auto &data_nodes = node->GetInDataNodes();
+    const auto &ctrl_nodes = node->GetInControlNodes();
+    const auto data_it = std::find_if(data_nodes.begin(), data_nodes.end(), in_uninfer);
+    if (data_it != data_nodes.end()) {
+      GELOGE(ge::FAILED, "CheckNodesContainsCycle node:%s is uninfered, but it is infered node:%s input",
+             (*data_it)->GetName().c_str(), node->GetName().c_str());
+      return true;
     }
-    for (auto &out_control_node : node->GetInControlNodes()) {
-      if (std::count(uninfer_nodes.begin(), uninfer_nodes.end(), out_control_node) != 0) {
-        GELOGE(ge::FAILED, "CheckNodesContainsCycle node:%s is uninfered, but it is inferred node:%s input",
-               out_control_node->GetName().c_str(), node->GetName().c_str());
-        return true;
-      }
+    const auto ctrl_it = std::find_if(ctrl_nodes.begin(), ctrl_nodes.end(), in_uninfer);
+    if (ctrl_it != ctrl_nodes.end()) {
+      GELOGE(ge::FAILED, "CheckNodesContainsCycle node:%s is uninfered, but it is infered node:%s input",
+             (*ctrl_it)->GetName().c_str(), node->GetName().c_str());
+      return true;
     }
   }
   return false;

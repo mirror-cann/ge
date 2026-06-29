@@ -364,7 +364,7 @@ Status GELib::Finalize() {
   }
 
   GELOGI("VarManagerPool finalization.");
-  VarManagerPool::Instance().Destory();
+  VarManagerPool::Instance().Destroy();
 
   GELOGI("ExternalWeightManagerPool finalization.");
   ExternalWeightManagerPool::Instance().Destroy();
@@ -410,7 +410,7 @@ void GELib::RollbackInit() {
   if (OpsKernelManager::GetInstance().init_flag_) {
     (void)OpsKernelManager::GetInstance().Finalize();
   }
-  VarManagerPool::Instance().Destory();
+  VarManagerPool::Instance().Destroy();
   ExternalWeightManagerPool::Instance().Destroy();
 }
 

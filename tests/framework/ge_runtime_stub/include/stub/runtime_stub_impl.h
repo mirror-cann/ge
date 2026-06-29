@@ -197,7 +197,6 @@ class RuntimeStubImpl : public ge::RuntimeStub {
 
  public:
   rtError_t rtSetTaskTag(const char *taskTag) override;
-  rtError_t rtGetAvailStreamNum(uint32_t streamType, uint32_t *const streamCount) override;
 
  private:
   using BinHandle = uint64_t;

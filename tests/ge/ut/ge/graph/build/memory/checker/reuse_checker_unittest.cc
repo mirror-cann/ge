@@ -56,7 +56,7 @@ class UtestReuseChecker : public testing::Test {
  *   assign and assign_add use same var address
  */
 TEST_F(UtestReuseChecker, RefVarSrcVarName_CheckSkip) {
-  VarManager::Instance(0)->Destory();
+  VarManager::Instance(0)->Destroy();
   VarManager::Instance(0)->Init(0, 0, 0, 0);
   auto graph = block_mem_ut::BuildGraphWithRefVarSrcVarName();
   MemoryAssigner memory_assigner(graph);
@@ -76,7 +76,7 @@ TEST_F(UtestReuseChecker, RefVarSrcVarName_CheckSkip) {
  *   assign and assign_add use same var address
  */
 TEST_F(UtestReuseChecker, RefVarSrcVarNameAbsent_CheckSkip) {
-  VarManager::Instance(0)->Destory();
+  VarManager::Instance(0)->Destroy();
   VarManager::Instance(0)->Init(0, 0, 0, 0);
   auto graph = block_mem_ut::BuildGraphWithRefVarSrcVarNameAbsent();
   MemoryAssigner memory_assigner(graph);
@@ -97,7 +97,7 @@ TEST_F(UtestReuseChecker, RefVarSrcVarNameAbsent_CheckSkip) {
 //
 // 子图data引用父节点的const输入，offset与const输出offset一样，和feature map的offset重叠
 TEST_F(UtestReuseChecker, RefFromConst_CheckSkip) {
-  VarManager::Instance(0)->Destory();
+  VarManager::Instance(0)->Destroy();
   VarManager::Instance(0)->Init(0, 0, 0, 0);
   auto graph = block_mem_ut::BuildDataRefConst();
   MemoryAssigner memory_assigner(graph);

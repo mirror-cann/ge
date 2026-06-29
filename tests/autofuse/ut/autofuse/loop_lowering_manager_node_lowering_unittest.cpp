@@ -3520,6 +3520,57 @@ TEST_F_LOWER_INST1(Sqrt, Sqrt)
 TEST_F_LOWER_INST1(Tanh, Tanh)
 TEST_F_LOWER_INST1(Gelu, Gelu)
 
+TEST_F(LoopNodeLoweringUT, LoweringSwishWithScale) {
+  [this]() {
+    auto data0 = es_graph_->CreateInput(0, "data0", nullptr);
+    data0.SetSymbolShape({"s0", "s1", "s2"});
+    auto swish = es::Swish(data0, 2.0f);
+    swish.SetSymbolShape({"s0", "s1", "s2"});
+    es_graph_->SetOutput(swish, 0);
+  }();
+
+  auto graph = es_graph_->Build();
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  auto swish = cg->FindNode("Swish_0");
+  ASSERT_NE(swish, nullptr);
+  ASSERT_EQ(LoweringManager::Lowering(swish), GRAPH_SUCCESS);
+  auto kernel = ge::loop::GetKernelBox(swish->GetOutDataAnchor(0));
+  ASSERT_FALSE(kernel.IsExternKernel());
+  EXPECT_EQ(kernel.Readable(),
+            "tmp0 = ops.Load(\"data0:0\")\n"
+            "tmp1 = ops.Load(\"data0:0\")\n"
+            "tmp2 = ops.Scalar(\"DT_FLOAT(2.0000000)\")\n"
+            "tmp3 = ops.Broadcast(tmp2, \"[]->[d0, d1, d2]\")\n"
+            "tmp4 = ops.Mul(tmp1, tmp3)\n"
+            "tmp5 = ops.Sigmoid(tmp4)\n"
+            "tmp6 = ops.Mul(tmp1, tmp5)\n"
+            "tmp7 = ops.Store(\"Swish_0:0\", tmp6)\n");
+}
+
+TEST_F(LoopNodeLoweringUT, LoweringSwishWithDefaultScale) {
+  [this]() {
+    auto data0 = es_graph_->CreateInput(0, "data0", nullptr);
+    data0.SetSymbolShape({"s0", "s1", "s2"});
+    auto swish = es::Swish(data0);
+    swish.SetSymbolShape({"s0", "s1", "s2"});
+    es_graph_->SetOutput(swish, 0);
+  }();
+
+  auto graph = es_graph_->Build();
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  auto swish = cg->FindNode("Swish_0");
+  ASSERT_NE(swish, nullptr);
+  ASSERT_EQ(LoweringManager::Lowering(swish), GRAPH_SUCCESS);
+  auto kernel = ge::loop::GetKernelBox(swish->GetOutDataAnchor(0));
+  ASSERT_FALSE(kernel.IsExternKernel());
+  EXPECT_EQ(kernel.Readable(),
+            "tmp0 = ops.Load(\"data0:0\")\n"
+            "tmp1 = ops.Load(\"data0:0\")\n"
+            "tmp2 = ops.Sigmoid(tmp1)\n"
+            "tmp3 = ops.Mul(tmp1, tmp2)\n"
+            "tmp4 = ops.Store(\"Swish_0:0\", tmp3)\n");
+}
+
 TEST_F_LOWER_INST2(Add, Add)
 TEST_F_LOWER_INST2(Div, Div)
 TEST_F_LOWER_INST2(Eq, Equal)

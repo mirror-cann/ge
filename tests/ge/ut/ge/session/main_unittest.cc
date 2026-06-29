@@ -17,6 +17,7 @@
 #include "framework/common/framework_types_internal.h"
 #include "graph/types.h"
 #include "graph/ge_global_options.h"
+#include <algorithm>
 #include <fstream>
 
 #include "ge_running_env/atc_utils.h"
@@ -361,6 +362,64 @@ TEST_F(UtestMain, MainImplTest_global_options) {
   }
   EXPECT_NE(ret, 0);
   AtcFileFactory::RemoveFile(AtcFileFactory::Generatefile1("", "tmp.om").c_str());
+}
+
+TEST_F(UtestMain, MainImplTest_static_shape_invalid_host_env_cpu_not_failed_in_flag_check) {
+  GetMutableGlobalOptions().clear();
+  GetThreadLocalContext().SetGlobalOption({});
+
+  std::string opp_path = "./opp/";
+  system(("mkdir -p " + opp_path).c_str());
+  setenv(kEnvName, opp_path.c_str(), 1);
+
+  std::string scene_path = opp_path + "scene.info";
+  system(("touch " + scene_path).c_str());
+  system(("echo 'os=linux' > " + scene_path).c_str());
+  system(("echo 'arch=x86_64' >> " + scene_path).c_str());
+
+  std::string path_vendors = opp_path + "vendors";
+  std::string path_config = path_vendors + "/config.ini";
+  system(("mkdir -p " + path_vendors).c_str());
+  system(("echo 'load_priority=customize' > " + path_config).c_str());
+
+  std::string inner_x86_proto_path = opp_path + kInner + kOpsProtoPath;
+  system(("mkdir -p " + inner_x86_proto_path).c_str());
+  inner_x86_proto_path += kOpsProto;
+  system(("touch " + inner_x86_proto_path).c_str());
+  system(("echo 'ops proto x86 ' > " + inner_x86_proto_path).c_str());
+
+  std::string inner_x86_tiling_path = opp_path + kInner + kOpMasterPath;
+  system(("mkdir -p " + inner_x86_tiling_path).c_str());
+  inner_x86_tiling_path += kOpMaster;
+  system(("touch " + inner_x86_tiling_path).c_str());
+  system(("echo 'op tiling_x86 ' > " + inner_x86_tiling_path).c_str());
+
+  std::string om_arg = AtcFileFactory::Generatefile1("--model=", "add.pb");
+  std::string output_arg = AtcFileFactory::Generatefile1("--output=", "tmp_invalid_host_env_cpu");
+  char *argv[] = {"atc",
+                  "--mode=0",
+                  "--framework=3",
+                  const_cast<char *>(om_arg.c_str()),
+                  const_cast<char *>(output_arg.c_str()),
+                  "--soc_version=\"Ascend310\"",
+                  "--deterministic=1",
+                  "--input_format=NCHW",
+                  "--host_env_os=linux",
+                  "--host_env_cpu=unsupported_cpu"};
+  int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  auto &options = GetMutableGlobalOptions();
+  auto deterministic_it = options.find(ge::DETERMINISTIC);
+  EXPECT_NE(deterministic_it, options.end());
+  if (deterministic_it != options.end()) {
+    EXPECT_EQ(deterministic_it->second, "1");
+  }
+  auto host_cpu_it = options.find(ge::OPTION_HOST_ENV_CPU);
+  EXPECT_NE(host_cpu_it, options.end());
+  if (host_cpu_it != options.end()) {
+    EXPECT_EQ(host_cpu_it->second, "unsupported_cpu");
+  }
+  EXPECT_NE(ret, 0);
+  AtcFileFactory::RemoveFile(AtcFileFactory::Generatefile1("", "tmp_invalid_host_env_cpu.om").c_str());
 }
 
 TEST_F(UtestMain, MainImplTest_generalized_build_mode_error) {
@@ -1214,6 +1273,36 @@ TEST_F(UtestMain, MainImplTest_amct_interface) {
   MmpaStub::GetInstance().Reset();
 }
 
+class MockMmpaDlOpenFail : public ge::MmpaStubApiGe {
+ public:
+  void *DlOpen(const char *file_name, int32_t mode) override {
+    if (string("libamctacl.so") == file_name) {
+      return nullptr;
+    }
+    return MmpaStubApiGe::DlOpen(file_name, mode);
+  }
+  int32_t DlClose(void *handle) override {
+    return 0;
+  }
+};
+
+TEST_F(UtestMain, MainImplTest_amct_interface_dlopen_fail) {
+  MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpaDlOpenFail>());
+  Graph graph("test");
+  std::map<std::string, std::string> options;
+  options[COMPRESSION_OPTIMIZE_CONF] = "path_test";
+
+  (void)dlerror();
+  auto ret = CallAmctInterface(graph, options);
+  EXPECT_NE(ret, 0);
+
+  (void)dlopen("nonexistent_lib_for_error.so", RTLD_NOW);
+  ret = CallAmctInterface(graph, options);
+  EXPECT_NE(ret, 0);
+
+  MmpaStub::GetInstance().Reset();
+}
+
 TEST_F(UtestMain, GeFlags_oo_help) {
   char *argv[] = {"atc", "--help"};
   int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
@@ -1526,4 +1615,84 @@ TEST_F(UtestMain, MainImplTest_Om2Mode_StaticAipp_NotBlocked) {
   EXPECT_NE(ret, 0);  // still fails (no real compilation env), but not at ValidateStaticAippOnly
   AtcFileFactory::RemoveFile(AtcFileFactory::Generatefile1("", "tmp_om2_sta.om").c_str());
   AtcFileFactory::RemoveFile(cfg_path.c_str());
+}
+
+namespace ge {
+bool IsLegacySoFile(const std::string &file_path);
+}
+
+class UtestLegacySoPartition : public testing::Test {};
+
+TEST_F(UtestLegacySoPartition, MixedFiles_LegacyMovedToEnd) {
+  std::vector<std::string> fileList = {
+      "/path/to/libop1.so", "/path/to/libop2_legacy.so",
+      "/path/to/libop3.so", "/path/to/libop4_legacy.so",
+      "/path/to/libop5.so"};
+  std::stable_partition(fileList.begin(), fileList.end(), ge::IsLegacySoFile);
+  ASSERT_EQ(fileList.size(), 5u);
+  EXPECT_EQ(fileList[0], "/path/to/libop1.so");
+  EXPECT_EQ(fileList[1], "/path/to/libop3.so");
+  EXPECT_EQ(fileList[2], "/path/to/libop5.so");
+  EXPECT_EQ(fileList[3], "/path/to/libop2_legacy.so");
+  EXPECT_EQ(fileList[4], "/path/to/libop4_legacy.so");
+}
+
+TEST_F(UtestLegacySoPartition, OnlyNormalFiles_NoReorder) {
+  std::vector<std::string> fileList = {"/path/a.so", "/path/b.so", "/path/c.so"};
+  std::stable_partition(fileList.begin(), fileList.end(), ge::IsLegacySoFile);
+  EXPECT_EQ(fileList[0], "/path/a.so");
+  EXPECT_EQ(fileList[1], "/path/b.so");
+  EXPECT_EQ(fileList[2], "/path/c.so");
+}
+
+TEST_F(UtestLegacySoPartition, OnlyLegacyFiles_AllAtEnd) {
+  std::vector<std::string> fileList = {"/path/x_legacy.so", "/path/y_legacy.so"};
+  std::stable_partition(fileList.begin(), fileList.end(), ge::IsLegacySoFile);
+  EXPECT_EQ(fileList[0], "/path/x_legacy.so");
+  EXPECT_EQ(fileList[1], "/path/y_legacy.so");
+}
+
+TEST_F(UtestLegacySoPartition, EmptyList_NoCrash) {
+  std::vector<std::string> fileList;
+  std::stable_partition(fileList.begin(), fileList.end(), ge::IsLegacySoFile);
+  EXPECT_TRUE(fileList.empty());
+}
+
+TEST_F(UtestLegacySoPartition, ShortFileName_TreatedAsNonLegacy) {
+  std::vector<std::string> fileList = {"a.so", "/path/x_legacy.so", "b.so"};
+  std::stable_partition(fileList.begin(), fileList.end(), ge::IsLegacySoFile);
+  EXPECT_EQ(fileList[0], "a.so");
+  EXPECT_EQ(fileList[1], "b.so");
+  EXPECT_EQ(fileList[2], "/path/x_legacy.so");
+}
+
+TEST_F(UtestLegacySoPartition, StabilityPreserved_RelativeOrderMaintained) {
+  std::vector<std::string> fileList = {
+      "/path/first.so", "/path/alpha_legacy.so",
+      "/path/second.so", "/path/beta_legacy.so",
+      "/path/third.so"};
+  std::stable_partition(fileList.begin(), fileList.end(), ge::IsLegacySoFile);
+  EXPECT_EQ(fileList[0], "/path/first.so");
+  EXPECT_EQ(fileList[1], "/path/second.so");
+  EXPECT_EQ(fileList[2], "/path/third.so");
+  EXPECT_EQ(fileList[3], "/path/alpha_legacy.so");
+  EXPECT_EQ(fileList[4], "/path/beta_legacy.so");
+}
+
+TEST_F(UtestLegacySoPartition, ExactLegacySoName_MovedToEnd) {
+  std::vector<std::string> fileList = {"_legacy.so", "/path/normal.so"};
+  std::stable_partition(fileList.begin(), fileList.end(), ge::IsLegacySoFile);
+  EXPECT_EQ(fileList[0], "/path/normal.so");
+  EXPECT_EQ(fileList[1], "_legacy.so");
+}
+
+TEST_F(UtestLegacySoPartition, SimilarButNotLegacySuffix_NotMoved) {
+  std::vector<std::string> fileList = {
+      "/path/legacy.so", "/path/not_legacy.so.bak",
+      "/path/real_legacy.so", "/path/_legacy.sox"};
+  std::stable_partition(fileList.begin(), fileList.end(), ge::IsLegacySoFile);
+  EXPECT_EQ(fileList[0], "/path/legacy.so");
+  EXPECT_EQ(fileList[1], "/path/not_legacy.so.bak");
+  EXPECT_EQ(fileList[2], "/path/_legacy.sox");
+  EXPECT_EQ(fileList[3], "/path/real_legacy.so");
 }

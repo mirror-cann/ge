@@ -24,7 +24,9 @@
 
 2. 根据页面提示创建NPU环境并配置规格，启动云开发环境后，单击“`连接 > WebIDE`”进入一站式开发平台。
 
-   当前开源项目资源默认在`/mnt/workspace/gitCode/${gitCode_id}`目录下，\$\{gitCode\_id\}表示开发者个人gitCode账号。
+   当前开源项目资源目录根据环境创建方式有所不同：
+   - 如果是从CANN社区仓库创建的环境，资源默认在`/mnt/workspace/gitCode/cann`目录下。
+   - 如果是从个人仓库fork的CANN仓库创建的环境，资源默认在`/mnt/workspace/gitCode/{fork仓库}`目录下。
 
    <img src="./figures/webIDE.png" alt="云平台"  width="1000px" height="150px">
 
@@ -158,6 +160,26 @@ docker run --name cann_container \
 
             ```bash
             pip3 install attrs cython numpy decorator sympy cffi pyyaml pathlib2 psutil protobuf==3.20.0 scipy requests absl-py
+            ```
+
+            如果使用`pip3`命令安装模块时下载速度特别慢，则需要配置`pip`源，步骤如下：
+
+            - a. 使用软件包的安装用户，执行如下命令：
+
+            ```bash
+            mkdir -p ~/.pip
+            cd ~/.pip
+            touch pip.conf
+            ```
+
+            - b. 编辑`pip.conf`文件，并写入如下内容：
+
+            ```bash
+            [global]
+            # 以华为源为例，请根据实际情况进行替换
+            index-url = https://mirrors.huaweicloud.com/repository/pypi/simple
+            trusted-host = mirrors.huaweicloud.com
+            timeout = 120
             ```
 
 - **场景2：体验已发布版本能力或基于已发布版本进行开发**

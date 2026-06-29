@@ -10,6 +10,7 @@ This directory provides samples related to custom operator graph integration, co
 | `triton_add_custom` | Triton operator enters graph through GE | TensorFlow | Triton | Pre-compiled as `npubin` | Not involved | [README](./triton_add_custom/README_en.md) |
 | `compilable_add_custom` | Ascend C operator enters graph through GE and generates om offline model | GE + ATC offline compilation | Ascend C | RTC operator runtime compilation | Supports model sink to om offline model | [README](./compilable_add_custom/README_en.md) |
 | `data_dependent_shape_custom` | Data dependent shape operator | GE | Ascend C | CMake compilation | Not involved | [README](data_dependent_shape_custom/README_en.md) |
+| `args_refresh_add_custom` | ArgsUpdater address refresh + MallocReadOnlyDevArgs + performance comparison | GE online execution | Ascend C | RTC runtime compilation | Online address refresh performance comparison | [README](./args_refresh_add_custom/README_en.md) |
 
 ## General Development Process
 
@@ -37,6 +38,7 @@ Interface combination selection by scenario:
 | Dynamic graph online execution | `EagerExecuteOp` + `ShapeInferOp(optional)` |
 | Dynamic graph online execution + operator online compilation | `EagerExecuteOp` + `CompilableOp` + `ShapeInferOp(optional)` |
 | Static graph offline sink OM model execution + operator online compilation | `EagerExecuteOp` + `CompilableOp` + `ShapeInferOp(optional)` + `PortableOp` |
+| Address refresh + online execution | `EagerExecuteOp` + `ArgsUpdater` + `ShapeInferOp` |
 
 Deliverable naming can be chosen according to samples, but need to ensure operator type, registration class name and graph composition side used op type are aligned.
 

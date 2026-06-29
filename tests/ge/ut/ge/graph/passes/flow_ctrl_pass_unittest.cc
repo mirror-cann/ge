@@ -34,7 +34,7 @@ class UtestGraphPassesFlowCtrlPass : public testing::Test {
   }
 
   void TearDown() {
-    VarManagerPool::Instance().Destory();
+    VarManagerPool::Instance().Destroy();
   }
 
  public:

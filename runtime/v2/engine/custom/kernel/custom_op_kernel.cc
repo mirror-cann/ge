@@ -19,11 +19,17 @@
 #include "graph/utils/type_utils.h"
 #include "exe_graph/runtime/eager_op_execution_context.h"
 #include "rt_external_kernel.h"
+#include "runtime/v2/engine/custom/kernel/eager_args_handler.h"
+#include "runtime/kernel.h"
 
 namespace gert {
 namespace kernel {
 namespace {
-enum class CustomOpInput { kAllocator = 0, kStream, kFunc, kEnd };
+// 自定义算子特有的输入，从 AdditionalInputIndex::kNum 开始
+enum class CustomOpInput {
+  kFunc = static_cast<uint32_t>(EagerOpExecutionContext::AdditionalInputIndex::kNum),
+  kEnd
+};
 
 std::string PrintNodeType(const KernelContext *context) {
   std::stringstream ss;
@@ -110,13 +116,23 @@ static ge::graphStatus CreateWorkspaceHolder(KernelContext *context, size_t node
   return ge::GRAPH_SUCCESS;
 }
 
-static ge::graphStatus CreateWorkspacesMemory(const ge::FastNode *node, KernelContext *context) {
+static ge::graphStatus CreateCustomOpOutputs(const ge::FastNode *node, KernelContext *context) {
   (void)node;
   auto *extended_kernel_context = reinterpret_cast<ExtendedKernelContext *>(context);
   GE_ASSERT_NOTNULL(extended_kernel_context);
   const size_t node_output_num = extended_kernel_context->GetComputeNodeOutputNum();
   GE_ASSERT_SUCCESS(CreateOutputTensors(extended_kernel_context, context));
   GE_ASSERT_SUCCESS(CreateWorkspaceHolder(context, node_output_num));
+
+  // allocator 在 Create 阶段尚未就绪（Init 图未执行），创建空 EagerArgsHandler，在 RunFunc 阶段初始化
+  auto *args_handler = new (std::nothrow) EagerArgsHandler();
+  GE_ASSERT_NOTNULL(args_handler);
+
+  auto *args_output = context->GetOutput(node_output_num +
+      static_cast<size_t>(EagerOpExecutionContext::AdditionalOutputIndex::kArgsHandler));
+  GE_ASSERT_NOTNULL(args_output);
+  args_output->SetWithDefaultDeleter(static_cast<ArgsHandler *>(args_handler));
+
   return ge::GRAPH_SUCCESS;
 }
 
@@ -138,6 +154,21 @@ static ge::graphStatus ExecuteCustomOpImpl(KernelContext *context) {
   auto *eager_context = reinterpret_cast<EagerOpExecutionContext *>(context);
   GE_ASSERT_NOTNULL(eager_context);
   const size_t node_input_num = eager_context->GetComputeNodeInputNum();
+  const size_t node_output_num = eager_context->GetComputeNodeOutputNum();
+  auto *chain = context->GetOutput(node_output_num +
+      static_cast<size_t>(EagerOpExecutionContext::AdditionalOutputIndex::kArgsHandler));
+  GE_ASSERT_NOTNULL(chain);
+  auto *args_handler = static_cast<EagerArgsHandler *>(chain->GetValue<ArgsHandler *>());
+  GE_ASSERT_NOTNULL(args_handler);
+  if (!args_handler->IsInitialized()) {
+    auto *allocator = context->GetInputValue<GertAllocator *>(
+        node_input_num + static_cast<size_t>(EagerOpExecutionContext::AdditionalInputIndex::kDeviceAllocator));
+    GE_ASSERT_NOTNULL(allocator);
+    auto stream_id = allocator->GetStreamId();
+    args_handler->Initialize(allocator, stream_id);
+    GELOGD("EagerArgsHandler initialized in RunFunc with allocator %p", allocator);
+  }
+
   auto custom_op_ptr =
       context->GetInputValue<ge::BaseCustomOp *>(node_input_num + static_cast<size_t>(CustomOpInput::kFunc));
   GE_ASSERT_NOTNULL(custom_op_ptr);
@@ -174,6 +205,14 @@ ge::graphStatus FreeCustomOpWorkspacesFunc(KernelContext *context) {
     }
   }
   memory_vec->clear();
+  return ge::GRAPH_SUCCESS;
+}
+
+ge::graphStatus FreeArgsGuarderFunc(KernelContext *context) {
+  auto *handler_base = context->GetInputValue<ArgsHandler *>(0);
+  if (handler_base != nullptr) {
+    static_cast<EagerArgsHandler *>(handler_base)->Release();
+  }
   return ge::GRAPH_SUCCESS;
 }
 
@@ -251,16 +290,13 @@ ge::graphStatus CustomOpProfilingDataFill(const KernelContext *context, Profilin
 }
 
 REGISTER_KERNEL(FindCustomOp).RunFunc(FindCustomOpFunc);
-REGISTER_KERNEL(ExecuteCustomOp)
-    .OutputsCreator(CreateWorkspacesMemory)
-    .RunFunc(ExecuteCustomOpFunc)
-    .TracePrinter(CustomOpExecuteKernelTrace)
+REGISTER_KERNEL(ExecuteCustomOp).OutputsCreator(CreateCustomOpOutputs)
+    .RunFunc(ExecuteCustomOpFunc).TracePrinter(CustomOpExecuteKernelTrace)
     .ProfilingInfoFiller(CustomOpProfilingDataFill);
-REGISTER_KERNEL(ExecuteCustomOpWithInferShape)
-    .OutputsCreator(CreateWorkspacesMemory)
-    .RunFunc(ExecuteCustomOpWithInferShapeFunc)
-    .TracePrinter(CustomOpExecuteKernelTrace)
+REGISTER_KERNEL(ExecuteCustomOpWithInferShape).OutputsCreator(CreateCustomOpOutputs)
+    .RunFunc(ExecuteCustomOpWithInferShapeFunc).TracePrinter(CustomOpExecuteKernelTrace)
     .ProfilingInfoFiller(CustomOpProfilingDataFill);
 REGISTER_KERNEL(FreeCustomOpWorkspaces).RunFunc(FreeCustomOpWorkspacesFunc);
-}  // namespace kernel
-}  // namespace gert
+REGISTER_KERNEL(FreeArgsGuarder).RunFunc(FreeArgsGuarderFunc);
+}
+}

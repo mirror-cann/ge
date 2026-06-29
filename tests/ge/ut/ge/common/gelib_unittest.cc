@@ -28,8 +28,8 @@ using Json = nlohmann::json;
 
 class UtestGeLib : public testing::Test {
  protected:
-  void SetUp() {}
-  void TearDown() {}
+  void SetUp() override {}
+  void TearDown() override {}
 };
 
 TEST_F(UtestGeLib, Normal) {
@@ -60,10 +60,10 @@ TEST_F(UtestGeLib, InnerInitialize_aicore_num) {
   string aicore_num_option_str;
   (void)GetThreadLocalContext().GetOption(ge::AICORE_NUM, aicore_num_option_str);
   EXPECT_EQ(aicore_num_option_str == "2", true);
+  p1->RollbackInit();
 }
 
 TEST_F(UtestGeLib, InnerInitialize_aicore_num_invalid) {
-  dlog_setlevel(0, 0, 0);
   auto p1 = std::make_shared<GELib>();
   std::map<std::string, std::string> options;
 
@@ -110,8 +110,6 @@ TEST_F(UtestGeLib, InnerInitialize_aicore_num_invalid) {
   options[SOC_VERSION] = "Ascend910";
   p1->init_flag_ = false;
   EXPECT_NE(p1->InnerInitialize(options), SUCCESS);
-
-  dlog_setlevel(0, 3, 0);
 }
 
 TEST_F(UtestGeLib, SystemInitialize) {

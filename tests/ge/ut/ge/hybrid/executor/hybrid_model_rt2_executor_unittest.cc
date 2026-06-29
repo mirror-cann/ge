@@ -288,7 +288,7 @@ class UtestHybridRt2Executor : public testing::Test {
     auto hybrid_model = FakeHybridModel(is_exec_on_host, location_config, compute_graph, session_id);
 
     // Prepare global var manager resource
-    VarManagerPool::Instance().Destory();
+    VarManagerPool::Instance().Destroy();
     ExternalWeightManagerPool::Instance().Destroy();
     auto var_manager = VarManager::Instance(hybrid_model->GetSessionId());
     auto weight_manager = ExternalWeightManagerPool::Instance().GetManager(hybrid_model->GetSessionId());
@@ -549,7 +549,7 @@ TEST_F(UtestHybridRt2Executor, context_init_with_host_constant_share_in_session_
   hybrid_model.root_graph_ = ge_root_model->GetRootGraph();
 
   // Prepare global var manager resource
-  VarManagerPool::Instance().Destory();
+  VarManagerPool::Instance().Destroy();
   auto var_manager = VarManager::Instance(hybrid_model.GetSessionId());
   ASSERT_EQ(var_manager->Init(0, hybrid_model.GetSessionId(), 0, 0), SUCCESS);
 
@@ -656,7 +656,7 @@ TEST_F(UtestHybridRt2Executor, context_init_with_empty_host_constant_success) {
   hybrid_model.root_graph_ = ge_root_model->GetRootGraph();
 
   // Prepare global var manager resource
-  VarManagerPool::Instance().Destory();
+  VarManagerPool::Instance().Destroy();
   auto var_manager = VarManager::Instance(hybrid_model.GetSessionId());
   ASSERT_EQ(var_manager->Init(0, hybrid_model.GetSessionId(), 0, 0), SUCCESS);
 
@@ -715,7 +715,7 @@ TEST_F(UtestHybridRt2Executor, context_init_with_host_variable_success) {
   hybrid_model.root_graph_ = ge_root_model->GetRootGraph();
 
   // Prepare global var manager resource
-  VarManagerPool::Instance().Destory();
+  VarManagerPool::Instance().Destroy();
   auto var_manager = VarManager::Instance(hybrid_model.GetSessionId());
   ASSERT_EQ(var_manager->Init(0, hybrid_model.GetSessionId(), 0, 0), SUCCESS);
 

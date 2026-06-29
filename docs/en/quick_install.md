@@ -24,7 +24,9 @@ For developers without Ascend devices, you can directly use CANNLab cloud develo
 
 2. Create NPU environment and configure specifications according to page prompts. After starting the cloud development environment, click "`Connect > WebIDE`" to enter the one-stop development platform.
 
-   Currently, open source project resources are located in the `/mnt/workspace/gitCode/${gitCode_id}` directory by default, where ${gitCode_id} represents the developer's personal gitCode account.
+   Currently, the open source project resource directory depends on how the environment was created:
+   - If created from the CANN community repository, resources are located in `/mnt/workspace/gitCode/cann`.
+   - If created from a personally forked CANN repository, resources are located in `/mnt/workspace/gitCode/{forked_repository}`.
 
    <img src="../zh/figures/webIDE.png" alt="Cloud Platform"  width="1000px" height="150px">
 
@@ -162,6 +164,26 @@ For developers who do not depend on Ascend devices, if you want to quickly set u
 
             ```bash
             pip3 install attrs cython numpy decorator sympy cffi pyyaml pathlib2 psutil protobuf==3.20.0 scipy requests absl-py
+            ```
+
+            If downloading speed is particularly slow when running previous `pip3` command, you'll need to configure the `pip` source, steps are as follows:
+
+            - a. Use your installing user to run the following commands:
+
+            ```bash
+            mkdir -p ~/.pip
+            cd ~/.pip
+            touch pip.conf
+            ```
+
+            - b. Edit the `pip.conf` file and write into the following contents:
+
+            ```bash
+            [global]
+            # This takes Huawei source as an example, please replace it according to the actual situation
+            index-url = https://mirrors.huaweicloud.com/repository/pypi/simple
+            trusted-host = mirrors.huaweicloud.com
+            timeout = 120
             ```
 
 - **Scenario 2: Experience released version capabilities or develop based on released version**

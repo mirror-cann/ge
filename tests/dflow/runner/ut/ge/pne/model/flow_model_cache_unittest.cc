@@ -579,7 +579,7 @@ cd -
 
   void TearDown() {
     (void)system("rm -fr ./ut_cache_dir");
-    VarManager::Instance(0)->Destory();
+    VarManager::Instance(0)->Destroy();
   }
 
   static void SetCacheDirOption(const std::string &cache_dir) {

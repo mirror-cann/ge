@@ -384,6 +384,7 @@ set(BASE_COMMON_TEST_FILES
     "common/properties_manager_unittest.cc"
     "common/kernel_store_unittest.cc"
     "common/ge_auth_file_saver_unittest.cc"
+    "common/ge_python_runtime_unittest.cc"
     "common/tbe_plugin_manager_unittest.cc"
     "common/file_constant_unittest.cc"
     "common/graph_compile_summary_impl_unittest.cc"
@@ -713,6 +714,8 @@ target_include_directories(ut_libge_multiparts_utest PRIVATE
 target_link_options(ut_libge_multiparts_utest PRIVATE
     -Wl,--disable-new-dtags
     -Wl,-rpath,${CMAKE_CURRENT_LIST_DIR}
+    -rdynamic
+    -Wl,-Bsymbolic
 )
 
 target_link_libraries(ut_libge_multiparts_utest
@@ -799,6 +802,7 @@ target_link_libraries(ut_libge_symbol_infer_utest
         graph
         graph_base
         ge_compiler
+        aihacb_autofusion_stub
         gert
         ascendcl
         ge_executor_shared
@@ -924,6 +928,8 @@ target_link_options(ut_libge_others_utest PRIVATE
     -Wl,--disable-new-dtags
     -Wl,-rpath,${CMAKE_CURRENT_LIST_DIR}
     -Wl,-rpath,${CMAKE_BINARY_DIR}/compiler
+    -rdynamic
+    -Wl,-Bsymbolic
 )
 
 target_link_libraries(ut_libge_others_utest
@@ -932,6 +938,7 @@ target_link_libraries(ut_libge_others_utest
     ascendcl_stub
     ${AIR_COMMON_LINK_OPTION}
     ge_compiler
+    aihacb_autofusion_stub
     gert
     ge_runner
     ge_runner_v2
@@ -979,6 +986,7 @@ target_link_libraries(ut_python_pass_artifact_selector_utest
     ge_common_base
     opp_registry
     register
+    unified_dlog
 )
 
 target_link_options(ut_python_pass_artifact_selector_utest PRIVATE
@@ -1167,6 +1175,8 @@ target_include_directories(ut_libge_label_maker_utest PRIVATE
 target_link_options(ut_libge_label_maker_utest PRIVATE
     -Wl,--disable-new-dtags
     -Wl,-rpath,${CMAKE_CURRENT_LIST_DIR}
+    -rdynamic
+    -Wl,-Bsymbolic
 )
 
 # TODO:ge_ut_common need shrink; it has too many depends so
@@ -1179,6 +1189,7 @@ target_link_libraries(ut_libge_label_maker_utest
     ge_common_base
     gert
     ge_compiler
+    aihacb_autofusion_stub
     gRPC::grpc++
     gRPC::grpc
     -Wl,--whole-archive
@@ -1233,6 +1244,7 @@ target_link_libraries(ut_libge_kernel_utest
         ge_common_base
         gert
         ge_compiler
+        aihacb_autofusion_stub
         -Wl,--no-whole-archive
         ge_running_env GTestShared::gtest GTestShared::gtest_main GTestShared::gmock_main ${COMMON_SHARED_LIBRARIES} -lrt -ldl
         -Wl,--no-as-needed ascendcl_stub GTestShared::gmock -Wl,--as-needed
@@ -1297,6 +1309,7 @@ target_link_libraries(ut_libge_distinct_load_utest
     symengine
     gert
     ge_compiler
+    aihacb_autofusion_stub
     register
     opp_registry
     om2_executor

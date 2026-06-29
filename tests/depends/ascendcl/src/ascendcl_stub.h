@@ -97,8 +97,6 @@ class AclRuntimeStub {
   virtual aclError aclrtMemcpy(void *dst, size_t dest_max, const void *src, size_t count, aclrtMemcpyKind kind);
   virtual aclError aclrtMemcpyAsync(void *dst, size_t dest_max, const void *src, size_t src_count, aclrtMemcpyKind kind,
                                     aclrtStream stream);
-  virtual aclError aclrtMemcpyAsyncWithCondition(void *dst, size_t destMax, const void *src, size_t count,
-                                                 aclrtMemcpyKind kind, aclrtStream stream);
   virtual aclError aclrtGetMemInfo(aclrtMemAttr attr, size_t *free_size, size_t *total);
   virtual const char *aclrtGetSocName();
   virtual aclError aclrtGetDeviceInfo(uint32_t deviceId, aclrtDevAttr attr, int64_t *value);
@@ -148,7 +146,6 @@ class AclRuntimeStub {
   virtual aclError aclrtSetOpExecuteTimeOut(uint32_t timeout);
   virtual aclError aclrtSetOpExecuteTimeOutWithMs(uint32_t timeout);
   virtual aclError aclrtSetOpExecuteTimeOutV2(uint64_t timeout, uint64_t *actualTimeout);
-  virtual aclError aclrtGetStreamAvailableNum(uint32_t *streamCount);
   virtual aclError aclrtSetStreamResLimit(aclrtStream stream, aclrtDevResLimitType type, uint32_t value);
   virtual aclError aclrtUseStreamResInCurrentThread(aclrtStream stream);
   virtual aclError aclrtUnuseStreamResInCurrentThread(aclrtStream stream);

@@ -786,6 +786,22 @@ TEST_F(TensorUT, GeTensorDesc2TensorDesc_expand_dims_rule) {
   EXPECT_STREQ(expand_dims_rule.GetString(), "0011");
 }
 
+TEST_F(TensorUT, GeTensorDesc2TensorDesc_reuse_input) {
+  GeTensorDesc ge_tensor_desc;
+  TensorUtils::SetReuseInput(ge_tensor_desc, true);
+  TensorUtils::SetReuseInputIndex(ge_tensor_desc, 1U);
+
+  auto tensor_desc = TensorAdapter::GeTensorDesc2TensorDesc(ge_tensor_desc);
+  auto converted_ge_tensor_desc = TensorAdapter::TensorDesc2GeTensorDesc(tensor_desc);
+
+  bool reuse_input = false;
+  uint32_t reuse_input_index = 0U;
+  ASSERT_EQ(TensorUtils::GetReuseInput(converted_ge_tensor_desc, reuse_input), GRAPH_SUCCESS);
+  ASSERT_EQ(TensorUtils::GetReuseInputIndex(converted_ge_tensor_desc, reuse_input_index), GRAPH_SUCCESS);
+  EXPECT_TRUE(reuse_input);
+  EXPECT_EQ(reuse_input_index, 1U);
+}
+
 TEST_F(TensorUT, GetPaddingSize_ReturnsValidValue) {
   const int64_t padding_size = TensorUtilsEx::GetPaddingSize();
   EXPECT_GE(padding_size, 0);

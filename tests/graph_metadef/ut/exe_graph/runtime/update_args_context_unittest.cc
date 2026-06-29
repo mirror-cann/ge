@@ -133,22 +133,23 @@ TEST_F(UtestUpdateArgsContext, GetKernelArgs_Host_Success) {
   inputs.push_back(reinterpret_cast<void *>(0xAAAA0000ULL));  // IR input 0
   inputs.push_back(nullptr);                                  // additional: allocator
   inputs.push_back(nullptr);                                  // additional: stream
-  inputs.push_back(reinterpret_cast<void *>(&handler));       // additional: args_handler
 
-  std::vector<void *> outputs;
-  outputs.push_back(nullptr);
+  std::vector<void*> outputs;
+  outputs.push_back(nullptr);                                 // compute output 0
+  outputs.push_back(nullptr);                                 // additional: workspace
+  outputs.push_back(reinterpret_cast<void*>(&handler));       // additional: args_handler
 
   auto context_holder = KernelRunContextFaker()
-                            .KernelIONum(4, 1)
-                            .NodeIoNum(1, 1)
-                            .IrInputNum(1)
-                            .IrOutputNum(0)
-                            .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NCHW)
-                            .Inputs(inputs)
-                            .Outputs(outputs)
-                            .Build();
+                             .KernelIONum(3, 3)
+                             .NodeIoNum(1, 1)
+                             .IrInputNum(1)
+                             .IrOutputNum(0)
+                             .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NCHW)
+                             .Inputs(inputs)
+                             .Outputs(outputs)
+                             .Build();
 
-  auto *ctx = context_holder.template GetContext<UpdateArgsContext>();
+  auto* ctx = context_holder.template GetContext<UpdateArgsContext>();
   ASSERT_NE(ctx, nullptr);
 
   const auto *args = ctx->GetKernelArgs(Placement::kPlacementHost, 0U);
@@ -171,22 +172,23 @@ TEST_F(UtestUpdateArgsContext, GetKernelArgs_Device_Success) {
   inputs.push_back(reinterpret_cast<void *>(0xAAAA0000ULL));  // IR input 0
   inputs.push_back(nullptr);                                  // additional: allocator
   inputs.push_back(nullptr);                                  // additional: stream
-  inputs.push_back(reinterpret_cast<void *>(&handler));       // additional: args_handler
 
-  std::vector<void *> outputs;
-  outputs.push_back(nullptr);
+  std::vector<void*> outputs;
+  outputs.push_back(nullptr);                                 // compute output 0
+  outputs.push_back(nullptr);                                 // additional: workspace
+  outputs.push_back(reinterpret_cast<void*>(&handler));       // additional: args_handler
 
   auto context_holder = KernelRunContextFaker()
-                            .KernelIONum(4, 1)
-                            .NodeIoNum(1, 1)
-                            .IrInputNum(1)
-                            .IrOutputNum(0)
-                            .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NCHW)
-                            .Inputs(inputs)
-                            .Outputs(outputs)
-                            .Build();
+                             .KernelIONum(3, 3)
+                             .NodeIoNum(1, 1)
+                             .IrInputNum(1)
+                             .IrOutputNum(0)
+                             .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NCHW)
+                             .Inputs(inputs)
+                             .Outputs(outputs)
+                             .Build();
 
-  auto *ctx = context_holder.template GetContext<UpdateArgsContext>();
+  auto* ctx = context_holder.template GetContext<UpdateArgsContext>();
   ASSERT_NE(ctx, nullptr);
 
   const auto *args = ctx->GetKernelArgs(Placement::kPlacementDevice, 0U);
@@ -210,26 +212,27 @@ TEST_F(UtestUpdateArgsContext, GetKernelArgs_IndexOutOfRange_ReturnsNullptr) {
   host_args[0].placement = Placement::kPlacementHost;
   handler.SetHostArgs(host_args);
 
-  std::vector<void *> inputs;
-  inputs.push_back(reinterpret_cast<void *>(0xAAAA0000ULL));
-  inputs.push_back(nullptr);
-  inputs.push_back(nullptr);
-  inputs.push_back(reinterpret_cast<void *>(&handler));
+  std::vector<void*> inputs;
+  inputs.push_back(reinterpret_cast<void*>(0xAAAA0000ULL));  // IR input 0
+  inputs.push_back(nullptr);                                  // additional: allocator
+  inputs.push_back(nullptr);                                  // additional: stream
 
-  std::vector<void *> outputs;
-  outputs.push_back(nullptr);
+  std::vector<void*> outputs;
+  outputs.push_back(nullptr);                                 // compute output 0
+  outputs.push_back(nullptr);                                 // additional: workspace
+  outputs.push_back(reinterpret_cast<void*>(&handler));       // additional: args_handler
 
   auto context_holder = KernelRunContextFaker()
-                            .KernelIONum(4, 1)
-                            .NodeIoNum(1, 1)
-                            .IrInputNum(1)
-                            .IrOutputNum(0)
-                            .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NCHW)
-                            .Inputs(inputs)
-                            .Outputs(outputs)
-                            .Build();
+                             .KernelIONum(3, 3)
+                             .NodeIoNum(1, 1)
+                             .IrInputNum(1)
+                             .IrOutputNum(0)
+                             .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NCHW)
+                             .Inputs(inputs)
+                             .Outputs(outputs)
+                             .Build();
 
-  auto *ctx = context_holder.template GetContext<UpdateArgsContext>();
+  auto* ctx = context_holder.template GetContext<UpdateArgsContext>();
   ASSERT_NE(ctx, nullptr);
 
   const auto *args = ctx->GetKernelArgs(Placement::kPlacementHost, 100U);
@@ -237,26 +240,27 @@ TEST_F(UtestUpdateArgsContext, GetKernelArgs_IndexOutOfRange_ReturnsNullptr) {
 }
 
 TEST_F(UtestUpdateArgsContext, GetKernelArgs_NullHandlerInContext_ReturnsNullptr) {
-  std::vector<void *> inputs;
-  inputs.push_back(reinterpret_cast<void *>(0xAAAA0000ULL));
-  inputs.push_back(nullptr);
-  inputs.push_back(nullptr);
-  inputs.push_back(nullptr);
+  std::vector<void*> inputs;
+  inputs.push_back(reinterpret_cast<void*>(0xAAAA0000ULL));  // IR input 0
+  inputs.push_back(nullptr);                                  // additional: allocator
+  inputs.push_back(nullptr);                                  // additional: stream
 
-  std::vector<void *> outputs;
-  outputs.push_back(nullptr);
+  std::vector<void*> outputs;
+  outputs.push_back(nullptr);                                 // compute output 0
+  outputs.push_back(nullptr);                                 // additional: workspace
+  outputs.push_back(nullptr);                                 // additional: args_handler (null)
 
   auto context_holder = KernelRunContextFaker()
-                            .KernelIONum(4, 1)
-                            .NodeIoNum(1, 1)
-                            .IrInputNum(1)
-                            .IrOutputNum(0)
-                            .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NCHW)
-                            .Inputs(inputs)
-                            .Outputs(outputs)
-                            .Build();
+                             .KernelIONum(3, 3)
+                             .NodeIoNum(1, 1)
+                             .IrInputNum(1)
+                             .IrOutputNum(0)
+                             .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NCHW)
+                             .Inputs(inputs)
+                             .Outputs(outputs)
+                             .Build();
 
-  auto *ctx = context_holder.template GetContext<UpdateArgsContext>();
+  auto* ctx = context_holder.template GetContext<UpdateArgsContext>();
   ASSERT_NE(ctx, nullptr);
 
   const auto *args = ctx->GetKernelArgs(Placement::kPlacementHost, 0U);

@@ -102,6 +102,24 @@ class TestCompilableCustomOp : public EagerExecuteOp, CompilableOp {
   std::string mock_compile_path_;
 };
 
+class TestMallocReadOnlyDevArgsCustomOp : public EagerExecuteOp {
+ public:
+  graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
+    uint64_t host_args[4] = {0xAAAA, 0xBBBB, 0xCCCC, 0xDDDD};
+    auto *dev_args = ctx->MallocReadOnlyDevArgs(host_args, sizeof(host_args));
+    GE_ASSERT_NOTNULL(dev_args);
+    GE_ASSERT_NOTNULL(dev_args->args_data);
+    GE_ASSERT_EQ(dev_args->args_size, sizeof(host_args));
+    GE_ASSERT_EQ(dev_args->placement, gert::Placement::kPlacementDevice);
+    auto output_tensor = ctx->MallocOutputTensor(0, StorageShape({2048}, {2048}),
+        StorageFormat(FORMAT_ND, FORMAT_ND, ExpandDimsType()), DT_FLOAT);
+    GE_ASSERT_NOTNULL(output_tensor);
+    output_addr = output_tensor->GetAddr();
+    GE_ASSERT_NOTNULL(output_addr);
+    return SUCCESS;
+  }
+};
+
 class TestCustomOpWithShapeInfer : public EagerExecuteOp, public ShapeInferOp {
  public:
   graphStatus Execute(EagerOpExecutionContext *ctx) override {
@@ -190,29 +208,36 @@ class TestEmptyOutputInstanceCompileCustomOp : public EagerExecuteOp, Compilable
 };
 
 REG_OP(CustomOp)
-    .INPUT(x1, TensorType::BasicType())
-    .INPUT(x2, TensorType::BasicType())
-    .INPUT(x3, TensorType::BasicType())
-    .OUTPUT(y, TensorType::BasicType())
-    .OP_END_FACTORY_REG(CustomOp)
+  .INPUT(x1, TensorType::BasicType())
+  .INPUT(x2, TensorType::BasicType())
+  .INPUT(x3, TensorType::BasicType())
+  .OUTPUT(y, TensorType::BasicType())
+  .OP_END_FACTORY_REG(CustomOp)
 
-        REG_OP(NoInputCompileOutputCustomOp)
-    .OUTPUT(y, TensorType::BasicType())
-    .DYNAMIC_OUTPUT(dy, TensorType::BasicType())
-    .OP_END_FACTORY_REG(NoInputCompileOutputCustomOp)
+REG_OP(NoInputCompileOutputCustomOp)
+  .OUTPUT(y, TensorType::BasicType())
+  .DYNAMIC_OUTPUT(dy, TensorType::BasicType())
+  .OP_END_FACTORY_REG(NoInputCompileOutputCustomOp)
 
-        REG_OP(EmptyOutputInstanceCompileCustomOp)
-    .OUTPUT(y, TensorType::BasicType())
-    .OP_END_FACTORY_REG(EmptyOutputInstanceCompileCustomOp)
+REG_OP(EmptyOutputInstanceCompileCustomOp)
+  .OUTPUT(y, TensorType::BasicType())
+  .OP_END_FACTORY_REG(EmptyOutputInstanceCompileCustomOp)
 
-        REG_OP(StCustomOpWithShapeInfer)
-    .INPUT(x1, TensorType::BasicType())
-    .INPUT(x2, TensorType::BasicType())
-    .INPUT(x3, TensorType::BasicType())
-    .OUTPUT(y, TensorType::BasicType())
-    .OP_END_FACTORY_REG(StCustomOpWithShapeInfer)
+REG_OP(StCustomOpWithShapeInfer)
+  .INPUT(x1, TensorType::BasicType())
+  .INPUT(x2, TensorType::BasicType())
+  .INPUT(x3, TensorType::BasicType())
+  .OUTPUT(y, TensorType::BasicType())
+  .OP_END_FACTORY_REG(StCustomOpWithShapeInfer)
 
-        TEST_F(TestCustomNodeKernel, custom_op_kernel_execute_test) {
+REG_OP(MallocReadOnlyDevArgsCustomOp)
+  .INPUT(x1, TensorType::BasicType())
+  .INPUT(x2, TensorType::BasicType())
+  .INPUT(x3, TensorType::BasicType())
+  .OUTPUT(y, TensorType::BasicType())
+  .OP_END_FACTORY_REG(MallocReadOnlyDevArgsCustomOp)
+
+TEST_F(TestCustomNodeKernel, custom_op_kernel_execute_test) {
   auto graph = ShareGraph::BuildCustomOpGraph();
   graph->TopologicalSorting();
   CustomOpFactory::RegisterCustomOpCreator(
@@ -249,6 +274,7 @@ REG_OP(CustomOp)
             GRAPH_SUCCESS);
   EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("CustomOp", "ExecuteCustomOp"), 1);
   EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("CustomOp", "FreeCustomOpWorkspaces"), 1);
+  EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("CustomOp", "FreeArgsGuarder"), 1);
   EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("CustomOp", "FreeMemory"), 1);
   EXPECT_TRUE(MemoryTraceChecker(runtime_stub.GetSlogStub(), output_addr)
                   .AppendExpectEvent(kAllocRe, 0)  // (1) alloc in stream 0
@@ -387,5 +413,67 @@ TEST_F(TestCustomNodeKernel, custom_op_shape_infer_op_execute_test) {
   EXPECT_EQ(model_executor->UnLoad(), GRAPH_SUCCESS);
   aclrtDestroyStream(stream);
 }
-}  // namespace kernel
-}  // namespace gert
+
+/**
+ * 用例描述：验证自定义算子MallocReadOnlyDevArgs接口在V2运行时中正确分配设备侧只读args
+ * 预置条件：
+ *   1. 注册一个继承EagerExecuteOp的自定义算子，Execute中调用MallocReadOnlyDevArgs分配kernel args
+ *   2. 构造包含该自定义算子的计算图，并通过ModelV2Executor加载执行
+ * 测试步骤：
+ *   1. 创建计算图并注册MallocReadOnlyDevArgsCustomOp算子
+ *   2. 通过ModelV2Executor编译加载并执行
+ *   3. 验证Execute/FreeArgsGuarder/FreeCustomOpWorkspaces kernel执行计数
+ *   4. 通过MemoryTraceChecker验证输出Tensor内存的分配和释放事件
+ *   5. 调用UnLoad卸载模型
+ * 预期结果：
+ *   1. 算子执行成功，各kernel执行计数符合预期
+ *   2. 输出Tensor内存在stream 0上正确分配和释放
+ *   3. 模型卸载成功
+ */
+TEST_F(TestCustomNodeKernel, custom_op_malloc_read_only_dev_args_test) {
+  const char *const op_type = "MallocReadOnlyDevArgsCustomOp";
+  auto graph = ShareGraph::BuildCustomOpGraph();
+  auto custom_op = graph->FindNode("custom_op");
+  ASSERT_NE(custom_op, nullptr);
+  custom_op->GetOpDesc()->SetType(op_type);
+  graph->TopologicalSorting();
+  CustomOpFactory::RegisterCustomOpCreator(op_type, []()->std::unique_ptr<BaseCustomOp> {
+    return std::make_unique<TestMallocReadOnlyDevArgsCustomOp>();
+  });
+  GertRuntimeStub runtime_stub;
+  runtime_stub.GetKernelStub().StubTiling();
+  GeModelBuilder builder(graph);
+  auto ge_root_model = builder.BuildGeRootModel();
+  bg::ValueHolder::PopGraphFrame();
+  auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model, {});
+  ASSERT_NE(exe_graph, nullptr);
+  TaskProducerFactory::GetInstance().SetProducerType(TaskProducerType::KERNEL);
+  auto model_executor = ModelV2Executor::Create(exe_graph,
+      ExecutorOption(ExecutorType::kTopologicalPriority), ge_root_model);
+  ASSERT_NE(model_executor, nullptr);
+  ASSERT_EQ(model_executor->Load(), GRAPH_SUCCESS);
+
+  auto outputs = FakeTensors({2048}, 1);
+  auto inputs = FakeTensors({2048}, 3);
+  rtStream_t stream;
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
+  auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
+
+  auto ess = StartExecutorStatistician(model_executor);
+  ess->Clear();
+  ExecutorTracerOn executor_tracer_on;  // 开启trace以验证内存事件
+  ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
+                                    reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
+            GRAPH_SUCCESS);
+  EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType(op_type, "ExecuteCustomOp"), 1);
+  EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType(op_type, "FreeArgsGuarder"), 1);
+  EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType(op_type, "FreeCustomOpWorkspaces"), 1);
+  EXPECT_TRUE(MemoryTraceChecker(runtime_stub.GetSlogStub(), output_addr)
+      .AppendExpectEvent(kAllocRe, 0)
+      .AppendExpectEvent(kFreeRe, 0)
+      .AsYouWish());
+  EXPECT_EQ(model_executor->UnLoad(), GRAPH_SUCCESS);
+  aclrtDestroyStream(stream);
+}
+}
+}

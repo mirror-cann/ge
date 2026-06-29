@@ -3483,4 +3483,136 @@ TEST_F(AtcCommonSTest, TestAtc_Ok_Om2) {
     EXPECT_EQ(graph->GetDirectNodesSize(), 4);
   };
 }
+
+class MockMmpaDlOpenFail : public ge::MmpaStubApiGe {
+ public:
+  void *DlOpen(const char *file_name, int32_t mode) override {
+    if (string("libamctacl.so") == file_name) {
+      return nullptr;
+    }
+    return MmpaStubApiGe::DlOpen(file_name, mode);
+  }
+  int32_t DlClose(void *handle) override {
+    return 0;
+  }
+};
+
+/**
+ * 用例描述：测试CallAmctInterface中mmDlopen返回nullptr且mmDlerror返回nullptr时的处理
+ * 预置条件：
+ *   1. 使用MockMmpaDlOpenFail打桩mmDlopen，使libamctacl.so加载失败返回nullptr
+ *   2. 提前调用dlerror()清除错误状态，使mmDlerror返回nullptr
+ * 测试步骤：
+ *   1. 构造atc命令行参数，包含--compression_optimize_conf=./触发AMCT流程
+ *   2. 调用main_impl执行图编译
+ * 预期结果：
+ *   1. main_impl返回非0值（编译失败）
+ */
+TEST_F(AtcCommonSTest, pb_model_amct_interface_dlopen_fail_no_error) {
+  ReInitGe();
+  (void)dlerror();
+  MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpaDlOpenFail>());
+  auto om_path = PathJoin(GetRunPath().c_str(), "temp");
+  Mkdir(om_path.c_str());
+  om_path = PathJoin(om_path.c_str(), "pb_amct_dlopen_fail");
+  std::string model_arg = "--model=st_run_data/origin_model/add.pb";
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {"atc",
+                  const_cast<char *>(model_arg.c_str()),
+                  const_cast<char *>(output_arg.c_str()),
+                  "--framework=3",
+                  "--out_nodes=add_test_1:0",
+                  "--soc_version=Ascend910B2",
+                  "--output_type=FP32",
+                  "--input_shape=Placeholder_1:1,256,256,3",
+                  "--status_check=0",
+                  "--compression_optimize_conf=./"
+  };
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_NE(ret, 0);
+  MmpaStub::GetInstance().Reset();
+  ReInitGe();
+}
+
+/**
+ * 用例描述：测试CallAmctInterface中mmDlopen返回nullptr且mmDlerror返回有效错误信息时的处理
+ * 预置条件：
+ *   1. 使用MockMmpaDlOpenFail打桩mmDlopen，使libamctacl.so加载失败返回nullptr
+ *   2. 先调用dlopen加载一个不存在的so，使dlerror()产生有效错误信息
+ * 测试步骤：
+ *   1. 构造atc命令行参数，包含--compression_optimize_conf=./触发AMCT流程
+ *   2. 调用main_impl执行图编译
+ * 预期结果：
+ *   1. main_impl返回非0值（编译失败）
+ */
+TEST_F(AtcCommonSTest, pb_model_amct_interface_dlopen_fail_with_error) {
+  ReInitGe();
+  (void)dlopen("nonexistent_lib_for_error.so", RTLD_NOW);
+  MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpaDlOpenFail>());
+  auto om_path = PathJoin(GetRunPath().c_str(), "temp");
+  Mkdir(om_path.c_str());
+  om_path = PathJoin(om_path.c_str(), "pb_amct_dlopen_fail_err");
+  std::string model_arg = "--model=st_run_data/origin_model/add.pb";
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {"atc",
+                  const_cast<char *>(model_arg.c_str()),
+                  const_cast<char *>(output_arg.c_str()),
+                  "--framework=3",
+                  "--out_nodes=add_test_1:0",
+                  "--soc_version=Ascend910B2",
+                  "--output_type=FP32",
+                  "--input_shape=Placeholder_1:1,256,256,3",
+                  "--status_check=0",
+                  "--compression_optimize_conf=./"
+  };
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_NE(ret, 0);
+  MmpaStub::GetInstance().Reset();
+  ReInitGe();
+}
+
+TEST_F(AtcCommonSTest, pb_model_load_custom_op_with_legacy_so) {
+  char_t orig_opp[MMPA_MAX_PATH] = {'\0'};
+  bool had_opp = (mmGetEnv("ASCEND_OPP_PATH", orig_opp, MMPA_MAX_PATH) == EN_OK);
+
+  std::string test_opp = PathJoin(GetRunPath().c_str(), "legacy_so_opp");
+  std::string plugin_dir = test_opp + "/built-in/framework/tensorflow/";
+  std::string lib_dir = test_opp + "/built-in/op_proto/lib/linux/x86_64/";
+  std::string cmd = "mkdir -p " + plugin_dir + " && mkdir -p " + lib_dir;
+  system(cmd.c_str());
+
+  std::vector<std::string> fake_sos = {"libcustom_op1.so", "libcustom_op2_legacy.so",
+                                        "libcustom_op3.so", "libcustom_op4_legacy.so"};
+  for (const auto &so_name : fake_sos) {
+    std::ofstream(plugin_dir + so_name) << "fake";
+  }
+
+  setenv("ASCEND_OPP_PATH", test_opp.c_str(), 1);
+  ReInitGe();
+  auto om_path = PathJoin(GetRunPath().c_str(), "temp");
+  Mkdir(om_path.c_str());
+  om_path = PathJoin(om_path.c_str(), "pb_legacy_so");
+  std::string model_arg = "--model=st_run_data/origin_model/add.pb";
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {"atc",
+                  const_cast<char *>(model_arg.c_str()),
+                  const_cast<char *>(output_arg.c_str()),
+                  "--framework=3",
+                  "--out_nodes=add_test_1:0",
+                  "--soc_version=Ascend910B2",
+                  "--output_type=FP32",
+                  "--input_shape=Placeholder_1:1,256,256,3",
+                  "--status_check=0"};
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_EQ(ret, 0);
+
+  if (had_opp) {
+    setenv("ASCEND_OPP_PATH", orig_opp, 1);
+  } else {
+    unsetenv("ASCEND_OPP_PATH");
+  }
+  cmd = "rm -rf " + test_opp;
+  system(cmd.c_str());
+  ReInitGe();
+}
 }  // namespace ge

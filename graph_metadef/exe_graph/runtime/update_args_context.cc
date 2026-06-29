@@ -15,12 +15,14 @@
 
 namespace gert {
 
-const KernelArgs *UpdateArgsContext::GetKernelArgs(Placement placement, size_t index) const {
-  auto additional_start_index = GetAdditionalInputStartIndex();
-  GE_ASSERT_TRUE(additional_start_index >= 0);
+const KernelArgs* UpdateArgsContext::GetKernelArgs(Placement placement, size_t index) const {
+  auto additional_output_start = GetAdditionalOutputStartIndex();
+  GE_ASSERT_TRUE(additional_output_start >= 0);
 
-  auto *handler = GetInputValue<ArgsHandler *>(
-      additional_start_index + static_cast<int64_t>(EagerOpExecutionContext::AdditionalInputIndex::kArgsHandler));
+  auto *chain = GetOutput(static_cast<size_t>(additional_output_start) +
+      static_cast<size_t>(EagerOpExecutionContext::AdditionalOutputIndex::kArgsHandler));
+  GE_ASSERT_NOTNULL(chain);
+  auto *handler = chain->GetValue<ArgsHandler *>();
   GE_ASSERT_NOTNULL(handler);
 
   const auto &args_deque = handler->GetKernelArgs(placement);

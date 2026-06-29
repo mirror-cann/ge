@@ -3597,7 +3597,7 @@ TEST_F(STEST_helper_runtime, TestHeterogeneousProfiler) {
 }
 
 TEST_F(STEST_helper_runtime, TestDeployWithFlowOnServerWithSharedContent) {
-  VarManager::Instance(0)->Destory();
+  VarManager::Instance(0)->Destroy();
   ge::GetContext().SetSessionId(0);
   setenv("GE_PROFILING_TO_STD_OUT", "2", true);
   auto real_path = st_dir_path + "st_run_data/json/helper_runtime/host/numa_config_1server.json";

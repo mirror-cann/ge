@@ -414,28 +414,6 @@ ge::graphStatus GetReusableStreamResourceNum(const ge::GeRootModelPtr &root_mode
   return ge::GRAPH_SUCCESS;
 }
 
-bool NeedRollBackToSingleStream(int64_t total_stream_num, int64_t reusable_stream_num,
-                                StreamAllocator *const stream_allocator, EventAllocator *const event_allocator,
-                                NotifyAllocator *const notify_allocator) {
-  if ((stream_allocator == nullptr) || (event_allocator == nullptr) || (notify_allocator == nullptr)) {
-    GELOGD("Stream allocator or event allocator is null. Its come from acl. No need rollback.");
-    return false;
-  }
-  uint32_t free_stream_num = 0U;
-  auto ret = aclrtGetStreamAvailableNum(&free_stream_num);
-  if (ret != ACL_SUCCESS) {
-    GELOGW("Fail to get available stream num on device. Better to roll back to single stream.");
-    return true;
-  }
-  if (static_cast<int64_t>(free_stream_num) < total_stream_num) {
-    GEEVENT("Model total required %" PRId64 " streams, including reusable stream_num %" PRId64
-            ", but current available stream num is %u. Need rollback to single stream",
-            total_stream_num, reusable_stream_num, free_stream_num);
-    return true;
-  }
-  return false;
-}
-
 ge::graphStatus ReserveReusableStreamResource(const ModelDesc &model_desc,
                                               const StreamAllocator *const stream_allocator,
                                               const EventAllocator *const event_allocator,
@@ -469,16 +447,7 @@ ge::graphStatus CollectAndReserveStreamResource(const ge::GeRootModelPtr &root_m
                                                 ModelDescHolder &model_desc_holder) {
   StreamResource resource;
   GE_ASSERT_SUCCESS(GetReusableStreamResourceNum(root_model, resource));
-  const bool need_rollback = NeedRollBackToSingleStream(resource.total_stream_num, resource.reusable_stream_num,
-                                                        stream_allocator, event_allocator, notify_allocator);
-  int64_t used_stream_num = resource.reusable_stream_num + resource.attached_stream_num;
-  if ((used_stream_num > 1) && need_rollback) {
-    GE_ASSERT_SUCCESS(RefreshStreamIdOfSingleStreamGraph(root_model->GetRootGraph()));
-    resource.reusable_stream_num = 1;
-    resource.reusable_event_num = 0;
-    resource.reusable_notify_num = 0;
-    resource.attached_stream_num = 0;
-  } else if (resource.reusable_stream_num == 1) {
+  if (resource.reusable_stream_num == 1) {
     GE_ASSERT_SUCCESS(RefreshStreamIdOfSingleStreamGraph(root_model->GetRootGraph()));
   }
 

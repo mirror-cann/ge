@@ -1087,9 +1087,18 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForGraphWithNodeNotSupportSymbolInfer
                                                      squared_difference_node->GetInDataAnchor(1), foo_node),
             SUCCESS);
 
+  for (auto &n : cg->GetDirectNode()) {
+    auto t = n->GetType();
+    if (!t.empty() && t != "Data" && t != "NETOUTPUT") {
+      for (size_t i = 0; i < n->GetOpDesc()->GetOutputsSize(); ++i) {
+        n->GetOpDesc()->MutableOutputDesc(i)->SetOriginShape(GeShape({-2}));
+      }
+    }
+  }
+
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
-  auto foo_attr = foo_op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
+  auto foo_attr = foo_node->GetOpDesc()->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_EQ(foo_attr, nullptr);
   auto neg_node = cg->FindNode("Neg_3");
   ASSERT_NE(neg_node, nullptr);
@@ -1410,6 +1419,10 @@ REG_OP(SplitD)
       ->MutableOutputDesc(0)
       ->GetOrCreateAttrsGroup<SymbolicDescAttr>()
       ->symbolic_tensor.SetSymbolShape(symol_shape);
+  data_node->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({-1, -1}));
+  for (size_t i = 0; i < splitd_node->GetOpDesc()->GetOutputsSize(); ++i) {
+    splitd_node->GetOpDesc()->MutableOutputDesc(i)->SetOriginShape(GeShape({-1, -1}));
+  }
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(graph), ge::SUCCESS);
   splitd_node = graph->FindFirstNodeMatchType("SplitD");
@@ -1466,6 +1479,10 @@ REG_OP(SplitVD)
       ->MutableOutputDesc(0)
       ->GetOrCreateAttrsGroup<SymbolicDescAttr>()
       ->symbolic_tensor.SetSymbolShape(symol_shape);
+  data_node->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({-1, -1}));
+  for (size_t i = 0; i < splitvd_node->GetOpDesc()->GetOutputsSize(); ++i) {
+    splitvd_node->GetOpDesc()->MutableOutputDesc(i)->SetOriginShape(GeShape({-1, -1}));
+  }
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(graph), ge::SUCCESS);
   splitvd_node = graph->FindFirstNodeMatchType("SplitVD");
@@ -1508,6 +1525,8 @@ REG_OP(PadD)
       ->MutableOutputDesc(0)
       ->GetOrCreateAttrsGroup<SymbolicDescAttr>()
       ->symbolic_tensor.SetSymbolShape(symol_shape);
+  data_node->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({-1, -1, -1}));
+  padd_node->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({-1, -1, -1}));
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(graph), ge::SUCCESS);
   padd_node = graph->FindFirstNodeMatchType("PadD");
@@ -3794,7 +3813,7 @@ REG_OP(MultisliceConcat)
     .DYNAMIC_OUTPUT(y, TensorType({DT_FLOAT, DT_FLOAT16}))
     .OP_END_FACTORY_REG(MultisliceConcat)
 
-        TEST_F(SymbolicShapeInferenceST, test_multisliceconcat) {
+TEST_F(SymbolicShapeInferenceST, test_multisliceconcat) {
   vector<int64_t> vec_concatsize = {2, 4};
   vector<int64_t> vec_slicebegin = {4, 5, 12, 5, 20, 28};
   vector<int64_t> vec_slicesize = {1, 1, 2, 2, 2, 4};
@@ -3823,6 +3842,10 @@ REG_OP(MultisliceConcat)
       ->MutableOutputDesc(0)
       ->GetOrCreateAttrsGroup<SymbolicDescAttr>()
       ->symbolic_tensor.SetSymbolShape(symol_shape);
+  data_node->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({-1, -1}));
+  for (size_t i = 0; i < multisliceconcat_node->GetOpDesc()->GetOutputsSize(); ++i) {
+    multisliceconcat_node->GetOpDesc()->MutableOutputDesc(i)->SetOriginShape(GeShape({-1, -1}));
+  }
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(graph), ge::SUCCESS);
   multisliceconcat_node = graph->FindFirstNodeMatchType("MultisliceConcat");
@@ -3836,16 +3859,6 @@ REG_OP(MultisliceConcat)
   ASSERT_NE(attr1, nullptr);
   EXPECT_EQ(attr1->symbolic_tensor.GetOriginSymbolShape(),
             gert::SymbolShape({Symbol("s0"), (Symbol(2) + Symbol(2) + Symbol(2) + Symbol(4))}));
-
-  auto symbol_shape0 = attr0->symbolic_tensor.GetOriginSymbolShape();
-  auto outshapeout = std::string((symbol_shape0.GetDim(0).Serialize().get()));
-  auto outshapeout1 = std::string((symbol_shape0.GetDim(1).Serialize().get()));
-  printf("output shape 1 is %s\n, outputshape 2 is %s\n", outshapeout.c_str(), outshapeout1.c_str());
-
-  auto symbol_shape1 = attr1->symbolic_tensor.GetOriginSymbolShape();
-  auto outshapeout_1 = std::string((symbol_shape1.GetDim(0).Serialize().get()));
-  auto outshapeout1_1 = std::string((symbol_shape1.GetDim(1).Serialize().get()));
-  printf("output shape 1 is %s\n, outputshape 2 is %s\n", outshapeout_1.c_str(), outshapeout1_1.c_str());
 }
 
 TEST_F(SymbolicShapeInferenceST, test_sliced_infer_shape) {
@@ -4578,9 +4591,12 @@ TEST_F(SymbolicShapeInferenceST, test_einsum_basic) {
   auto data_node0 = cg->FindNode("data0");
   ASSERT_NE(data_node0, nullptr);
   SetDataNodeSymbolShapeAndValue(data_node0, gert::SymbolShape({Symbol("s0"), Symbol("s1")}));
+  data_node0->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({-1, -1}));
   auto data_node1 = cg->FindNode("data1");
   ASSERT_NE(data_node1, nullptr);
   SetDataNodeSymbolShapeAndValue(data_node1, gert::SymbolShape({Symbol("s1"), Symbol("s2")}));
+  data_node1->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({-1, -1}));
+  einsum_node->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({-1, -1}));
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
 
@@ -4613,9 +4629,12 @@ TEST_F(SymbolicShapeInferenceST, test_einsum_with_ellipsis) {
   auto data_node0 = cg->FindNode("data0");
   ASSERT_NE(data_node0, nullptr);
   SetDataNodeSymbolShapeAndValue(data_node0, gert::SymbolShape({Symbol("s0"), Symbol("s1"), Symbol("s2")}));
+  data_node0->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({-1, -1, -1}));
   auto data_node1 = cg->FindNode("data1");
   ASSERT_NE(data_node1, nullptr);
   SetDataNodeSymbolShapeAndValue(data_node1, gert::SymbolShape({Symbol("s0"), Symbol("s2"), Symbol("s3")}));
+  data_node1->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({-1, -1, -1}));
+  einsum_node->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({-1, -1, -1}));
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
 
@@ -4649,9 +4668,12 @@ TEST_F(SymbolicShapeInferenceST, test_einsum_invalid_label_mismatch) {
   auto data_node0 = cg->FindNode("data0");
   ASSERT_NE(data_node0, nullptr);
   SetDataNodeSymbolShapeAndValue(data_node0, gert::SymbolShape({Symbol(2), Symbol(1)}));
+  data_node0->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({2, 1}));
   auto data_node1 = cg->FindNode("data1");
   ASSERT_NE(data_node1, nullptr);
   SetDataNodeSymbolShapeAndValue(data_node1, gert::SymbolShape({Symbol(3), Symbol(4)}));
+  data_node1->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({3, 4}));
+  einsum_node->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({-1, -1}));
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(cg), ge::PARAM_INVALID);
 }
@@ -6694,6 +6716,8 @@ TEST_F(SymbolicShapeInferenceST, InferSymbolicShapeForGatherShapesSuccess) {
       ->MutableOutputDesc(0)
       ->GetOrCreateAttrsGroup<SymbolicDescAttr>()
       ->symbolic_tensor.SetSymbolShape(symol_shape);
+  data_node->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({-1, -1, -1}));
+  gatherShapes_node->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({-1}));
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(graph), ge::SUCCESS);
   gatherShapes_node = graph->FindFirstNodeMatchType("GatherShapes");

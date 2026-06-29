@@ -22,12 +22,12 @@ namespace ge {
 class JitInferUtils {
  public:
   static Status InferSymbolForGraph(const ComputeGraphPtr &graph, const std::vector<GeTensor> &inputs,
-                                    std::vector<NodePtr> &infered_nodes);
+                                    std::vector<NodePtr> &inferred_nodes);
 
   static Status PrepareBeforeInferSymbol(const ComputeGraphPtr &graph, const std::vector<GeTensor> &inputs);
 
   static Status InferGraphAndGetInferredNodes(const ComputeGraphPtr &graph, const std::vector<GeTensor> &inputs,
-                                              std::vector<NodePtr> &infered_nodes);
+                                              std::vector<NodePtr> &inferred_nodes);
 };
 }  // namespace ge
 

@@ -125,10 +125,14 @@ class EagerOpExecutionContext : public ExtendedKernelContext {
   enum class AdditionalInputIndex : uint32_t {
     kDeviceAllocator = 0,
     kStream,
-    kArgsHandler  // Args handler base class pointer
+    kNum
   };
 
-  enum class AdditionalOutputIndex : uint32_t { kWorkSpace = 0, kNum };
+  enum class AdditionalOutputIndex : uint32_t {
+    kWorkSpace = 0,
+    kArgsHandler,
+    kNum
+  };
 
  protected:
   int64_t GetAdditionalInputStartIndex() const {

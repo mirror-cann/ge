@@ -660,6 +660,69 @@ TEST_F(SymbolicShapeInferenceUT, test_unsupport_subgraph) {
   ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
 }
 
+/**
+ *      Data0            Data1
+ *        |              /
+ *        \             /
+ *         \           /
+ *          \         /
+ *            \      /
+ *             Reshape
+ *                |
+ *             NetOutput
+ *
+ * Reshape registered infer_symbol_shape callback, but the callback would fail
+ * because the second input (Data1) has no symbolic_values_.
+ * Phase 1: dynamic origin shape → UseStaticShapeIfWeCan returns UNSUPPORTED,
+ *          DoInferAndUpdate also fails → inference fails.
+ * Phase 2: static origin shape → UseStaticShapeIfWeCan returns SUCCESS,
+ *          DoInferAndUpdate is never reached → inference succeeds.
+ */
+TEST_F(SymbolicShapeInferenceUT, StaticShapePriorityOverInferCallback) {
+  auto data0 = EsCreateGraphInputWithDetails(graph_, 0, "data0", nullptr,
+                                             C_DataType::C_DT_INT32, C_Format::C_FORMAT_ND, nullptr, 0);
+  auto data1 = EsCreateGraphInputWithDetails(graph_, 1, "data1", nullptr,
+                                             C_DataType::C_DT_INT32, C_Format::C_FORMAT_ND, nullptr, 0);
+  ASSERT_NE(data0, nullptr);
+  ASSERT_NE(data1, nullptr);
+
+  auto reshape = EsReshape(data0, data1, 0, -1);
+  ASSERT_NE(reshape, nullptr);
+  ASSERT_EQ(EsSetGraphOutput(reshape, 0), 0);
+  auto graph = std::unique_ptr<Graph>(reinterpret_cast<Graph *>(EsBuildGraphAndReset(graph_)));
+
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  ASSERT_NE(cg, nullptr);
+
+  auto reshape_node = cg->FindFirstNodeMatchType("Reshape");
+  ASSERT_NE(reshape_node, nullptr);
+  auto reshape_op_desc = reshape_node->GetOpDesc();
+  ASSERT_NE(reshape_op_desc, nullptr);
+
+  reshape_op_desc->MutableInputDesc(0)->SetDataType(DT_INT32);
+  reshape_op_desc->MutableInputDesc(0)->SetFormat(FORMAT_ND);
+  reshape_op_desc->MutableInputDesc(0)->SetOriginFormat(FORMAT_ND);
+  reshape_op_desc->MutableInputDesc(1)->SetDataType(DT_INT32);
+  reshape_op_desc->MutableInputDesc(1)->SetFormat(FORMAT_ND);
+  reshape_op_desc->MutableInputDesc(1)->SetOriginFormat(FORMAT_ND);
+  reshape_op_desc->MutableOutputDesc(0)->SetDataType(DT_INT32);
+  reshape_op_desc->MutableOutputDesc(0)->SetFormat(FORMAT_ND);
+  reshape_op_desc->MutableOutputDesc(0)->SetOriginFormat(FORMAT_ND);
+
+  DataInfo di = {ge::FORMAT_ND, DT_INT32, {-1, -1, -1}};
+  SetNoStorage(cg, "data0", di, 0);
+  SetNoStorage(cg, "data1", di, 1);
+  reshape_op_desc->MutableOutputDesc(0)->SetOriginShape(GeShape({-1, -1, -1}));
+
+  ExpectNodeInfo expect_node("Reshape", {Symbol(2), Symbol(3), Symbol(4)}, {}, {}, {});
+  std::vector<ExpectNodeInfo> expect_node_vec;
+  expect_node_vec.push_back(expect_node);
+  ASSERT_NE(RunSymbolInferenceTest(cg, expect_node_vec, {}), SUCCESS);
+
+  reshape_op_desc->MutableOutputDesc(0)->SetOriginShape(GeShape({2, 3, 4}));
+  ASSERT_EQ(RunSymbolInferenceTest(cg, expect_node_vec, {}), SUCCESS);
+}
+
 TEST_F(SymbolicShapeInferenceUT, test_abnormal_reshape) {
   auto ascend_install_path = EnvPath().GetAscendInstallPath();
   setenv("ASCEND_OPP_PATH", (ascend_install_path + "/opp").c_str(), 1);
@@ -1072,9 +1135,22 @@ TEST_F(SymbolicShapeInferenceUT, InferShapeForGraphWithNodeNotSupportSymbolInfer
                                                      squared_difference_node->GetInDataAnchor(1), foo_node),
             SUCCESS);
 
+  foo_node->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({-2}));
+  auto neg_tmp = cg->FindNode("Neg_3");
+  ASSERT_NE(neg_tmp, nullptr);
+  // 清空所有计算节点输出OriginShape → UseStaticShapeIfWeCan全部UNSUPPORTED
+  for (auto &n : cg->GetDirectNode()) {
+    auto t = n->GetType();
+    if (!t.empty() && t != "Data" && t != "NETOUTPUT") {
+      for (size_t i = 0; i < n->GetOpDesc()->GetOutputsSize(); ++i) {
+        n->GetOpDesc()->MutableOutputDesc(i)->SetOriginShape(GeShape({-2}));
+      }
+    }
+  }
+
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
-  auto foo_attr = foo_op_desc->GetOutputDesc(0).template GetAttrsGroup<SymbolicDescAttr>();
+  auto foo_attr = foo_node->GetOpDesc()->GetOutputDesc(0).template GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_EQ(foo_attr, nullptr);
   auto neg_node = cg->FindNode("Neg_3");
   ASSERT_NE(neg_node, nullptr);
@@ -1441,6 +1517,7 @@ TEST_F(SymbolicShapeInferenceUT, TestMultiInfer2) {
   reshape_desc->AddOutputDesc("y", reshape_output_desc);
   (void)ge::AttrUtils::SetListInt(reshape_desc, "shape", shape);
   ge::NodePtr reshape_node = cg->InsertNodeBefore(matmul_node, reshape_desc);
+  reshape_node->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({-2}));
   auto matmul_in_anchor = matmul_node->GetInDataAnchor(1);
   auto out_anchor = matmul_in_anchor->GetPeerOutAnchor();
   EXPECT_EQ(ge::GraphUtils::InsertNodeBetweenDataAnchors(out_anchor, matmul_in_anchor, reshape_node),
@@ -1448,6 +1525,7 @@ TEST_F(SymbolicShapeInferenceUT, TestMultiInfer2) {
   AttrUtils::SetBool(matmul_op_desc, "transpose_x2", true);
   matmul_op_desc->MutableInputDesc(1)->SetShape(ge::GeShape(shape));
   matmul_op_desc->MutableInputDesc(1)->SetOriginShape(ge::GeShape(shape));
+  matmul_op_desc->MutableOutputDesc(0)->SetOriginShape(GeShape({-2}));
 
   ExpectNodeInfo expect_node2("MatMulV2", {Symbol(128), Symbol(1)}, {}, {}, {});
   std::vector<ExpectNodeInfo> expect_node_vec2;
@@ -1981,7 +2059,7 @@ REG_OP(MultisliceConcat)
     .DYNAMIC_OUTPUT(y, TensorType({DT_FLOAT, DT_FLOAT16}))
     .OP_END_FACTORY_REG(MultisliceConcat)
 
-        TEST_F(SymbolicShapeInferenceUT, test_multisliceconcat) {
+TEST_F(SymbolicShapeInferenceUT, test_multisliceconcat) {
   vector<int64_t> vec_concatsize = {2, 4};
   vector<int64_t> vec_slicebegin = {4, 5, 12, 5, 20, 28};
   vector<int64_t> vec_slicesize = {1, 1, 2, 2, 2, 4};
@@ -2010,6 +2088,10 @@ REG_OP(MultisliceConcat)
       ->MutableOutputDesc(0)
       ->template GetOrCreateAttrsGroup<SymbolicDescAttr>()
       ->symbolic_tensor.SetSymbolShape(symol_shape);
+  data_node->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({-1, -1}));
+  for (size_t i = 0; i < multisliceconcat_node->GetOpDesc()->GetOutputsSize(); ++i) {
+    multisliceconcat_node->GetOpDesc()->MutableOutputDesc(i)->SetOriginShape(GeShape({-1, -1}));
+  }
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(graph), ge::SUCCESS);
   multisliceconcat_node = graph->FindFirstNodeMatchType("MultisliceConcat");
@@ -2023,14 +2105,6 @@ REG_OP(MultisliceConcat)
   ASSERT_NE(attr1, nullptr);
   EXPECT_EQ(attr1->symbolic_tensor.GetOriginSymbolShape(),
             gert::SymbolShape({Symbol("s0"), (Symbol(2) + Symbol(2) + Symbol(2) + Symbol(4))}));
-
-  auto symbol_shape0 = attr0->symbolic_tensor.GetOriginSymbolShape();
-  auto outshapeout = std::string((symbol_shape0.GetDim(0).Serialize().get()));
-  auto outshapeout1 = std::string((symbol_shape0.GetDim(1).Serialize().get()));
-
-  auto symbol_shape1 = attr1->symbolic_tensor.GetOriginSymbolShape();
-  auto outshapeout_1 = std::string((symbol_shape1.GetDim(0).Serialize().get()));
-  auto outshapeout1_1 = std::string((symbol_shape1.GetDim(1).Serialize().get()));
 }
 
 TEST_F(SymbolicShapeInferenceUT, test_sliced_infer_shape) {
@@ -2927,6 +3001,7 @@ TEST_F(SymbolicShapeInferenceUT, test_gather_symbol_infer_data_axis_unsupport) {
   ASSERT_NE(gather_v2_node, nullptr);
   auto op_desc = gather_v2_node->GetOpDesc();
   op_desc->MutableInputDesc(2)->SetDataType(DT_INT32);
+  op_desc->MutableOutputDesc(0)->SetOriginShape(GeShape({-2}));
 
   SymbolicShapeInference ssi;
   ASSERT_EQ(SymbolicShapeSymbolizer::Symbolize(cg, input_vec), ge::SUCCESS);

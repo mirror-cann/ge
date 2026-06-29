@@ -288,6 +288,57 @@ UniqueGraphPtr JitShareGraph::TwoReshapeNodeTwoRelu() {
 }
 
 /*
+ * 三个Reshape断点的图，产生3个EP（first + middle + last）
+ *      data0   data1
+ *         \     |
+ *        relu0  |
+ *         |     |
+ *       reshape0
+ *         |
+ *        relu1
+ *         |     |
+ *       reshape1
+ *         |
+ *        relu2
+ *         |     |
+ *       reshape2
+ *         |
+ *        relu3
+ *          \   /
+ *        netoutput
+ */
+UniqueGraphPtr JitShareGraph::ThreeReshapeNodeThreeRelu() {
+  es::EsGraphBuilder es_graph("test_graph");
+  auto data0 = es_graph.CreateInput(0, "data0", nullptr);
+  auto data1 = es_graph.CreateInput(1, "data1", nullptr);
+  data0.SetShape({-1, -1, -1, -1});
+  data1.SetShape({-1});
+  auto relu0 = es::Relu(data0);
+  auto reshape0 = es::Reshape(relu0, data1, 4, 4);
+  auto relu1 = es::Relu(reshape0);
+  auto reshape1 = es::Reshape(relu1, data1, 4, 4);
+  auto relu2 = es::Relu(reshape1);
+  auto reshape2 = es::Reshape(relu2, data1, 4, 4);
+  auto relu3 = es::Relu(reshape2);
+  es::EsGraphBuilder::SetOutput(relu3, 0);
+  auto graph = es_graph.BuildAndReset();
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  AddCompileResultByGNode(cg, relu0.GetProducer(), true,
+                   "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
+                   "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
+  AddCompileResultByGNode(cg, relu1.GetProducer(), true,
+                   "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
+                   "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
+  AddCompileResultByGNode(cg, relu2.GetProducer(), true,
+                   "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
+                   "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
+  AddCompileResultByGNode(cg, relu3.GetProducer(), true,
+                   "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
+                   "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
+  return graph;
+}
+
+/*
  * 有三类算子unique的图，在unique算子切分
  *      data  data
  *        \   /

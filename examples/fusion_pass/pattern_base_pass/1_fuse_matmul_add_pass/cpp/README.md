@@ -74,6 +74,14 @@
    make install
    ```
 
+5. 编译过程中会在 build 目录下生成 pass so 依赖的 es so（位于 `build/es_output/lib64`，文件名为 `libes_all.so`）。`make install` 仅安装 pass so，es so 仍留在 build 目录。CMakeLists.txt 中已通过 `$ORIGIN` 与构建目录路径配置运行时查找路径：
+   - 若 build 目录保留在原位，pass so 运行时可直接通过构建路径找到 es so，无需额外操作。
+   - 若 build 目录被删除或 pass so 迁移到其他位置（运行时无法再访问原构建路径），需将 es so 拷贝到 pass so 的安装目录（即 `${ASCEND_PATH}/opp/vendors/${PASS_SO_DIR}/custom_fusion_passes`）与 pass so 同目录存放，运行时通过 `$ORIGIN` 从同目录加载，无需额外设置 `LD_LIBRARY_PATH`。
+
+   ```
+   cp build/es_output/lib64/libes_all.so ${ASCEND_PATH}/opp/vendors/${PASS_SO_DIR}/custom_fusion_passes/
+   ```
+
    样例验证完成后，执行如下命令清理安装到 CANN 包下的自定义 pass so，避免影响后续 UT/ST：
 
    ```

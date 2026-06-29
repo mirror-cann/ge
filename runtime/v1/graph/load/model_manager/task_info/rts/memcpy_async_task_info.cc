@@ -14,6 +14,7 @@
 #include "graph/load/model_manager/model_utils.h"
 #include "common/checker.h"
 #include "common/runtime_api_wrapper.h"
+#include "runtime/dev.h"
 
 namespace ge {
 Status MemcpyAsyncTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *const davinci_model,

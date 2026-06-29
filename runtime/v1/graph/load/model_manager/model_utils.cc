@@ -1239,60 +1239,6 @@ Status ModelUtils::CalculateHcclGroupOrderedEventNum(const GeModelPtr &ge_model,
   return SUCCESS;
 }
 
-Status ModelUtils::CalculateFollowStream(const GeModelPtr &ge_model, uint64_t &hccl_fellow_stream_num) {
-  const auto &model_def = ge_model->GetModelTaskDefPtr();
-  GE_CHECK_NOTNULL(model_def);
-  const auto compute_graph = ge_model->GetGraph().get();
-  GE_CHECK_NOTNULL(compute_graph);
-
-  std::map<uint32_t, OpDescPtr> op_list;
-  for (const auto &node : compute_graph->GetAllNodes()) {
-    OpDescPtr op_desc = node->GetOpDesc();
-    GE_CHECK_NOTNULL(op_desc);
-    (void)op_list.emplace(op_desc->GetId(), op_desc);
-  }
-
-  std::multimap<int64_t, uint64_t> main_follow_num;
-  for (int32_t i = 0; i < model_def->task_size(); i++) {
-    const domi::TaskDef &task = model_def->task(i);
-    if (static_cast<ModelTaskType>(task.type()) == ModelTaskType::MODEL_TASK_HCCL) {
-      auto const &hccl_def = task.kernel_hccl();
-      const auto it = op_list.find(hccl_def.op_index());
-      GE_CHK_BOOL_RET_STATUS(it != op_list.end(), FAILED, "Failed to find op index %u in op list", hccl_def.op_index());
-      const OpDescPtr hccl_op_desc = it->second;
-      int64_t main_stream_id = hccl_op_desc->GetStreamId();
-      int64_t follow_stream_num = 0;
-      if (!AttrUtils::GetInt(hccl_op_desc, kUsedStreamNum, follow_stream_num)) {
-        GELOGW("Get used stream num failed, op is %s", hccl_op_desc->GetName().c_str());
-      }
-      (void)main_follow_num.emplace(main_stream_id, follow_stream_num);
-    }
-  }
-  hccl_fellow_stream_num = CalFollowStreamSum(main_follow_num);
-  return SUCCESS;
-}
-
-uint64_t ModelUtils::CalFollowStreamSum(const std::multimap<int64_t, uint64_t> &hccl_stream_map) {
-  std::map<int64_t, uint64_t> max_follow_stream_map;
-  for (const auto &it : hccl_stream_map) {
-    const std::map<int64_t, uint64_t>::const_iterator max_it =
-        static_cast<std::map<int64_t, uint64_t>::const_iterator>(max_follow_stream_map.find(it.first));
-    if (max_it == max_follow_stream_map.cend()) {
-      (void)max_follow_stream_map.emplace(it.first, it.second);
-      continue;
-    }
-    if (it.second > max_it->second) {
-      max_follow_stream_map.at(max_it->first) = it.second;
-    }
-  }
-  uint64_t need_follow_stream_num = 0U;
-  for (const auto &follow_it : max_follow_stream_map) {
-    need_follow_stream_num = need_follow_stream_num + follow_it.second;
-  }
-  GELOGD("Need follow num is %" PRIu64, need_follow_stream_num);
-  return need_follow_stream_num;
-}
-
 bool ModelUtils::IsReuseZeroCopyMemory() {
   static const std::string kEnabled = "1";
   std::string reuse_zero_copy_memory;

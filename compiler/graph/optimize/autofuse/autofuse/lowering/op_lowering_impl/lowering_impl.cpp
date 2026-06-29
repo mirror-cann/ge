@@ -1318,6 +1318,8 @@ REGISTER_POINTWISE_LOWER(Sigmoid, loop::Sigmoid);
 REGISTER_POINTWISE_LOWER(Sign, loop::Sign);
 REGISTER_POINTWISE_LOWER(Sqrt, loop::Sqrt);
 REGISTER_POINTWISE_LOWER(Sub, loop::Sub);
+REGISTER_POINTWISE_LOWER(Acos, loop::Acos);
+REGISTER_POINTWISE_LOWER(Asin, loop::Asin);
 REGISTER_POINTWISE_LOWER(Tanh, loop::Tanh);
 REGISTER_POINTWISE_LOWER(SelectV2, loop::Where);
 REGISTER_POINTWISE_LOWER(FloorDiv, loop::FloorDiv);
@@ -1549,6 +1551,30 @@ REGISTER_LOWERING(AddN) {
 REGISTER_LOWERING(Square) {
   auto x = loop::Load(node->GetInDataAnchor(0));
   loop::Store(node->GetOutDataAnchor(0), loop::Mul(x, x));
+  return GRAPH_SUCCESS;
+}
+
+REGISTER_LOWERING(Swish) {
+  GE_ASSERT_NOTNULL(node->GetInDataAnchor(0));
+  auto src = node->GetInDataAnchor(0)->GetPeerOutAnchor();
+  GE_ASSERT_NOTNULL(src);
+
+  float scale = 1.0f;
+  (void)AttrUtils::GetFloat(node->GetOpDesc(), "scale", scale);
+  auto x = loop::Load(node->GetInDataAnchor(0));
+  auto sigmoid_input = x;
+  if (!IsClose(scale, 1.0f)) {
+    GE_ASSERT_NOTNULL(src->GetOwnerNode());
+    GE_ASSERT_NOTNULL(src->GetOwnerNode()->GetOpDesc());
+    auto desc = src->GetOwnerNode()->GetOpDesc()->GetOutputDescPtr(src->GetIdx());
+    GE_ASSERT_NOTNULL(desc);
+    std::vector<Expression> dims;
+    LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src, dims) == GRAPH_SUCCESS, node,
+                                "Failed to get 0th-input symbol shape.");
+    auto scalar_scale = ScalarBroadcast2Size(ToPrecString(scale, 7), desc->GetDataType(), dims.size());
+    sigmoid_input = loop::Mul(x, scalar_scale);
+  }
+  loop::Store(node->GetOutDataAnchor(0), loop::Mul(x, loop::Sigmoid(sigmoid_input)));
   return GRAPH_SUCCESS;
 }
 

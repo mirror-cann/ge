@@ -61,7 +61,7 @@ Developers can download the source code of this repository through the following
 
 - bash >= 5.1.16
 
-- ccache/asan/autoconf/automake/libtool/gperf/lcov/libasan/patch/perl/graph-easy (graph-easy is optional)
+- ccache/asan/autoconf/automake/libtool/gperf/lcov/libasan/patch/perl/graph-easy (graph-easy and lcov are optional)
 
   ```bash
   # Ubuntu operating system installation command example as follows, other operating system dependencies may have some differences, please install yourself
@@ -124,7 +124,7 @@ More compilation parameters can be viewed through `bash build.sh -h`. After succ
 
 After compilation is complete, users can perform developer testing.
 
-- Compile and execute `UT` test cases:
+- Compile and execute `UT` test cases (ASAN is enabled by default on x86_64):
 
   ```bash
   # Compile and execute all UT test cases
@@ -135,7 +135,7 @@ After compilation is complete, users can perform developer testing.
 
   --ut (required): You can specify `${TARGET}` to compile specific object's UT test cases. Available values can be viewed through `bash tests/run_test.sh -h`.
 
-- Compile and execute `ST` test cases:
+- Compile and execute `ST` test cases (ASAN is enabled by default on x86_64):
 
   ```bash
   # Compile and execute all ST test cases

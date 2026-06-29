@@ -227,6 +227,11 @@ class MockMmpa : public ge::MmpaStubApiGe {
 class UtestDflowApi : public testing::Test {
  protected:
   static void SetUpTestSuite() {
+    const auto env_ptr = getenv("LD_PRELOAD");
+    if (env_ptr != nullptr) {
+      env = env_ptr;
+      unsetenv("LD_PRELOAD");
+    }
     // Init running dir env
     ge::DirEnv::GetInstance().InitEngineConfJson();
     const std::map<AscendString, AscendString> options{};
@@ -239,6 +244,9 @@ class UtestDflowApi : public testing::Test {
   static void TearDownTestSuite() {
     ge::GEFinalizeV2();
     unsetenv("RESOURCE_CONFIG_PATH");
+    if (!env.empty()) {
+      setenv("LD_PRELOAD", env.c_str(), 1);
+    }
   }
 
   void SetUp() override {
@@ -278,7 +286,11 @@ class UtestDflowApi : public testing::Test {
     ge::ExecutionRuntime::SetExecutionRuntime(nullptr);
     ge::OpsKernelBuilderRegistry::GetInstance().UnregisterAll();
   }
+
+  static std::string env;
 };
+
+std::string UtestDflowApi::env;
 
 TEST_F(UtestDflowApi, DFlowInitialize) {
   std::map<AscendString, AscendString> options = {};

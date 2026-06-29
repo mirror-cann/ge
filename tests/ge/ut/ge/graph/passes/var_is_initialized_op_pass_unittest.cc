@@ -629,7 +629,7 @@ TEST_F(UTEST_graph_passes_var_is_initialized_op_pass, run_success) {
   ret = merge_pass.Run(node_merge);
   EXPECT_EQ(SUCCESS, ret);
   EXPECT_EQ(graph->GetDirectNodesSize(), 4);
-  VarManagerPool::Instance().Destory();
+  VarManagerPool::Instance().Destroy();
 }
 
 TEST_F(UTEST_graph_passes_var_is_initialized_op_pass, change_to_false) {
@@ -661,7 +661,7 @@ TEST_F(UTEST_graph_passes_var_is_initialized_op_pass, change_to_false) {
 
   ret = varPass.Run(node_other);
   EXPECT_EQ(SUCCESS, ret);
-  VarManagerPool::Instance().Destory();
+  VarManagerPool::Instance().Destroy();
 }
 
 TEST_F(UTEST_graph_passes_var_is_initialized_op_pass, run_fail_2) {
@@ -681,7 +681,7 @@ TEST_F(UTEST_graph_passes_var_is_initialized_op_pass, run_fail_2) {
   VarIsInitializedOpPass varPass;
   Status ret = varPass.Run(node_var_is);
   EXPECT_EQ(FAILED, ret);
-  VarManagerPool::Instance().Destory();
+  VarManagerPool::Instance().Destroy();
 }
 
 TEST_F(UTEST_graph_passes_var_is_initialized_op_pass, run_fail_3) {
@@ -701,7 +701,7 @@ TEST_F(UTEST_graph_passes_var_is_initialized_op_pass, run_fail_3) {
   VarIsInitializedOpPass varPass;
   Status ret = varPass.Run(node_var_is);
   EXPECT_EQ(FAILED, ret);
-  VarManagerPool::Instance().Destory();
+  VarManagerPool::Instance().Destroy();
 }
 
 TEST_F(UTEST_graph_passes_var_is_initialized_op_pass, run_fail_4) {
@@ -725,7 +725,7 @@ TEST_F(UTEST_graph_passes_var_is_initialized_op_pass, run_fail_4) {
   VarIsInitializedOpPass varPass;
   Status ret = varPass.Run(node_var_is);
   EXPECT_EQ(FAILED, ret);
-  VarManagerPool::Instance().Destory();
+  VarManagerPool::Instance().Destroy();
 }
 
 TEST_F(UTEST_graph_passes_var_is_initialized_op_pass, init_before_VarIsInitializedOp) {
@@ -877,6 +877,6 @@ TEST_F(UTEST_graph_passes_var_is_initialized_op_pass, is_variable_initialized_su
   EXPECT_NE(tensor, nullptr);
   EXPECT_EQ(*(tensor->GetData().GetData()), 0);
 
-  VarManagerPool::Instance().Destory();
+  VarManagerPool::Instance().Destroy();
 }
 }  // namespace ge

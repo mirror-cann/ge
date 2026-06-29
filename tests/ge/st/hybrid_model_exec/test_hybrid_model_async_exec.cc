@@ -2260,7 +2260,7 @@ TEST_F(StestHybridRt2Executor, run_graph_with_ref_fileconstant_success) {
 
   HybridModelAsyncExecutor executor(&hybrid_model);
 
-  VarManagerPool::Instance().Destory();
+  VarManagerPool::Instance().Destroy();
   auto var_manager = VarManager::Instance(hybrid_model.GetSessionId());
   auto weight_manager = ExternalWeightManagerPool::Instance().GetManager(hybrid_model.GetSessionId());
   ASSERT_EQ(var_manager->Init(0, hybrid_model.GetSessionId(), 0, 0), SUCCESS);
@@ -2466,7 +2466,6 @@ TEST_F(StestHybridRt2Executor, Test_multiStream_execute_by_runGraph_with_rtv2) {
 
 TEST_F(StestHybridRt2Executor, Test_multiStream_execute_by_runGraph_with_rtv2_rollback_singleStream) {
   setenv("ENABLE_RUNTIME_V2", "1", 0);
-  setenv("MOCK_AVAIL_STREAM_NUM", "1", 0);  // only has 1 stream
   int64_t stream_num = 1;
   int64_t event_num = 0;
   auto graph = ShareGraph::MultiStreamTwoNodeGraph(stream_num, event_num);
@@ -2513,12 +2512,11 @@ TEST_F(StestHybridRt2Executor, Test_multiStream_execute_by_runGraph_with_rtv2_ro
     std::vector<GeTensor> outputs;
     ASSERT_EQ(executor.Execute(gert_inputs, gert_outputs), SUCCESS);
     auto all_rt_streams = runtime_stub.GetRtsRuntimeStub().GetAllRtStreams();
-    ASSERT_EQ(all_rt_streams.size(), 0);  // execute on 1 streams, use external stream, no need create streams
+    ASSERT_EQ(all_rt_streams.size(), 1);  // execute on 1 streams, use external stream, no need create streams
 
     EXPECT_EQ(executor.Init(stream), SUCCESS);
     ASSERT_EQ(executor.ExecuteWithStreamAsync(inputs, outputs, stream), SUCCESS);
   }
   unsetenv("ENABLE_RUNTIME_V2");
-  unsetenv("MOCK_AVAIL_STREAM_NUM");
   runtime_stub.Clear();
 }

@@ -61,7 +61,7 @@ cat /usr/local/Ascend/cann/<arch>-linux/ascend_ops_install.info
 
 - bash >= 5.1.16
 
-- ccache/asan/autoconf/automake/libtool/gperf/lcov/libasan/patch/perl/graph-easy(其中graph-easy可选)
+- ccache/asan/autoconf/automake/libtool/gperf/lcov/libasan/patch/perl/graph-easy(其中graph-easy lcov可选)
 
   ```bash
   # Ubuntu操作系统安装命令示例如下，其他操作系统依赖可能有部分差异，请自行安装
@@ -124,7 +124,7 @@ bash scripts/check_env.sh
 
 编译完成后，用户可以进行开发者测试。
 
-- 编译执行`UT`测试用例：
+- 编译执行`UT`测试用例（x86_64默认开启asan）：
 
   ```bash
   #编译执行所有的UT测试用例
@@ -135,7 +135,7 @@ bash scripts/check_env.sh
 
   --ut（必选）：可以指定`${TARGET}`编译特定对象的ut测试用例，取值可通过`bash tests/run_test.sh -h`查看。
 
-- 编译执行`ST`测试用例：
+- 编译执行`ST`测试用例（x86_64默认开启asan）：
 
   ```bash
   #编译执行所有的ST测试用例

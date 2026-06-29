@@ -25,6 +25,7 @@
 #include "asc_lowerer/loop_common.h"
 #include "autofuser.h"
 #include "lowerings.h"
+#include "lowering_query.h"
 
 #include "ascir_ops_utils.h"
 #include "backend/backend_spec.h"
@@ -628,5 +629,9 @@ graphStatus LoweringManager::PostPrecessAfterLoweringNode(const NodePtr &node, c
   }
   RealizeKernelBoxesByCategory(node, kernel_boxes, config);
   return GRAPH_SUCCESS;
+}
+
+bool HasLoweringRegistered(const std::string &op_type) {
+  return LoweringManager::HasLowering(op_type);
 }
 }  // namespace ge

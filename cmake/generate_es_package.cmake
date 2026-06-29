@@ -173,7 +173,7 @@ endmacro()
 
 function(_add_es_library_impl)
     # 0. 生成辅助 shell 脚本（自包含，无需外部文件）
-    # 在首次调用时创建 run_gen_esb_with_lock.sh 到构建目录
+    # 每次 cmake 配置都重新生成 run_gen_esb_with_lock.sh（确保 ENABLE_ASAN 等变化即时生效）
     set(ES_LOCK_SCRIPT "${CMAKE_BINARY_DIR}/cmake/run_gen_esb_with_lock.sh")
     # 将 ENABLE_ASAN 归一化为 "true" 或空字符串
     # CMake if() 自动识别 TRUE/True/ON/On/on/YES/yes/1 等真值，无需逐一枚举
@@ -182,7 +182,12 @@ function(_add_es_library_impl)
     else()
         set(ENABLE_ASAN_NORMALIZED "")
     endif()
-    if (NOT EXISTS ${ES_LOCK_SCRIPT})
+    # 每次 cmake 配置都重新生成脚本，确保 ENABLE_ASAN 等配置变化能即时反映到脚本中
+    # （修复脚本缓存陈旧导致 --asan=false 不生效的问题，见 issue #466）。
+    # 使用 GLOBAL property 避免同一 cmake 进程内多 ES package 调用时重复生成；
+    # GLOBAL property 不写入 CMakeCache.txt，每次 cmake 进程都会重新生成。
+    get_property(_ES_LOCK_SCRIPT_GENERATED GLOBAL PROPERTY _ES_LOCK_SCRIPT_GENERATED SET)
+    if (NOT _ES_LOCK_SCRIPT_GENERATED)
         file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/cmake")
         file(WRITE ${ES_LOCK_SCRIPT} "#!/bin/bash
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
@@ -306,6 +311,11 @@ execute_gen_esb() {
                 sleep 0.5
                 sync
                 RETRY_COUNT=\$((RETRY_COUNT + 1))
+            elif [[ \"${ENABLE_ASAN_NORMALIZED}\" == \"true\" ]] && [ \$EXIT_CODE -eq 1 ]; then
+                log_debug \"[Retriable] Exit code 1 under ASan (likely nested bug or shadow-memory conflict), retrying...\"
+                sleep 0.5
+                sync
+                RETRY_COUNT=\$((RETRY_COUNT + 1))
             else
                 log_debug \"[Non-retriable] Exit code \$EXIT_CODE\"
                 return \$EXIT_CODE
@@ -313,6 +323,10 @@ execute_gen_esb() {
         fi
     done
     log_debug \"[Final Failure] Reached maximum retry count \$MAX_RETRIES\"
+    if [[ \"${ENABLE_ASAN_NORMALIZED}\" == \"true\" ]]; then
+        log_debug \"[Hint] ASan is enabled. If this reproduces consistently, gen_esb may have a real memory defect;\"
+        log_debug \"       re-run with --asan=false (after removing the cached run_gen_esb_with_lock.sh) to confirm.\"
+    fi
     return 1
 }
 
@@ -401,6 +415,7 @@ exit 1
         # 设置脚本可执行权限
         execute_process(COMMAND chmod +x ${ES_LOCK_SCRIPT})
         message(STATUS "Generated helper script: ${ES_LOCK_SCRIPT}")
+        set_property(GLOBAL PROPERTY _ES_LOCK_SCRIPT_GENERATED TRUE)
     endif ()
 
     # 1. 解析函数参数

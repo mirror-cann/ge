@@ -23,17 +23,6 @@ namespace ge {
 class SymbolicShapeInference {
  public:
   Status Infer(const ComputeGraphPtr &graph) const;
-
- private:
-  Status SimplifyTensorSymbol(const GeTensorDescPtr &ge_tensor_desc) const;
-  Status Simplify(const ComputeGraphPtr &graph) const;
-  Status InferOneNode(NodePtr &node) const;
-  Status UpdateSymbolShapeAndDtypeToPeerInputs(const NodePtr &node) const;
-  Status UseStaticShapeIfWeCan(OpDescPtr &op_desc) const;
-  Status DoComputeAndUpdate(const NodePtr &node, const OpDescPtr &op_desc,
-                            const InferSymbolComputeKernelFunc &kernel_func) const;
-  Status DoInferAndUpdate(const NodePtr &node, const OpDescPtr &op_desc,
-                          const gert::OpImplKernelRegistry::OpImplFunctionsV2 *func) const;
 };
 }  // namespace ge
 

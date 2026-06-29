@@ -204,19 +204,9 @@ class ModelUtils {
   static Status CalculateAicpuBlockingEventNum(const GeModelPtr &ge_model, uint32_t &aicpu_blocking_event_num);
 
   /// @ingroup ge
-  /// @brief Calculate hccl follw stream
-  /// @return Status
-  static Status CalculateFollowStream(const GeModelPtr &ge_model, uint64_t &hccl_fellow_stream_num);
-
-  /// @ingroup ge
   /// @brief Calculate hccl group ordered event num
   /// @return Status
   static Status CalculateHcclGroupOrderedEventNum(const GeModelPtr &ge_model, uint32_t &hccl_group_ordered_event_num);
-
-  /// @ingroup ge
-  /// @brief Calculate the sum of follow stream
-  /// @return int64_t
-  static uint64_t CalFollowStreamSum(const std::multimap<int64_t, uint64_t> &hccl_stream_map);
 
   /// @ingroup ge
   /// @brief Get memory runtime base.

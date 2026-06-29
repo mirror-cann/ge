@@ -90,6 +90,7 @@ TEST_F(CustomNodeConverterUT, custom_op_convert_test) {
                                                                   {"CalcTensorSizeFromStorage", 3},
                                                                   {"ExecuteCustomOp", 1},
                                                                   {"FreeCustomOpWorkspaces", 1},
+                                                                  {"FreeArgsGuarder", 1},
                                                                   {"FreeMemory", 4},
                                                                   {"SelectL2Allocator", 1},
                                                                   {"SplitRtStreams", 1},

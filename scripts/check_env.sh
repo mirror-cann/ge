@@ -96,6 +96,29 @@ check_command() {
     command -v "$1" &>/dev/null
 }
 
+# 根据检测到的发行版输出安装命令提示
+# 自动适配 Ubuntu/Debian(apt-get) 与 CentOS/RHEL/EulerOS/openEuler(yum/dnf)
+# 参数 $1: apt 系包名 (Ubuntu/Debian)
+# 参数 $2: yum/dnf 系包名 (CentOS/RHEL/EulerOS/openEuler)
+# 依赖全局变量: DISTRO (发行版标识), PKG_MGR (包管理器: apt-get/yum/dnf)
+pkg_install_hint() {
+    local apt_pkg="$1"
+    local yum_pkg="$2"
+    case "$DISTRO" in
+        ubuntu|debian)
+            log_info "安装: sudo apt-get install $apt_pkg"
+            ;;
+        centos|rhel|fedora|euleros|openeuler)
+            log_info "安装: sudo $PKG_MGR install $yum_pkg"
+            ;;
+        *)
+            # 未识别发行版: 同时给出两种主流方案
+            log_info "安装 (Ubuntu/Debian):   sudo apt-get install $apt_pkg"
+            log_info "安装 (CentOS/EulerOS): sudo yum install $yum_pkg"
+            ;;
+    esac
+}
+
 # 安全提取版本号 (支持 1/2/3/4 段, 失败返回 0.0.0)
 extract_version() {
     local input="$1"
@@ -166,6 +189,32 @@ if [ -f /etc/os-release ]; then
     log_info "发行版: $DISTRO $DISTRO_VER"
 fi
 
+# 根据发行版确定包管理器 (用于安装提示)，自动适配 Ubuntu/Debian/CentOS/EulerOS/openEuler
+# 说明: openEuler 优先使用 dnf，EulerOS 2.x 及 CentOS/RHEL 使用 yum
+case "$DISTRO" in
+    ubuntu|debian)
+        PKG_MGR="apt-get"
+        ;;
+    centos|rhel|fedora)
+        PKG_MGR="yum"
+        ;;
+    euleros|openeuler)
+        # openEuler 默认提供 dnf，EulerOS 2.x 仅提供 yum
+        if check_command dnf; then
+            PKG_MGR="dnf"
+        else
+            PKG_MGR="yum"
+        fi
+        ;;
+    *)
+        PKG_MGR="yum"
+        log_info "未识别的发行版, 安装提示将同时给出 apt/yum 两种方案"
+        ;;
+esac
+if [ -n "$DISTRO" ]; then
+    log_info "包管理器: $PKG_MGR"
+fi
+
 # ==================== 2. GCC ====================
 # build.md: GCC >= 7.3.x
 print_header "2. GCC/G++ [build.md: >= $REQUIRED_GCC_MIN]"
@@ -179,12 +228,15 @@ if check_command gcc; then
         log_pass "GCC $GCC_VER (>= $REQUIRED_GCC_MIN)"
     else
         log_error "GCC 版本过低: $GCC_VER (build.md 要求 >= $REQUIRED_GCC_MIN)"
-        log_info "安装 (Ubuntu): sudo apt-get install build-essential"
-        log_info "安装 (CentOS): sudo yum install devtoolset-7-gcc devtoolset-7-gcc-c++"
+        pkg_install_hint "build-essential" "gcc gcc-c++"
+        # CentOS 7 默认 GCC 4.8 过旧, 需借助 devtoolset 安装高版本
+        case "$DISTRO" in
+            centos|rhel) log_info "  (CentOS 7 可用 SCL: sudo yum install devtoolset-7-gcc devtoolset-7-gcc-c++)" ;;
+        esac
     fi
 else
     log_error "未安装 GCC (build.md 要求 >= $REQUIRED_GCC_MIN)"
-    log_info "安装 (Ubuntu): sudo apt-get install build-essential"
+    pkg_install_hint "build-essential" "gcc gcc-c++"
 fi
 
 if check_command g++; then
@@ -193,7 +245,7 @@ if check_command g++; then
     log_pass "G++ $GPP_VER"
 else
     log_error "未安装 G++"
-    log_info "安装 (Ubuntu): sudo apt-get install g++"
+    pkg_install_hint "g++" "gcc-c++"
 fi
 
 # ==================== 3. Python3 ====================
@@ -228,8 +280,7 @@ if [ -n "$PYTHON_CMD" ]; then
         log_pass "Python 开发头文件: $PYTHON_INCLUDE/Python.h"
     else
         log_error "缺少 Python.h"
-        log_info "安装 (Ubuntu): sudo apt-get install python3-dev"
-        log_info "安装 (CentOS): sudo yum install python3-devel"
+        pkg_install_hint "python3-dev" "python3-devel"
     fi
 
     # build.md: 将 Python3 的 bin 路径添加到 PATH
@@ -252,7 +303,7 @@ if [ -n "$PYTHON_CMD" ]; then
     fi
 else
     log_error "未安装 Python3 (build.md 要求 >= $REQUIRED_PYTHON_MIN)"
-    log_info "安装 (Ubuntu): sudo apt-get install python3 python3-dev python3-pip"
+    pkg_install_hint "python3 python3-dev python3-pip" "python3 python3-devel python3-pip"
 fi
 
 # ==================== 4. CMake ====================
@@ -276,7 +327,7 @@ if check_command cmake; then
     fi
 else
     log_error "未安装 CMake (build.md 要求 >= $REQUIRED_CMAKE_MIN)"
-    log_info "安装 (Ubuntu): sudo apt-get install cmake"
+    pkg_install_hint "cmake" "cmake"
     log_info "安装 (pip):    pip install cmake"
 fi
 
@@ -311,7 +362,7 @@ if check_command ccache; then
     log_pass "ccache $CCACHE_VER"
 else
     log_error "未安装 ccache (build.md 要求)"
-    log_info "安装 (Ubuntu): sudo apt-get install ccache"
+    pkg_install_hint "ccache" "ccache"
 fi
 
 # --- autoconf ---
@@ -321,7 +372,7 @@ if check_command autoconf; then
     log_pass "autoconf $AUTOCONF_VER"
 else
     log_error "未安装 autoconf (build.md 要求)"
-    log_info "安装 (Ubuntu): sudo apt-get install autoconf"
+    pkg_install_hint "autoconf" "autoconf"
 fi
 
 # --- automake ---
@@ -331,7 +382,7 @@ if check_command automake; then
     log_pass "automake $AUTOMAKE_VER"
 else
     log_error "未安装 automake (build.md 要求)"
-    log_info "安装 (Ubuntu): sudo apt-get install automake"
+    pkg_install_hint "automake" "automake"
 fi
 
 # --- libtool ---
@@ -346,7 +397,7 @@ if check_command libtool || check_command libtoolize; then
     log_pass "libtool $LIBTOOL_VER"
 else
     log_error "未安装 libtool (build.md 要求)"
-    log_info "安装 (Ubuntu): sudo apt-get install libtool"
+    pkg_install_hint "libtool libtool-bin" "libtool"
 fi
 
 # --- gperf ---
@@ -356,17 +407,17 @@ if check_command gperf; then
     log_pass "gperf $GPERF_VER"
 else
     log_error "未安装 gperf (build.md 要求)"
-    log_info "安装 (Ubuntu): sudo apt-get install gperf"
+    pkg_install_hint "gperf" "gperf"
 fi
 
-# --- lcov ---
+# --- lcov (非必需, 仅用于代码覆盖率统计) ---
 if check_command lcov; then
     LCOV_RAW=$(lcov --version 2>&1 | head -n1)
     LCOV_VER=$(extract_version "$LCOV_RAW")
     log_pass "lcov $LCOV_VER"
 else
-    log_error "未安装 lcov (build.md 要求)"
-    log_info "安装 (Ubuntu): sudo apt-get install lcov"
+    log_warn "未安装 lcov (非必需, 仅用于代码覆盖率统计, 不影响编译)"
+    pkg_install_hint "lcov" "lcov"
 fi
 
 # --- patch ---
@@ -374,7 +425,7 @@ if check_command patch; then
     log_pass "patch 已安装"
 else
     log_error "未安装 patch (build.md 要求)"
-    log_info "安装 (Ubuntu): sudo apt-get install patch"
+    pkg_install_hint "patch" "patch"
 fi
 
 # --- libasan ---
@@ -397,19 +448,36 @@ else
     log_error "未安装 libasan (build.md 要求)"
     log_info "build.md: 'asan以gcc 7.5.0版本为例安装的是libasan4，其他版本请安装对应版本asan'"
 
+    # 提取当前 GCC 主版本号 (用于 apt 系精确推荐 libasan 版本)
     if check_command gcc; then
         GCC_MAJOR=$(gcc -dumpversion | cut -d'.' -f1)
-        case "$GCC_MAJOR" in
-            7)  log_info ">>> 当前 GCC $GCC_MAJOR → sudo apt-get install libasan4" ;;
-            8)  log_info ">>> 当前 GCC $GCC_MAJOR → sudo apt-get install libasan5" ;;
-            9)  log_info ">>> 当前 GCC $GCC_MAJOR → sudo apt-get install libasan5" ;;
-            10) log_info ">>> 当前 GCC $GCC_MAJOR → sudo apt-get install libasan6" ;;
-            11) log_info ">>> 当前 GCC $GCC_MAJOR → sudo apt-get install libasan6" ;;
-            12) log_info ">>> 当前 GCC $GCC_MAJOR → sudo apt-get install libasan8" ;;
-            13) log_info ">>> 当前 GCC $GCC_MAJOR → sudo apt-get install libasan8" ;;
-            *)  log_info ">>> 当前 GCC $GCC_MAJOR → 请自行确认 libasan 版本" ;;
-        esac
+    else
+        GCC_MAJOR=""
     fi
+
+    # 根据发行版给出安装建议:
+    #   apt 系 (Ubuntu/Debian): libasan 包名随 GCC 主版本变化 (libasan4/5/6/8)
+    #   yum/dnf 系 (CentOS/EulerOS/openEuler): 统一为 libasan, 由包管理器匹配版本
+    case "$DISTRO" in
+        ubuntu|debian)
+            case "$GCC_MAJOR" in
+                7)       apt_asan="libasan4" ;;
+                8|9)     apt_asan="libasan5" ;;
+                10|11)   apt_asan="libasan6" ;;
+                12|13)   apt_asan="libasan8" ;;
+                *)       apt_asan="libasan" ;;
+            esac
+            log_info ">>> 当前 GCC ${GCC_MAJOR:-未知}, 建议: sudo apt-get install $apt_asan"
+            ;;
+        centos|rhel|fedora|euleros|openeuler)
+            log_info ">>> 当前 GCC ${GCC_MAJOR:-未知}, 建议: sudo $PKG_MGR install libasan"
+            ;;
+        *)
+            # 未识别发行版: 同时给出两种方案
+            log_info "安装 (Ubuntu/Debian):   sudo apt-get install libasan4 (随 GCC 版本: 4/5/6/8)"
+            log_info "安装 (CentOS/EulerOS): sudo yum install libasan"
+            ;;
+    esac
 fi
 
 # --- graph-easy (可选) ---
@@ -417,7 +485,7 @@ if check_command graph-easy; then
     log_pass "graph-easy 已安装"
 else
     log_info "graph-easy 未安装 (build.md 标记为可选, 不影响编译)"
-    log_info "安装 (Ubuntu): sudo apt-get install libgraph-easy-perl"
+    pkg_install_hint "libgraph-easy-perl" "perl-Graph-Easy"
 fi
 
 # ==================== 7. CANN Toolkit ====================
@@ -490,7 +558,7 @@ if check_command git; then
     log_pass "git $GIT_VER"
 else
     log_error "未安装 git (build.md 步骤三需要 git clone)"
-    log_info "安装 (Ubuntu): sudo apt-get install git"
+    pkg_install_hint "git" "git"
 fi
 
 if check_command make; then
@@ -499,7 +567,7 @@ if check_command make; then
     log_pass "make $MAKE_VER"
 else
     log_error "未安装 make"
-    log_info "安装 (Ubuntu): sudo apt-get install make"
+    pkg_install_hint "make" "make"
 fi
 
 # ==================== 9. Python 包 (requirements.txt) ====================
@@ -621,6 +689,20 @@ fi
 CPU_CORES=$(nproc 2>/dev/null || echo "unknown")
 log_info "CPU 核心数: $CPU_CORES"
 
+# 根据当前 GCC 主版本计算 apt 系对应的 libasan 包名 (用于结论段安装命令)
+# 说明: libasan 包名随 GCC 主版本变化 (libasan4/5/6/8), yum/dnf 系统一为 libasan
+APT_ASAN_PKG="libasan4"
+if check_command gcc; then
+    GCC_MAJOR_FOR_ASAN=$(gcc -dumpversion | cut -d'.' -f1)
+    case "$GCC_MAJOR_FOR_ASAN" in
+        7)       APT_ASAN_PKG="libasan4" ;;
+        8|9)     APT_ASAN_PKG="libasan5" ;;
+        10|11)   APT_ASAN_PKG="libasan6" ;;
+        12|13)   APT_ASAN_PKG="libasan8" ;;
+        *)       APT_ASAN_PKG="libasan" ;;
+    esac
+fi
+
 # ==============================================================================
 #                            汇总报告
 # ==============================================================================
@@ -639,17 +721,41 @@ echo ""
 if [ $ERROR_COUNT -gt 0 ]; then
     echo -e "  ${RED}结论: 环境不满足 ge 编译要求，请修复上述 ERROR 项。${NC}"
     echo ""
-    echo "  build.md 安装命令 (Ubuntu/Debian):"
-    echo "    sudo apt-get install cmake ccache bash lcov libasan4 \\"
-    echo "      autoconf automake libtool gperf libgraph-easy-perl patch"
-    echo ""
-    echo "  完整依赖一键安装:"
-    echo "    sudo apt-get update && sudo apt-get install -y \\"
-    echo "      build-essential cmake ccache lcov patch gperf \\"
-    echo "      autoconf automake libtool \\"
-    echo "      python3 python3-dev python3-pip \\"
-    echo "      git make"
-    echo "    pip3 install -r requirements.txt"
+    # 根据发行版给出对应的依赖安装命令 (build.md 仅提供 Ubuntu/Debian 示例)
+    case "$DISTRO" in
+        ubuntu|debian)
+            echo "  build.md 安装命令 (Ubuntu/Debian, libasan 按 GCC 版本适配):"
+            echo "    sudo apt-get install cmake ccache bash lcov $APT_ASAN_PKG \\"
+            echo "      autoconf automake libtool gperf libgraph-easy-perl patch"
+            echo ""
+            echo "  完整依赖一键安装:"
+            echo "    sudo apt-get update && sudo apt-get install -y \\"
+            echo "      build-essential cmake ccache lcov patch gperf \\"
+            echo "      autoconf automake libtool $APT_ASAN_PKG \\"
+            echo "      python3 python3-dev python3-pip \\"
+            echo "      git make"
+            echo "    pip3 install -r requirements.txt"
+            ;;
+        centos|rhel|fedora|euleros|openeuler)
+            echo "  完整依赖一键安装 (CentOS/EulerOS/openEuler):"
+            echo "    sudo $PKG_MGR install -y \\"
+            echo "      gcc gcc-c++ make cmake ccache bash lcov libasan \\"
+            echo "      autoconf automake libtool gperf patch \\"
+            echo "      python3 python3-devel python3-pip git"
+            echo "    pip3 install -r requirements.txt"
+            ;;
+        *)
+            echo "  build.md 安装命令 (Ubuntu/Debian, libasan 按 GCC 版本适配):"
+            echo "    sudo apt-get install cmake ccache bash lcov $APT_ASAN_PKG \\"
+            echo "      autoconf automake libtool gperf libgraph-easy-perl patch"
+            echo ""
+            echo "  完整依赖一键安装 (CentOS/EulerOS/openEuler):"
+            echo "    sudo yum install -y gcc gcc-c++ make cmake ccache bash lcov libasan \\"
+            echo "      autoconf automake libtool gperf patch \\"
+            echo "      python3 python3-devel python3-pip git"
+            echo "    pip3 install -r requirements.txt"
+            ;;
+    esac
     echo ""
     echo "  CANN Toolkit:"
     echo "    下载: https://ascend.devcloud.huaweicloud.com/artifactory/cann-run-mirror/software/master/"
