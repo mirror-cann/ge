@@ -3408,11 +3408,18 @@ HcclResult HcomOpsKernelInfoStore::HcomAicpuStreamRegister(ge::GETaskInfo &task)
   CHK_RET(hrtStreamGetMode(streamMain, &streamMode));
 
   // 获取aicpuStream
-  rtStream_t aicpuStream;
+  rtStream_t aicpuStream = nullptr;
   HcclResult ret = HcomMc2AiCpuStreamAllocAndGet(group.c_str(), streamMode, &aicpuStream);
   CHK_PRT_RET(ret != HCCL_SUCCESS, HCCL_ERROR("[HcomMc2AiCpuStreamAllocAndGet] error [%d]", ret), ret);
-  CHK_PRT_RET(aicpuStream == nullptr, HCCL_ERROR("%s group:%s aicpuStream is null", __func__, group.c_str()),
-              HCCL_E_PTR);
+  if (aicpuStream == nullptr) {
+    if (orderedStreamCount_[devId][group] > 1) {
+      orderedStreamCount_[devId][group]--;
+    } else {
+      orderedStreamCount_[devId].erase(group);
+    }
+    HCCL_INFO("%s group:%s aicpuStream is null, skip register and erase count", __func__, group.c_str());
+    return HCCL_SUCCESS;
+  }
 
   // 将group对应的aicpu kernel流注册给GE
   u32 geRet = ge::HcomTopoInfo::Instance().SetGroupOrderedStream(devId, group.c_str(), aicpuStream);
