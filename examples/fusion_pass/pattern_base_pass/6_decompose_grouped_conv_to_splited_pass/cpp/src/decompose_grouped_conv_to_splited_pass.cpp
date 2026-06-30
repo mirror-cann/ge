@@ -100,23 +100,13 @@ class DecomposeGroupedConvToSplitedPass : public DecomposePass {
     auto res = es::Concat(replacement_graph_builder.CreateScalar(1), convs, groups);
     auto replace_graph = replacement_graph_builder.BuildAndReset({res});
     // 当前pass注册在after infershape阶段，需要自行保证替换部分的shape连续
-    if (!InferShape(matched_node, *replace_graph)) {
+    // 使用 ge::fusion::InferShapeUtil 提供的 InferShape 接口做 shape/dtype 推导
+    // 该接口会自动从 matched_node 边界获取输入 tensor desc（shape/dtype/format）
+    if (InferShapeUtil::InferShape(*replace_graph, matched_node) != SUCCESS) {
+      std::cout << "InferShapeUtil::InferShape failed" << std::endl;
       return nullptr;
     }
     return replace_graph;
-  }
-
- private:
-  // 因为pass会被重复执行，不建议使用私有成员
-  // 如果使用，需要保证pass对象的可重入性
-  bool InferShapeAndCheckSupport(const GNode &matched_node, const Graph &graph) {
-    // 使用 ge::fusion::InferShapeUtil 提供的 InferShape 接口做 shape/dtype 推导
-    // 该接口会自动从 matched_node 边界获取输入 tensor desc（shape/dtype/format）
-    if (InferShapeUtil::InferShape(graph, matched_node) != SUCCESS) {
-      std::cout << "InferShapeUtil::InferShape failed" << std::endl;
-      return false;
-    }
-    return true;
   }
 };
 

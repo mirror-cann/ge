@@ -191,7 +191,7 @@ GraphUniqPtr Replacement(const std::unique_ptr<MatchResult> &match_result) overr
 }
 ```
 
-If the pass is registered after InferShape, shape information for new nodes in the replacement needs to be handled manually. Refer to existing examples for using `GeUtils::InferShape` when shape inference is needed for replacement.
+If the pass is registered after InferShape, shape information for new nodes in the replacement needs to be handled manually. Refer to existing examples for using `InferShapeUtil::InferShape` when shape inference is needed for replacement.
 
 ## 6. CaptureTensor: Read Key Tensors in Pattern
 

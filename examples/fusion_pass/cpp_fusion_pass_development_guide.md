@@ -191,7 +191,7 @@ GraphUniqPtr Replacement(const std::unique_ptr<MatchResult> &match_result) overr
 }
 ```
 
-如果 pass 注册在 InferShape 后，replacement 中新建节点的 shape 信息需要自行处理。需要对 replacement 做 shape 推导时，可参考现有样例中对 `GeUtils::InferShape` 的使用。
+如果 pass 注册在 InferShape 后，replacement 中新建节点的 shape 信息需要自行处理。需要对 replacement 做 shape 推导时，可参考现有样例中对 `InferShapeUtil::InferShape` 的使用。
 
 ## 6. CaptureTensor：读取 pattern 中的关键 Tensor
 

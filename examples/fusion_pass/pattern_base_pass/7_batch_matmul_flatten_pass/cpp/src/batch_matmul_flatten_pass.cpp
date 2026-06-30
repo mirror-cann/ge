@@ -13,7 +13,7 @@
 #include <limits>
 #include "es_all_ops.h"
 #include "ge/fusion/pass/pattern_fusion_pass.h"
-#include "ge/ge_utils.h"
+#include "ge/fusion/infer_shape_util.h"
 
 using namespace ge;
 using namespace fusion;
@@ -262,17 +262,7 @@ class BatchMatmulFlattenPass : public PatternFusionPass {
   }
 
   bool InferShapeAndCheckSupport(const GNode &matched_node, const Graph &graph) {
-    std::vector<ge::Shape> input_shapes;
-    auto input_size = matched_node.GetInputsSize();
-    for (size_t i = 0; i < input_size; i++) {
-      TensorDesc tensor_desc;
-      if (matched_node.GetInputDesc(i, tensor_desc) != SUCCESS) {
-        return false;
-      }
-      input_shapes.emplace_back(tensor_desc.GetShape());
-    }
-
-    if (GeUtils::InferShape(graph, input_shapes) != SUCCESS) {
+    if (InferShapeUtil::InferShape(graph, matched_node) != SUCCESS) {
       std::cout << "InferShape failed" << std::endl;
       return false;
     }
