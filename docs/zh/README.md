@@ -6,11 +6,11 @@
 
   面向单卡的图编译和执行，提供GE基本概念、原理介绍、以及如何使用GE图引擎接口进行图的构建，编译和运行等。
 
-- [DataFlow开发指南](https://hiascend.com/document/redirect/CannCommunityDataflow)
+- [DataFlow开发指南](./user-guides/dflow/index.md)
 
   面向异构和集群的图编译和执行，介绍如何通过DataFlow接口构建、修改、编译和执行计算图。
 
-- [LLM DataDist开发指南](https://hiascend.com/document/redirect/CannCommunityLLMDatadistdev)
+- [LLM DataDist开发指南](./user-guides/llm_datadist/index.md)
 
   面向大模型，介绍如何使用LLM-DataDist接口实现集群间的数据传输，构建大模型推理分离式框架。
 
@@ -42,13 +42,13 @@
 
 ## **API**
 
--   [GraphEngine API](./api/graph_engine_api/README.md)
--   DataFlow API
-    -   [C++接口](./api/dflow_api/README_cpp.md)
-    -   [Python接口](./api/dflow_api/README_python.md)
--   LLM DataDist API
-    -   [C++接口](./api/llm_datadist_api/README_cpp.md)
-    -   [Python接口](./api/llm_datadist_api/README_python.md)
+- [GraphEngine API](./api/graph_engine_api/README.md)
+- DataFlow API
+    - [C++接口](./user-guides/dflow/dflow_api/README_cpp.md)
+    - [Python接口](./user-guides/dflow/dflow_api/README_python.md)
+- LLM DataDist API
+    - [C++接口](./user-guides/llm_datadist/llm_datadist_api/README_cpp.md)
+    - [Python接口](./user-guides/llm_datadist/llm_datadist_api/README_python.md)
 
 ## 架构与开发指南
 
