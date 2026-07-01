@@ -308,7 +308,7 @@ checkopts() {
   fi
 
   set +e
-  python_full_path=$(which ${PYTHON_PATH})
+  python_full_path=$(which "${PYTHON_PATH}")
   set -e
   if [ -z "${python_full_path}" ]; then
     echo "Error: python_path=${PYTHON_PATH} does not exist"
