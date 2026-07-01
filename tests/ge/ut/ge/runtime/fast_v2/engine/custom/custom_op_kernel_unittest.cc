@@ -33,8 +33,10 @@
 #include "register/kernel_registry.h"
 #include "register/kernel_registry_impl.h"
 #include "exe_graph/runtime/extended_kernel_context.h"
+#include "exe_graph/runtime/eager_op_execution_context.h"
 #include "exe_graph/runtime/storage_shape.h"
 #include "exe_graph/runtime/gert_tensor_data.h"
+#include "framework/runtime/args_handler.h"
 #include "kernel/common_kernel_impl/infer_shape.h"
 
 using namespace ge;
@@ -349,6 +351,59 @@ TEST_F(CustomNodeKernelUT, custom_op_with_inference_rule_execute_test) {
             GRAPH_SUCCESS);
   ge::diagnoseSwitch::DisableProfiling();
   aclrtDestroyStream(stream);
+}
+
+// 验证 CreateCustomOpOutputs 成功创建 EagerArgsHandler 并注册到正确的 output chain，
+// chain 上设有 deleter，确保 resource guard 析构时能释放 args_handler
+TEST_F(CustomNodeKernelUT, create_custom_op_outputs_success_args_handler_has_deleter) {
+  const size_t node_output_num = 1U;
+  const size_t kernel_output_num =
+      node_output_num + static_cast<size_t>(EagerOpExecutionContext::AdditionalOutputIndex::kNum);  // 1 + 2 = 3
+  auto run_context = KernelRunContextFaker()
+                         .KernelIONum(0U, kernel_output_num)
+                         .NodeIoNum(0U, node_output_num)
+                         .NodeOutputTd(0, ge::DT_FLOAT, ge::FORMAT_ND, ge::FORMAT_ND)
+                         .Build();
+  auto *context = run_context.GetContext<KernelContext>();
+  ASSERT_NE(context, nullptr);
+
+  auto funcs = KernelRegistry::GetInstance().FindKernelFuncs("ExecuteCustomOp");
+  ASSERT_NE(funcs, nullptr);
+  ASSERT_NE(funcs->outputs_creator, nullptr);
+  ASSERT_EQ(funcs->outputs_creator(nullptr, context), ge::GRAPH_SUCCESS);
+
+  const size_t args_handler_idx =
+      node_output_num + static_cast<size_t>(EagerOpExecutionContext::AdditionalOutputIndex::kArgsHandler);
+  auto *args_chain = context->GetOutput(args_handler_idx);
+  ASSERT_NE(args_chain, nullptr);
+  // deleter 已注册，说明 Chain 析构时会 delete args_handler，不会泄漏
+  EXPECT_TRUE(args_chain->HasDeleter());
+  auto *args_handler = args_chain->GetValue<ArgsHandler *>();
+  EXPECT_NE(args_handler, nullptr);
+}
+
+// 验证 CreateCustomOpOutputs 在缺少 args_handler output 槽位时返回失败，
+// 且不会泄漏 args_handler（unique_ptr 在早退时自动释放）
+TEST_F(CustomNodeKernelUT, create_custom_op_outputs_fails_without_args_handler_output) {
+  const size_t node_output_num = 1U;
+  // 只分配 workspace output，不分配 args_handler output
+  const size_t kernel_output_num = node_output_num +
+                                   static_cast<size_t>(EagerOpExecutionContext::AdditionalOutputIndex::kWorkSpace) +
+                                   1U;  // 1 + 1 = 2
+  auto run_context = KernelRunContextFaker()
+                         .KernelIONum(0U, kernel_output_num)
+                         .NodeIoNum(0U, node_output_num)
+                         .NodeOutputTd(0, ge::DT_FLOAT, ge::FORMAT_ND, ge::FORMAT_ND)
+                         .Build();
+  auto *context = run_context.GetContext<KernelContext>();
+  ASSERT_NE(context, nullptr);
+
+  auto funcs = KernelRegistry::GetInstance().FindKernelFuncs("ExecuteCustomOp");
+  ASSERT_NE(funcs, nullptr);
+  ASSERT_NE(funcs->outputs_creator, nullptr);
+  // GetOutput(args_handler_idx) 返回 null → GE_ASSERT_NOTNULL 失败 → 早退
+  // unique_ptr 确保 args_handler 在早退时被 delete，不会泄漏
+  EXPECT_NE(funcs->outputs_creator(nullptr, context), ge::GRAPH_SUCCESS);
 }
 }  // namespace kernel
 }  // namespace gert

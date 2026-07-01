@@ -11,6 +11,7 @@
 #include "custom_op_kernel.h"
 #include "register/kernel_registry.h"
 #include "common/checker.h"
+#include "common/plugin/ge_make_unique_util.h"
 #include "graph/custom_op.h"
 #include "graph/custom_op_factory.h"
 #include "graph/custom_op_registry.h"
@@ -26,10 +27,7 @@ namespace gert {
 namespace kernel {
 namespace {
 // 自定义算子特有的输入，从 AdditionalInputIndex::kNum 开始
-enum class CustomOpInput {
-  kFunc = static_cast<uint32_t>(EagerOpExecutionContext::AdditionalInputIndex::kNum),
-  kEnd
-};
+enum class CustomOpInput { kFunc = static_cast<uint32_t>(EagerOpExecutionContext::AdditionalInputIndex::kNum), kEnd };
 
 std::string PrintNodeType(const KernelContext *context) {
   std::stringstream ss;
@@ -124,14 +122,15 @@ static ge::graphStatus CreateCustomOpOutputs(const ge::FastNode *node, KernelCon
   GE_ASSERT_SUCCESS(CreateOutputTensors(extended_kernel_context, context));
   GE_ASSERT_SUCCESS(CreateWorkspaceHolder(context, node_output_num));
 
-  // allocator 在 Create 阶段尚未就绪（Init 图未执行），创建空 EagerArgsHandler，在 RunFunc 阶段初始化
-  auto *args_handler = new (std::nothrow) EagerArgsHandler();
+  // allocator 在 Create 阶段尚未就绪（Init 图未执行），创建空 EagerArgsHandler，
+  // 在 RunFunc 阶段初始化
+  auto args_handler = ge::MakeUnique<EagerArgsHandler>();
   GE_ASSERT_NOTNULL(args_handler);
 
-  auto *args_output = context->GetOutput(node_output_num +
-      static_cast<size_t>(EagerOpExecutionContext::AdditionalOutputIndex::kArgsHandler));
+  auto *args_output = context->GetOutput(
+      node_output_num + static_cast<size_t>(EagerOpExecutionContext::AdditionalOutputIndex::kArgsHandler));
   GE_ASSERT_NOTNULL(args_output);
-  args_output->SetWithDefaultDeleter(static_cast<ArgsHandler *>(args_handler));
+  args_output->SetWithDefaultDeleter(static_cast<ArgsHandler *>(args_handler.release()));
 
   return ge::GRAPH_SUCCESS;
 }
@@ -156,7 +155,7 @@ static ge::graphStatus ExecuteCustomOpImpl(KernelContext *context) {
   const size_t node_input_num = eager_context->GetComputeNodeInputNum();
   const size_t node_output_num = eager_context->GetComputeNodeOutputNum();
   auto *chain = context->GetOutput(node_output_num +
-      static_cast<size_t>(EagerOpExecutionContext::AdditionalOutputIndex::kArgsHandler));
+                                   static_cast<size_t>(EagerOpExecutionContext::AdditionalOutputIndex::kArgsHandler));
   GE_ASSERT_NOTNULL(chain);
   auto *args_handler = static_cast<EagerArgsHandler *>(chain->GetValue<ArgsHandler *>());
   GE_ASSERT_NOTNULL(args_handler);
@@ -290,13 +289,17 @@ ge::graphStatus CustomOpProfilingDataFill(const KernelContext *context, Profilin
 }
 
 REGISTER_KERNEL(FindCustomOp).RunFunc(FindCustomOpFunc);
-REGISTER_KERNEL(ExecuteCustomOp).OutputsCreator(CreateCustomOpOutputs)
-    .RunFunc(ExecuteCustomOpFunc).TracePrinter(CustomOpExecuteKernelTrace)
+REGISTER_KERNEL(ExecuteCustomOp)
+    .OutputsCreator(CreateCustomOpOutputs)
+    .RunFunc(ExecuteCustomOpFunc)
+    .TracePrinter(CustomOpExecuteKernelTrace)
     .ProfilingInfoFiller(CustomOpProfilingDataFill);
-REGISTER_KERNEL(ExecuteCustomOpWithInferShape).OutputsCreator(CreateCustomOpOutputs)
-    .RunFunc(ExecuteCustomOpWithInferShapeFunc).TracePrinter(CustomOpExecuteKernelTrace)
+REGISTER_KERNEL(ExecuteCustomOpWithInferShape)
+    .OutputsCreator(CreateCustomOpOutputs)
+    .RunFunc(ExecuteCustomOpWithInferShapeFunc)
+    .TracePrinter(CustomOpExecuteKernelTrace)
     .ProfilingInfoFiller(CustomOpProfilingDataFill);
 REGISTER_KERNEL(FreeCustomOpWorkspaces).RunFunc(FreeCustomOpWorkspacesFunc);
 REGISTER_KERNEL(FreeArgsGuarder).RunFunc(FreeArgsGuarderFunc);
-}
-}
+}  // namespace kernel
+}  // namespace gert
