@@ -12,7 +12,8 @@
 #define __INC_LLT_RUNTIME_STUB_H
 
 #include <vector>
-#include "runtime/rt.h"
+#include "rt_external.h"
+#include "acl/acl_rt.h"
 #include <memory>
 
 namespace ge {
@@ -48,13 +49,6 @@ class RuntimeStub {
   virtual rtError_t rtKernelLaunchWithFlagV2(const void *stubFunc, uint32_t blockDim, rtArgsEx_t *argsInfo,
                                              rtSmDesc_t *smDesc, rtStream_t stm, uint32_t flags,
                                              const rtTaskCfgInfo_t *cfgInfo) {
-    return RT_ERROR_NONE;
-  }
-  virtual rtError_t rtKernelGetAddrAndPrefCntV2(void *handle, const uint64_t tilingKey, const void *const stubFunc,
-                                                const uint32_t flag, rtKernelDetailInfo_t *kernelInfo) {
-    kernelInfo->functionInfoNum = 1;
-    kernelInfo->functionInfo[0].pcAddr = (void *)(0x1245);
-    kernelInfo->functionInfo[0].prefetchCnt = 1;
     return RT_ERROR_NONE;
   }
   virtual rtError_t rtCpuKernelLaunchWithFlag(const void *soName, const void *kernelName, uint32_t blockDim,
@@ -185,9 +179,6 @@ RTS_STUB_RETURN_EXTERN(rtGetEventID, rtError_t);
 RTS_STUB_OUTBOUND_EXTERN(rtEventCreate, uint32_t, event_id);
 
 RTS_STUB_RETURN_EXTERN(rtQueryFunctionRegistered, rtError_t);
-
-RTS_STUB_RETURN_EXTERN(rtGetAicpuDeploy, rtError_t);
-RTS_STUB_OUTBOUND_EXTERN(rtGetAicpuDeploy, rtAicpuDeployType_t, value);
 
 RTS_STUB_RETURN_EXTERN(rtProfilerTraceEx, rtError_t);
 

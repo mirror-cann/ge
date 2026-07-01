@@ -15,8 +15,9 @@
 #include "securec.h"
 #include "mmpa/mmpa_api.h"
 #include "runtime_stub.h"
-#include "runtime/rt.h"
-#include "runtime/rt_preload_task.h"
+#include "rt_external.h"
+#include "acl/acl_rt.h"
+#include "rt_external_preload.h"
 
 extern std::string g_runtime_stub_mock;
 std::string g_runtime_stub_mock = "";
@@ -261,8 +262,11 @@ rtError_t rtGetDevice(int32_t *device) {
 ADD_STUB_RETURN_VALUE(rtGetDeviceCapability, rtError_t);
 ADD_STUB_OUTBOUND_VALUE(rtGetDeviceCapability, int32_t, value);
 rtError_t rtGetDeviceCapability(int32_t device, int32_t moduleType, int32_t featureType, int32_t *value) {
-  *value = GET_STUB_OUTBOUND_VALUE(rtGetDeviceCapability, int32_t, value, RT_AICPU_BLOCKING_OP_SUPPORT);
-  return GET_STUB_RETURN_VALUE(rtGetDeviceCapability, rtError_t, RT_ERROR_NONE);
+  (void)device;
+  (void)moduleType;
+  (void)featureType;
+  *value = 16;
+  return RT_ERROR_NONE;
 }
 
 ADD_STUB_RETURN_VALUE(rtStreamWaitEvent, rtError_t);
@@ -298,17 +302,6 @@ rtError_t rtQueryFunctionRegistered(const char *stub_name) {
   return GET_STUB_RETURN_VALUE(rtQueryFunctionRegistered, rtError_t, RT_ERROR_NONE);
 }
 
-rtError_t rtCtxSetCurrent(rtContext_t ctx) {
-  const char *const kEnvRecordPath = "SET_TRANS_VAR_DATA";
-  char record_path[MMPA_MAX_PATH] = {};
-  (void)mmGetEnv(kEnvRecordPath, &record_path[0], static_cast<uint32_t>(MMPA_MAX_PATH));
-
-  if (std::string(&record_path[0]).find("mock_fail") != std::string::npos) {
-    return -1;
-  }
-  return RT_ERROR_NONE;
-}
-
 rtError_t rtGetAvailEventNum(uint32_t *const eventCount) {
   if (eventCount != nullptr) {
     *eventCount = 2048;
@@ -318,19 +311,6 @@ rtError_t rtGetAvailEventNum(uint32_t *const eventCount) {
 
 rtError_t aclrtStreamGetId(rtStream_t stream, int32_t *stream_id) {
   *stream_id = 0;
-  return RT_ERROR_NONE;
-}
-
-rtError_t rtCtxGetCurrent(rtContext_t *ctx) {
-  if (__FUNCTION__ == g_runtime_stub_mock) {
-    return -1;
-  }
-  uintptr_t x = 1;
-  *ctx = (rtContext_t *)x;
-  return RT_ERROR_NONE;
-}
-
-rtError_t rtCtxSetDryRun(rtContext_t ctx, rtDryRunFlag_t enable, uint32_t flag) {
   return RT_ERROR_NONE;
 }
 
@@ -507,10 +487,7 @@ rtError_t rtKernelLaunchWithFlagV2(const void *stubFunc, uint32_t blockDim, rtAr
   return ge::RuntimeStub::GetInstance()->rtKernelLaunchWithFlagV2(stubFunc, blockDim, argsInfo, smDesc, stm, flags,
                                                                   cfgInfo);
 }
-rtError_t rtKernelGetAddrAndPrefCntV2(void *handle, const uint64_t tilingKey, const void *const stubFunc,
-                                      const uint32_t flag, rtKernelDetailInfo_t *kernelInfo) {
-  return ge::RuntimeStub::GetInstance()->rtKernelGetAddrAndPrefCntV2(handle, tilingKey, stubFunc, flag, kernelInfo);
-}
+
 rtError_t rtSetupArgument(const void *arg, uint32_t size, uint32_t offset) {
   return RT_ERROR_NONE;
 }
@@ -525,10 +502,6 @@ rtError_t rtConfigureCall(uint32_t num_blocks, rtSmDesc_t *sm_desc, rtStream_t s
 }
 
 rtError_t rtSetProfDir(char *prof_dir) {
-  return RT_ERROR_NONE;
-}
-
-rtError_t rtAiCoreMemorySizes(rtAiCoreMemorySize_t *aicore_memory_size) {
   return RT_ERROR_NONE;
 }
 
@@ -557,12 +530,6 @@ rtError_t rtMemGetInfo(size_t *free, size_t *total) {
   return RT_ERROR_NONE;
 }
 
-rtError_t rtMemGetInfoEx(rtMemInfoType_t memInfoType, size_t *free, size_t *total) {
-  *free = 16UL * 1024UL * 1024UL * 1024UL;
-  *total = 32UL * 1024UL * 1024UL * 1024UL;
-  return RT_ERROR_NONE;
-}
-
 rtError_t rtMemAllocManaged(void **ptr, uint64_t size, uint32_t flag, const uint16_t moduleId) {
   *ptr = malloc(size);
   return RT_ERROR_NONE;
@@ -579,9 +546,6 @@ rtError_t rtMetadataRegister(void *handle, const char *meta_data) {
   }
   return RT_ERROR_NONE;
 }
-rtError_t rtSetTaskGenCallback(rtTaskGenCallback callback) {
-  return RT_ERROR_NONE;
-}
 
 rtError_t rtGetDeviceInfo(uint32_t device_id, int32_t module_type, int32_t info_type, int64_t *val) {
   *val = 8;
@@ -593,10 +557,6 @@ rtError_t rtGetFunctionByName(const char *stub_name, void **stub_func) {
 }
 rtError_t rtGetAddrByFun(const void *stubFunc, void **addr) {
   *(char **)addr = (char *)("dev_func");
-  return RT_ERROR_NONE;
-}
-
-rtError_t rtCtxCreate(rtContext_t *ctx, uint32_t flags, int32_t device) {
   return RT_ERROR_NONE;
 }
 
@@ -630,10 +590,6 @@ rtError_t rtModelGetTaskId(void *handle, uint32_t *task_id, uint32_t *stream_id)
 }
 
 rtError_t rtProfilerStop(uint64_t profConfig, int32_t numsDev, uint32_t *deviceList) {
-  return RT_ERROR_NONE;
-}
-
-rtError_t rtCtxDestroy(rtContext_t ctx) {
   return RT_ERROR_NONE;
 }
 
@@ -756,25 +712,6 @@ rtError_t rtSetTaskFailCallback(rtTaskFailCallback callback) {
   return RT_ERROR_NONE;
 }
 
-rtError_t rtMallocHostSharedMemory(rtMallocHostSharedMemoryIn *in, rtMallocHostSharedMemoryOut *out) {
-  out->ptr = new uint8_t[in->size];
-  out->devPtr = new uint8_t[in->size];
-  return RT_ERROR_NONE;
-}
-
-rtError_t rtFreeHostSharedMemory(rtFreeHostSharedMemoryIn *in) {
-  delete[] (uint8_t *)in->ptr;
-  delete[] (uint8_t *)in->devPtr;
-  return RT_ERROR_NONE;
-}
-
-ADD_STUB_RETURN_VALUE(rtGetAicpuDeploy, rtError_t);
-ADD_STUB_OUTBOUND_VALUE(rtGetAicpuDeploy, rtAicpuDeployType_t, value);
-rtError_t rtGetAicpuDeploy(rtAicpuDeployType_t *deplyType) {
-  *deplyType = GET_STUB_OUTBOUND_VALUE(rtGetAicpuDeploy, rtAicpuDeployType_t, value, AICPU_DEPLOY_CROSS_PROCESS);
-  return GET_STUB_RETURN_VALUE(rtGetAicpuDeploy, rtError_t, RT_ERROR_NONE);
-}
-
 rtError_t rtSetCtxINFMode(bool mode) {
   return RT_ERROR_NONE;
 }
@@ -790,6 +727,12 @@ rtError_t rtGetRtCapability(rtFeatureType_t featureType, int32_t featureInfo, in
 
   return RT_ERROR_NONE;
 }
+
+typedef enum tagRtMemRequestFeature {
+  MEM_REQUEST_FEATURE_DEFAULT = 0,
+  MEM_REQUEST_FEATURE_OPP,
+  MEM_REQUEST_FEATURE_RESERVED
+} rtMemRequestFeature_t;
 
 uint32_t rtGetTsMemType(rtMemRequestFeature_t featureType, uint32_t memSize) {
   return RT_MEMORY_HBM;
@@ -814,10 +757,6 @@ rtError_t rtDebugRegisterForStream(rtStream_t stream, uint32_t flag, const void 
 }
 
 rtError_t rtDebugUnRegisterForStream(rtStream_t stream) {
-  return RT_ERROR_NONE;
-}
-
-rtError_t rtFftsTaskLaunch(rtFftsTaskInfo_t *fftsTaskInfo, rtStream_t stream) {
   return RT_ERROR_NONE;
 }
 
@@ -850,10 +789,6 @@ rtError_t rtUnsetDeviceIdByGeModelIdx(uint32_t modelIdx, uint32_t deviceId) {
 }
 
 rtError_t rtProfRegisterCtrlCallback(uint32_t logId, rtProfCtrlHandle callback) {
-  return RT_ERROR_NONE;
-}
-
-rtError_t rtFftsTaskLaunchWithFlag(rtFftsTaskInfo_t *fftsTaskInfo, rtStream_t stream, uint32_t flag) {
   return RT_ERROR_NONE;
 }
 

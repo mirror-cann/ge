@@ -151,10 +151,6 @@ void SetBuildGraphModeOffline(std::map<std::string, std::string> &options) {
 Status CheckInputHintShape(const std::map<std::string, std::string> &global_options) {
   auto iter = global_options.find(INPUT_HINT_SHAPE);
   if (iter != global_options.end() && !iter->second.empty()) {
-    const std::string reason =
-        "Option[input_hint_shape: " + iter->second + "] is not supported in ge_ir_build. Please do not set it.";
-    REPORT_PREDEFINED_ERR_MSG("E10055", std::vector({"reason"}), std::vector({reason.c_str()}));
-    GELOGE(GRAPH_PARAM_INVALID, "[Check][Param] %s", reason.c_str());
     return GRAPH_PARAM_INVALID;
   }
   return GRAPH_SUCCESS;

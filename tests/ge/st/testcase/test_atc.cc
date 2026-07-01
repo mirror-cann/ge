@@ -3526,8 +3526,7 @@ TEST_F(AtcCommonSTest, pb_model_amct_interface_dlopen_fail_no_error) {
                   "--output_type=FP32",
                   "--input_shape=Placeholder_1:1,256,256,3",
                   "--status_check=0",
-                  "--compression_optimize_conf=./"
-  };
+                  "--compression_optimize_conf=./"};
   auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
   MmpaStub::GetInstance().Reset();
@@ -3563,8 +3562,7 @@ TEST_F(AtcCommonSTest, pb_model_amct_interface_dlopen_fail_with_error) {
                   "--output_type=FP32",
                   "--input_shape=Placeholder_1:1,256,256,3",
                   "--status_check=0",
-                  "--compression_optimize_conf=./"
-  };
+                  "--compression_optimize_conf=./"};
   auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
   MmpaStub::GetInstance().Reset();
@@ -3581,8 +3579,8 @@ TEST_F(AtcCommonSTest, pb_model_load_custom_op_with_legacy_so) {
   std::string cmd = "mkdir -p " + plugin_dir + " && mkdir -p " + lib_dir;
   system(cmd.c_str());
 
-  std::vector<std::string> fake_sos = {"libcustom_op1.so", "libcustom_op2_legacy.so",
-                                        "libcustom_op3.so", "libcustom_op4_legacy.so"};
+  std::vector<std::string> fake_sos = {"libcustom_op1.so", "libcustom_op2_legacy.so", "libcustom_op3.so",
+                                       "libcustom_op4_legacy.so"};
   for (const auto &so_name : fake_sos) {
     std::ofstream(plugin_dir + so_name) << "fake";
   }

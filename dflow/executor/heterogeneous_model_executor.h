@@ -148,8 +148,8 @@ class HeterogeneousModelExecutor {
   Status FindValidGroupEntry(uint32_t uuid, int32_t logic_queue_id, int32_t logic_group_id,
                              DeployPlan::DstGroupInfo **group_entry_ptr);
   void ProcAfterFindGroupEntry(DeployPlan::DstGroupInfo &group_info, int32_t group_entry_index);
-  bool FindGroupEntryIndexInSingleInstance(DeployPlan::DstGroupInfo &group_info,
-                                           std::pair<int32_t, std::string> &group_entry_index_and_name);
+  static bool FindGroupEntryIndexInSingleInstance(DeployPlan::DstGroupInfo &group_info,
+                                                  std::pair<int32_t, std::string> &group_entry_index_and_name);
   bool FindGroupEntryIndexFromCache(DeployPlan::DstGroupInfo &group_info,
                                     std::pair<int32_t, std::string> &group_entry_index_and_name, uint64_t trans_id,
                                     uint32_t route_label);

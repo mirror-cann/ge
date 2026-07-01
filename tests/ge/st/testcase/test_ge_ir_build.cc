@@ -1723,9 +1723,7 @@ TEST_F(GeIrBuildTest, GenerateOfflineModelDynamicInvalidHostEnvFailsDeferredChec
   GeRunningEnvFaker ge_env;
   ge_env.InstallDefault();
   ge_env.InstallDefault().Install(FakeOp(REDUCESUM).InfoStoreAndBuilder("AicoreLib").InferShape(StubInferFunction));
-  auto make_graph = []() {
-    return ConstructDynamicBinReuseGraph();
-  };
+  auto make_graph = []() { return ConstructDynamicBinReuseGraph(); };
 
   std::string valid_host_env_os;
   std::string valid_host_env_cpu;
@@ -1733,9 +1731,8 @@ TEST_F(GeIrBuildTest, GenerateOfflineModelDynamicInvalidHostEnvFailsDeferredChec
   ASSERT_FALSE(valid_host_env_os.empty());
   ASSERT_FALSE(valid_host_env_cpu.empty());
   {
-    const std::map<std::string, std::string> valid_options = {
-        {std::string(OPTION_HOST_ENV_OS), valid_host_env_os},
-        {std::string(OPTION_HOST_ENV_CPU), valid_host_env_cpu}};
+    const std::map<std::string, std::string> valid_options = {{std::string(OPTION_HOST_ENV_OS), valid_host_env_os},
+                                                              {std::string(OPTION_HOST_ENV_CPU), valid_host_env_cpu}};
     GeGenerator generator;
     ASSERT_EQ(generator.Initialize({}), SUCCESS);
     ScopedGraphOptions guard(valid_options);
@@ -1745,9 +1742,8 @@ TEST_F(GeIrBuildTest, GenerateOfflineModelDynamicInvalidHostEnvFailsDeferredChec
 
   error_message::ErrMgrInit(error_message::ErrorMessageMode::INTERNAL_MODE);
   {
-    const std::map<std::string, std::string> invalid_options = {
-        {std::string(OPTION_HOST_ENV_OS), "linux"},
-        {std::string(OPTION_HOST_ENV_CPU), "unsupported_cpu"}};
+    const std::map<std::string, std::string> invalid_options = {{std::string(OPTION_HOST_ENV_OS), "linux"},
+                                                                {std::string(OPTION_HOST_ENV_CPU), "unsupported_cpu"}};
     GeGenerator generator;
     ASSERT_EQ(generator.Initialize({}), SUCCESS);
     ScopedGraphOptions guard(invalid_options);
