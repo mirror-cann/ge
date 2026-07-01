@@ -3394,9 +3394,9 @@ HcclResult HcomOpsKernelInfoStore::HcomAicpuStreamRegister(ge::GETaskInfo &task)
   if (it != orderedStreamCount_[devId].end()) {
     it->second++;
     HCCL_DEBUG("%s group:%s has been set, count:%llu", __func__, group.c_str(), it->second);
-    return HCCL_SUCCESS;
+  } else {
+    orderedStreamCount_[devId].insert({group, 1});
   }
-  orderedStreamCount_[devId].insert({group, 1});
 
   // 获取主流mode
   rtStream_t streamMain;
