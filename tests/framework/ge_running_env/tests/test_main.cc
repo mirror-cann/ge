@@ -13,30 +13,28 @@
 #include "common/debug/log.h"
 #include "ge/ge_api.h"
 #include "ge_running_env/ge_running_env_faker.h"
-#include "ge_running_env/scoped_unset_ld_preload.h"
 
 using namespace std;
 using namespace ge;
 
 extern "C" const char *__lsan_default_suppressions() {
-    return "leak:_PyObject_Malloc\n"
-           "leak:_PyObject_Realloc\n"
-           "leak:PyType_GenericAlloc\n"
-           "leak:PyType_Ready\n"
-           "leak:PyObject_GC_New\n"
-           "leak:PyObject_GC_NewVar\n"
-           "leak:_PyObject_GC_Malloc\n"
-           "leak:PyUnicode_New\n"
-           "leak:Py_InitializeEx\n"
-           "leak:PyImport_ImportModuleLevelObject\n"
-           "leak:libpython\n";
+  return "leak:_PyObject_Malloc\n"
+         "leak:_PyObject_Realloc\n"
+         "leak:PyType_GenericAlloc\n"
+         "leak:PyType_Ready\n"
+         "leak:PyObject_GC_New\n"
+         "leak:PyObject_GC_NewVar\n"
+         "leak:_PyObject_GC_Malloc\n"
+         "leak:PyUnicode_New\n"
+         "leak:Py_InitializeEx\n"
+         "leak:PyImport_ImportModuleLevelObject\n"
+         "leak:libpython\n";
 }
 
 int main(int argc, char **argv) {
   map<AscendString, AscendString> options;
   options.insert({AscendString("ge.exec.opWaitTimeout"), AscendString("11")});
   options.insert({AscendString("ge.exec.opExecuteTimeout"), AscendString("11")});
-  ScopedUnsetLdPreload guard;
   ge::GEInitialize(options);
   GeRunningEnvFaker::BackupEnv();
   testing::InitGoogleTest(&argc, argv);

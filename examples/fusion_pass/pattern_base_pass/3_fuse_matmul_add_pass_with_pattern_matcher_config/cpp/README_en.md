@@ -112,19 +112,17 @@ Assume CANN software package installation directory is INSTALL_PATH, e.g., `/hom
      export DUMP_GE_GRAPH=1
      ```
 
-   - Install es_all.whl
+   - Set the build directory environment variable. `BUILD_PATH` is the actual build directory generated in "Program Compilation":
 
-      ```python
-       pip install --force-reinstall --upgrade --target ${ASCEND_PATH}/python/site-packages/ ${BUILD_PATH}/es_output/whl/es_all-*****.whl
+     ```bash
+     export BUILD_PATH=/path/to/build
      ```
-
-     Replace `${BUILD_PATH}` with actual build directory path.
 
    - Set environment variable to add es_all.so path
 
-      ```bash
-      export LD_LIBRARY_PATH="${BUILD_PATH}/es_output/lib64:${LD_LIBRARY_PATH}"
-      ```
+     ```bash
+     export LD_LIBRARY_PATH="${BUILD_PATH}/es_output/lib64:${LD_LIBRARY_PATH}"
+     ```
 
 2. Use ATC offline inference.
    - Enter data directory and execute .py file to export air (uses es python interface for graph construction):
