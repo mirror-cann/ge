@@ -5421,6 +5421,97 @@ TEST_F(SymbolicShapeInferFuncUT, InferSymbolicShapeForDiagPartD) {
   ASSERT_EQ(infer_context->GetOutputSymbolShape(0)->GetDims(), expect_shape.GetDims());
 }
 
+static void RunMatrixDiagV2InferSymbolShapeTest(const gert::SymbolShape &diagonal_shape,
+                                                const std::vector<Expression> &k_value,
+                                                const std::vector<Expression> *num_rows_value,
+                                                const std::vector<Expression> *num_cols_value,
+                                                const gert::SymbolShape &expect_shape,
+                                                const graphStatus expect_status) {
+  InferSymbolShapeContextTestBuilder builder("MatrixDiagV2", "matrixdiagv2");
+  const auto scalar_shape = gert::SymbolShape();
+  builder.AppendInputSymbolTensor(diagonal_shape)
+      .AppendInputSymbolTensor(scalar_shape, true, &k_value)
+      .AppendInputSymbolTensor(scalar_shape, num_rows_value != nullptr, num_rows_value)
+      .AppendInputSymbolTensor(scalar_shape, num_cols_value != nullptr, num_cols_value)
+      .AppendInputSymbolTensor(scalar_shape)
+      .OutputNum(1);
+
+  auto infer_context = builder.Build();
+  const auto func = GetInferFunc("MatrixDiagV2");
+  ASSERT_TRUE(func.first != nullptr);
+  if (expect_status == ge::GRAPH_SUCCESS) {
+    ASSERT_EQ(func.first(infer_context), expect_status);
+    ASSERT_EQ(infer_context->GetOutputSymbolShape(0)->GetDims(), expect_shape.GetDims());
+  } else {
+    ASSERT_NE(func.first(infer_context), ge::GRAPH_SUCCESS);
+  }
+}
+
+TEST_F(SymbolicShapeInferFuncUT, InferSymbolicShapeForMatrixDiagV2NumRowsColsDefault) {
+  ShapeEnvAttr shape_env;
+  ShapeEnvGuarder guarder(&shape_env);
+  auto batch = shape_env.CreateSymbol(4, MakeShared<InputShapeSource>(0, 0));
+  auto diag_len = shape_env.CreateSymbol(8, MakeShared<InputShapeSource>(0, 1));
+  const auto diagonal_shape = gert::SymbolShape({batch, diag_len});
+  const std::vector<Expression> k_value = {Symbol(0)};
+  const std::vector<Expression> unknown_dim_value = {Symbol(ge::UNKNOWN_DIM)};
+
+  RunMatrixDiagV2InferSymbolShapeTest(diagonal_shape, k_value, &unknown_dim_value, &unknown_dim_value,
+                                      gert::SymbolShape({batch, diag_len, diag_len}), ge::GRAPH_SUCCESS);
+}
+
+TEST_F(SymbolicShapeInferFuncUT, InferSymbolicShapeForMatrixDiagV2MissingNumRowsValue) {
+  ShapeEnvAttr shape_env;
+  ShapeEnvGuarder guarder(&shape_env);
+  auto batch = shape_env.CreateSymbol(4, MakeShared<InputShapeSource>(0, 0));
+  auto diag_len = shape_env.CreateSymbol(8, MakeShared<InputShapeSource>(0, 1));
+  const auto diagonal_shape = gert::SymbolShape({batch, diag_len});
+  const std::vector<Expression> k_value = {Symbol(0)};
+  const std::vector<Expression> num_cols_value = {diag_len};
+
+  RunMatrixDiagV2InferSymbolShapeTest(diagonal_shape, k_value, nullptr, &num_cols_value,
+                                      gert::SymbolShape({batch, diag_len, diag_len}), ge::GRAPH_SUCCESS);
+}
+
+TEST_F(SymbolicShapeInferFuncUT, InferSymbolicShapeForMatrixDiagV2MissingNumColsValue) {
+  ShapeEnvAttr shape_env;
+  ShapeEnvGuarder guarder(&shape_env);
+  auto batch = shape_env.CreateSymbol(4, MakeShared<InputShapeSource>(0, 0));
+  auto diag_len = shape_env.CreateSymbol(8, MakeShared<InputShapeSource>(0, 1));
+  const auto diagonal_shape = gert::SymbolShape({batch, diag_len});
+  const std::vector<Expression> k_value = {Symbol(0)};
+  const std::vector<Expression> num_rows_value = {diag_len};
+
+  RunMatrixDiagV2InferSymbolShapeTest(diagonal_shape, k_value, &num_rows_value, nullptr,
+                                      gert::SymbolShape({batch, diag_len, diag_len}), ge::GRAPH_SUCCESS);
+}
+
+TEST_F(SymbolicShapeInferFuncUT, InferSymbolicShapeForMatrixDiagV2NumRowsLessThanMin) {
+  ShapeEnvAttr shape_env;
+  ShapeEnvGuarder guarder(&shape_env);
+  auto batch = shape_env.CreateSymbol(4, MakeShared<InputShapeSource>(0, 0));
+  const auto diagonal_shape = gert::SymbolShape({batch, Symbol(3)});
+  const std::vector<Expression> k_value = {Symbol(0)};
+  const std::vector<Expression> num_rows_value = {Symbol(2)};
+  const std::vector<Expression> num_cols_value = {Symbol(3)};
+
+  RunMatrixDiagV2InferSymbolShapeTest(diagonal_shape, k_value, &num_rows_value, &num_cols_value, gert::SymbolShape(),
+                                      ge::GRAPH_PARAM_INVALID);
+}
+
+TEST_F(SymbolicShapeInferFuncUT, InferSymbolicShapeForMatrixDiagV2NumColsLessThanMin) {
+  ShapeEnvAttr shape_env;
+  ShapeEnvGuarder guarder(&shape_env);
+  auto batch = shape_env.CreateSymbol(4, MakeShared<InputShapeSource>(0, 0));
+  const auto diagonal_shape = gert::SymbolShape({batch, Symbol(3)});
+  const std::vector<Expression> k_value = {Symbol(0)};
+  const std::vector<Expression> num_rows_value = {Symbol(3)};
+  const std::vector<Expression> num_cols_value = {Symbol(2)};
+
+  RunMatrixDiagV2InferSymbolShapeTest(diagonal_shape, k_value, &num_rows_value, &num_cols_value, gert::SymbolShape(),
+                                      ge::GRAPH_PARAM_INVALID);
+}
+
 TEST_F(SymbolicShapeInferFuncUT, InferSymbolicShapeForPadV3) {
   const auto func = GetInferFunc("PadV3");
   ASSERT_TRUE(func.first != nullptr);

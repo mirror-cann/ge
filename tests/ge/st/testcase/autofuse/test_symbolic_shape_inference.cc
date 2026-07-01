@@ -3813,7 +3813,7 @@ REG_OP(MultisliceConcat)
     .DYNAMIC_OUTPUT(y, TensorType({DT_FLOAT, DT_FLOAT16}))
     .OP_END_FACTORY_REG(MultisliceConcat)
 
-TEST_F(SymbolicShapeInferenceST, test_multisliceconcat) {
+        TEST_F(SymbolicShapeInferenceST, test_multisliceconcat) {
   vector<int64_t> vec_concatsize = {2, 4};
   vector<int64_t> vec_slicebegin = {4, 5, 12, 5, 20, 28};
   vector<int64_t> vec_slicesize = {1, 1, 2, 2, 2, 4};
@@ -8904,6 +8904,68 @@ TEST_F(SymbolicShapeInferenceST, test_matrixdiagv2_specify_num_rows_only) {
 
   auto s0 = ge::Symbol("s0");
   auto s1 = ge::Symbol("s1");
+  EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({s0, Symbol(6), Symbol(6)}));
+}
+
+TEST_F(SymbolicShapeInferenceST, test_matrixdiagv2_specify_num_rows_default_num_cols) {
+  auto diagonal = builder_->CreateInput(0, "diagonal");
+  diagonal.SetOriginSymbolShape(std::vector<const char *>({"s0", "6"}));
+
+  auto k = builder_->CreateScalar(static_cast<int32_t>(0));
+  auto num_rows = builder_->CreateScalar(static_cast<int32_t>(6));
+  auto num_cols = builder_->CreateScalar(static_cast<int32_t>(-1));
+  auto padding_value = builder_->CreateScalar(static_cast<float>(0.0f));
+
+  auto matrix_diag_v2 = es::MatrixDiagV2(diagonal, k, num_rows, num_cols, padding_value);
+  ASSERT_EQ(es::EsGraphBuilder::SetOutput(matrix_diag_v2, 0), 0);
+
+  auto graph = builder_->BuildAndReset();
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  ASSERT_NE(cg, nullptr);
+
+  SymbolicShapeInference ssi;
+  ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
+
+  auto node = cg->FindFirstNodeMatchType("MatrixDiagV2");
+  ASSERT_NE(node, nullptr);
+  auto op_desc = node->GetOpDesc();
+  ASSERT_NE(op_desc, nullptr);
+
+  auto attr = op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
+  ASSERT_NE(attr, nullptr);
+
+  auto s0 = ge::Symbol("s0");
+  EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({s0, Symbol(6), Symbol(6)}));
+}
+
+TEST_F(SymbolicShapeInferenceST, test_matrixdiagv2_default_num_rows_specify_num_cols) {
+  auto diagonal = builder_->CreateInput(0, "diagonal");
+  diagonal.SetOriginSymbolShape(std::vector<const char *>({"s0", "6"}));
+
+  auto k = builder_->CreateScalar(static_cast<int32_t>(0));
+  auto num_rows = builder_->CreateScalar(static_cast<int32_t>(-1));
+  auto num_cols = builder_->CreateScalar(static_cast<int32_t>(6));
+  auto padding_value = builder_->CreateScalar(static_cast<float>(0.0f));
+
+  auto matrix_diag_v2 = es::MatrixDiagV2(diagonal, k, num_rows, num_cols, padding_value);
+  ASSERT_EQ(es::EsGraphBuilder::SetOutput(matrix_diag_v2, 0), 0);
+
+  auto graph = builder_->BuildAndReset();
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  ASSERT_NE(cg, nullptr);
+
+  SymbolicShapeInference ssi;
+  ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
+
+  auto node = cg->FindFirstNodeMatchType("MatrixDiagV2");
+  ASSERT_NE(node, nullptr);
+  auto op_desc = node->GetOpDesc();
+  ASSERT_NE(op_desc, nullptr);
+
+  auto attr = op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
+  ASSERT_NE(attr, nullptr);
+
+  auto s0 = ge::Symbol("s0");
   EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({s0, Symbol(6), Symbol(6)}));
 }
 
