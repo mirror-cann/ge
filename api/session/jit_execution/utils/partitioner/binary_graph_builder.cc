@@ -344,7 +344,7 @@ Status BinaryGraphBuilder::DebugIOMapping(const BinaryGraphIOLinkage &io_link) c
 
     const auto in_data_node = in_data_nodes.at(static_cast<size_t>(io_idx_pair.second));
     GE_ASSERT_NOTNULL(in_data_node->GetOutDataAnchor(0));
-    const auto first_peer_in_anchor = in_data_node->GetOutDataAnchor(0)->GetPeerInDataAnchors().at(0);
+    const auto first_peer_in_anchor = in_data_node->GetOutDataAnchor(0)->GetPeerInDataAnchorsPtr().at(0);
     const auto in_name = first_peer_in_anchor->GetOwnerNode()->GetName();
     const auto in_idx = first_peer_in_anchor->GetIdx();
     int64_t in_idx_attr;
