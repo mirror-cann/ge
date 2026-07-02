@@ -297,18 +297,6 @@ TEST_F(CompileConfigJsonTest, ReadDeployInfoFromJsonFile_both_config) {
             "flow_node_list":["node14", "node15"],
             "logic_device_list":"0:0:1~4:0~1"
           }
-        ],
-        "deploy_mem_info":[
-          {
-            "std_mem_size":"1024",
-            "shared_mem_size":"1024",
-            "logic_device_id":"0:0:0:1"
-          },
-{
-            "std_mem_size":"1024",
-            "shared_mem_size":"2048",
-            "logic_device_id":"0:0:1~4:0~1"
-          }
         ]
       })";
   json_file << content << std::endl;
@@ -334,7 +322,6 @@ TEST_F(CompileConfigJsonTest, ReadDeployInfoFromJsonFile_both_config) {
       deploy_map.emplace(flow_node, batch_deploy_info.logic_device_list);
     }
   }
-  EXPECT_EQ(deploy_config.mem_size_cfg.size(), 2);
   EXPECT_EQ(deploy_map.size(), 5);
   EXPECT_EQ(deploy_map["node11"], "0:0:0:1,0:0:1:0~1");
   EXPECT_EQ(deploy_map["node12"], "0:0:0:1,0:0:1:0~1");

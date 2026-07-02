@@ -37,7 +37,6 @@
 #include "graph/passes/control_flow_and_stream/data_pass.h"
 
 namespace {
-constexpr const char *ATTR_NAME_DATA_FLOW_DEVICE_MEM_CFG = "_dflow_logic_device_memory_config";
 constexpr const char *kAttrNameInvokedByBuiltIn = "_dflow_invoked_by_built_in";
 constexpr const char *kAttrNameInvokedModelFusionInputs = "_invoked_model_fusion_inputs";
 constexpr const char *ATTR_NAME_DATA_FLOW_SUB_DATA_FLOW_DEPLOY_INFOS = "_sub_data_flow_deploy_infos";
@@ -650,9 +649,6 @@ Status FlowModelBuilder::BuildDataFlowGraph(const ComputeGraphPtr &root_graph,
                          "The subgraphs is empty, please check your graph.");
   GE_CHK_STATUS_RET(BuildDataFlowSubGraphs(data_flow_graph, options, flow_model, cache_param),
                     "Failed to build data flow graph[%s].", root_graph->GetName().c_str());
-  const auto &logic_dev_id_to_mem_cfg = root_graph->TryGetExtAttr(
-      ATTR_NAME_DATA_FLOW_DEVICE_MEM_CFG, std::map<std::string, std::pair<uint32_t, uint32_t>>());
-  flow_model->SetLogicDeviceToMemCfg(logic_dev_id_to_mem_cfg);
   // graph options may be changed by subgraph option, need reset root graph options
   GetThreadLocalContext().SetGraphOption(options);
   GE_CHK_STATUS_RET(RemoveDataFlowSubgraphs(flow_model, cache_param),

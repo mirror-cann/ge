@@ -25,7 +25,7 @@ class DataFlowGraphAutoDeployer {
  private:
   static Status GetConfigDeployInfo(
       std::map<std::string, std::pair<std::string, std::string>> &deploy_logic_device_map,
-      std::map<std::string, std::pair<uint32_t, uint32_t>> &device_id_to_mem_cfg, bool &dynamic_schedule_enable,
+      bool &dynamic_schedule_enable,
       std::map<std::string, std::vector<std::pair<std::string, std::string>>> &invoke_deploy_map,
       const std::string &deploy_info_str);
   static Status GetDeployLogicDeviceForInvoke(
@@ -35,7 +35,6 @@ class DataFlowGraphAutoDeployer {
       const bool dynamic_schedule_enable);
   static Status GetDeployLogicDeviceFromBatchInfo(
       std::map<std::string, std::pair<std::string, std::string>> &deploy_logic_device_map,
-      std::set<std::string> &logic_device_ids,
       std::map<std::string, std::vector<std::pair<std::string, std::string>>> &invoke_deploy_map,
       const std::vector<CompileConfigJson::FlowNodeBatchDeployInfo> &batch_deploy_info_list,
       const bool dynamic_schedule_enable);
@@ -60,12 +59,6 @@ class DataFlowGraphAutoDeployer {
                                                  bool is_redundant);
   static Status SelectResourceType(const std::vector<std::string> &runnable_resources_type,
                                    const std::string &logic_device_id, std::string &resources_type, bool is_heavy_load);
-  static Status CheckAndProcessMemCfg(const std::vector<CompileConfigJson::FlowNodeBatchMemCfg> &mem_size_cfg,
-                                      const std::set<std::string> &logic_dev_ids,
-                                      std::map<std::string, std::pair<uint32_t, uint32_t>> &device_id_to_mem_cfg);
-  static Status SetMemCfgRecord(const uint32_t &std_mem_size, const uint32_t &shared_mem_size,
-                                const std::vector<std::string> &expand_logic_device_ids,
-                                std::map<std::string, std::pair<uint32_t, uint32_t>> &device_id_to_mem_cfg);
   static Status ExpandDeployInfoStr(const std::string &deploy_info_str, bool is_sub_dataflow,
                                     std::string &resolved_logic_device_id_list,
                                     std::string &resolved_redundant_logic_device_id_list, bool &is_expand);

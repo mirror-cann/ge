@@ -90,16 +90,9 @@ class CompileConfigJson {
     std::vector<InvokeDeployInfo> invoke_deploy_infos;
   };
 
-  struct FlowNodeBatchMemCfg {
-    std::string std_mem_size;
-    std::string shared_mem_size;
-    std::string logic_device_list;
-  };
-
   struct DeployConfigInfo {
     std::vector<FlowNodeDeployInfo> deploy_info_list;
     std::vector<FlowNodeBatchDeployInfo> batch_deploy_info_list;
-    std::vector<FlowNodeBatchMemCfg> mem_size_cfg;
     bool dynamic_schedule_enable = false;
     bool keep_logic_device_order = false;
   };
@@ -130,7 +123,6 @@ void from_json(const nlohmann::json &json_buff, CompileConfigJson::FlowNodeDeplo
 void from_json(const nlohmann::json &json_buff, CompileConfigJson::InvokeDeployInfo &invoke_deploy_info);
 void from_json(const nlohmann::json &json_buff, CompileConfigJson::FlowNodeBatchDeployInfo &batch_deploy_info);
 void from_json(const nlohmann::json &json_buff, CompileConfigJson::TensorDescConfig &tensor_desc_config);
-void from_json(const nlohmann::json &json_buff, CompileConfigJson::FlowNodeBatchMemCfg &flow_node_batch_mem_cfg);
 void from_json(const nlohmann::json &json_buff, CompileConfigJson::RunningResourceInfo &running_resource_info);
 }  // namespace ge
 #endif  // AIR_COMPILER_PNE_DATA_FLOW_GRAPH_COMPILE_CONFIG_JSON_H

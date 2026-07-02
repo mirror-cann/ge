@@ -28,7 +28,6 @@ constexpr const char *ATTR_NAME_DATA_FLOW_PROCESS_POINT_RELEASE_PKG = "_dflow_pr
 constexpr const char *ATTR_NAME_DATA_FLOW_COMPILER_RESULT = "_dflow_compiler_result";
 constexpr const char *ATTR_NAME_DATA_FLOW_HEAVY_LOAD = "_dflow_heavy_load";
 constexpr const char *ATTR_NAME_FLOW_ATTR_FLOW_NODE_ALIAS = "_flow_attr_flow_node_alias";
-constexpr const char *ATTR_NAME_DATA_FLOW_DEVICE_MEM_CFG = "_dflow_logic_device_memory_config";
 constexpr const char *ATTR_NAME_DATA_FLOW_DYNAMIC_SCHEDULE_CFG = "dynamic_schedule_enable";
 constexpr const char *ATTR_NAME_DATA_FLOW_INVOKE_DEPLOY_INFOS = "_invoke_deploy_infos";
 constexpr const char *ATTR_NAME_DATA_FLOW_SUB_DATA_FLOW_DEPLOY_INFOS = "_sub_data_flow_deploy_infos";
@@ -42,15 +41,12 @@ Status DataFlowGraphAutoDeployer::AutoDeployDataFlowGraph(const DataFlowGraph &d
   std::map<std::string, std::pair<std::string, std::string>> deploy_logic_device_map;
   // key:flow_node_name; value:vector of <flow node invoke name, invoke name> pairs
   std::map<std::string, std::vector<std::pair<std::string, std::string>>> invoke_deploy_map;
-  // key device_id; value: std_mem && shared_mem
-  std::map<std::string, std::pair<uint32_t, uint32_t>> device_id_to_mem_cfg;
   bool dynamic_schedule_enable = false;
   std::string logic_device_id;
   std::string redundant_logic_device_id;
-  GE_CHK_STATUS_RET(GetConfigDeployInfo(deploy_logic_device_map, device_id_to_mem_cfg, dynamic_schedule_enable,
-                                        invoke_deploy_map, deploy_info_path),
-                    "Get data flow config deploy info failed.");
-  (void)root_graph->SetExtAttr(ATTR_NAME_DATA_FLOW_DEVICE_MEM_CFG, device_id_to_mem_cfg);
+  GE_CHK_STATUS_RET(
+      GetConfigDeployInfo(deploy_logic_device_map, dynamic_schedule_enable, invoke_deploy_map, deploy_info_path),
+      "Get data flow config deploy info failed.");
   if (data_flow_graph.IsRootDataFlow()) {
     (void)AttrUtils::SetBool(root_graph, ATTR_NAME_DATA_FLOW_DYNAMIC_SCHEDULE_CFG, dynamic_schedule_enable);
   }
@@ -525,7 +521,6 @@ Status DataFlowGraphAutoDeployer::GetDeployLogicDeviceForInvoke(
 
 Status DataFlowGraphAutoDeployer::GetDeployLogicDeviceFromBatchInfo(
     std::map<std::string, std::pair<std::string, std::string>> &deploy_logic_device_map,
-    std::set<std::string> &logic_device_ids,
     std::map<std::string, std::vector<std::pair<std::string, std::string>>> &invoke_deploy_map,
     const std::vector<CompileConfigJson::FlowNodeBatchDeployInfo> &batch_deploy_info_list,
     const bool dynamic_schedule_enable) {
@@ -537,10 +532,8 @@ Status DataFlowGraphAutoDeployer::GetDeployLogicDeviceFromBatchInfo(
       }
       auto &deploy_logic_device = deploy_logic_device_map[flow_node];
       deploy_logic_device.first = batch_deploy_info.logic_device_list;
-      (void)logic_device_ids.insert(batch_deploy_info.logic_device_list);
       if (dynamic_schedule_enable) {
         deploy_logic_device.second = batch_deploy_info.redundant_logic_device_list;
-        (void)logic_device_ids.insert(batch_deploy_info.redundant_logic_device_list);
         // redundant instance will be deployed
         if (!deploy_logic_device.second.empty()) {
           deploy_logic_device.first.append(",");
@@ -557,8 +550,7 @@ Status DataFlowGraphAutoDeployer::GetDeployLogicDeviceFromBatchInfo(
 }
 
 Status DataFlowGraphAutoDeployer::GetConfigDeployInfo(
-    std::map<std::string, std::pair<std::string, std::string>> &deploy_logic_device_map,
-    std::map<std::string, std::pair<uint32_t, uint32_t>> &device_id_to_mem_cfg, bool &dynamic_schedule_enable,
+    std::map<std::string, std::pair<std::string, std::string>> &deploy_logic_device_map, bool &dynamic_schedule_enable,
     std::map<std::string, std::vector<std::pair<std::string, std::string>>> &invoke_deploy_map,
     const std::string &deploy_info_str) {
   // deploy_info_str: 1. kDeployInfoFile;file.json 2. logic_device_list;redundant_device_list
@@ -581,7 +573,6 @@ Status DataFlowGraphAutoDeployer::GetConfigDeployInfo(
   GELOGI("read deploy info from file[%s] success.", deploy_info_file.c_str());
   dynamic_schedule_enable = deploy_config.dynamic_schedule_enable;
 
-  std::set<std::string> logic_device_ids;
   // expand and merge config.
   GE_CHK_STATUS_RET(ExpandRangeConfig(deploy_config.batch_deploy_info_list), "expand range config failed.");
   for (const auto &deploy_info : deploy_config.deploy_info_list) {
@@ -591,11 +582,10 @@ Status DataFlowGraphAutoDeployer::GetConfigDeployInfo(
       return FAILED;
     }
     deploy_logic_device_map[deploy_info.flow_node_name].first = deploy_info.logic_device_id;
-    (void)logic_device_ids.insert(deploy_info.logic_device_id);
   }
 
   GE_CHK_STATUS_RET(
-      GetDeployLogicDeviceFromBatchInfo(deploy_logic_device_map, logic_device_ids, invoke_deploy_map,
+      GetDeployLogicDeviceFromBatchInfo(deploy_logic_device_map, invoke_deploy_map,
                                         deploy_config.batch_deploy_info_list, deploy_config.dynamic_schedule_enable),
       "Get deploy logic device from batch info failed in file[%s].", deploy_info_str.c_str());
   if (!deploy_config.keep_logic_device_order) {
@@ -605,63 +595,6 @@ Status DataFlowGraphAutoDeployer::GetConfigDeployInfo(
                         "GetSortedLogicDeviceIds failed, logic_device_list[%s]",
                         deploy_logic_device.second.first.c_str());
       deploy_logic_device.second.first = resolved_logic_device_id_list;
-    }
-  }
-  GE_CHK_STATUS_RET(CheckAndProcessMemCfg(deploy_config.mem_size_cfg, logic_device_ids, device_id_to_mem_cfg),
-                    "Check and process memory config failed.");
-  return SUCCESS;
-}
-
-Status DataFlowGraphAutoDeployer::CheckAndProcessMemCfg(
-    const std::vector<CompileConfigJson::FlowNodeBatchMemCfg> &mem_size_cfg, const std::set<std::string> &logic_dev_ids,
-    std::map<std::string, std::pair<uint32_t, uint32_t>> &device_id_to_mem_cfg) {
-  if (mem_size_cfg.empty()) {
-    GELOGD("Memory limit is not set by user config json.");
-    return SUCCESS;
-  }
-  int32_t std_mem_size = 0U;
-  int32_t shared_mem_size = 0U;
-  for (const auto &mem_cfg : mem_size_cfg) {
-    GE_CHK_STATUS_RET(ConvertToInt32(mem_cfg.std_mem_size, std_mem_size), "Convert std memory size %s failed.",
-                      mem_cfg.std_mem_size.c_str());
-    GE_ASSERT_TRUE(std_mem_size > 0, "std memory[%d] should be set greater than zero", std_mem_size);
-    GE_CHK_STATUS_RET(ConvertToInt32(mem_cfg.shared_mem_size, shared_mem_size), "Convert std memory size %s failed.",
-                      mem_cfg.shared_mem_size.c_str());
-    GE_ASSERT_TRUE(shared_mem_size > 0, "std memory[%d] should be set greater than zero", shared_mem_size);
-    std::vector<std::string> expand_logic_device_ids;
-    GE_CHK_STATUS_RET(CheckAndExpandLogicDeviceIds(mem_cfg.logic_device_list, expand_logic_device_ids),
-                      "Check and expand logic device ids %s failed.", mem_cfg.logic_device_list.c_str());
-    GE_CHK_STATUS_RET(SetMemCfgRecord(static_cast<uint32_t>(std_mem_size), static_cast<uint32_t>(shared_mem_size),
-                                      expand_logic_device_ids, device_id_to_mem_cfg),
-                      "Set memory config failed.");
-  }
-  // check all logic device have memory config
-  for (const auto &orig_logic_device_id : logic_dev_ids) {
-    const auto logic_dev_id_list = StringUtils::Split(orig_logic_device_id, ',');
-    for (const auto &logic_device_id : logic_dev_id_list) {
-      if (device_id_to_mem_cfg.count(logic_device_id) == 0UL) {
-        GELOGE(FAILED, "Logic device id %s need memory config.", logic_device_id.c_str());
-        return FAILED;
-      }
-    }
-  }
-  return SUCCESS;
-}
-
-Status DataFlowGraphAutoDeployer::SetMemCfgRecord(
-    const uint32_t &std_mem_size, const uint32_t &shared_mem_size,
-    const std::vector<std::string> &expand_logic_device_ids,
-    std::map<std::string, std::pair<uint32_t, uint32_t>> &device_id_to_mem_cfg) {
-  for (const auto &logic_device_str : expand_logic_device_ids) {
-    const auto logic_dev_ids = StringUtils::Split(logic_device_str, ',');
-    for (const auto &logic_device : logic_dev_ids) {
-      const auto iter = device_id_to_mem_cfg.find(logic_device);
-      if ((iter != device_id_to_mem_cfg.cend()) &&
-          ((iter->second.first != std_mem_size) || (iter->second.second != shared_mem_size))) {
-        GELOGE(FAILED, "Conflict memory value set bo device %s. Please check config json.", logic_device.c_str());
-        return FAILED;
-      }
-      device_id_to_mem_cfg[logic_device] = std::make_pair(std_mem_size, shared_mem_size);
     }
   }
   return SUCCESS;

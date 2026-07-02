@@ -352,9 +352,6 @@ Status CompileConfigJson::ReadDeployInfoFromJsonFile(const std::string &file_pat
              file_path.c_str());
       return FAILED;
     }
-    if (json_buff.contains("deploy_mem_info")) {
-      deploy_conf.mem_size_cfg = json_buff["deploy_mem_info"].get<std::vector<FlowNodeBatchMemCfg>>();
-    }
   } catch (const nlohmann::json::exception &e) {
     GELOGE(FAILED, "Failed to read json file[%s] to vector, err msg: %s.", file_path.c_str(), e.what());
     return FAILED;
@@ -480,12 +477,6 @@ void from_json(const nlohmann::json &json_buff, CompileConfigJson::FlowNodeBatch
   if (json_buff.contains("invoke_list")) {
     Assign(batch_deploy_info.invoke_deploy_infos, "invoke_list", json_buff);
   }
-}
-
-void from_json(const nlohmann::json &json_buff, CompileConfigJson::FlowNodeBatchMemCfg &flow_node_batch_mem_cfg) {
-  json_buff.at("std_mem_size").get_to(flow_node_batch_mem_cfg.std_mem_size);
-  json_buff.at("shared_mem_size").get_to(flow_node_batch_mem_cfg.shared_mem_size);
-  json_buff.at("logic_device_id").get_to(flow_node_batch_mem_cfg.logic_device_list);
 }
 
 Status CompileConfigJson::GetResourceTypeFromNumaConfig(std::set<std::string> &resource_types) {
