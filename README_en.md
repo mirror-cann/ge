@@ -50,4 +50,4 @@ The following projects have integrated GE as an inference or graph mode backend:
 
 ## Contact Us
 
-<img src="./docs/zh/figures/GE_contact.png">
+<img src="./docs/zh/figures/GE_contact.png" width="400">
