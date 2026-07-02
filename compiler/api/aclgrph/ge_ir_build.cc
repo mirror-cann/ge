@@ -764,7 +764,7 @@ graphStatus Impl::CheckBuildModeAndBuildStep() {
       REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char_t *>({"parameter", "value", "reason"}),
                                 std::vector<const char_t *>({BUILD_MODE, it->second.c_str(),
                                                              "The current value is not within the valid range."}));
-      GELOGE(GRAPH_PARAM_INVALID, "[Check][BuildMode]:%s is unsupporteded. Please check!", it->second.c_str());
+      GELOGE(GRAPH_PARAM_INVALID, "[Check][BuildMode]:%s is unsupported. Please check!", it->second.c_str());
       return GRAPH_PARAM_INVALID;
     }
     build_mode = it->second;
@@ -775,7 +775,7 @@ graphStatus Impl::CheckBuildModeAndBuildStep() {
       REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char_t *>({"parameter", "value", "reason"}),
                                 std::vector<const char_t *>({BUILD_STEP, it->second.c_str(),
                                                              "The current value is not within the valid range."}));
-      GELOGE(GRAPH_PARAM_INVALID, "[Check][BuildStep]:%s is unsupporteded. Please check!", it->second.c_str());
+      GELOGE(GRAPH_PARAM_INVALID, "[Check][BuildStep]:%s is unsupported. Please check!", it->second.c_str());
       return GRAPH_PARAM_INVALID;
     }
   } else {
@@ -801,7 +801,7 @@ graphStatus Impl::GetSupportedOptions(const std::map<std::string, std::string> &
       if (it_lx_fusion == ir_builder_supported_options_for_lx_fusion.cend()) {
         std::set<std::string>::const_iterator it_inner = ge::ir_builder_suppported_options_inner.find(ele.first);
         if (it_inner == ge::ir_builder_suppported_options_inner.cend()) {
-          GELOGE(GRAPH_PARAM_INVALID, "[Check][Options] unsupporteded option(%s), Please check!", ele.first.c_str());
+          GELOGE(GRAPH_PARAM_INVALID, "[Check][Options] unsupported option(%s), Please check!", ele.first.c_str());
           return GRAPH_PARAM_INVALID;
         }
       }
