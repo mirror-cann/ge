@@ -48,7 +48,7 @@ GE-PY 模块包含以下核心组件：
 
 ### API 参考
 
-- **[API 参考文档](api/)** - 各模块的接口参考文档
+- **[API 参考文档](api/Allocator.md)** - 各模块的接口参考文档
   - [Graph](api/Graph.md)、[Node](api/Node.md)、[Tensor](api/Tensor.md)、[TensorDesc](api/TensorDesc.md)、
     [Shape](api/Shape.md)、[DataType](api/DataType.md)
   - [Session](api/Session.md)、[Allocator](api/Allocator.md)、[GeApi](api/GeApi.md)、[Error](api/Error.md)

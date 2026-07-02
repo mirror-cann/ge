@@ -99,7 +99,7 @@ If writing a `DecomposePass`, also need:
 from ge.passes import DecomposePass, register_decompose_pass
 ```
 
-Complete interface documentation is at [Python Passes API](../../docs/zh/user-guides/ge_python/api/Passes.md).
+Complete interface documentation is at [Python Passes API](../../docs/en/user_guides/ge_python/api/Passes.md).
 
 ### 3.2 Register Pass
 
@@ -328,7 +328,7 @@ Multiple paths separated by colon:
 export ASCEND_GE_PY_PASS_PATH=/path/to/a.py:/path/to/pass_dir/
 ```
 
-Detailed scanning rules see [ASCEND_GE_PY_PASS_PATH](../../docs/zh/user-guides/ge_python/env/ASCEND_GE_PY_PASS_PATH.md).
+Detailed scanning rules see [ASCEND_GE_PY_PASS_PATH](../../docs/en/user_guides/ge_python/env/ASCEND_GE_PY_PASS_PATH.md).
 
 ### 8.2 Offline Compilation
 

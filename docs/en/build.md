@@ -100,10 +100,10 @@ Check result explanation is as follows:
 ### 4.3 Compilation
 
 > [!NOTE] Note
-> If your compilation environment cannot access the network, since source code cannot be downloaded through `git` command, you need to download source code and third-party library dependencies in a networked environment, then manually upload to target environment. Please refer to [Offline Compilation Guide](./user-guides/offline_compile.md).
+> If your compilation environment cannot access the network, since source code cannot be downloaded through `git` command, you need to download source code and third-party library dependencies in a networked environment, then manually upload to target environment. Please refer to [Offline Compilation Guide](./user_guides/offline_compile.md).
 > If your compilation environment can access the network, after downloading source code through `git` command, open source third-party software will be automatically downloaded during compilation process.
 
-If your compilation environment can access the network, or has completed [Offline Compilation Guide](./user-guides/offline_compile.md), `GE` provides one-click compilation capability. Enter the code repository root directory and compile through the following command:
+If your compilation environment can access the network, or has completed [Offline Compilation Guide](./user_guides/offline_compile.md), `GE` provides one-click compilation capability. Enter the code repository root directory and compile through the following command:
 
   ```bash
   bash build.sh --<pkg_type>
@@ -120,7 +120,7 @@ More compilation parameters can be viewed through `bash build.sh -h`. After succ
 ### 4.4 Local Verification (UT/ST)
 
 > [!NOTE] Note
-> If your compilation environment cannot access the network, please ensure you have completed the [Offline Compilation Guide](./user-guides/offline_compile.md) in [4.3 Compilation](#43-compilation) chapter.
+> If your compilation environment cannot access the network, please ensure you have completed the [Offline Compilation Guide](./user_guides/offline_compile.md) in [4.3 Compilation](#43-compilation) chapter.
 
 After compilation is complete, users can perform developer testing.
 

@@ -6,8 +6,8 @@
 
 | 目录 | 机制 | 注册方式 | 适用场景                         |
 |------|------|---------|------------------------------|
-| [`custom_op_v2/`](./custom_op_v2/) | BaseCustomOp + REG_AUTO_MAPPING_OP | 虚函数继承 + 工厂注册 | 外部自定义算子（任意 kernel binary）    |
-| [`custom_op_v1/`](./custom_op_v1/) | IMPL_OP + OpImplRegisterV2 | 链式函数指针 | 标准 AscendC开发的Aicore算子（框架全托管） |
+| [`custom_op_v2/`](./custom_op_v2/custom_op_development_guide.md) | BaseCustomOp + REG_AUTO_MAPPING_OP | 虚函数继承 + 工厂注册 | 外部自定义算子（任意 kernel binary）    |
+| [`custom_op_v1/`](./custom_op_v1/op_impl_dev_guide.md) | IMPL_OP + OpImplRegisterV2 | 链式函数指针 | 标准 AscendC开发的Aicore算子（框架全托管） |
 
 ## 核心差异
 

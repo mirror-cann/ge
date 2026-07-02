@@ -44,11 +44,11 @@
 
 - GraphEngine API
 - DataFlow API
-  - [C++ Interface](../zh/user-guides/dflow/dflow_api/README_cpp.md)
-  - [Python Interface](../zh/user-guides/dflow/dflow_api/README_python.md)
+  - [C++ Interface](../zh/user_guides/dflow/dflow_api/README_cpp.md)
+  - [Python Interface](../zh/user_guides/dflow/dflow_api/README_python.md)
 - LLM DataDist API
-  - [C++ Interface](../zh/user-guides/llm_datadist/llm_datadist_api/README_cpp.md)
-  - [Python Interface](../zh/user-guides/llm_datadist/llm_datadist_api/README_python.md)
+  - [C++ Interface](../zh/user_guides/llm_datadist/llm_datadist_api/README_cpp.md)
+  - [Python Interface](../zh/user_guides/llm_datadist/llm_datadist_api/README_python.md)
 
 ## Architecture and Development Guide
 

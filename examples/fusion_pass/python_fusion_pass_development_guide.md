@@ -99,7 +99,7 @@ from ge.passes import (
 from ge.passes import DecomposePass, register_decompose_pass
 ```
 
-接口完整说明见 [Python Passes API](../../docs/zh/user-guides/ge_python/api/Passes.md)。
+接口完整说明见 [Python Passes API](../../docs/en/user_guides/ge_python/api/Passes.md)。
 
 ### 3.2 注册 pass
 
@@ -327,7 +327,7 @@ export ASCEND_GE_PY_PASS_PATH=/path/to/pass_dir/
 export ASCEND_GE_PY_PASS_PATH=/path/to/a.py:/path/to/pass_dir/
 ```
 
-详细扫描规则见 [ASCEND_GE_PY_PASS_PATH](../../docs/zh/user-guides/ge_python/env/ASCEND_GE_PY_PASS_PATH.md)。
+详细扫描规则见 [ASCEND_GE_PY_PASS_PATH](../../docs/zh/user_guides/ge_python/env/ASCEND_GE_PY_PASS_PATH.md)。
 
 ### 8.2 离线编译
 
