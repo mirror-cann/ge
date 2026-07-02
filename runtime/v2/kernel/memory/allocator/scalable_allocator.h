@@ -22,16 +22,24 @@
 
 namespace gert {
 enum GeLogLevel : int32_t { kDebug = 0, kInfo = 1, kWarn = 2, kError = 3, kNull = 4, kEvent = 10 };
-#define LOG_BY_TYPE(type, fmt, ...)                                                                               \
-  do {                                                                                                            \
-    if (type == GeLogLevel::kInfo) {                                                                              \
-      dlog_info(GE_MODULE_NAME, "%lu %s %s:" fmt, GeLog::GetTid(), GetId().c_str(), __FUNCTION__, ##__VA_ARGS__); \
-    } else if (type == GeLogLevel::kError) {                                                                      \
-      GELOGE(ge::FAILED, fmt, ##__VA_ARGS__);                                                                     \
-    } else if (type == GeLogLevel::kEvent) {                                                                      \
-      GEEVENT(fmt, ##__VA_ARGS__);                                                                                \
-    } else {                                                                                                      \
-    }                                                                                                             \
+#define LOG_BY_TYPE(type, fmt, ...)                                                                                \
+  do {                                                                                                             \
+    if (type == GeLogLevel::kInfo) {                                                                               \
+      dlog_info(GE_MODULE_NAME, "%" PRIu64 " %s %s:" fmt, GeLog::GetTid(), GetId().c_str(), &__FUNCTION__[0U],     \
+                ##__VA_ARGS__);                                                                                    \
+    } else if (type == GeLogLevel::kError) {                                                                       \
+      dlog_error(GE_MODULE_NAME, "%" PRIu64 " %s %s: ErrorNo: %" PRIuLEAST8 "(%s)" fmt, GeLog::GetTid(),           \
+                 GetId().c_str(), &__FUNCTION__[0U], ge::FAILED, ((GE_GET_ERRORNO_STR(ge::FAILED)).c_str()),       \
+                 ##__VA_ARGS__);                                                                                   \
+    } else if (type == GeLogLevel::kEvent) {                                                                       \
+      dlog_info(static_cast<int32_t>(static_cast<uint32_t>(RUN_LOG_MASK) | static_cast<uint32_t>(GE_MODULE_NAME)), \
+                "%" PRIu64 " %s %s:" fmt, GeLog::GetTid(), GetId().c_str(), &__FUNCTION__[0U], ##__VA_ARGS__);     \
+      if (!IsLogPrintStdout()) {                                                                                   \
+        dlog_info(GE_MODULE_NAME, "%" PRIu64 " %s %s:" fmt, GeLog::GetTid(), GetId().c_str(), &__FUNCTION__[0U],   \
+                  ##__VA_ARGS__);                                                                                  \
+      }                                                                                                            \
+    } else {                                                                                                       \
+    }                                                                                                              \
   } while (false)
 class VISIBILITY_EXPORT ScalableAllocator : public MemoryPool {
  public:

@@ -14,7 +14,7 @@
 #include "graph/load/model_manager/davinci_model.h"
 #include "graph/load/model_manager/model_utils.h"
 #include "graph/args_format_desc.h"
-#include "runtime/dev.h"
+#include "rt_external_device.h"
 
 namespace ge {
 constexpr uint32_t kMaxPrefetchLen = 120U * 1024U * 1024U;

@@ -33,7 +33,7 @@ remove_stub_softlink() {
     ([ -d "${devlibdir}" ] && cd "${devlibdir}" && {
         chmod u+w . && echo "${stub_libs}" | xargs --no-run-if-empty rm -rf
         chmod u-w .
-    })
+    }) || true
 }
 
 remove_stub_softlink

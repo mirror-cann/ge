@@ -48,7 +48,7 @@ The following commands are executed in `2_move_relu_before_concat_pass` director
 2. Generate AIR model:
 
     ```bash
-    cd cpp/data
+    cd ../cpp/data
     python es_gen_air.py
     ```
 
@@ -77,9 +77,10 @@ cmake --build build --target build_es_all -j$(nproc)
 Install generated Python package and let current Python process find the package and corresponding dynamic library:
 
 ```bash
-pip install --force-reinstall --upgrade --target ./build/whl_package ./build/es_output/whl/es_all-1.0.0-py3-none-any.whl
-export PYTHONPATH="$PWD/build/whl_package:${PYTHONPATH:-}"
-export LD_LIBRARY_PATH="$PWD/build/es_output/lib64:${LD_LIBRARY_PATH:-}"
+export BUILD_PATH="$PWD/build"
+pip install --force-reinstall --upgrade --target "${BUILD_PATH}/whl_package" "${BUILD_PATH}/es_output/whl/es_all-1.0.0-py3-none-any.whl"
+export PYTHONPATH="${BUILD_PATH}/whl_package:${PYTHONPATH:-}"
+export LD_LIBRARY_PATH="${BUILD_PATH}/es_output/lib64:${LD_LIBRARY_PATH:-}"
 cd ..
 ```
 

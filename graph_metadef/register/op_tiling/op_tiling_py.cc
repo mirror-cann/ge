@@ -113,6 +113,7 @@ constexpr size_t kMaxTilingDataSize = 16UL * 1024UL;
 constexpr size_t kWorkspaceHolerSize = 8UL;
 const std::string kAttrGroup = "group";
 const std::string kIsNullOutput = "_is_null_output";
+constexpr const char *const kBuiltInPackageName = "built-in";
 
 struct ContextComponent {
   std::vector<gert::StorageShape> storage_shapes;
@@ -2125,7 +2126,7 @@ extern "C" Status TbeLoadSoAndSaveToRegistry(const char *so_path) {
     gert::DefaultOpImplSpaceRegistryV2::GetInstance().SetSpaceRegistry(space_registry_v2);
   }
   return gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->AddSoToRegistry(
-      gert::OppSoDesc({ge::AscendString(so_path)}, ""));
+      gert::OppSoDesc({ge::AscendString(so_path)}, kBuiltInPackageName));
 }
 }  // namespace
 }  // namespace optiling

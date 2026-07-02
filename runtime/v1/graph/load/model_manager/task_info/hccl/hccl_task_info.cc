@@ -19,7 +19,7 @@
 #include "acl/acl_rt.h"
 #include "acl/acl_mdl.h"
 #include "common/aclrt_malloc_helper.h"
-#include "runtime/dev.h"
+#include "rt_external_device.h"
 
 namespace {
 const ge::char_t *const kDumpOutput = "output";

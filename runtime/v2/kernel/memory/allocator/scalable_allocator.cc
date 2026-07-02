@@ -199,15 +199,15 @@ PageSpan *ScalableAllocator::FetchNewVaSpan(ge::Allocator &allocator, const MemS
     spans.push_back(span);
   }
   for (auto s : spans) {
-    GELOGI("Free using block device_id:%u size:%llu alloc_size:%zu mem_addr:%p.", device_allocator_.GetDeviceId(), size,
-           s->GetSize(), s->GetAddr());
+    LOG_BY_TYPE(GeLogLevel::kInfo, "Free using block device_id:%u size:%llu alloc_size:%zu mem_addr:%p.",
+                device_allocator_.GetDeviceId(), size, s->GetSize(), s->GetAddr());
     FreeSpanEx(s);
   }
 
   if (reuse) {
     GE_ASSERT_NOTNULL(span);
-    GELOGI("reuse new_va_span try_count:%zu size:%zu span_size:%zu mem_addr_:%p", try_count, size, span->GetSize(),
-           span->GetAddr());
+    LOG_BY_TYPE(GeLogLevel::kInfo, "reuse new_va_span try_count:%zu size:%zu span_size:%zu mem_addr_:%p", try_count,
+                size, span->GetSize(), span->GetAddr());
     // 复用已有的span，释放新占用的内存
     device_allocator_.GetExpandableAllocator().FreePhysicalMemory(reinterpret_cast<MemAddr>(span->GetAddr()), pa_list,
                                                                   false, false);
@@ -236,15 +236,15 @@ PageSpan *ScalableAllocator::FetchNewVaSpan(ge::Allocator &allocator, const MemS
     return nullptr;
   }
   OccupySpan(*span, fix_layer_id);
-  GELOGI("block device_id:%u size:%llu alloca_size:%zu mem_addr:%p", device_allocator_.GetDeviceId(), size,
-         span->GetSize(), span->GetAddr());
+  LOG_BY_TYPE(GeLogLevel::kInfo, "block device_id:%u size:%llu alloca_size:%zu mem_addr:%p",
+              device_allocator_.GetDeviceId(), size, span->GetSize(), span->GetAddr());
   return span;
 }
 
 PageSpan *ScalableAllocator::FetchNewSpan(ge::Allocator &allocator, const MemSize size, const PageLen page_len) {
   if (IsThresholdExceeded(size)) {
-    GELOGI("OccupiedSize:%llu add size:%llu exceed total_threshold:%llu.", device_allocator_.GetOccupiedSize(), size,
-           config_.page_mem_size_total_threshold);
+    LOG_BY_TYPE(GeLogLevel::kInfo, "OccupiedSize:%llu add size:%llu exceed total_threshold:%llu.",
+                device_allocator_.GetOccupiedSize(), size, config_.page_mem_size_total_threshold);
 
     // has freed memory, return nullptr and try recycle
     if (GetIdleMemSize() > 0U) {
@@ -308,8 +308,8 @@ PageSpan *ScalableAllocator::FetchSplitedSpan(ge::Allocator &allocator, const Sp
       (!span->IsSplitable(fix_layer_id))) {
     const auto layer = FetchSpanLayer(fit_layer_id);
     if (layer != nullptr) {
-      GELOGI("Delay split block device_id:%u size:%zu allocate_size:%lu.", device_allocator_.GetDeviceId(),
-             span->GetSize(), size);
+      LOG_BY_TYPE(GeLogLevel::kInfo, "Delay split block device_id:%u size:%zu allocate_size:%lu.",
+                  device_allocator_.GetDeviceId(), span->GetSize(), size);
       PushSpanToLayer(*layer, *span);
     }
     return FetchNewSpan(allocator, size, fix_layer_id);
@@ -361,8 +361,8 @@ PageSpan *ScalableAllocator::ProcessNewVaSpan(ge::Allocator &allocator, PageSpan
     SpanLayerId free_fit_layer_id = SpanLayerId_GetIdFromSize(span->GetSize(), config_.page_idem_num);
     free_span = SplitSpan(allocator, free_fix_layer_id, free_fit_layer_id, span, free_size);
     GE_ASSERT_NOTNULL(free_span);
-    GELOGI("free span size:%zu real_size:%zu left_size:%zu next_size:%zu", free_span->GetSize(), free_size,
-           span->GetSize(), reuse_size - free_size);
+    LOG_BY_TYPE(GeLogLevel::kInfo, "free span size:%zu real_size:%zu left_size:%zu next_size:%zu", free_span->GetSize(),
+                free_size, span->GetSize(), reuse_size - free_size);
   } else {
     free_size = 0U;
   }
@@ -378,8 +378,8 @@ PageSpan *ScalableAllocator::ProcessNewVaSpan(ge::Allocator &allocator, PageSpan
     FreeSpanEx(free_span);
   }
   GE_ASSERT_NOTNULL(using_span);
-  GELOGI(
-      "using span size:%zu real_size:%zu memaddr:%p index:%zu offset:%zu", using_span->GetSize(),
+  LOG_BY_TYPE(
+      GeLogLevel::kInfo, "using span size:%zu real_size:%zu memaddr:%p index:%zu offset:%zu", using_span->GetSize(),
       reuse_size - free_size, using_span->GetAddr(),
       (reinterpret_cast<MemAddr>(using_span->GetAddr()) - reinterpret_cast<MemAddr>(base_addr_)) / ge::kLargePageSize,
       (reinterpret_cast<MemAddr>(using_span->GetAddr()) - reinterpret_cast<MemAddr>(base_addr_)) &
@@ -408,7 +408,8 @@ PageSpan *ScalableAllocator::ProcessPaUsingSpan(ge::Allocator &allocator, PageSp
     span = SplitSpan(allocator, using_fix_layer_id, using_fit_layer_id, span, reuse_size);
     GE_ASSERT_NOTNULL(span);
     span->SetRealSize(reuse_size);
-    GELOGI("using span size:%zu real_size:%zu alloc_size:%zu", span->GetSize(), reuse_size, alloc_size);
+    LOG_BY_TYPE(GeLogLevel::kInfo, "using span size:%zu real_size:%zu alloc_size:%zu", span->GetSize(), reuse_size,
+                alloc_size);
     return span;
   }
   span->SetRealSize(size);
@@ -434,7 +435,7 @@ PageSpan *ScalableAllocator::AllocImp(ge::Allocator &allocator, const MemSize si
   }
 
   if (span != nullptr) {
-    GELOGI("try_count:%zu size:%zu block_size:%zu", try_count_, size, span->GetSize());
+    LOG_BY_TYPE(GeLogLevel::kInfo, "try_count:%zu size:%zu block_size:%zu", try_count_, size, span->GetSize());
     if (ret == ge::PHYSICAL_MEM_USING) {
       span->SetRealSize(size);
       return span;
@@ -482,14 +483,14 @@ PageSpan *ScalableAllocator::Alloc(ge::Allocator &allocator, const MemSize size)
     total_try_count++;
   }
   for (auto s : spans) {
-    GELOGI("Free using block device_id:%u size:%llu allocate_size:%zu mem_addr:%p.", device_allocator_.GetDeviceId(),
-           size, s->GetSize(), s->GetAddr());
+    LOG_BY_TYPE(GeLogLevel::kInfo, "Free using block device_id:%u size:%llu allocate_size:%zu mem_addr:%p.",
+                device_allocator_.GetDeviceId(), size, s->GetSize(), s->GetAddr());
     FreeSpanEx(s);
   }
   if (span != nullptr) {
     if (!spans.empty()) {
-      GELOGI("Free using block device_id:%u size:%llu allocate_size:%zu mem_addr:%p count:%zu.",
-             device_allocator_.GetDeviceId(), size, span->GetSize(), span->GetAddr(), spans.size());
+      LOG_BY_TYPE(GeLogLevel::kInfo, "Free using block device_id:%u size:%llu allocate_size:%zu mem_addr:%p count:%zu.",
+                  device_allocator_.GetDeviceId(), size, span->GetSize(), span->GetAddr(), spans.size());
     }
 
     theory_size_ += span->GetSize();
@@ -507,8 +508,8 @@ PageSpan *ScalableAllocator::Alloc(ge::Allocator &allocator, const MemSize size)
       max_occupied_size_ = device_allocator_.GetOccupiedSize();
       PrintDetails(GeLogLevel::kInfo);
     }
-    GELOGI("Malloc block device_id:%u size:%llu allocate_size:%zu mem_addr:%p. span addr %p",
-           device_allocator_.GetDeviceId(), size, span->GetSize(), span->GetAddr(), span);
+    LOG_BY_TYPE(GeLogLevel::kInfo, "Malloc block device_id:%u size:%llu allocate_size:%zu mem_addr:%p. span addr %p",
+                device_allocator_.GetDeviceId(), size, span->GetSize(), span->GetAddr(), span);
   }
   return span;
 }
@@ -580,8 +581,8 @@ void ScalableAllocator::Free(ge::MemBlock *block) {
 
   auto ref_span = span->GetRefSpan();
   if (ref_span != nullptr) {
-    GELOGI("Free ref span device_id:%u allocate_size:%zu mem_addr:%p.", device_allocator_.GetDeviceId(),
-           ref_span->GetSize(), ref_span->GetAddr());
+    LOG_BY_TYPE(GeLogLevel::kInfo, "Free ref span device_id:%u allocate_size:%zu mem_addr:%p.",
+                device_allocator_.GetDeviceId(), ref_span->GetSize(), ref_span->GetAddr());
     FreeSpanEx(ref_span);
     span->SetRefSpan(nullptr);
   }
@@ -658,7 +659,8 @@ void ScalableAllocator::Recycle() {
       }
     }
   }
-  GELOGI("Total count:%zu new_va count:%zu", span_layer_lut_->size() + new_span_count, new_span_count);
+  LOG_BY_TYPE(GeLogLevel::kInfo, "Total count:%zu new_va count:%zu", span_layer_lut_->size() + new_span_count,
+              new_span_count);
   span_layer_lut_->Recycle(span_allocator_, device_allocator_);
   recycle_count_++;
   PrintDetails(GeLogLevel::kInfo);
@@ -794,6 +796,7 @@ void ScalableAllocator::PrintDetailsNewVa(const int32_t level) {
     if (span.IsNewVaSpan()) {
       total_page_count += span.GetPageLen();
       occupied_span_stat[span.GetPageLen()]++;
+      total_count++;
     }
   }
 
@@ -844,7 +847,7 @@ void ScalableAllocator::InitExpandableAllocator(ge::Allocator &allocator, const 
     const auto span = BlockAlloc(allocator, nullptr, virtual_active_addr, virtual_memory_size);
     if (span != nullptr) {
       base_addr_ = span->GetAddr();
-      GELOGI("base_addr:%p size:%zu", base_addr_, span->GetSize());
+      LOG_BY_TYPE(GeLogLevel::kInfo, "base_addr:%p size:%zu", base_addr_, span->GetSize());
       // span is idle, so the usage count needs to be 0
       while (span->GetCount() > 0U) {
         span->SubCount();

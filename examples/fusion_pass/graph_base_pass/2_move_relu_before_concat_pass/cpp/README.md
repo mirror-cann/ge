@@ -107,15 +107,13 @@
       ```
       export DUMP_GE_GRAPH=1
       ```
-    - 安装es_all.whl
+    - 设置 build 目录环境变量，`BUILD_PATH` 为“程序编译”步骤中生成的 build 目录实际路径：
       ```
-      pip install --force-reinstall --upgrade --target ${ASCEND_PATH}/python/site-packages/
-      ${BUILD_PATH}/es_output/whl/es_all-*****.whl
+      export BUILD_PATH=/path/to/build
       ```
-      `${BUILD_PATH}`请替换为build目录的实际路径。
     - 设置环境变量，添加es_all.so的路径
       ```
-      LD_LIBRARY_PATH="${BUILD_PATH}/es_output/lib64:${LD_LIBRARY_PATH}"
+      export LD_LIBRARY_PATH="${BUILD_PATH}/es_output/lib64:${LD_LIBRARY_PATH}"
       ```
     - 进入data目录执行.py文件导出air：
       ```

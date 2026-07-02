@@ -48,7 +48,7 @@ export ASCEND_GE_PY_PASS_PATH=$PWD/python/src/python_move_relu_before_concat_pas
 2. 生成 AIR 模型：
 
 ```bash
-cd cpp/data
+cd ../cpp/data
 python es_gen_air.py
 ```
 
@@ -77,9 +77,10 @@ cmake --build build --target build_es_all -j$(nproc)
 安装生成的 Python 包，并让当前 Python 进程能找到包和对应的动态库：
 
 ```bash
-pip install --force-reinstall --upgrade --target ./build/whl_package ./build/es_output/whl/es_all-1.0.0-py3-none-any.whl
-export PYTHONPATH="$PWD/build/whl_package:${PYTHONPATH:-}"
-export LD_LIBRARY_PATH="$PWD/build/es_output/lib64:${LD_LIBRARY_PATH:-}"
+export BUILD_PATH="$PWD/build"
+pip install --force-reinstall --upgrade --target "${BUILD_PATH}/whl_package" "${BUILD_PATH}/es_output/whl/es_all-1.0.0-py3-none-any.whl"
+export PYTHONPATH="${BUILD_PATH}/whl_package:${PYTHONPATH:-}"
+export LD_LIBRARY_PATH="${BUILD_PATH}/es_output/lib64:${LD_LIBRARY_PATH:-}"
 cd ..
 ```
 

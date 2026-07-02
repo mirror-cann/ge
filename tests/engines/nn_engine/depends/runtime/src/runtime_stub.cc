@@ -727,12 +727,6 @@ rtError_t rtGetRtCapability(rtFeatureType_t featureType, int32_t featureInfo, in
   return RT_ERROR_NONE;
 }
 
-typedef enum tagRtMemRequestFeature {
-  MEM_REQUEST_FEATURE_DEFAULT = 0,
-  MEM_REQUEST_FEATURE_OPP,
-  MEM_REQUEST_FEATURE_RESERVED
-} rtMemRequestFeature_t;
-
 uint32_t rtGetTsMemType(rtMemRequestFeature_t featureType, uint32_t memSize) {
   return RT_MEMORY_HBM;
 }

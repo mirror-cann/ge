@@ -33,7 +33,7 @@
 #include "rt_external_mem.h"
 #include "task_args_refresh_type_classifier.h"
 #include "task_node_map.h"
-#include "runtime/dev.h"
+#include "rt_external_device.h"
 
 namespace {
 constexpr uint32_t k32BitsMask = 0xFFFFFFFFU;  // 32 bits, 1111,1111,1111,1111,1111,1111,1111,1111

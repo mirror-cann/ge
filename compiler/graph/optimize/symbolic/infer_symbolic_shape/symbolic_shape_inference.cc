@@ -29,6 +29,7 @@
 #include "symbolic_shape_inference.h"
 #include "base/registry/op_impl_space_registry_v2.h"
 #include "graph/symbolizer/guard_dfx_context.h"
+#include <algorithm>
 
 namespace ge {
 namespace {
@@ -82,6 +83,18 @@ bool IsInputDescValid(const ge::GeTensorDesc &input_desc, size_t &invalid_index_
     return false;
   }
   return true;
+}
+
+bool IsInputDataDependencyByOpInferDepends(const ge::OpDescPtr &op_desc, const size_t instance_index) {
+  if (op_desc == nullptr) {
+    return false;
+  }
+  const auto &op_infer_depends = op_desc->GetOpInferDepends();
+  if (op_infer_depends.empty()) {
+    return false;
+  }
+  const auto input_name = op_desc->GetValidInputNameByIndex(static_cast<uint32_t>(instance_index));
+  return std::find(op_infer_depends.cbegin(), op_infer_depends.cend(), input_name) != op_infer_depends.cend();
 }
 
 bool IsSupportInfer(const ge::OpDescPtr &op_desc) {
@@ -262,7 +275,9 @@ Status ConstructInferSymbolShapeContextInputs(const NodePtr &node,
     GE_ASSERT_GRAPH_SUCCESS(ge::OpDescUtils::GetInputIrIndexByInstanceIndex(op_desc, instance_index, ir_index),
                             "[Get][InputIrIndexByInstanceIndex] failed, op[%s], instance index[%zu], input_index[%zu]",
                             op_desc->GetName().c_str(), instance_index, i);
-    auto holder = GetInputSymbolTensorHolder(op, op_desc, i, func.IsInputDataDependency(ir_index));
+    const auto is_data_dependency =
+        func.IsInputDataDependency(ir_index) || IsInputDataDependencyByOpInferDepends(op_desc, instance_index);
+    auto holder = GetInputSymbolTensorHolder(op, op_desc, i, is_data_dependency);
     inputs.emplace_back(std::move(holder));
   }
   return ge::GRAPH_SUCCESS;
@@ -384,7 +399,9 @@ Status DoComputeAndUpdate(const NodePtr &node) {
   const auto op_desc = node->GetOpDesc();
   GE_ASSERT_NOTNULL(op_desc);
   const auto kernel_func = SymbolicKernelFactory::GetInstance().Create(op_desc->GetType());
-  if (kernel_func == nullptr) { return UNSUPPORTED; }
+  if (kernel_func == nullptr) {
+    return UNSUPPORTED;
+  }
   GELOGD("Start to host compute for node %s", op_desc->GetNamePtr());
   std::vector<std::unique_ptr<gert::SymbolTensor>> inputs_holder;
   std::vector<std::unique_ptr<gert::SymbolTensor>> outputs_holder;
@@ -393,9 +410,9 @@ Status DoComputeAndUpdate(const NodePtr &node) {
   GE_ASSERT_GRAPH_SUCCESS(ConstructComputeSymbolShapeContextOutputs(op_desc, outputs_holder));
 
   const auto kernel_context_holder = gert::KernelRunContextBuilder()
-      .Inputs(GetVoidPtr<gert::SymbolTensor>(inputs_holder))
-      .Outputs(GetVoidPtr<gert::SymbolTensor>(outputs_holder))
-      .Build(op_desc);
+                                         .Inputs(GetVoidPtr<gert::SymbolTensor>(inputs_holder))
+                                         .Outputs(GetVoidPtr<gert::SymbolTensor>(outputs_holder))
+                                         .Build(op_desc);
   auto infer_symbol_shape_ctx = reinterpret_cast<gert::InferSymbolComputeContext *>(kernel_context_holder.context_);
   auto ret = kernel_func(infer_symbol_shape_ctx);
   GE_ASSERT_TRUE(ret == ge::GRAPH_SUCCESS || ret == ge::UNSUPPORTED,
@@ -472,8 +489,8 @@ Status DoInferShapeAndUpdate(const NodePtr &node) {
   GE_ASSERT_NOTNULL(op_desc);
   auto functions = gert::OpImplInferSymbolShapeRegistry::GetInstance().GetOpImpl(op_desc->GetType().c_str());
   if (functions == nullptr || functions->infer_symbol_shape == nullptr) {
-    GELOGW("Symbolic infershape callback for node %s[%s] is not implemented.",
-           op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    GELOGW("Symbolic infershape callback for node %s[%s] is not implemented.", op_desc->GetName().c_str(),
+           op_desc->GetType().c_str());
     return UNSUPPORTED;
   }
   auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
@@ -621,7 +638,7 @@ Status SymbolicShapeInference::Infer(const ComputeGraphPtr &graph) const {
     const auto ret = InferOneNode(node);
     GE_ASSERT_TRUE((ret == SUCCESS) || (ret == UNSUPPORTED), "[InferOneNode] failed,name[%s]", node->GetName().c_str());
     if (ret == UNSUPPORTED) {
-      GELOGW("InferOneNode unsupport, node %s[%s]", node->GetName().c_str(), node->GetType().c_str());
+      GELOGW("InferOneNode unsupported, node %s[%s]", node->GetName().c_str(), node->GetType().c_str());
     }
     GE_ASSERT_SUCCESS(UpdateSymbolShapeAndDtypeToPeerInputs(node));
   }

@@ -45,7 +45,7 @@ remove_stub_softlink() {
     ([ -d "${devlibdir}" ] && cd "${devlibdir}" && {
         chmod u+w . && echo "${stub_libs}" | xargs --no-run-if-empty rm -rf
         chmod u-w .
-    })
+    }) || true
 }
 
 remove_stub_softlink
@@ -55,7 +55,7 @@ remove_empty_dir() {
     local parent
     parent=$(dirname "${dir}")
     [ -d "${dir}" ] || return 0
-    rmdir "${dir}" 2>/dev/null && chmod +w "${parent}" 2>/dev/null
+    rmdir "${dir}" 2>/dev/null && chmod +w "${parent}" 2>/dev/null || true
 }
 
 remove_empty_dir "${WHL_INSTALL_DIR_PATH}"

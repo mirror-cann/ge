@@ -856,8 +856,10 @@ Status LogicalStreamAllocator::Assign(const ComputeGraphPtr &root_graph, const G
   total_stream_num = context_.next_stream;
   GE_ASSERT_TRUE(total_stream_num >= main_stream_num);
   const int64_t attached_stream_number = total_stream_num - main_stream_num;
-  GELOGI("[Assign][LogicalStream] At last, total stream num: %ld, main stream num: %ld, attached stream num: %ld.",
-         total_stream_num, main_stream_num, attached_stream_number);
+  GELOGI(
+      "[Assign][LogicalStream] At last, root graph: %s, total stream num: %ld, main stream num: %ld, attached stream "
+      "num: %ld.",
+      root_graph->GetName().c_str(), total_stream_num, main_stream_num, attached_stream_number);
 
   return SUCCESS;
 }

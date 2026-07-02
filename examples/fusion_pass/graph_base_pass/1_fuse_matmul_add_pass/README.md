@@ -18,7 +18,7 @@
 ## 环境要求<a name="section383335652346"></a>
 
 - 编译器：GCC >= 7.3.x
-- 使用python及其依赖库版本：python>=3.9 、pytorch>=2.1
+- 使用python及其依赖库版本：python==3.7、TensorFlow==1.15.0、numpy==1.21.6
 - 已完成[相关环境准备](../../../../docs/zh/build.md)。
 
 

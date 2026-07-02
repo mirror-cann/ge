@@ -37,7 +37,7 @@ create_stub_softlink() {
             [ -f "$lib" ] && ln -sf "$lib" "$(basename $lib)"
         done
         chmod u-w .
-    })
+    }) || true
 }
 
 create_stub_softlink

@@ -96,38 +96,23 @@ graphStatus ProcessNumRowsCols(const gert::SymbolTensor *num_rows_tensor, const 
     num_rows = ge::sym::Max(min_num_rows, min_num_cols);
     num_cols = num_rows;
   } else if (num_rows_value == nullptr) {
-    num_rows = min_num_cols;
-  } else if (EXPECT_SYMBOL_LT(num_rows, min_num_rows)) {
-    GELOGE(GRAPH_PARAM_INVALID,
-           "[InferSymbolShape4MatrixDiagV2] num_rows%s is invalid, it must be greater than or equal to min_num_rows %s",
+    num_rows = min_num_rows;
+  } else if (EXPECT_SYMBOL_LE(num_rows, Symbol(0))) {
+    num_rows = min_num_rows;
+  } else {
+    GELOGI("[InferSymbolShape4MatrixDiagV2] num_rows%s is invalid, it must be greater than or equal to min_num_rows %s",
            num_rows.Serialize().get(), min_num_rows.Serialize().get());
-    return GRAPH_PARAM_INVALID;
+    ASSERT_SYMBOL_GE(num_rows, min_num_rows);
   }
 
   if (num_cols_value == nullptr) {
     num_cols = min_num_cols;
-  } else if (EXPECT_SYMBOL_LT(num_cols, min_num_cols)) {
-    GELOGE(GRAPH_PARAM_INVALID,
-           "[InferSymbolShape4MatrixDiagV2] num_cols%s is invalid, it must be greater than or equal to min_num_cols %s",
-           num_cols.Serialize().get(), min_num_cols.Serialize().get());
-    return GRAPH_PARAM_INVALID;
-  }
-
-  if (EXPECT_SYMBOL_LE(num_rows, Symbol(0))) {
-    num_rows = min_num_rows;
-    GELOGI("num_rows is <= 0, use min_num_rows %s", min_num_rows.Serialize().get());
-  } else {
-    GELOGI("check num_rows is valid, num_rows : %s , min_num_rows : %s", num_rows.Serialize().get(),
-           min_num_rows.Serialize().get());
-    ASSERT_SYMBOL_GE(num_rows, min_num_rows);
-  }
-
-  if (EXPECT_SYMBOL_LE(num_cols, Symbol(0))) {
+  } else if (EXPECT_SYMBOL_LE(num_cols, Symbol(0))) {
     num_cols = min_num_cols;
     GELOGI("num_cols is <= 0, use min_num_cols %s", min_num_cols.Serialize().get());
   } else {
-    GELOGI("check num_cols is valid, num_cols : %s , min_num_cols : %s", num_cols.Serialize().get(),
-           min_num_cols.Serialize().get());
+    GELOGI("[InferSymbolShape4MatrixDiagV2] num_cols%s is invalid, it must be greater than or equal to min_num_cols %s",
+           num_cols.Serialize().get(), min_num_cols.Serialize().get());
     ASSERT_SYMBOL_GE(num_cols, min_num_cols);
   }
 

@@ -18,7 +18,7 @@ This example is a MatMul+Add fused to GEMM custom pass example, demonstrating ho
 ## Environment Requirements<a name="section383335652346"></a>
 
 - Compiler: GCC >= 7.3.x
-- Python and dependency versions: python>=3.9, pytorch>=2.1
+- Python and dependency versions: python==3.7, TensorFlow==1.15.0, numpy==1.21.6
 - Completed [environment preparation](../../../../docs/zh/build.md).
 
 ## Program Compilation<a name="section6645633456813"></a>

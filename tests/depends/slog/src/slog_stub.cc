@@ -25,6 +25,7 @@ auto ins = ge::SlogStub::GetInstance();  // 让log提前初始化
 class DefaultSlogStub : public SlogStub {
  public:
   DefaultSlogStub() : SlogStub() {
+    setenv("ASCEND_SLOG_PRINT_TO_STDOUT", "1", 1);
     auto log_level = getenv("ASCEND_GLOBAL_LOG_LEVEL");
     if (log_level != nullptr) {
       SetLevel(atoi(log_level));
