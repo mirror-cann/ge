@@ -11,7 +11,7 @@
 
 ## 实现步骤
 ### 步骤一. [可选] 生成ES API代码参考
-通过gen_esb可执行程序生成ES_API代码 (参考 [gen_esb_readme.md](../../docs/zh/user-guides/es_graph/tools/gen_esb.md))
+通过gen_esb可执行程序生成ES_API代码 (参考 [gen_esb_readme.md](../../docs/zh/user_guides/es_graph/tools/gen_esb.md))
 ### 步骤二. 自定义ES API代码
 参考步骤一生成的代码编写自定义API代码, 以下为代码样例
 - Sample 1. 合法性补全 Conv2D <a id="sample1"></a> <br>

@@ -17,7 +17,7 @@ Generate pbtxt format dump graph in the project build directory
 
 ### Step 1. [Optional] Generate ES API Code Reference
 
-Generate ES_API code via gen_esb executable program (refer to [gen_esb_readme.md](../../docs/zh/user-guides/es_graph/tools/gen_esb.md))
+Generate ES_API code via gen_esb executable program (refer to [gen_esb_readme.md](../../docs/en/user_guides/es_graph/tools/gen_esb.md))
 
 ### Step 2. Customize ES API Code
 

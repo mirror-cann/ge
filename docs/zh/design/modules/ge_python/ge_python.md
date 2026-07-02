@@ -694,7 +694,7 @@ export ASCEND_GE_PY_PASS_PATH=/path/to/my_pass.py:/path/to/pass_dir/
 
 ## ES 模块
 
-ES (Eager-Style) 模块提供了函数式风格的图构建接口，详细文档请参考：[ES-PY Python 模块文档](../../../user-guides/es_graph/api/es_python.md)
+ES (Eager-Style) 模块提供了函数式风格的图构建接口，详细文档请参考：[ES-PY Python 模块文档](../../../user_guides/es_graph/api/es_python.md)
 
 ## 使用示例
 

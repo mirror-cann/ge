@@ -219,7 +219,7 @@ ge::graphStatus InferShapeRangeForWhere(InferShapeRangeContext *context) {
     return ge::GRAPH_SUCCESS;
 }
 ```
-- Note: Definition of Type 1, 2, and 3 operators can be found in [op_impl_dev_guide.md](../../user-guides/custom_op/custom_op_v1/op_impl_dev_guide.md)
+- Note: Definition of Type 1, 2, and 3 operators can be found in [op_impl_dev_guide.md](../../user_guides/custom_op/custom_op_v1/op_impl_dev_guide.md)
 
 ## 5 Compile-time Implementation
 

@@ -278,4 +278,4 @@ graph TB
 
 - 开发指南：[`custom_op_development_guide.md`](./custom_op_development_guide.md)
 - 架构设计：[`custom_op_architecture.md`](./custom_op_architecture.md)
-- 样例代码：[`examples/custom_op/`](../../../../../examples/custom_op/)
+- 样例代码：[`examples/custom_op/`](../../../../../examples/custom_op/README.md)

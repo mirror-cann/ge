@@ -54,7 +54,7 @@ export ASCEND_GE_PY_PASS_PATH=/path/to/pass1.py:/path/to/pass_dir2/
 ## Usage Example
 
 For Python Pass development steps, refer to [Python Fusion Pass Development Guide](../../../../../examples/fusion_pass/python_fusion_pass_development_guide.md).
-For complete samples, refer to [examples/fusion_pass](../../../../../examples/fusion_pass/README.md) directory, covering development examples for `FusionBasePass`, `PatternFusionPass`, `DecomposePass` etc. Pass types.
+For complete samples, refer to [examples/fusion_pass](../../../../../examples/fusion_pass/README_en.md) directory, covering development examples for `FusionBasePass`, `PatternFusionPass`, `DecomposePass` etc. Pass types.
 
 ## Scanning Rules Detail
 

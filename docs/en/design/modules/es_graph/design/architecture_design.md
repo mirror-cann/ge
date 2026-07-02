@@ -722,7 +722,7 @@ Parameter descriptions are as follows:
 - **`value`**: Source of constant data.
 - **`dims` + `dim_num`**: Specifies the shape of the constant `Tensor`.
 
-For specific interfaces, refer to the [api directory](../../../../../en/user-guides/es_graph/api/es_cpp.md)
+For specific interfaces, refer to the [api directory](../../../../../en/user_guides/es_graph/api/es_cpp.md)
 
 #### Special Syntax for `Scalar`
 

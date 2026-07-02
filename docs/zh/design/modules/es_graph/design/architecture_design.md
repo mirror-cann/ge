@@ -933,7 +933,7 @@ EsCTensorHolder *EsCreateConstFloat(EsCGraphBuilder *graph,
 - **`value`**：常量数据来源。
 - **`dims` + `dim_num`**：指定常量 `Tensor` 的形状。
 
-具体接口可以参考[api目录](../../../../user-guides/es_graph/api/es_cpp.md)
+具体接口可以参考[api目录](../../../../user_guides/es_graph/api/es_cpp.md)
 
 #### `Scalar`的特殊语法
 

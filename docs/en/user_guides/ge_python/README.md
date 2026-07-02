@@ -124,4 +124,6 @@ In 2026 Q1, our main work focused on completing es api integration, allowing use
 - [x] [***December 2025***] Python api backward compatibility design and implementation completed.
 
 ### Others
+
 - [] [***Future Phase***] Custom operator graph insertion Python support
+

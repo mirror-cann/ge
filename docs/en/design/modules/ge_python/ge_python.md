@@ -694,7 +694,7 @@ For more design details please refer to [Python Pass Design Document](ge_python_
 
 ## ES Module
 
-ES (Eager-Style) module provides functional-style graph construction interface, detailed documentation please refer to: [ES-PY Python Module Documentation](../../../user-guides/es_graph/api/es_python.md)
+ES (Eager-Style) module provides functional-style graph construction interface, detailed documentation please refer to: [ES-PY Python Module Documentation](../../../user_guides/es_graph/api/es_python.md)
 
 ## Usage Examples
 

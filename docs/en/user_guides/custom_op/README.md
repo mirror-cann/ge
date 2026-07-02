@@ -6,7 +6,7 @@ This directory contains documentation for two mechanisms for integrating custom 
 
 | Directory | Mechanism | Registration Method | Applicable Scenario |
 |------|------|---------|------------------------------|
-| [`custom_op_v2/`](./custom_op_v2/custom_op_architecture.md) | BaseCustomOp + REG_AUTO_MAPPING_OP | Virtual function inheritance + factory registration | External custom operators (arbitrary kernel binary) |
+| [`custom_op_v2/`](./custom_op_v2/custom_op_development_guide.md) | BaseCustomOp + REG_AUTO_MAPPING_OP | Virtual function inheritance + factory registration | External custom operators (arbitrary kernel binary) |
 | [`custom_op_v1/`](./custom_op_v1/op_impl_dev_guide.md) | IMPL_OP + OpImplRegisterV2 | Chained function pointers | Standard AscendC developed Aicore operators (framework fully managed) |
 
 ## Core Differences

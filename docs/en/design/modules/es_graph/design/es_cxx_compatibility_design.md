@@ -107,7 +107,7 @@ The generation and publication of historical prototype library structured data b
 
 #### 2.4.3 Usage of generate_es_package Function
 
-[generate_es_package](../../../../user-guides/es_graph/tools/generate_es_package_cmake_readme.md) is a cmake function wrapping gen_esb, with current parameters as follows:
+[generate_es_package](../../../../user_guides/es_graph/tools/generate_es_package_cmake_readme.md) is a cmake function wrapping gen_esb, with current parameters as follows:
 
 | Parameter | Required | Description | Example |
 |------|--------|------|------|
