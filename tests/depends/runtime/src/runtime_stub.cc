@@ -20,7 +20,7 @@
 #include <iostream>
 #include "rt_external_dqs.h"
 #include "rt_external_kernel.h"
-#include "runtime/dev.h"
+#include "rt_external_device.h"
 
 extern std::string g_runtime_stub_mock;
 extern std::string g_runtime_stub_mock_v2;
