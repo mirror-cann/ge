@@ -23,6 +23,7 @@
 #include "can_fuse/fusion_strategy_solver.h"
 #include "can_fuse/backend/fusion_decider_registry.h"
 #include "can_fuse/backend/asc_backend_fusion_decider.h"
+#include "can_fuse/strategy/reduce_fusion_strategy.h"
 #include "post_process/asc_backend_post_processor.h"
 #include "post_process/scheduler_adapter/adaption_fallback_load.h"
 #include "utils/auto_fuse_config.h"
@@ -87,6 +88,25 @@ uint8_t AscSubgraphNodeCount(const NodePtr &AscNode, const string &node_type) {
     }
   }
   return count;
+}
+
+NodePtr CreateReduceNodeWithOriginalAxis(const ComputeGraphPtr &graph, const std::string &name,
+                                         const std::vector<int64_t> &axis, const std::vector<Expression> &repeats) {
+  auto tensor_desc = std::make_shared<GeTensorDesc>();
+  tensor_desc->SetShape(GeShape({1, 1, 1}));
+  tensor_desc->SetFormat(FORMAT_ND);
+  tensor_desc->SetDataType(DT_FLOAT);
+
+  auto op_desc = std::make_shared<OpDesc>(name, kAscBackendType);
+  op_desc->AddInputDesc(tensor_desc->Clone());
+  op_desc->AddOutputDesc(tensor_desc->Clone());
+  auto node = graph->AddNode(op_desc);
+  auto attr = GetOrCreateAutoFuseAttrs(op_desc);
+  GetInterAttrs(attr).fuse_type = (1UL << static_cast<uint64_t>(loop::FuseType::kReduction));
+  attr->SetReduceAllLoadState(REDUCE_ALL_LOAD_ALL);
+  attr->SetReduceOriginalAxis(axis);
+  attr->SetReduceOriginalRepeats(repeats);
+  return node;
 }
 }  // namespace
 
@@ -1951,6 +1971,30 @@ TEST_F(LoweringAndCanfuseUT, BroadcastToProdAxisProbe) {
   EXPECT_EQ(broadcast_count, 1U);
   EXPECT_GT(prod_count, 0U);
   SetCurShapeEnvContext(nullptr);
+}
+
+TEST_F(LoweringAndCanfuseUT, ReduceOriginalAxisConflictCanNotFuse) {
+  auto graph = std::make_shared<ComputeGraph>("reduce_original_axis_conflict_graph");
+  const auto node1 = CreateReduceNodeWithOriginalAxis(graph, "reduce1", {0, 1}, {Symbol(64), Symbol(32)});
+  const auto node2 = CreateReduceNodeWithOriginalAxis(graph, "reduce2", {1, 2}, {Symbol(32), Symbol(16)});
+
+  EXPECT_FALSE(ReduceFusionStrategy().CanFuse(node1, node2));
+}
+
+TEST_F(LoweringAndCanfuseUT, ReduceOriginalRepeatsConflictCanNotFuse) {
+  auto graph = std::make_shared<ComputeGraph>("reduce_original_repeats_conflict_graph");
+  const auto node1 = CreateReduceNodeWithOriginalAxis(graph, "reduce1", {0, 1}, {Symbol(64), Symbol(32)});
+  const auto node2 = CreateReduceNodeWithOriginalAxis(graph, "reduce2", {0, 1}, {Symbol(64), Symbol(16)});
+
+  EXPECT_FALSE(ReduceFusionStrategy().CanFuse(node1, node2));
+}
+
+TEST_F(LoweringAndCanfuseUT, ReduceOriginalAxisCompatibleCanFuse) {
+  auto graph = std::make_shared<ComputeGraph>("reduce_original_axis_compatible_graph");
+  const auto node1 = CreateReduceNodeWithOriginalAxis(graph, "reduce1", {0, 1}, {Symbol(64), Symbol(32)});
+  const auto node2 = CreateReduceNodeWithOriginalAxis(graph, "reduce2", {0, 1}, {Symbol(64), Symbol(32)});
+
+  EXPECT_TRUE(ReduceFusionStrategy().CanFuse(node1, node2));
 }
 
 }  // namespace ge
