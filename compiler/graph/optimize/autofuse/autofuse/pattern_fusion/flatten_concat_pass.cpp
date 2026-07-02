@@ -20,7 +20,7 @@
 #include "register/shape_inference.h"
 #include "utils/auto_fuse_config.h"
 #include "lowering/asc_lowerer/loop_common.h"
-#include "backend/backend_spec.h"
+#include "common/autofuse_backend_spec_api.h"
 #include "base/err_msg.h"
 #include "operator_factory.h"
 
@@ -315,7 +315,7 @@ graphStatus FlattenConcatPass::CanFlatten(const NodePtr &node, size_t concat_dim
   GE_CHK_BOOL_RET_SPECIAL_STATUS(num_inputs > kMaxFusedInputNum, ge::GRAPH_FAILED,
                                  "number of inputs(%zu) exceeds max input num(%zu), do not flatten concat", num_inputs,
                                  kMaxFusedInputNum);
-  const auto backend_spec = optimize::BackendSpec::GetInstance();
+  const auto backend_spec = ge::GetAutofuseBackendSpec();
   GE_CHECK_NOTNULL(backend_spec);
   const auto max_single_op_input_num = backend_spec->concat_max_input_num;
   const auto may_deteriorate =

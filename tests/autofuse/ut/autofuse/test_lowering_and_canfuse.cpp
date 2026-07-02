@@ -28,7 +28,7 @@
 #include "post_process/scheduler_adapter/adaption_fallback_load.h"
 #include "utils/auto_fuse_config.h"
 #include "fusion/autofuse_attrs.h"
-#include "backend/backend_spec.h"
+#include "common/autofuse_backend_spec_api.h"
 #include "ascgen_log.h"
 
 #include "common/util/mem_utils.h"

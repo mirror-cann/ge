@@ -11,7 +11,7 @@
 #ifndef INC_SHARE_GRAPH_H
 #define INC_SHARE_GRAPH_H
 #include "graph/compute_graph.h"
-#include "ascendc_ir.h"
+#include "graph/ascendc_ir/ascendc_ir_core/ascendc_ir.h"
 
 namespace ascir {
 struct ShareGraph {

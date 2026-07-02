@@ -33,8 +33,8 @@
 #include "fusion/autofuse_attrs.h"
 #include "util/mem_utils.h"
 #include "utils/auto_fuse_config.h"
-#include "backend/backend_spec.h"
-#include "platform_context.h"
+#include "common/autofuse_backend_spec_api.h"
+#include "common/autofuse_platform_api.h"
 
 #include "expression/testcase/source_stub.h"
 #include "all_ops_cpp.h"

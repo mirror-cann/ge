@@ -15,7 +15,7 @@
 #include "fusion/autofuse_attrs.h"
 #include "can_fuse/strategy/fusion_strategy_registry.h"
 #include "utils/not_fuse_reason_code.h"
-#include "backend/backend_spec.h"
+#include "common/autofuse_backend_spec_api.h"
 
 namespace ge {
 bool HasLoad(const NodePtr &node) {
@@ -44,9 +44,10 @@ bool TransposeFusionStrategy::CanFuse(const NodePtr &node1, const NodePtr &node2
 
 bool TransposeFusionStrategy::CheckBroadcastNodeFusion(const NodePtr &node1, const NodePtr &node2,
                                                        const AutoFuseAttrs *attr1, const AutoFuseAttrs *attr2) const {
-  auto const backend_spec = optimize::BackendSpec::GetInstance();
+  auto const backend_spec = ge::GetAutofuseBackendSpec();
+  GE_ASSERT_NOTNULL(backend_spec);
   uint32_t transpose_mode = backend_spec->transpose_mode;
-  if (transpose_mode == static_cast<uint32_t>(optimize::TransposeMode::TRANSPOSE_MODE_UNNORMAL)) {  // 1:非normal模式
+  if (transpose_mode == static_cast<uint32_t>(ge::AutofuseTransposeMode::TRANSPOSE_MODE_UNNORMAL)) {  // 1:非normal模式
     // a5单独的融合控制逻辑
     return false;
   }

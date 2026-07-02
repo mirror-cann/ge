@@ -14,7 +14,7 @@
 #include "can_fuse/strategy/fusion_strategy_registry.h"
 #include "utils/not_fuse_reason_code.h"
 #include "slice_split_fusion_strategy.h"
-#include "backend/backend_spec.h"
+#include "common/autofuse_backend_spec_api.h"
 
 namespace ge {
 namespace {
@@ -232,7 +232,7 @@ bool SliceSplitFusionStrategy::CanFuse(const NodePtr &node1, const NodePtr &node
         return false;
       }
     }
-    const auto backend_spec = optimize::BackendSpec::GetInstance();
+    const auto backend_spec = ge::GetAutofuseBackendSpec();
     GE_ASSERT_NOTNULL(backend_spec);
     if (!backend_spec->slice_split_spec.slice_fuse_with_end_dim_1 &&
         (attr1->GetFuseType() == loop::FuseType::kSliceSplit) && !attr2->HasFuseType(loop::FuseType::kSliceSplit) &&

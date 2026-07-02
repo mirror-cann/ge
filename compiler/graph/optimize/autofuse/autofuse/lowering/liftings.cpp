@@ -23,7 +23,7 @@
 #include "asc_lowerer/loop_common.h"
 #include "lowerings.h"
 #include "lowering/op_lowering_impl/lowering_impl.h"
-#include "backend/backend_spec.h"
+#include "common/autofuse_backend_spec_api.h"
 #include "op_helper/lower_split_helper.h"
 
 namespace ge {
@@ -292,7 +292,7 @@ bool IsSkipLifting(const NodePtr &node, size_t min_compute_nodes) {
   }
 
   auto min_one_node_in_data = kMinOneNodeInData;
-  const auto backend_spec = optimize::BackendSpec::GetInstance();
+  const auto backend_spec = ge::GetAutofuseBackendSpec();
   if (backend_spec != nullptr) {
     min_one_node_in_data = backend_spec->concat_max_input_num + 1;
   }

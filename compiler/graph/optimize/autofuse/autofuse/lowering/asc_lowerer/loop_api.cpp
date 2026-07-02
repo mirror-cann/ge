@@ -26,7 +26,7 @@
 #include "loop_common.h"
 #include "loop_ops.h"
 
-#include "backend/backend_spec.h"
+#include "common/autofuse_backend_spec_api.h"
 
 namespace ge {
 using namespace autofuse;
@@ -853,7 +853,8 @@ LoopVar StoreStridedSlice(const OutDataAnchorPtr &dst, const InDataAnchorPtr &sr
     not_lowering_reason = ss.str();
     return LoopVar(nullptr);
   }
-  const auto backend_spec = optimize::BackendSpec::GetInstance();
+  const auto backend_spec = ge::GetAutofuseBackendSpec();
+  GE_ASSERT_NOTNULL(backend_spec);
   if (!output_dims.empty() && !backend_spec->slice_split_spec.slice_fuse_with_end_dim_1) {
     auto index = output_dims.size() - 1;
     if (SymbolicUtils::StaticCheckEq(output_dims[index], Symbol(1)) == TriBool::kTrue) {

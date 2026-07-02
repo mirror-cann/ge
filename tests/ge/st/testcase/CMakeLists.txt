@@ -220,6 +220,7 @@ target_include_directories(ge_common_atc PRIVATE
     ${AIR_CODE_DIR}/tests/framework/macro_utils
     ${ASCGEN_DIR}/inc
     ${AIR_CODE_DIR}/inc
+    ${AIR_CODE_DIR}/compiler/graph/optimize/autofuse/autofuse
     ${CMAKE_BINARY_DIR}/proto/data_flow_protos
     ${AIR_CODE_DIR}/inc/graph_metadef
     ${ASCEND_INSTALL_PATH}/include/exe_graph

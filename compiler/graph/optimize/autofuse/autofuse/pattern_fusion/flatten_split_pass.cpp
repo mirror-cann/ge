@@ -10,7 +10,7 @@
 
 #include "flatten_split_pass.h"
 
-#include "backend/backend_spec.h"
+#include "common/autofuse_backend_spec_api.h"
 #include "common/checker.h"
 #include "graph_metadef/graph/debug/ge_util.h"
 #include "graph/debug/ge_op_types.h"
@@ -532,7 +532,8 @@ graphStatus FlattenSplitPass::Run(const ComputeGraphPtr &graph) {
         "and unsetting AUTOFUSE_FLAGS=\"--autofuse_disable_pass=split\"");
     return ge::GRAPH_SUCCESS;
   }
-  const auto backend_spec = optimize::BackendSpec::GetInstance();
+  const auto backend_spec = ge::GetAutofuseBackendSpec();
+  GE_CHECK_NOTNULL(backend_spec);
   if (!backend_spec->slice_split_spec.enable_split_flatten) {
     GELOGI("Skip split flatten as split flatten is disabled.");
     return ge::GRAPH_SUCCESS;

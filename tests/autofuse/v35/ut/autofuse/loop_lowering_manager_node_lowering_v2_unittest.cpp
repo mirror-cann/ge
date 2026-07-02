@@ -19,8 +19,8 @@
 #include "lowering/lowerings.h"
 #include "lowering/op_lowering_impl/lowering_impl.h"
 #include "utils/auto_fuse_config.h"
-#include "backend/backend_spec.h"
-#include "platform_context.h"
+#include "common/autofuse_backend_spec_api.h"
+#include "common/autofuse_platform_api.h"
 #include "ascgen_log.h"
 
 #include "op_creator_register.h"
@@ -39,14 +39,14 @@ class LoopNodeLoweringUTV2 : public testing::Test {
  protected:
   void SetUp() override {
     es_graph_ = std::unique_ptr<es::Graph>(new es::Graph("Hi Lowering graph"));
-    ge::PlatformContext::GetInstance().Reset();
+    ge::ResetAutofusePlatform();
     auto stub_v2 = std::make_shared<RuntimeStubV2Common>();
     RuntimeStub::SetInstance(stub_v2);
     RegisterAllOpCreator();
   }
   void TearDown() override {
     RuntimeStub::Reset();
-    ge::PlatformContext::GetInstance().Reset();
+    ge::ResetAutofusePlatform();
     auto stub_v1 = std::make_shared<RuntimeStub>();
     RuntimeStub::SetInstance(stub_v1);
   }

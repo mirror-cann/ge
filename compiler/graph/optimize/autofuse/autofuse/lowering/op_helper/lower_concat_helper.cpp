@@ -10,7 +10,7 @@
 
 #include "lower_concat_helper.h"
 
-#include "backend/backend_spec.h"
+#include "common/autofuse_backend_spec_api.h"
 #include "graph/utils/node_utils.h"
 #include "can_fuse/backend/backend_utils.h"
 #include "graph/debug/ge_op_types.h"
@@ -179,7 +179,7 @@ graphStatus LowerConcatHelper::NeedLifting(bool &need_lifting) {
   num_inputs_ = concat_node_->GetAllInDataAnchorsSize();
   GE_ASSERT_TRUE(num_inputs_ > 0);
   GE_CHK_BOOL_RET_SPECIAL_STATUS(HasBackwardFusion(), GRAPH_SUCCESS, "has backward fusion, do not lifting");
-  auto backend_spec = optimize::BackendSpec::GetInstance();
+  auto backend_spec = ge::GetAutofuseBackendSpec();
   GE_ASSERT_NOTNULL(backend_spec);
   if (!IsTile()) {
     GE_CHK_BOOL_RET_SPECIAL_STATUS(num_inputs_ > backend_spec->concat_max_input_num, GRAPH_SUCCESS,

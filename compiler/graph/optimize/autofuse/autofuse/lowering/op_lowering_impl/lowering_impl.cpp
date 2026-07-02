@@ -26,7 +26,7 @@
 #include "lowering/asc_lowerer/asc_overrides.h"
 #include "lowering/asc_lowerer/loop_common.h"
 #include "lowering/op_helper/stridedslice.h"
-#include "backend/backend_spec.h"
+#include "common/autofuse_backend_spec_api.h"
 #include "can_fuse/backend/backend_utils.h"
 #include "lowering/op_helper/cube.h"
 #include "common/fp16_t/fp16_t.h"
@@ -231,7 +231,7 @@ graphStatus LowerConcat(const NodePtr &node) {
     (void)loop::Store(node->GetOutDataAnchor(0), loop::Load(inputs[0]));
     return GRAPH_SUCCESS;
   }
-  const auto backend_spec = optimize::BackendSpec::GetInstance();
+  const auto backend_spec = ge::GetAutofuseBackendSpec();
   LOWERING_WARN_RECORD_REASON(backend_spec != nullptr, node, "backend spec is nullptr.");
   if ((backend_spec->concat_alg != kAlgTranspose) && ConcatCanBeConvertedToBrc(inputs, concat_dim)) {
     // ConcatToBroadcast 内部已经调用宏，存储原因
@@ -868,7 +868,8 @@ graphStatus LowerSplit(const NodePtr &node) {
   vector<ge::Expression> x_dims;
   LOWERING_WARN_RECORD_REASON(ParseSplitNodeAndValidate(node, x_anchor, split_dim, x_dims) == GRAPH_SUCCESS, node,
                               "Faile to ParseSplitNodeAndValidate");
-  const auto backend_spec = optimize::BackendSpec::GetInstance();
+  const auto backend_spec = ge::GetAutofuseBackendSpec();
+  GE_CHECK_NOTNULL(backend_spec);
   if (split_dim < 0) {
     split_dim += static_cast<int64_t>(x_dims.size());
   }
@@ -923,7 +924,7 @@ graphStatus LowerGather(const NodePtr &node) {
     axis[0] = axis[0] < 0 ? axis[0] + static_cast<int64_t>(params_dims.size()) : axis[0];
     LOWERING_WARN_RECORD_REASON(axis[0] >= 0 && axis[0] < static_cast<int64_t>(params_dims.size()), node,
                                 "Axis %ld must in dim range [0, %zu)", axis[0], params_dims.size());
-    const auto backend_spec = optimize::BackendSpec::GetInstance();
+    const auto backend_spec = ge::GetAutofuseBackendSpec();
     GE_CHECK_NOTNULL(backend_spec);
     LOWERING_WARN_RECORD_REASON(
         backend_spec->gather_spec.enable_non_tail_gather || axis[0] + 1 == static_cast<int64_t>(params_dims.size()),
@@ -936,7 +937,7 @@ graphStatus LowerGather(const NodePtr &node) {
 }
 
 bool IsPermSupported(const Permutation &perm, uint32_t transpose_mode) {
-  if (transpose_mode == static_cast<uint32_t>(optimize::TransposeMode::TRANSPOSE_MODE_UNNORMAL)) {  // 1:非normal模式
+  if (transpose_mode == static_cast<uint32_t>(ge::AutofuseTransposeMode::TRANSPOSE_MODE_UNNORMAL)) {  // 1:非normal模式
     // 先直接判断是否小于等于5维，后续添加合轴后的维度判断
     return perm.size() <= transpose_five_perms;
   }
@@ -1008,7 +1009,7 @@ graphStatus LowerTranspose(const NodePtr &node) {
     return ret;
   }
 
-  const auto backend_spec = optimize::BackendSpec::GetInstance();
+  const auto backend_spec = ge::GetAutofuseBackendSpec();
   GE_CHECK_NOTNULL(backend_spec);
   uint32_t transpose_mode = backend_spec->transpose_mode;
   LOWERING_WARN_RECORD_REASON(IsPermSupported(perm, transpose_mode) == true, node,

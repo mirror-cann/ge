@@ -7,6 +7,7 @@
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
+#include <map>
 #include <gtest/gtest.h>
 #include "graph/attribute_group/attr_group_symbolic_desc.h"
 #include "graph/debug/ge_attr_define.h"
@@ -19,8 +20,11 @@
 #include "operator_factory.h"
 #include "utils/autofuse_utils.h"
 #include "autofuse_frame/autofuse_frames.h"
+#include "common/autofuse_platform_api.h"
+#include "ge_local_context.h"
 #include "graph_utils.h"
 #include "op_creator_register.h"
+#include "platform_info.h"
 
 namespace ge {
 class AutofuserTest : public testing::Test {
@@ -281,6 +285,38 @@ TEST_F(AutofuserTest, EleAndEleAutofuse) {
   AutofuserOptions options;
   Autofuser autofuser(options);
   ASSERT_EQ(autofuser.Fuse(cg), SUCCESS);
+}
+
+TEST_F(AutofuserTest, UpdateAutofusePlatformBySocVersion) {
+  const auto old_graph_options = GetThreadLocalContext().GetAllGraphOptions();
+  const auto old_session_options = GetThreadLocalContext().GetAllSessionOptions();
+  const auto old_global_options = GetThreadLocalContext().GetAllGlobalOptions();
+  auto &platform_info_manager = fe::PlatformInfoManager::GeInstance();
+  const auto old_platform_infos_map = platform_info_manager.platform_infos_map_;
+  fe::PlatFormInfos platform_infos;
+  ASSERT_TRUE(platform_infos.Init());
+  std::map<std::string, std::string> version_infos = {{"NpuArch", "2201"}};
+  platform_infos.SetPlatformRes("version", version_infos);
+  platform_info_manager.platform_infos_map_["Ascend910B1"] = platform_infos;
+  GetThreadLocalContext().SetGraphOption({{SOC_VERSION, "Ascend910B1"}});
+
+  auto cg = CreateGraphEleAndEle();
+  AutofuserOptions options;
+  Autofuser autofuser(options);
+  const auto fuse_ret = autofuser.Fuse(cg);
+
+  std::string platform_name;
+  const auto get_platform_ret = GetAutofusePlatform(platform_name);
+
+  ResetAutofusePlatform();
+  GetThreadLocalContext().SetGraphOption(old_graph_options);
+  GetThreadLocalContext().SetSessionOption(old_session_options);
+  GetThreadLocalContext().SetGlobalOption(old_global_options);
+  platform_info_manager.platform_infos_map_ = old_platform_infos_map;
+
+  EXPECT_EQ(fuse_ret, SUCCESS);
+  EXPECT_EQ(get_platform_ret, SUCCESS);
+  EXPECT_EQ(platform_name, "2201");
 }
 
 TEST_F(AutofuserTest, EleAndReduceAutofuse) {

@@ -11,7 +11,7 @@
 #include "share_graph.h"
 #include "graph/utils/graph_utils.h"
 #include "graph/debug/ge_op_types.h"
-#include "ascendc_ir.h"
+#include "graph/ascendc_ir/ascendc_ir_core/ascendc_ir.h"
 #include "ascendc_ir_def.h"
 #include "ascendc_ir/utils/asc_graph_utils.h"
 #include "ascir_ops.h"

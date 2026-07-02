@@ -12,7 +12,7 @@
 
 #include <queue>
 
-#include "backend/backend_spec.h"
+#include "common/autofuse_backend_spec_api.h"
 #include "can_fuse/backend/backend_utils.h"
 #include "fusion/autofuse_attrs.h"
 #include "can_fuse/strategy/fusion_strategy_registry.h"
@@ -180,7 +180,7 @@ bool ConcatFusionStrategy::CheckSameSchedAxis(const NodePtr &node1, const NodePt
 
 Status ConcatFusionStrategy::CanFuseBackward(const NodePtr &node1, const NodePtr &node2, const AutoFuseAttrs *attr2) {
   (void)attr2;
-  const auto backend_spec = optimize::BackendSpec::GetInstance();
+  const auto backend_spec = ge::GetAutofuseBackendSpec();
   GE_ASSERT_NOTNULL(backend_spec);
   const auto support_backward_fusion_ = backend_spec->concat_alg != kConcatAlgTranspose;
   if (!support_backward_fusion_) {

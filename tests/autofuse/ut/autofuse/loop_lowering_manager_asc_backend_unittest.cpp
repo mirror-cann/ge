@@ -30,8 +30,8 @@
 #include "expression/testcase/source_stub.h"
 #include "depends/runtime/src/runtime_stub.h"
 
-#include "backend/backend_spec.h"
-#include "platform_context.h"
+#include "common/autofuse_backend_spec_api.h"
+#include "common/autofuse_platform_api.h"
 
 #include <regex>
 #include <gtest/gtest.h>
@@ -151,7 +151,7 @@ class LoopLoweringToAscBackendUTV1 : public testing::Test {
  protected:
   void SetUp() override {
     dlog_setlevel(GE_MODULE_NAME, DLOG_INFO, 0);
-    ge::PlatformContext::GetInstance().Reset();
+    ge::ResetAutofusePlatform();
     auto stub_v1 = std::make_shared<RuntimeStub>();
     RuntimeStub::SetInstance(stub_v1);
     es_graph_ = std::unique_ptr<es::Graph>(new es::Graph("graph"));
@@ -160,7 +160,7 @@ class LoopLoweringToAscBackendUTV1 : public testing::Test {
   void TearDown() override {
     dlog_setlevel(GE_MODULE_NAME, DLOG_ERROR, 0);
     RuntimeStub::Reset();
-    ge::PlatformContext::GetInstance().Reset();
+    ge::ResetAutofusePlatform();
     auto stub_v1 = std::make_shared<RuntimeStub>();
     RuntimeStub::SetInstance(stub_v1);
   }

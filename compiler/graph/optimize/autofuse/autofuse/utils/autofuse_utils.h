@@ -18,7 +18,7 @@
 #include "graph/operator_reg.h"
 #include "autofuse_frame/autofuse_frames.h"
 #include "common/checker.h"
-#include "common/platform_context.h"
+#include "common/autofuse_platform_api.h"
 #include "graph/compute_graph.h"
 #include "ascir_ops.h"
 
@@ -129,7 +129,7 @@ class AutofuseUtils {
   static Status CallAscirInferDataType(const std::vector<DataType> &input_dtypes,
                                        std::vector<DataType> &expect_output_dtypes) {
     std::string npu_arch;
-    GE_ASSERT_SUCCESS(ge::PlatformContext::GetInstance().GetCurrentPlatformString(npu_arch));
+    GE_ASSERT_SUCCESS(ge::GetAutofusePlatform(npu_arch));
     return OpType::InferDataType(input_dtypes, expect_output_dtypes, npu_arch);
   }
 
@@ -137,7 +137,7 @@ class AutofuseUtils {
   static Status CallAscirCommonInferDtype(const std::string &op_type, const std::vector<DataType> &input_dtypes,
                                           std::vector<DataType> &expect_output_dtypes) {
     std::string npu_arch;
-    GE_ASSERT_SUCCESS(ge::PlatformContext::GetInstance().GetCurrentPlatformString(npu_arch));
+    GE_ASSERT_SUCCESS(ge::GetAutofusePlatform(npu_arch));
     return af::ascir::CommonInferDtype(op_type, input_dtypes, expect_output_dtypes, npu_arch);
   }
 

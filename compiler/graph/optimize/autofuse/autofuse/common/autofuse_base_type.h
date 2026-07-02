@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2025 Huawei Technologies Co., Ltd.
+ * Copyright (c) 2026 Huawei Technologies Co., Ltd.
  * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
@@ -8,11 +8,13 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#include "schedule_result.h"
+#ifndef AUTOFUSE_COMMON_AUTOFUSE_BASE_TYPE_H_
+#define AUTOFUSE_COMMON_AUTOFUSE_BASE_TYPE_H_
 
-namespace ascgen_utils {
-extern bool CanUseTilingKey(const ascir::FusedScheduledResult &fused_schedule_result);
-bool CanUseTilingKey(const ascir::FusedScheduledResult &fused_schedule_result) {
-  return false;
-}
-}  // namespace ascgen_utils
+#include <cstdint>
+
+namespace ge {
+enum class AutoFuseFwkType : int32_t { kDefault = 0, kGe, kTorch };
+}  // namespace ge
+
+#endif  // AUTOFUSE_COMMON_AUTOFUSE_BASE_TYPE_H_

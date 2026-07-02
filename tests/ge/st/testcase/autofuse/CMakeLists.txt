@@ -42,11 +42,15 @@ target_include_directories(autofuse_test PRIVATE
         ${AIR_CODE_DIR}/compiler/graph/optimize/symbolic/infer_symbolic_shape/infer
         ${AIR_CODE_DIR}/tests/framework/ge_running_env/include
         ${AIR_CODE_DIR}/compiler/graph/optimize/autofuse/inc
+        ${AIR_CODE_DIR}/compiler/graph/optimize/autofuse/autofuse
+        ${AIR_CODE_DIR}/compiler/graph/optimize/autofuse/graph
+        ${AIR_CODE_DIR}/compiler/graph/optimize/autofuse/ascir
         ${AIR_CODE_DIR}/compiler/graph/optimize/autofuse/att/
         ${ASCGEN_DIR}
         ${ASCGEN_DIR}/autofuse
         ${CMAKE_BINARY_DIR}/tests/depends/aihacb_autofusion/
         ${CMAKE_BINARY_DIR}/proto/data_flow_protos
+        ${CMAKE_BINARY_DIR}/proto/ge_autofuse_metadef_protos_af
         ${METADEF_DIR}/base/registry
         ${METADEF_DIR}/register
         ${CMAKE_BINARY_DIR}/graph_metadef/graph/ascendc_ir/generator
@@ -90,7 +94,7 @@ target_link_options(autofuse_test PRIVATE
         -Wl,--disable-new-dtags
         )
 
-add_dependencies(autofuse_test gert_op_impl)
+add_dependencies(autofuse_test gert_op_impl ge_autofuse_metadef_protos_af)
 
 add_test(NAME autofuse_test COMMAND autofuse_test --gtest_output=xml:${CMAKE_INSTALL_PREFIX}/report/st/autofuse_test.xml)
 set_tests_properties(autofuse_test PROPERTIES

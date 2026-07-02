@@ -26,7 +26,7 @@
 #include "common/memory/tensor_trans_utils.h"
 #include "graph/execute/model_executor.h"
 #include "graph_metadef/depends/checker/tensor_check_utils.h"
-#include "common/platform_context.h"
+#include "common/autofuse_platform_api.h"
 using namespace testing;
 
 namespace ge {
@@ -54,7 +54,7 @@ class UserGraphsManagerlUT : public testing::Test {
     gert::SpaceRegistryFaker::CreateDefaultSpaceRegistry();
     std::map<std::string, std::string> options = {{ge::SOC_VERSION, "Ascend310"}};
     GetThreadLocalContext().SetGlobalOption(options);
-    ge::PlatformContext::GetInstance().SetPlatform("fake");
+    ge::SetAutofusePlatform("fake");
     const auto env_ptr = getenv("LD_PRELOAD");
     if (env_ptr != nullptr) {
       env = env_ptr;
@@ -67,7 +67,7 @@ class UserGraphsManagerlUT : public testing::Test {
     gert_stub_.Clear();
     RuntimeStub::Reset();
     AclRuntimeStub::Reset();
-    ge::PlatformContext::GetInstance().Reset();
+    ge::ResetAutofusePlatform();
     if (!env.empty()) {
       setenv("LD_PRELOAD", env.c_str(), 1);
     }
@@ -1028,10 +1028,13 @@ TEST_F(UserGraphsManagerlUT, add_graph_verify_three_ep_middle_options) {
   std::vector<float> data0(2 * 3 * 3 * 2, 0.0f);
   std::vector<int64_t> shape_data{2, 3, 3, 2};
   std::vector<gert::Tensor> inputs(2);
-  inputs[0] = {{{2, 3, 3, 2}, {2, 3, 3, 2}}, {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},
-               gert::kOnDeviceHbm, ge::DT_FLOAT, data0.data()};
-  inputs[1] = {{{4}, {4}}, {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},
-               gert::kOnDeviceHbm, ge::DT_INT64, shape_data.data()};
+  inputs[0] = {{{2, 3, 3, 2}, {2, 3, 3, 2}},
+               {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},
+               gert::kOnDeviceHbm,
+               ge::DT_FLOAT,
+               data0.data()};
+  inputs[1] = {
+      {{4}, {4}}, {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}}, gert::kOnDeviceHbm, ge::DT_INT64, shape_data.data()};
 
   std::promise<Status> promise;
   auto future = promise.get_future();

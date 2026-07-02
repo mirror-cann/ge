@@ -15,7 +15,7 @@ add_library(aihac_autofusion SHARED
         ${SOURCES}
 )
 
-add_dependencies(aihac_autofusion metadef_graph_protos_obj)
+add_dependencies(aihac_autofusion metadef_graph_protos_obj ge_autofuse_metadef_graph_protos_obj_af)
 
 #if (TARGET graph_autofusion_build)
 #    add_dependencies(aihac_autofusion graph_autofusion_build)
@@ -23,6 +23,8 @@ add_dependencies(aihac_autofusion metadef_graph_protos_obj)
 
 target_include_directories(aihac_autofusion BEFORE PRIVATE
        ${CODE_ROOT_DIR}
+       ${CODE_ROOT_DIR}/autofuse
+       ${CODE_ROOT_DIR}/graph
        ${AIR_CODE_DIR}/inc
        ${AIR_CODE_DIR}/inc/graph_metadef
        ${AIR_CODE_DIR}/inc/graph_metadef/graph
@@ -78,7 +80,6 @@ if (ENABLE_OPEN_SRC)
                mmpa_headers
                ge_metadef_headers
                error_manager
-               $<$<TARGET_EXISTS:autofuse_headers>:autofuse_headers>
                runtime_headers
                ascend_protobuf
                c_sec
@@ -97,7 +98,6 @@ else ()
                ascir_ops_headers
                atrace_headers
                error_manager
-               $<$<TARGET_EXISTS:autofuse_headers>:autofuse_headers>
                runtime_headers
                ascend_protobuf
                c_sec
