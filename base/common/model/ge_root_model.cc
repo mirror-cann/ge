@@ -495,8 +495,11 @@ Status GeRootModel::CheckAndSetAutofuseSo() {
       }
     }
   }
-  if (!autofuse_so_set_.empty()) {
+  const std::string *guard_so_data = AttrUtils::GetStr(root_graph_, "_guard_check_so_data");
+  if (!autofuse_so_set_.empty() || ((guard_so_data != nullptr) && !guard_so_data->empty())) {
     OpSoStoreUtils::SetSoBinType(SoBinType::kAutofuse, so_in_om_);
+    GELOGD("Set kAutofuse so_in_om_ bit, autofuse_so_count=%zu, guard_so_size=%zu.", autofuse_so_set_.size(),
+           (guard_so_data != nullptr) ? guard_so_data->size() : 0UL);
   }
   GELOGI("[AutofuseSo]The num of so is %zu.", autofuse_so_set_.size());
   return SUCCESS;

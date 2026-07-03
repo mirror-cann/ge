@@ -25,7 +25,7 @@
 #include "graph/types.h"
 #include "mmpa/mmpa_api.h"
 
-#include "common/autofuse_base_type.h"
+#include "autofuse/common/autofuse_base_type.h"
 
 namespace ge {
 namespace autofuse {

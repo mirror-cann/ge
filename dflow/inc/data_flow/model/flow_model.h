@@ -35,19 +35,9 @@ class FlowModel : public PneModel {
     return models_esched_priority_;
   }
 
-  void SetLogicDeviceToMemCfg(std::map<std::string, std::pair<uint32_t, uint32_t>> logic_dev_id_to_mem_cfg) {
-    logic_dev_id_to_mem_cfg_ = std::move(logic_dev_id_to_mem_cfg);
-  }
-
-  const std::map<std::string, std::pair<uint32_t, uint32_t>> &GetLogicDeviceToMemCfg() const {
-    return logic_dev_id_to_mem_cfg_;
-  }
-
  private:
   mutable std::mutex flow_model_mutex_;
   std::map<std::string, std::map<std::string, int32_t>> models_esched_priority_;
-  // key logic_device_id | value(std_mem_size, shared_mem_size)
-  std::map<std::string, std::pair<uint32_t, uint32_t>> logic_dev_id_to_mem_cfg_;
 };
 using FlowModelPtr = std::shared_ptr<ge::FlowModel>;
 }  // namespace ge

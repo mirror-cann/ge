@@ -32,7 +32,7 @@
 #include "op_creator_register.h"
 #include "all_ops_cpp.h"
 #include "esb_graph.h"
-#include "platform_context.h"
+#include "common/autofuse_platform_api.h"
 #include "depends/runtime/src/runtime_stub.h"
 
 using namespace std;
@@ -1366,13 +1366,13 @@ class UtestFusionStrategySolverV2 : public testing::Test {
     dlog_setlevel(ASCGEN_MODULE_NAME, DLOG_ERROR, 0);
     setenv("ENABLE_LOWER_MATMUL", "true", 1);
 
-    PlatformContext::GetInstance().Reset();
+    ge::ResetAutofusePlatform();
     auto stub_v2 = std::make_shared<RuntimeStubV2Common>();
     RuntimeStub::SetInstance(stub_v2);
   }
   void TearDown() override {
     dlog_setlevel(ASCGEN_MODULE_NAME, DLOG_ERROR, 0);
-    PlatformContext::GetInstance().Reset();
+    ge::ResetAutofusePlatform();
     RuntimeStub::Reset();
   }
 };
@@ -1656,7 +1656,7 @@ TEST_F(UtestFusionStrategySolverV2, Fuse_concat_backward) {
 }
 
 TEST_F(UtestFusionStrategySolverV2, Fuse_concat_backward_merge_split) {
-  PlatformContext::GetInstance().Reset();
+  ge::ResetAutofusePlatform();
   auto stub_v2 = std::make_shared<RuntimeStubV2Common>();
   RuntimeStub::SetInstance(stub_v2);
   class ConcatFusionDecider : public AscBackendFusionDecider {
@@ -1731,7 +1731,7 @@ TEST_F(UtestFusionStrategySolverV2, Fuse_concat_backward_merge_split) {
 }
 
 TEST_F(UtestFusionStrategySolverV2, Fuse_concat_backward_no_merge_split) {
-  PlatformContext::GetInstance().Reset();
+  ge::ResetAutofusePlatform();
   auto stub_v2 = std::make_shared<RuntimeStubV2Common>();
   RuntimeStub::SetInstance(stub_v2);
   class ConcatFusionDecider : public AscBackendFusionDecider {

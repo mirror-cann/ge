@@ -14,6 +14,7 @@
 #include "graph/unfold/graph_unfolder.h"
 #include "common/share_graph.h"
 #include "graph/utils/node_utils.h"
+#include "graph/op_so_bin.h"
 
 #include <omg/parser/parser_types.h>
 
@@ -403,4 +404,41 @@ TEST_F(GraphUnfolderTest, test_inplace_if_sub_graph) {
     ASSERT_NE(subgraph->FindFirstNodeMatchType(SQRT), nullptr);
   }
 }
+// 场景：root_graph通过SetExtAttr挂载了bin_file_buffer(autofuse so二进制数据)，
+// InheritOriginalAttr只拷贝proto attr不处理ext_attr，unfold后merged_graph应继承该ext_attr
+TEST_F(GraphUnfolderTest, test_bin_file_buffer_ext_attr_inherited) {
+  // 1.构造含PARTITIONEDCALL子图的根图
+  DEF_GRAPH(sub_1) {
+    CHAIN(NODE("data_i", OP_CFG(ge::DATA_TYPE).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0))
+              ->NODE("less", ge::LESS)
+              ->NODE("netoutput", ge::NETOUTPUT));
+    CHAIN(NODE("const_5", ge::CONSTANT)->NODE("less"));
+  };
+
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("data_a", OP_CFG(ge::DATA_TYPE).Attr(ATTR_NAME_INDEX, 0))
+              ->NODE("partition_call", ge::PARTITIONEDCALL, sub_1));
+    CHAIN(NODE("data_i", OP_CFG(ge::DATA_TYPE).Attr(ATTR_NAME_INDEX, 1))->NODE("partition_call"));
+  };
+
+  auto graph = ToComputeGraph(g1);
+
+  // 2.在根图上设置bin_file_buffer ext_attr，模拟model_helper在运行时挂载autofuse so数据
+  std::map<std::string, ge::OpSoBinPtr> bin_file_buffer;
+  auto data = std::make_unique<char[]>(10);
+  bin_file_buffer["vendor/libautofuse.so"] =
+      std::make_shared<ge::OpSoBin>("libautofuse.so", "vendor", std::move(data), 10U, ge::SoBinType::kAutofuse);
+  graph->SetExtAttr("bin_file_buffer", bin_file_buffer);
+
+  // 3.展开子图
+  ge::ComputeGraphPtr flatten_graph;
+  ASSERT_EQ(GraphUnfolder::UnfoldSubgraphs(graph, flatten_graph), ge::GRAPH_SUCCESS);
+
+  // 4.验证merged_graph上bin_file_buffer ext_attr完好继承
+  auto result = flatten_graph->GetExtAttr<std::map<std::string, ge::OpSoBinPtr>>("bin_file_buffer");
+  ASSERT_NE(result, nullptr);
+  ASSERT_EQ(result->size(), 1U);
+  ASSERT_NE(result->find("vendor/libautofuse.so"), result->end());
+}
+
 }  // namespace gert

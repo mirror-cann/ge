@@ -13,7 +13,7 @@
 
 #include "ge_common/ge_common_api_types.h"
 #include "graph/compute_graph.h"
-#include "common/autofuse_base_type.h"
+#include "autofuse/common/autofuse_base_type.h"
 #include "autofuse_frame/autofuse_frames.h"
 
 namespace ge {

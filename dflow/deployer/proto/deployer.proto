@@ -262,11 +262,6 @@ message TransferFileRequest {
   bool eof = 3;
 }
 
-message ModelMemSize {
-    uint32 std_mem_size = 1;
-    uint32 shared_mem_size = 2;
-}
-
 message UpdateDeployPlanRequest {
   int32 device_id = 1;
   uint64 session_id = 2;
@@ -275,7 +270,6 @@ message UpdateDeployPlanRequest {
   uint32 graph_id = 11;
   int32 device_type = 12;
   Options options = 14;
-  ModelMemSize model_mem_size = 15;
 }
 
 message AddFlowRoutePlanRequest {

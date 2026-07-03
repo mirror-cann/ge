@@ -15,7 +15,6 @@
 #include <regex>
 #include <algorithm>
 #include <google/protobuf/text_format.h>
-#include "nlohmann/json.hpp"
 #include "fusion/autofuse_attrs.h"
 #include "utils/graph_utils.h"
 #include "common/ge_common/ge_types.h"
@@ -29,6 +28,8 @@
 #include "mmpa/mmpa_api.h"
 #include "graph/ascendc_ir/utils/asc_graph_utils.h"
 #include "graph/ge_context.h"
+#include "graph/ge_local_context.h"
+#include "external/ge_common/ge_common_api_types.h"
 #include "post_process/post_process_util.h"
 
 namespace ge {
@@ -36,6 +37,8 @@ namespace {
 const std::string kComputeGraph = "compute_graph";
 const std::string kOutputSymbolShape = "output_symbol_shape";
 const std::string kSymbolSourceInfo = "symbol_source_info";
+const std::string kHostEnvOs = "host_env_os";
+const std::string kHostEnvCpu = "host_env_cpu";
 const int64_t kDynamicType = 2;
 // dump graph related
 constexpr int32_t kBaseOfIntegerValue = 10;
@@ -617,8 +620,23 @@ Status AutofuseUtils::SerializeAndPackComputeGraph(const ComputeGraphPtr &comput
   json_obj[kComputeGraph] = compute_graph_str;
   json_obj[kOutputSymbolShape] = output_attr_array.dump();
   json_obj[kSymbolSourceInfo] = symbol_info.dump();
+  InjectHostEnvToJson(json_obj);
   output = json_obj.dump();
   return SUCCESS;
+}
+
+void AutofuseUtils::InjectHostEnvToJson(nlohmann::json &json_obj) {
+  std::string host_env_os;
+  std::string host_env_cpu;
+  GetThreadLocalContext().GetOption(OPTION_HOST_ENV_OS, host_env_os);
+  GetThreadLocalContext().GetOption(OPTION_HOST_ENV_CPU, host_env_cpu);
+  GELOGD("InjectHostEnvToJson, os=%s, cpu=%s.", host_env_os.c_str(), host_env_cpu.c_str());
+  if (!host_env_os.empty()) {
+    json_obj[kHostEnvOs] = host_env_os;
+  }
+  if (!host_env_cpu.empty()) {
+    json_obj[kHostEnvCpu] = host_env_cpu;
+  }
 }
 
 Status AutofuseUtils::GetNodeOutputIndex(const NodePtr &node, std::vector<uint32_t> &node_output_index) {

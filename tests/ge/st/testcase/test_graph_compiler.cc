@@ -71,7 +71,7 @@
 #include "graph/build/memory/checker/atomic_clean_checker.h"
 #include "common/summary_checker.h"
 #include "common/topo_checker.h"
-#include "common/platform_context.h"
+#include "common/autofuse_platform_api.h"
 #include "common/mem_conflict_share_graph.h"
 #include "graph/optimize/autofuse/autofuse_optimize.h"
 #include "graph/manager/graph_var_manager.h"
@@ -1326,7 +1326,7 @@ class GraphCompilerTest : public testing::Test {
     mmSetEnv("ENABLE_RUNTIME_V2", &(runtime2_env[0U]), static_cast<uint32_t>(MMPA_MAX_PATH));
     const std::vector<rtMemType_t> mem_type{RT_MEMORY_HBM, RT_MEMORY_P2P_DDR};
     (void)ge::MemManager::Instance().Initialize(mem_type);
-    ge::PlatformContext::GetInstance().SetPlatform("2201");
+    ge::SetAutofusePlatform("2201");
     MockGenerateTask();
   }
   void TearDown() {

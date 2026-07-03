@@ -32,8 +32,8 @@
 #include "fusion/autofuse_attrs.h"
 #include "util/mem_utils.h"
 #include "utils/auto_fuse_config.h"
-#include "backend/backend_spec.h"
-#include "platform_context.h"
+#include "common/autofuse_backend_spec_api.h"
+#include "common/autofuse_platform_api.h"
 
 #include "expression/testcase/source_stub.h"
 #include "depends/runtime/src/runtime_stub.h"
@@ -134,14 +134,14 @@ class LoopAscIrLowerPrunerUTV2 : public testing::Test {
     es_graph_ = std::unique_ptr<es::Graph>(new es::Graph("graph"));
     RegisterAllOpCreator();
     dlog_setlevel(GE_MODULE_NAME, DLOG_DEBUG, 0);
-    ge::PlatformContext::GetInstance().Reset();
+    ge::ResetAutofusePlatform();
     auto stub_v2 = std::make_shared<RuntimeStubV2Common>();
     RuntimeStub::SetInstance(stub_v2);
   }
   void TearDown() override {
     dlog_setlevel(GE_MODULE_NAME, DLOG_ERROR, 0);
     RuntimeStub::Reset();
-    ge::PlatformContext::GetInstance().Reset();
+    ge::ResetAutofusePlatform();
     auto stub_v1 = std::make_shared<RuntimeStub>();
     RuntimeStub::SetInstance(stub_v1);
   }
@@ -252,7 +252,7 @@ TEST_F(LoopAscIrLowerPrunerUTV2, TestNoExtraDataOutputAfterCanFuseLiftingBothWit
     es_graph_->SetOutput(square_diff, 0);
     es_graph_->SetOutput(concat, 1);
   }();
-  ge::PlatformContext::GetInstance().Reset();
+  ge::ResetAutofusePlatform();
   auto stub_v2 = std::make_shared<ge::RuntimeStubV2Common>();
   ge::RuntimeStub::SetInstance(stub_v2);
   auto graph = es_graph_->Build();

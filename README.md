@@ -50,4 +50,4 @@ GE 提供对 PyTorch、TensorFlow 前端的友好接入能力，并同时支持 
 
 ## 📝 联系我们
 
-<img src="./docs/zh/figures/GE_contact.png">
+<img src="./docs/zh/figures/GE_contact.png" width="400">

@@ -20,7 +20,7 @@
 #include "post_process/scheduler_adapter/adaption_fallback_load.h"
 #include "lowering/lowerings.h"
 #include "shape_refiner.h"
-#include "backend/backend_spec.h"
+#include "common/autofuse_backend_spec_api.h"
 
 namespace ge {
 using namespace autofuse;
@@ -130,7 +130,7 @@ graphStatus GatherForwardFusionPass::Run(const ComputeGraphPtr &graph) const {
   GE_CHECK_NOTNULL(graph);
   GELOGD("Begin gather's forward fusion with elementwise");
 
-  const auto backend_spec = optimize::BackendSpec::GetInstance();
+  const auto backend_spec = ge::GetAutofuseBackendSpec();
   GE_CHECK_NOTNULL(backend_spec);
   const auto do_gather_elementwise_forward_fusion = backend_spec->gather_spec.enable_gather_elementwise_forward_fusion;
   if (!do_gather_elementwise_forward_fusion || !ge::AutoFuseConfig::LoweringConfig().experimental_lowering_gather) {

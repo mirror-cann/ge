@@ -269,38 +269,46 @@ Status ModelHelper::LoadCustomOpRegistry(const OmFileLoadHelper &om_load_helper,
 Status ModelHelper::LoadOpSoBin(const OmFileLoadHelper &om_load_helper, const GeRootModelPtr &ge_root_model,
                                 std::vector<CustomOpSoHandlePtr> &loaded_handles) const {
   ModelPartition partition_kernel_def;
-  if (om_load_helper.GetModelPartition(ModelPartitionType::SO_BINS, partition_kernel_def, 0U) == SUCCESS) {
-    GELOGD("Kernels partition size:%" PRIu64 "", partition_kernel_def.size);
-    if (ge_root_model->LoadSoBinData(partition_kernel_def.data, partition_kernel_def.size)) {
-      auto root_graph = ge_root_model->GetRootGraph();
-      GE_ASSERT_NOTNULL(root_graph);
-      std::map<std::string, ge::OpSoBinPtr> bin_file_buffer;
-      auto all_so_bin = ge_root_model->GetAllSoBin();
-      std::vector<OpSoBinPtr> custom_op_so_bins;
-      for (const auto &op_so_bin_ptr : all_so_bin) {
-        if (op_so_bin_ptr == nullptr) {
-          continue;
-        }
-        if (op_so_bin_ptr->GetSoBinType() == SoBinType::kAutofuse) {
+  if (om_load_helper.GetModelPartition(ModelPartitionType::SO_BINS, partition_kernel_def, 0U) != SUCCESS) {
+    return SUCCESS;
+  }
+  GELOGD("Kernels partition size:%" PRIu64 "", partition_kernel_def.size);
+  if (ge_root_model->LoadSoBinData(partition_kernel_def.data, partition_kernel_def.size)) {
+    auto root_graph = ge_root_model->GetRootGraph();
+    GE_ASSERT_NOTNULL(root_graph);
+    std::map<std::string, ge::OpSoBinPtr> bin_file_buffer;
+    auto all_so_bin = ge_root_model->GetAllSoBin();
+    std::vector<OpSoBinPtr> custom_op_so_bins;
+    for (const auto &op_so_bin_ptr : all_so_bin) {
+      if (op_so_bin_ptr == nullptr) {
+        continue;
+      }
+      if (op_so_bin_ptr->GetSoBinType() == SoBinType::kAutofuse) {
+        if (op_so_bin_ptr->GetSoName() == "guard_check.so") {
+          std::string guard_data(reinterpret_cast<const char_t *>(op_so_bin_ptr->GetBinData()),
+                                 op_so_bin_ptr->GetBinDataSize());
+          (void)AttrUtils::SetStr(root_graph, "_guard_check_so_data", guard_data);
+          GELOGD("Restored guard check so data to graph attr, size=%zu.", guard_data.size());
+        } else {
           std::string so_path = op_so_bin_ptr->GetVendorName() + "/" + op_so_bin_ptr->GetSoName();
           bin_file_buffer[so_path] = op_so_bin_ptr;
           GELOGD("Added autofuse so_path:%s", so_path.c_str());
-        } else if (op_so_bin_ptr->GetSoBinType() == SoBinType::kCustomOp) {
-          custom_op_so_bins.emplace_back(op_so_bin_ptr);
         }
+      } else if (op_so_bin_ptr->GetSoBinType() == SoBinType::kCustomOp) {
+        custom_op_so_bins.emplace_back(op_so_bin_ptr);
       }
-      if (!bin_file_buffer.empty()) {
-        root_graph->SetExtAttr<std::map<std::string, ge::OpSoBinPtr>>("bin_file_buffer", bin_file_buffer);
-      }
-      GE_ASSERT_SUCCESS(LoadCustomOpSoBins(custom_op_so_bins, loaded_handles));
-      SaveOpSoInfo(ge_root_model);
-      GELOGD("Load so bin store success");
-    } else {
-      GELOGW("Load so bin store unsuccessful");
-      GE_ASSERT_TRUE(partition_kernel_def.size == 0U,
-                     "Load so bin store failed when SO_BINS partition is non-empty, size:%" PRIu64,
-                     partition_kernel_def.size);
     }
+    if (!bin_file_buffer.empty()) {
+      root_graph->SetExtAttr<std::map<std::string, ge::OpSoBinPtr>>("bin_file_buffer", bin_file_buffer);
+    }
+    GE_ASSERT_SUCCESS(LoadCustomOpSoBins(custom_op_so_bins, loaded_handles));
+    SaveOpSoInfo(ge_root_model);
+    GELOGD("Load so bin store success");
+  } else {
+    GELOGW("Load so bin store unsuccessful");
+    GE_ASSERT_TRUE(partition_kernel_def.size == 0U,
+                   "Load so bin store failed when SO_BINS partition is non-empty, size:%" PRIu64,
+                   partition_kernel_def.size);
   }
   return SUCCESS;
 }

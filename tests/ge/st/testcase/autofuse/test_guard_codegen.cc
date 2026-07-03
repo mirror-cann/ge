@@ -109,6 +109,23 @@ REG_OP(FooTestGuard)
     .OUTPUT(y, TensorType::NumberType())
     .OP_END_FACTORY_REG(FooTestGuard);
 
+class ScopedHostEnv {
+ public:
+  ScopedHostEnv(const std::string &host_env_os, const std::string &host_env_cpu) {
+    old_graph_options_ = GetThreadLocalContext().GetAllGraphOptions();
+    std::map<std::string, std::string> options_map = old_graph_options_;
+    options_map[OPTION_HOST_ENV_OS] = host_env_os;
+    options_map[OPTION_HOST_ENV_CPU] = host_env_cpu;
+    (void)GetThreadLocalContext().SetGraphOption(options_map);
+  }
+  ~ScopedHostEnv() {
+    (void)GetThreadLocalContext().SetGraphOption(old_graph_options_);
+  }
+
+ private:
+  std::map<std::string, std::string> old_graph_options_;
+};
+
 TEST_F(GuardCodeGenST, GenGuardCodeAndSimpleTest1) {
   dlog_setlevel(0, 1, 0);
   auto data1 = OP_CFG(DATA)
@@ -311,5 +328,74 @@ TEST_F(GuardCodeGenST, GenGuardCodeWithInvalidIncludePath) {
   setenv("ASCEND_OPP_PATH", (ascend_install_path + "/opp").c_str(), 1);
   EXPECT_EQ(codegen.GuardFuncCodegenAndCompile(compute_graph), ge::GRAPH_SUCCESS);
   unsetenv("ASCEND_OPP_PATH");
+}
+
+TEST_F(GuardCodeGenST, GuardCodegen_NativeCpuFallbackToGcc) {
+  GuardCodegen codegen;
+  std::unique_ptr<Graph> graph(reinterpret_cast<Graph *>(EsBuildGraphAndReset(graph_)));
+  auto compute_graph = GraphUtilsEx::GetComputeGraph(*graph);
+  auto attr = compute_graph->GetOrCreateAttrsGroup<ShapeEnvAttr>();
+  EXPECT_NE(attr, nullptr);
+  ShapeEnvGuarder guard(attr);
+  auto symbol0 = attr->CreateSymbol(3, MakeShared<InputShapeSource>(0, 0));
+  auto symbol1 = attr->CreateSymbol(3, MakeShared<InputShapeSource>(0, 1));
+  EXPECT_SYMBOL_EQ(symbol0, symbol1);
+
+#if defined(__x86_64__) || defined(__amd64__)
+  ScopedHostEnv scoped_env("linux", "x86_64");
+#elif defined(__aarch64__) || defined(__arm64__)
+  ScopedHostEnv scoped_env("linux", "aarch64");
+#else
+  ScopedHostEnv scoped_env("linux", "");
+#endif
+
+  EXPECT_EQ(codegen.GuardFuncCodegenAndCompile(compute_graph), ge::GRAPH_SUCCESS);
+
+  std::string buffer;
+  AttrUtils::GetStr(compute_graph, "_guard_check_so_data", buffer);
+  EXPECT_FALSE(buffer.empty());
+  EXPECT_GT(buffer.size(), 4U);
+
+  int so_fd = memfd_create("libdemo.so", 0);
+  write(so_fd, buffer.c_str(), buffer.size());
+  char so_path[128];
+  snprintf_s(so_path, sizeof(so_path), sizeof(so_path), "/proc/self/fd/%d", so_fd);
+  void *handle = dlopen(so_path, RTLD_NOW | RTLD_LOCAL);
+  ASSERT_NE(handle, nullptr);
+  void *func = dlsym(handle, "GuardCheckFunc");
+  gert::Tensor tensor0 = {
+      {{3, 3}, {3, 3}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, gert::kOnDeviceHbm, ge::DT_FLOAT16, (void *)0x0};
+  gert::Tensor tensor1 = {
+      {{3, 3}, {3, 3}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, gert::kOnDeviceHbm, ge::DT_FLOAT16, (void *)0x0};
+  std::vector<gert::Tensor *> inputs;
+  inputs.emplace_back(&tensor0);
+  inputs.emplace_back(&tensor1);
+  char_t reason[1024];
+  bool ret = reinterpret_cast<GuardCheckFunc>(func)(inputs.data(), 2, reason, 1024);
+  EXPECT_EQ(ret, true);
+  close(so_fd);
+  dlclose(handle);
+}
+
+TEST_F(GuardCodeGenST, GuardCodegen_CrossCompileFail) {
+  GuardCodegen codegen;
+  std::unique_ptr<Graph> graph(reinterpret_cast<Graph *>(EsBuildGraphAndReset(graph_)));
+  auto compute_graph = GraphUtilsEx::GetComputeGraph(*graph);
+  auto attr = compute_graph->GetOrCreateAttrsGroup<ShapeEnvAttr>();
+  EXPECT_NE(attr, nullptr);
+  ShapeEnvGuarder guard(attr);
+  auto symbol0 = attr->CreateSymbol(3, MakeShared<InputShapeSource>(0, 0));
+  auto symbol1 = attr->CreateSymbol(3, MakeShared<InputShapeSource>(0, 1));
+  EXPECT_SYMBOL_EQ(symbol0, symbol1);
+
+#if defined(__x86_64__) || defined(__amd64__)
+  ScopedHostEnv scoped_env("linux", "aarch64");
+#elif defined(__aarch64__) || defined(__arm64__)
+  ScopedHostEnv scoped_env("linux", "x86_64");
+#else
+  ScopedHostEnv scoped_env("linux", "aarch64");
+#endif
+
+  EXPECT_NE(codegen.GuardFuncCodegenAndCompile(compute_graph), ge::GRAPH_SUCCESS);
 }
 }  // namespace ge

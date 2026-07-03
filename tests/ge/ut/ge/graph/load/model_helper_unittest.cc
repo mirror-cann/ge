@@ -404,12 +404,14 @@ static bool BuildOfflineAutofuseSoBinsForModelHelperUt(OmFileLoadHelper &load_he
   so_patition.type = ModelPartitionType::SO_BINS;
   const auto op_master_so_bin = BuildOpSoBinForModelHelperUt("Ascend-V7.6-libopmaster.so", "built_in", {0x11U, 0x22U},
                                                              SoBinType::kOpMasterDevice);
+  const auto guard_check_so_bin =
+      BuildOpSoBinForModelHelperUt("guard_check.so", "", {0x7fU, 0x45U, 0x4cU, 0x46U}, SoBinType::kAutofuse);
   const auto autofuse_so_bin = BuildOpSoBinForModelHelperUt("libautofuse_for_ut.so", "autofuse_vendor",
                                                             {0x33U, 0x44U, 0x55U}, SoBinType::kAutofuse);
-  if ((op_master_so_bin == nullptr) || (autofuse_so_bin == nullptr)) {
+  if ((op_master_so_bin == nullptr) || (guard_check_so_bin == nullptr) || (autofuse_so_bin == nullptr)) {
     return false;
   }
-  if (!BuildSoBinsPayloadForModelHelperUt({op_master_so_bin, autofuse_so_bin}, so_payload)) {
+  if (!BuildSoBinsPayloadForModelHelperUt({op_master_so_bin, guard_check_so_bin, autofuse_so_bin}, so_payload)) {
     return false;
   }
   so_patition.data = so_payload.data();
@@ -2737,6 +2739,114 @@ TEST_F(UtestModelHelper, SaveToOm_for_SubPkg_Opp) {
   for (const auto &path : paths) {
     ge::PathUtils::RemoveDirectories(path);
   }
+}
+
+// 验证Repack路径下SaveAutofuseSoBin的正确性：
+// 当根图ExtAttr("bin_file_buffer")已存在时（LoadOpSoBin从SO_BINS分区恢复的场景），
+// SaveAutofuseSoBin应遍历ExtAttr map并将其中的autofuse OpSoBin写入ModelHelper::op_so_store_，
+// 确保后续op_so_store_.Build()能包含autofuse SO数据。
+TEST_F(UtestModelHelper, SaveAutofuseSoBinWithExtAttrPopulatesOpSoStore) {
+  auto root_graph = std::make_shared<ComputeGraph>("root_graph_ext_attr");
+  auto ge_root_model = std::make_shared<GeRootModel>();
+  ASSERT_EQ(ge_root_model->Initialize(root_graph), SUCCESS);
+
+  const auto autofuse_so_bin = BuildOpSoBinForModelHelperUt("libautofuse_repack_ut.so", "autofuse_vendor_ut",
+                                                            {0xAAU, 0xBBU, 0xCCU}, SoBinType::kAutofuse);
+  ASSERT_NE(autofuse_so_bin, nullptr);
+  std::map<std::string, ge::OpSoBinPtr> ext_attr_buf;
+  ext_attr_buf["autofuse_vendor_ut/libautofuse_repack_ut.so"] = autofuse_so_bin;
+  root_graph->SetExtAttr<std::map<std::string, ge::OpSoBinPtr>>("bin_file_buffer", ext_attr_buf);
+
+  ModelHelper model_helper;
+  ASSERT_EQ(model_helper.SaveAutofuseSoBin(ge_root_model), SUCCESS);
+
+  const auto so_bins = model_helper.op_so_store_.GetSoBin();
+  ASSERT_EQ(so_bins.size(), 1U);
+  EXPECT_EQ(so_bins[0U]->GetSoName(), "libautofuse_repack_ut.so");
+  EXPECT_EQ(so_bins[0U]->GetVendorName(), "autofuse_vendor_ut");
+  EXPECT_EQ(so_bins[0U]->GetSoBinType(), SoBinType::kAutofuse);
+}
+
+// 边界用例：ExtAttr("bin_file_buffer")存在但map为空时不应异常，
+// op_so_store_应保持空。
+TEST_F(UtestModelHelper, SaveAutofuseSoBinWithEmptyExtAttrDoesNotAddToStore) {
+  auto root_graph = std::make_shared<ComputeGraph>("root_graph_empty_ext");
+  auto ge_root_model = std::make_shared<GeRootModel>();
+  ASSERT_EQ(ge_root_model->Initialize(root_graph), SUCCESS);
+
+  std::map<std::string, ge::OpSoBinPtr> empty_buf;
+  root_graph->SetExtAttr<std::map<std::string, ge::OpSoBinPtr>>("bin_file_buffer", empty_buf);
+
+  ModelHelper model_helper;
+  ASSERT_EQ(model_helper.SaveAutofuseSoBin(ge_root_model), SUCCESS);
+  EXPECT_EQ(model_helper.op_so_store_.GetKernelNum(), 0U);
+}
+
+// 回归用例：无ExtAttr且无Autofuse flag时应走原有分支，
+// 直接返回SUCCESS且不向op_so_store_添加任何kernel。
+TEST_F(UtestModelHelper, SaveAutofuseSoBinWithoutExtAttrAndWithoutFlagReturnsSuccess) {
+  auto root_graph = std::make_shared<ComputeGraph>("root_graph_no_autofuse");
+  auto ge_root_model = std::make_shared<GeRootModel>();
+  ASSERT_EQ(ge_root_model->Initialize(root_graph), SUCCESS);
+
+  ModelHelper model_helper;
+  ASSERT_EQ(model_helper.SaveAutofuseSoBin(ge_root_model), SUCCESS);
+  EXPECT_EQ(model_helper.op_so_store_.GetKernelNum(), 0U);
+}
+
+TEST_F(UtestModelHelper, LoadOpSoBinGuardCheckSoStoredInGraphAttr) {
+  OmFileLoadHelper load_helper;
+  load_helper.is_inited_ = true;
+  OmFileContext cur_ctx;
+  ModelPartition so_partition;
+  so_partition.type = ModelPartitionType::SO_BINS;
+  std::vector<uint8_t> so_payload;
+  const std::vector<uint8_t> guard_check_bin = {0x41U, 0x42U, 0x43U, 0x44U};
+  const auto guard_check_so_bin =
+      BuildOpSoBinForModelHelperUt("guard_check.so", "guard_vendor_ut", guard_check_bin, SoBinType::kAutofuse);
+  ASSERT_NE(guard_check_so_bin, nullptr);
+  ASSERT_TRUE(BuildSoBinsPayloadForModelHelperUt({guard_check_so_bin}, so_payload));
+  so_partition.data = so_payload.data();
+  so_partition.size = so_payload.size();
+  cur_ctx.partition_datas_.push_back(so_partition);
+  load_helper.model_contexts_.push_back(cur_ctx);
+
+  auto root_graph = std::make_shared<ComputeGraph>("graph_guard_check_ut");
+  GeRootModelPtr ge_root_model = std::make_shared<GeRootModel>();
+  ASSERT_EQ(ge_root_model->Initialize(root_graph), SUCCESS);
+
+  ModelHelper model_helper;
+  model_helper.model_ = std::make_shared<GeModel>();
+  (void)AttrUtils::SetStr(*(model_helper.model_.get()), ATTR_MODEL_HOST_ENV_OS, "linux");
+  (void)AttrUtils::SetStr(*(model_helper.model_.get()), ATTR_MODEL_HOST_ENV_CPU, "x86_64");
+
+  std::vector<CustomOpSoHandlePtr> loaded_handles;
+  EXPECT_EQ(model_helper.LoadOpSoBin(load_helper, ge_root_model, loaded_handles), SUCCESS);
+
+  std::string guard_data;
+  EXPECT_TRUE(AttrUtils::GetStr(root_graph, "_guard_check_so_data", guard_data));
+  const std::string expected_guard_data(reinterpret_cast<const char *>(guard_check_bin.data()), guard_check_bin.size());
+  EXPECT_EQ(guard_data, expected_guard_data);
+}
+
+TEST_F(UtestModelHelper, SaveAutofuseSoBinWithGuardCheckSoDataPopulatesOpSoStore) {
+  auto root_graph = std::make_shared<ComputeGraph>("root_graph_guard_so_save");
+  auto ge_root_model = std::make_shared<GeRootModel>();
+  ASSERT_EQ(ge_root_model->Initialize(root_graph), SUCCESS);
+
+  const std::vector<uint8_t> guard_bin = {0x7fU, 0x45U, 0x4cU, 0x46U, 0x01U, 0x02U, 0x03U, 0x04U};
+  const std::string guard_data_str(reinterpret_cast<const char *>(guard_bin.data()), guard_bin.size());
+  (void)AttrUtils::SetStr(root_graph, "_guard_check_so_data", guard_data_str);
+
+  ModelHelper model_helper;
+  ASSERT_EQ(model_helper.SaveAutofuseSoBin(ge_root_model), SUCCESS);
+
+  const auto so_bins = model_helper.op_so_store_.GetSoBin();
+  ASSERT_EQ(so_bins.size(), 1U);
+  EXPECT_EQ(so_bins[0U]->GetSoName(), "guard_check.so");
+  EXPECT_EQ(so_bins[0U]->GetVendorName(), "");
+  EXPECT_EQ(so_bins[0U]->GetSoBinType(), SoBinType::kAutofuse);
+  EXPECT_EQ(so_bins[0U]->GetBinDataSize(), guard_bin.size());
 }
 
 }  // namespace ge

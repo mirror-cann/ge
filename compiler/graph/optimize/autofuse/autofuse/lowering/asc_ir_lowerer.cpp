@@ -11,7 +11,7 @@
 #include "asc_ir_lowerer.h"
 #include "lowerings.h"
 #include "liftings.h"
-#include "backend/backend_spec.h"
+#include "common/autofuse_backend_spec_api.h"
 #include "utils/auto_fuse_config.h"
 #include "graph/utils/op_type_utils.h"
 #include "graph/utils/node_utils.h"
@@ -173,7 +173,7 @@ graphStatus AscIrLowerer::Lowering(const ComputeGraphPtr &graph) {
     GE_ASSERT_GRAPH_SUCCESS(GraphUtils::CopyComputeGraph(graph, pre_lowering_graph_));
   }
   GE_ASSERT_GRAPH_SUCCESS(ProcessControlEdge(graph));
-  const auto backend_spec = optimize::BackendSpec::GetInstance();
+  const auto backend_spec = ge::GetAutofuseBackendSpec();
   GE_CHECK_NOTNULL(backend_spec);
   LoweringConfig config;
   config.max_loop_ops = AutoFuseConfig::LoweringConfig().max_fused_loop_ops;

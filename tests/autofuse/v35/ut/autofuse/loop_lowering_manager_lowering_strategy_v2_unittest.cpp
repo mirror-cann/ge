@@ -24,7 +24,7 @@
 #include "lowering/op_lowering_impl/lowering_impl.h"
 #include "fusion/autofuse_attrs.h"
 #include "utils/auto_fuse_config.h"
-#include "platform_context.h"
+#include "common/autofuse_platform_api.h"
 
 #include "op_creator_register.h"
 #include "all_ops_cpp.h"
@@ -61,7 +61,7 @@ class LoopGraphLoweringStrategyUTV2 : public testing::Test {
  protected:
   void SetUp() override {
     dlog_setlevel(GE_MODULE_NAME, DLOG_INFO, 0);
-    ge::PlatformContext::GetInstance().Reset();
+    ge::ResetAutofusePlatform();
     auto stub_v2 = std::make_shared<RuntimeStubV2Common>();
     RuntimeStub::SetInstance(stub_v2);
     es_graph_ = std::unique_ptr<es::Graph>(new es::Graph("graph"));
@@ -72,7 +72,7 @@ class LoopGraphLoweringStrategyUTV2 : public testing::Test {
   void TearDown() override {
     dlog_setlevel(GE_MODULE_NAME, DLOG_ERROR, 0);
     RuntimeStub::Reset();
-    ge::PlatformContext::GetInstance().Reset();
+    ge::ResetAutofusePlatform();
     auto stub_v1 = std::make_shared<RuntimeStub>();
     RuntimeStub::SetInstance(stub_v1);
   }

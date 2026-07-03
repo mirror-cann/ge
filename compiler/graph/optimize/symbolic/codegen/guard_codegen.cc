@@ -25,6 +25,8 @@
 #include "mmpa/mmpa_api.h"
 #include "guard_codegen.h"
 #include "common/compile_profiling/ge_call_wrapper.h"
+#include "graph/ge_local_context.h"
+#include "ge_common/ge_common_api_types.h"
 
 namespace ge {
 namespace {
@@ -247,6 +249,31 @@ bool CheckPathInCmdIsValid(const std::string &so_path, const std::string &file_p
          std::regex_match(ascend_include_path, kSafePathRegex);
 }
 
+std::string GetGuardCompiler() {
+  std::string host_env_os;
+  std::string host_env_cpu;
+  GetThreadLocalContext().GetOption(OPTION_HOST_ENV_OS, host_env_os);
+  GetThreadLocalContext().GetOption(OPTION_HOST_ENV_CPU, host_env_cpu);
+#if defined(__aarch64__) || defined(__arm64__)
+  const std::string native_cpu = "aarch64";
+#elif defined(__x86_64__) || defined(__amd64__)
+  const std::string native_cpu = "x86_64";
+#else
+  const std::string native_cpu = "";
+#endif
+  if (!host_env_cpu.empty() && host_env_cpu != native_cpu) {
+    GELOGD("Cross-compile guard_check.so, target_cpu=%s, native_cpu=%s.", host_env_cpu.c_str(), native_cpu.c_str());
+    if (host_env_os == "linux") {
+      if (host_env_cpu == "aarch64") {
+        return "aarch64-linux-gnu-g++";
+      } else if (host_env_cpu == "x86_64") {
+        return "x86_64-linux-gnu-g++";
+      }
+    }
+  }
+  return "g++";
+}
+
 graphStatus CompileGuardCheckFunc(const CodePrinter &printer, const ComputeGraphPtr &graph) {
   // codegen
   // 1. dump code to file
@@ -274,8 +301,9 @@ graphStatus CompileGuardCheckFunc(const CodePrinter &printer, const ComputeGraph
                  ascend_include.c_str());
   const std::string so_path_dir(so_path);
   const std::string file_path_dir(file_path);
-  std::string command = "g++ -O2 -fstack-protector-all -shared -fPIC -Wl,-z,now -Wl,-z,noexecstack -s -o " +
-                        so_path_dir + " -I " + ascend_include + " -L c_sec" + " -x c++ " + file_path_dir;
+  std::string command = GetGuardCompiler() +
+                        " -O2 -fstack-protector-all -shared -fPIC -Wl,-z,now -Wl,-z,noexecstack -s -o " + so_path_dir +
+                        " -I " + ascend_include + " -L c_sec" + " -x c++ " + file_path_dir;
   GELOGI("To compile guard_check.so, command: %s", command.c_str());
 
   GE_ASSERT_TRUE(CheckPathInCmdIsValid(so_path_dir, file_path_dir, ascend_include),

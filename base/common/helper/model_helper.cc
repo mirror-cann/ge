@@ -18,6 +18,7 @@
 #include "graph_metadef/common/plugin/plugin_manager.h"
 #include "framework/omg/version.h"
 #include "graph/debug/ge_attr_define.h"
+#include "graph/utils/attr_utils.h"
 #include "graph/unfold/graph_unfolder.h"
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/graph_utils_ex.h"
@@ -588,9 +589,25 @@ Status ModelHelper::SaveAutofuseSoBin(const GeRootModelPtr &ge_root_model) {
   GE_ASSERT_NOTNULL(ge_root_model);
   auto root_graph = ge_root_model->GetRootGraph();
   GE_ASSERT_NOTNULL(root_graph);
+
+  const std::string *guard_so_data = AttrUtils::GetStr(root_graph, "_guard_check_so_data");
+  if ((guard_so_data != nullptr) && !guard_so_data->empty()) {
+    auto data_len = static_cast<uint32_t>(guard_so_data->size());
+    auto data_ptr = std::make_unique<char_t[]>(data_len);
+    (void)memcpy_s(data_ptr.get(), data_len, guard_so_data->data(), data_len);
+    const auto guard_so_bin =
+        ge::MakeShared<OpSoBin>("guard_check.so", "", std::move(data_ptr), data_len, SoBinType::kAutofuse);
+    GE_ASSERT_NOTNULL(guard_so_bin);
+    op_so_store_.AddKernel(guard_so_bin);
+    GELOGD("Guard check so saved to OpSoStore, op_so_bin_size=%u.", guard_so_bin->GetBinDataSize());
+  }
+
   auto bin_file_buffer = root_graph->GetExtAttr<std::map<std::string, ge::OpSoBinPtr>>("bin_file_buffer");
   if (bin_file_buffer != nullptr) {
-    GELOGD("No need to save autofuse so to om, since bin_file_buffer already exists.");
+    GELOGD("bin_file_buffer already exists, sync autofuse so to op_so_store_.");
+    for (const auto &bin_entry : *bin_file_buffer) {
+      op_so_store_.AddKernel(bin_entry.second);
+    }
     return SUCCESS;
   }
   if (!OpSoStoreUtils::IsSoBinType(ge_root_model->GetSoInOmFlag(), SoBinType::kAutofuse)) {

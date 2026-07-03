@@ -18,6 +18,7 @@
 #include <utility>
 #include <vector>
 #include "ge_common/ge_common_api_types.h"
+#include "fusion/loop_types.h"
 #include "graph_metadef/graph/debug/ge_util.h"
 #include "graph/utils/graph_utils.h"
 #include "fusion/autofuse_attrs.h"
@@ -31,11 +32,6 @@ using af::FusionDecider;
 using af::FusionPriority;
 using af::GetInterAttrs;
 using af::GetOrCreateAutoFuseAttrs;
-namespace loop {
-using af::loop::FuseType;
-using af::loop::FuseTypeToString;
-using af::loop::StrJoin;
-}  // namespace loop
 
 const std::string kLoadType = "Load";
 const std::string kStoreType = "Store";

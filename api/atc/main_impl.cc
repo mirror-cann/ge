@@ -2249,20 +2249,8 @@ Status CheckDeprecatedAutoTuneMode() {
   return FAILED;
 }
 
-Status CheckInputHintShapeUnsupported() {
-  if (FLAGS_input_hint_shape.empty()) {
-    return SUCCESS;
-  }
-  const std::string reason =
-      "Option[input_hint_shape: " + FLAGS_input_hint_shape + "] is not supported in ATC. Please do not set it.";
-  REPORT_PREDEFINED_ERR_MSG("E10055", std::vector({"reason"}), std::vector({reason.c_str()}));
-  GELOGE(FAILED, "[Check][Param] %s", reason.c_str());
-  return FAILED;
-}
-
 Status CheckGlobalOptionsBeforeRun() {
   GE_ASSERT_SUCCESS(CheckDeprecatedAutoTuneMode(), "[Check][AutoTuneMode]failed.");
-  GE_ASSERT_SUCCESS(CheckInputHintShapeUnsupported(), "[Check][InputHintShape]failed.");
   return SUCCESS;
 }
 

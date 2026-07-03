@@ -18,6 +18,7 @@
 #include "graph/utils/node_utils.h"
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/op_type_utils.h"
+#include "graph/op_so_bin.h"
 #include "base/err_msg.h"
 #include "graph/utils/graph_utils.h"
 
@@ -189,6 +190,10 @@ ge::Status GraphUnfolder::UnfoldSubgraph(const ge::ComputeGraphPtr &root_graph,
     merged_graph->SetSessionID(root_graph->GetSessionID());
     merged_graph->SetNeedIteration(root_graph->GetNeedIteration());
     ge::GraphUtils::InheritOriginalAttr(origin_sub_graph, merged_graph);
+    auto bin_file_buffer = root_graph->GetExtAttr<std::map<std::string, ge::OpSoBinPtr>>("bin_file_buffer");
+    if (bin_file_buffer != nullptr) {
+      (void)merged_graph->SetExtAttr("bin_file_buffer", *bin_file_buffer);
+    }
   }
   for (const auto &node : origin_sub_graph->GetDirectNode()) {
     if (((node->GetType() == ge::DATA_TYPE) || (node->GetType() == ge::NETOUTPUT)) && (is_need_merge_subgraph)) {

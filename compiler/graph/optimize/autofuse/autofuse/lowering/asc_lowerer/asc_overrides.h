@@ -17,7 +17,7 @@
 #include <vector>
 #include <thread>
 
-#include "ascendc_ir.h"
+#include "graph/ascendc_ir/ascendc_ir_core/ascendc_ir.h"
 #include "ascendc_ir/ascendc_ir_core/asc_graph_ge_bridge.h"
 #include "common/checker.h"
 #include "ascendc_ir/ascendc_ir_check.h"

@@ -9,7 +9,7 @@
  */
 
 #include "cube_fusion_strategy.h"
-#include "backend/backend_spec.h"
+#include "common/autofuse_backend_spec_api.h"
 #include "can_fuse/backend/backend_utils.h"
 #include "post_process/scheduler_adapter/adaption_complete_node_attrs.h"
 #include "fusion/autofuse_attrs.h"
@@ -127,7 +127,7 @@ bool CanFuseWithElementwise(const NodePtr &node1, const NodePtr &node2) {
 
 bool CubeFusionStrategy::CanFuse(const NodePtr &node1, const NodePtr &node2) {
   // 1、cube在部分芯片不支持融合
-  const auto backend_spec = optimize::BackendSpec::GetInstance();
+  const auto backend_spec = ge::GetAutofuseBackendSpec();
   GE_ASSERT_NOTNULL(backend_spec);
   if (!backend_spec->enable_matmul_lowering_to_matmul) {
     GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is[%s] [Cube cannot fuse in this chip type].",

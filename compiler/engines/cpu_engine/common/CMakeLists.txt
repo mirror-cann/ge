@@ -79,6 +79,7 @@ target_link_libraries(aicpu_engine_common PRIVATE
     aicore_utils
     mmpa
     json
+    acl_rt
     -lrt
     -ldl
 )

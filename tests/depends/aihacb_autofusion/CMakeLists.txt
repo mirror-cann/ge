@@ -17,15 +17,21 @@ file(GLOB_RECURSE ASC_SRC_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
         "${AIR_CODE_DIR}/compiler/graph/optimize/autofuse/autofuse/utils/*.cpp"
 )
 
+if (NOT DEFINED CODE_ROOT_DIR)
+        set(CODE_ROOT_DIR ${AIR_CODE_DIR}/compiler/graph/optimize/autofuse)
+endif ()
+
+include(${CODE_ROOT_DIR}/cmake/autofuse_protos.cmake)
 
 add_library(ascir_ops_headers INTERFACE)
 target_include_directories(ascir_ops_headers INTERFACE
-        ${ASCEND_INSTALL_PATH}/pkg_inc/autofuse/ascir
+        ${AIR_CODE_DIR}/compiler/graph/optimize/autofuse/ascir
         )
 
 add_library(aihacb_autofusion_stub SHARED
         ${ASC_SRC_FILES}
         )
+add_dependencies(aihacb_autofusion_stub ge_autofuse_metadef_graph_protos_obj_af)
 
 target_compile_definitions(aihacb_autofusion_stub PRIVATE
         PROTOBUF_INLINE_NOT_IN_HEADERS=0
@@ -43,11 +49,15 @@ target_link_options(aihacb_autofusion_stub PRIVATE
 
 target_include_directories(aihacb_autofusion_stub BEFORE PRIVATE
         ${AIR_CODE_DIR}/compiler/graph/optimize/autofuse
+        ${AIR_CODE_DIR}/compiler/graph/optimize/autofuse/autofuse
         ${AIR_CODE_DIR}/compiler/graph/optimize/autofuse/graph
+        ${AIR_CODE_DIR}/compiler/graph/optimize/autofuse/ascir
+        ${AIR_CODE_DIR}/compiler/graph/optimize/autofuse/ascir/utils
         ${AIR_CODE_DIR}/inc
         ${AIR_CODE_DIR}/inc/graph_metadef
         ${AIR_CODE_DIR}/inc/graph_metadef/graph
         ${GE_METADEF_DIR}
+        ${GE_METADEF_DIR}/graph
         )
 
 target_include_directories(aihacb_autofusion_stub PRIVATE
@@ -61,7 +71,6 @@ target_include_directories(aihacb_autofusion_stub PRIVATE
         ${ASCEND_INSTALL_PATH}/pkg_inc/autofuse/ascir
         ${ASCEND_INSTALL_PATH}/pkg_inc/autofuse/ascir/meta
         ${ASCEND_INSTALL_PATH}/pkg_inc/autofuse/ascir/utils
-        ${ASCEND_INSTALL_PATH}/pkg_inc/autofuse/common
         ${ASCEND_INSTALL_PATH}/pkg_inc/autofuse/graph_metadef
         ${ASCEND_INSTALL_PATH}/pkg_inc/autofuse/graph_metadef/graph
         ${ASCEND_INSTALL_PATH}/pkg_inc/autofuse/graph_metadef/graph/ascendc_ir
@@ -78,6 +87,7 @@ target_include_directories(aihacb_autofusion_stub PRIVATE
         ${AIR_CODE_DIR}/compiler/graph/optimize/autofuse/att/
         ${AIR_CODE_DIR}/compiler/graph/optimize/autofuse/ascir/meta
         ${CMAKE_BINARY_DIR}/proto/metadef_protos
+        ${CMAKE_BINARY_DIR}/proto/ge_autofuse_metadef_protos_af
         ${CMAKE_BINARY_DIR}/proto/graphengine_protos
         ${ASCEND_INSTALL_PATH}/include/experiment/runtime
         ${ASCEND_INSTALL_PATH}/include/experiment/msprof

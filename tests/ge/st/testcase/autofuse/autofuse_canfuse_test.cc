@@ -24,7 +24,7 @@
 #include "common/share_graph.h"
 #include "ge_running_env/fake_op.h"
 #include "common/env_path.h"
-#include "common/platform_context.h"
+#include "common/autofuse_platform_api.h"
 #include "tests/framework/ge_runtime_stub/include/common/summary_checker.h"
 #include "faker/space_registry_faker.h"
 #include "depends/runtime/src/runtime_stub.h"
@@ -78,7 +78,7 @@ class TestCanfusePass : public testing::Test {
     setenv("ASCEND_OPP_PATH", (ascend_install_path + "/opp").c_str(), 1);
     setenv("LD_LIBRARY_PATH", (ascend_install_path + "/runtime/lib64").c_str(), 1);
     AutoFuseConfig::MutableLoweringConfig().experimental_lowering_reduce = true;
-    PlatformContext::GetInstance().SetPlatform("2201");
+    SetAutofusePlatform("2201");
     const auto env_ptr = getenv("LD_PRELOAD");
     if (env_ptr != nullptr) {
       env = env_ptr;
@@ -98,7 +98,7 @@ class TestCanfusePass : public testing::Test {
     unsetenv("AUTOFUSE_FLAGS");
     mmSetEnv("ASCEND_OPP_PATH", old_opp_path_env_, 1);
     mmSetEnv("LD_LIBRARY_PATH", old_ld_path_env_, 1);
-    ge::PlatformContext::GetInstance().Reset();
+    ge::ResetAutofusePlatform();
     if (!env.empty()) {
       setenv("LD_PRELOAD", env.c_str(), 1);
     }

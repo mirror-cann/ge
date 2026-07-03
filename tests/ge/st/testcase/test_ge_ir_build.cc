@@ -455,7 +455,7 @@ TEST_F(GeIrBuildTest, TestBuildOptions) {
 
   init_options.clear();
   init_options[INPUT_HINT_SHAPE] = "0:[3];1:[3]";
-  EXPECT_NE(aclgrphBuildInitialize(init_options), SUCCESS);
+  EXPECT_EQ(aclgrphBuildInitialize(init_options), SUCCESS);
 
   init_options["ge.optionInvalid"] = "invalid";
   aclgrphBuildInitialize(init_options);

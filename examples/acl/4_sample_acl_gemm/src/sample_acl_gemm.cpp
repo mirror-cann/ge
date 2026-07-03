@@ -382,13 +382,6 @@ static void DestroyScalar(aclScalar *&scalar) {
   }
 }
 
-static void DestroyExecutor(aclOpExecutor *&executor) {
-  if (executor != nullptr) {
-    (void)aclDestroyAclOpExecutor(executor);
-    executor = nullptr;
-  }
-}
-
 static bool RunAclnnGemm(aclrtStream stream, const std::vector<uint16_t> &hostA, const std::vector<uint16_t> &hostB,
                          const std::vector<uint16_t> &hostC, std::vector<uint16_t> &result) {
   std::cout << "[INFO] Running ACLNN GEMM..." << std::endl;
@@ -509,10 +502,6 @@ static bool RunAclnnGemm(aclrtStream stream, const std::vector<uint16_t> &hostA,
     ok = CheckAcl(aclrtMemcpy(result.data(), bytesC, devOut, bytesC, ACL_MEMCPY_DEVICE_TO_HOST), "aclrtMemcpy result");
   } while (0);
 
-  DestroyExecutor(execMatmul);
-  DestroyExecutor(execMulsAlpha);
-  DestroyExecutor(execMulsBeta);
-  DestroyExecutor(execAdd);
   DestroyScalar(scalarAlpha);
   DestroyScalar(scalarBeta);
   DestroyScalar(scalarOne);

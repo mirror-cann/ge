@@ -32,9 +32,11 @@
 #include "check/executor_statistician.h"
 #include "ge_running_env/path_utils.h"
 #include "graph/utils/graph_utils_ex.h"
+#include "framework/common/helper/model_helper.h"
 #include "framework/common/helper/nano_model_save_helper.h"
 #include "framework/common/helper/pre_model_helper.h"
 #include "framework/common/tlv/nano_dbg_desc.h"
+#include "common/op_so_store/op_so_store.h"
 #include "common/preload/dbg/nano_dbg_data.h"
 #include "common/preload/model/pre_model_partition_utils.h"
 #include "ge_local_context.h"
@@ -850,4 +852,72 @@ TEST_F(ModelHelperTest, SaveToOm_for_SplitAndUpgraded_Opp) {
     ge::PathUtils::RemoveDirectories(path);
   }
 }
+
+// 验证Repack路径下autofuse SO不丢失：构建带Autofuse节点的模型，首次保存SO_BINS含autofuse SO，
+// 加载后执行PackSoToModelData，验证repack后SO store数据非空。
+TEST_F(ModelHelperTest, SaveAutofuseSoRepackPathPreservesSoBins) {
+  auto options = GetThreadLocalContext().GetAllGlobalOptions();
+  std::vector<std::string> paths;
+  CreateBuiltInSplitAndUpgradedSo(paths);
+
+  // 1. 构建Autofuse图并设置bin_file_path
+  auto graph = ShareGraph::AutoFuseNodeGraph();
+  ASSERT_NE(graph, nullptr);
+  const auto om_path = PathJoin(GetRunPath().c_str(), "temp");
+  Mkdir(om_path.c_str());
+  auto autofuse_stub = PathJoin(om_path.c_str(), "libautofuse_stub.so");
+  std::ofstream(autofuse_stub) << "autofuse_bin";
+  for (auto n : graph->GetAllNodesPtr()) {
+    (void)ge::AttrUtils::SetStr(n->GetOpDesc(), "bin_file_path", autofuse_stub);
+  }
+
+  // 2. 构建GeRootModel并设置host env，使SaveSpaceRegistrySoBin追加_linux_x86_64后缀
+  gert::GeModelBuilder builder(graph);
+  auto ge_root_model = builder.BuildGeRootModel();
+  EXPECT_EQ(ge_root_model->CheckAndSetNeedSoInOM(), SUCCESS);
+
+  (void)AttrUtils::SetStr(graph, "_guard_check_so_data", "guard_stub_bin_content");
+
+  (void)GetThreadLocalContext().SetGlobalOption({{"ge.host_env_os", "linux"}, {"ge.host_env_cpu", "x86_64"}});
+
+  const std::string output = PathJoin(om_path.c_str(), "autofuse_repack") + "_linux_x86_64.om";
+  ModelBufferData first;
+  ModelHelper helper;
+  helper.SetSaveMode(true);
+  ASSERT_EQ(helper.SaveToOmRootModel(ge_root_model, output, first, false), SUCCESS);
+
+  // 3. 从磁盘读取保存的om文件，加载并repack，验证autofuse SO数据未丢失
+  // SaveSpaceRegistrySoBin已将_linux_x86_64后缀插入到.om之前，需还原实际路径
+  std::string actual_output = output;
+  const auto dot_pos = actual_output.find(".om");
+  if (dot_pos < actual_output.length()) {
+    actual_output.insert(dot_pos, "_linux_x86_64");
+  } else {
+    actual_output.append("_linux_x86_64");
+  }
+  std::ifstream ifs(actual_output, std::ios::binary);
+  ASSERT_TRUE(ifs.is_open());
+  std::vector<uint8_t> file_data((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+  ifs.close();
+  ASSERT_FALSE(file_data.empty());
+
+  ModelHelper repack;
+  repack.SetRepackSoFlag(true);
+  ModelData data{file_data.data(), file_data.size()};
+  ASSERT_EQ(repack.LoadRootModel(data), SUCCESS);
+  ModelBufferData repacked;
+  repack.PackSoToModelData(data, actual_output, repacked, false);
+  EXPECT_GT(repack.GetOpStoreDataSize(), 0U);
+
+  auto repack_root = repack.GetGeRootModel();
+  ASSERT_NE(repack_root, nullptr);
+  std::string restored_guard_data;
+  EXPECT_TRUE(AttrUtils::GetStr(repack_root->GetRootGraph(), "_guard_check_so_data", restored_guard_data));
+
+  (void)GetThreadLocalContext().SetGlobalOption(options);
+  for (const auto &path : paths) {
+    ge::PathUtils::RemoveDirectories(path);
+  }
+}
+
 }  // namespace ge

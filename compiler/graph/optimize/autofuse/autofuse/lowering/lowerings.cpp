@@ -27,8 +27,6 @@
 #include "lowerings.h"
 #include "lowering_query.h"
 
-#include "backend/backend_spec.h"
-
 namespace ge {
 using namespace autofuse;
 namespace {

@@ -649,7 +649,19 @@ static void *DlopenAutofuseSo(const ge::OpDescPtr &op_desc) {
   std::array<char_t, MMPA_MAX_PATH> real_path{};
   GELOGI("Get autofuse tiling so path: %s", tiling_so_path->c_str());
   GE_ASSERT_TRUE(mmRealPath(tiling_so_path->c_str(), real_path.data(), MMPA_MAX_PATH) == EN_OK);
-  return mmDlopen(real_path.data(), static_cast<int32_t>(MMPA_RTLD_NOW));
+  auto handle = mmDlopen(real_path.data(), static_cast<int32_t>(MMPA_RTLD_NOW));
+  if (handle == nullptr) {
+    std::string nativeLibPath = *tiling_so_path;
+    size_t so_pos = nativeLibPath.rfind(".so");
+    if (so_pos != std::string::npos) {
+      nativeLibPath.insert(so_pos, "_native");
+      std::array<char_t, MMPA_MAX_PATH> native_real_path{};
+      if (mmRealPath(nativeLibPath.c_str(), native_real_path.data(), MMPA_MAX_PATH) == EN_OK) {
+        handle = mmDlopen(native_real_path.data(), static_cast<int32_t>(MMPA_RTLD_NOW));
+      }
+    }
+  }
+  return handle;
 }
 
 static void *GetTilingData(gert::KernelContextHolder &tiling_parse_holder) {

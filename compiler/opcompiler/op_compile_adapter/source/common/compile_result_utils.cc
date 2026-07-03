@@ -174,9 +174,17 @@ bool CompileResultUtils::SetKernelBinBySo(const CompileResultPtr &compileRetPtr)
   constexpr uint32_t openFlag = static_cast<uint32_t>(MMPA_RTLD_NOW) | static_cast<uint32_t>(RTLD_LOCAL);
   auto handle = mmDlopen(libPath.c_str(), static_cast<int32_t>(openFlag));
   if (handle == nullptr) {
-    const char_t *error = mmDlerror();
-    TE_ERRLOG("[Invoke][DlOpen] failed. path = %s, error = %s", libPath.c_str(), error != nullptr ? error : "");
-    return false;
+    std::string nativeLibPath = libPath;
+    size_t so_pos = nativeLibPath.rfind(".so");
+    if (so_pos != std::string::npos) {
+      nativeLibPath.insert(so_pos, "_native");
+      handle = mmDlopen(nativeLibPath.c_str(), static_cast<int32_t>(openFlag));
+    }
+    if (handle == nullptr) {
+      const char_t *error = mmDlerror();
+      TE_ERRLOG("[Invoke][DlOpen] failed. path = %s, error = %s", libPath.c_str(), error != nullptr ? error : "");
+      return false;
+    }
   }
   // void GetKernelBin(std::vector<int8_t> &kernel)
   const auto get_kernel_bin = reinterpret_cast<void (*)(std::vector<char> &)>(mmDlsym(handle, "GetKernelBin"));

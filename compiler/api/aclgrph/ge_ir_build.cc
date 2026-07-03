@@ -147,15 +147,6 @@ void SetBuildGraphModeOffline(std::map<std::string, std::string> &options) {
   options[OPTION_BUILD_GRAPH_MODE] = kOffline;
 }
 
-// input_hint_shape暂不支持
-Status CheckInputHintShape(const std::map<std::string, std::string> &global_options) {
-  auto iter = global_options.find(INPUT_HINT_SHAPE);
-  if (iter != global_options.end() && !iter->second.empty()) {
-    return GRAPH_PARAM_INVALID;
-  }
-  return GRAPH_SUCCESS;
-}
-
 graphStatus ParseOfflineMode(const std::map<std::string, std::string> &options, int32_t &offline_mode) {
   offline_mode = kOfflineModeOm;
   const auto iter = options.find(kOfflineModeOption);
@@ -437,7 +428,6 @@ static graphStatus aclgrphBuildInitializeImpl(std::map<std::string, std::string>
   ScreenPrinter::GetInstance().Init(global_options[OPTION_SCREEN_PRINT_MODE]);
 
   GE_ASSERT_GRAPH_SUCCESS(CheckAutoTuneMode(global_options));
-  GE_ASSERT_GRAPH_SUCCESS(CheckInputHintShape(global_options));
   // print global option map
   ge::PrintOptionMap(global_options, "global option");
   GE_ASSERT_GRAPH_SUCCESS(OpLibRegistry::GetInstance().PreProcessForCustomOp());
@@ -764,7 +754,7 @@ graphStatus Impl::CheckBuildModeAndBuildStep() {
       REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char_t *>({"parameter", "value", "reason"}),
                                 std::vector<const char_t *>({BUILD_MODE, it->second.c_str(),
                                                              "The current value is not within the valid range."}));
-      GELOGE(GRAPH_PARAM_INVALID, "[Check][BuildMode]:%s is unsupporteded. Please check!", it->second.c_str());
+      GELOGE(GRAPH_PARAM_INVALID, "[Check][BuildMode]:%s is unsupported. Please check!", it->second.c_str());
       return GRAPH_PARAM_INVALID;
     }
     build_mode = it->second;
@@ -775,7 +765,7 @@ graphStatus Impl::CheckBuildModeAndBuildStep() {
       REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char_t *>({"parameter", "value", "reason"}),
                                 std::vector<const char_t *>({BUILD_STEP, it->second.c_str(),
                                                              "The current value is not within the valid range."}));
-      GELOGE(GRAPH_PARAM_INVALID, "[Check][BuildStep]:%s is unsupporteded. Please check!", it->second.c_str());
+      GELOGE(GRAPH_PARAM_INVALID, "[Check][BuildStep]:%s is unsupported. Please check!", it->second.c_str());
       return GRAPH_PARAM_INVALID;
     }
   } else {
@@ -801,7 +791,7 @@ graphStatus Impl::GetSupportedOptions(const std::map<std::string, std::string> &
       if (it_lx_fusion == ir_builder_supported_options_for_lx_fusion.cend()) {
         std::set<std::string>::const_iterator it_inner = ge::ir_builder_suppported_options_inner.find(ele.first);
         if (it_inner == ge::ir_builder_suppported_options_inner.cend()) {
-          GELOGE(GRAPH_PARAM_INVALID, "[Check][Options] unsupporteded option(%s), Please check!", ele.first.c_str());
+          GELOGE(GRAPH_PARAM_INVALID, "[Check][Options] unsupported option(%s), Please check!", ele.first.c_str());
           return GRAPH_PARAM_INVALID;
         }
       }
@@ -1080,7 +1070,6 @@ graphStatus Impl::BuildModel(const Graph &graph, const std::map<std::string, std
     GELOGE(ret, "[Check][option] AutoTune mode is not supported!");
     return ret;
   }
-  GE_ASSERT_SUCCESS(CheckInputHintShape(options));
   int32_t offline_mode = kOfflineModeOm;
   ret = ParseOfflineMode(options, offline_mode);
   if (ret != GRAPH_SUCCESS) {

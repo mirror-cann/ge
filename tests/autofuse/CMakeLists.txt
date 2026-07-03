@@ -59,6 +59,10 @@ if (NOT DEFINED CMAKE_MODULE_PATH)
 endif()
 
 link_directories(${ASCEND_ROOT}/lib64)
+include_directories(BEFORE ${CODE_ROOT_DIR})
+include_directories(BEFORE ${CODE_ROOT_DIR}/graph)
+include_directories(BEFORE ${CODE_ROOT_DIR}/ascir)
+include_directories(BEFORE ${CODE_ROOT_DIR}/ascir/utils)
 include_directories(${AIR_CODE_DIR}/inc)
 include_directories(${AIR_CODE_DIR}/inc/graph_metadef)
 include_directories(${AIR_CODE_DIR}/inc/graph_metadef/graph)
@@ -80,16 +84,25 @@ include_directories(${GE_METADEF_DIR}/graph)
 include_directories(${ASCEND_INSTALL_PATH}/pkg_inc/autofuse/graph_metadef/graph)
 include_directories(${ASCEND_INSTALL_PATH}/pkg_inc/autofuse/graph_metadef)
 include_directories(${CODE_ROOT_DIR}/inc)
-include_directories(${ASCEND_INSTALL_PATH}/pkg_inc/autofuse/common)
 include_directories(${ASCEND_ROOT}/include/experiment)
 include_directories(${ASCEND_ROOT}/include/experiment/runtime)
 include_directories(${ASCEND_ROOT}/include/experiment/msprof)
 include_directories(${CMAKE_BINARY_DIR}/proto/metadef_protos)
+include_directories(${CMAKE_BINARY_DIR}/proto/ge_autofuse_metadef_protos_af)
 include_directories(${ASCEND_INSTALL_PATH}/pkg_inc)
 include_directories(${ASCEND_INSTALL_PATH}/pkg_inc/base)
 include_directories(${ASCEND_INSTALL_PATH}/${CMAKE_SYSTEM_PROCESSOR}-linux/include/external)
 
+if (NOT TARGET intf_llt_pub)
+    include(../cmake/intf_llt_pub.cmake)
+endif()
 
+if (NOT TARGET ascir_ops_headers)
+    add_library(ascir_ops_headers INTERFACE)
+    target_include_directories(ascir_ops_headers INTERFACE
+        ${CODE_ROOT_DIR}/ascir
+    )
+endif()
 
 find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
 if (ENABLE_OPEN_SRC)
@@ -103,6 +116,8 @@ if (ENABLE_OPEN_SRC)
     find_package(runtime)
     find_package(atrace)
 endif ()
+
+include(${CODE_ROOT_DIR}/cmake/autofuse_protos.cmake)
 
 include(GoogleTest)
 set(CMAKE_GTEST_DISCOVER_TESTS_DISCOVERY_MODE PRE_TEST)
@@ -137,6 +152,7 @@ list(APPEND AUTOFUSE_SOURCES
 add_library(autofuse SHARED
    ${AUTOFUSE_SOURCES}
 )
+add_dependencies(autofuse ge_autofuse_metadef_graph_protos_obj_af)
 target_compile_definitions(autofuse PRIVATE
         PROTOBUF_INLINE_NOT_IN_HEADERS=0
         google=ascend_private
@@ -150,6 +166,7 @@ target_include_directories(autofuse PUBLIC
     ${CODE_ROOT_DIR}/autofuse
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_BINARY_DIR}/proto/metadef_protos
+    ${CMAKE_BINARY_DIR}/proto/ge_autofuse_metadef_protos_af
 )
 
 target_compile_options(autofuse PRIVATE -fPIC -Werror -fno-common -Wextra -Wfloat-equal -O0)

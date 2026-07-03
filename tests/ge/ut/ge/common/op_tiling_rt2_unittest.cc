@@ -30,6 +30,7 @@
 
 #include "common/sgt_slice_type.h"
 #include "faker/space_registry_faker.h"
+#include "depends/mmpa/src/mmpa_stub.h"
 
 using namespace std;
 using namespace ge;
@@ -997,5 +998,77 @@ TEST_F(RegisterOpTilingRT2UT, SoftSyncOpRtParseAndTiling) {
   auto ret = SoftSyncOpRtParseAndTiling(op, platform_infos, run_info, space_registry);
   EXPECT_EQ(ret, ge::GRAPH_SUCCESS);
   EXPECT_EQ(run_info.GetLocalMemorySize(), 0U);
+}
+
+class MockMmpaForAutofuseFallback : public ge::MmpaStubApiGe {
+ public:
+  explicit MockMmpaForAutofuseFallback(const std::string &target_path, const std::string &native_real_path)
+      : target_path_(target_path),
+        native_real_path_(native_real_path),
+        native_handle_(nullptr),
+        dlopen_call_count_(0) {}
+
+  void *DlOpen(const char *file_name, int32_t mode) override {
+    dlopen_call_count_++;
+    if (dlopen_call_count_ == 1) {
+      return nullptr;
+    }
+    if (dlopen_call_count_ == 2) {
+      native_handle_ = MmpaStubApiGe::DlOpen(native_real_path_.c_str(), mode);
+      return native_handle_;
+    }
+    return MmpaStubApiGe::DlOpen(file_name, mode);
+  }
+
+  int32_t DlClose(void *handle) override {
+    if (handle == native_handle_) {
+      auto ret = MmpaStubApiGe::DlClose(native_handle_);
+      native_handle_ = nullptr;
+      return ret;
+    }
+    return MmpaStubApiGe::DlClose(handle);
+  }
+
+  int32_t RealPath(const CHAR *path, CHAR *realPath, INT32 realPathLen) override {
+    std::string str_path = path ? path : "";
+    if (str_path.find("_native") != std::string::npos) {
+      return MmpaStubApiGe::RealPath(native_real_path_.c_str(), realPath, realPathLen);
+    }
+    return MmpaStubApiGe::RealPath(path, realPath, realPathLen);
+  }
+
+ private:
+  std::string target_path_;
+  std::string native_real_path_;
+  void *native_handle_ = nullptr;
+  int32_t dlopen_call_count_ = 0;
+};
+
+TEST_F(RegisterOpTilingRT2UT, AutofuseNodeNativeFallbackSuccess) {
+  std::string cmake_binary_path = CMAKE_BINARY_DIR;
+  auto autofuse_stub_so = cmake_binary_path + "/tests/depends/op_stub/libautofuse_stub.so";
+
+  auto mock = std::make_shared<MockMmpaForAutofuseFallback>(autofuse_stub_so, autofuse_stub_so);
+  ge::MmpaStub::GetInstance().SetImpl(mock);
+
+  auto graph = ShareGraph::AutoFuseNodeGraph();
+  auto autofuse_node = graph->FindNode("fused_graph");
+  (void)ge::AttrUtils::SetStr(autofuse_node->GetOpDesc(), "bin_file_path", autofuse_stub_so);
+
+  utils::OpRunInfo run_info;
+  auto op = ge::OpDescUtils::CreateOperatorFromNode(autofuse_node);
+  fe::PlatFormInfos platform_infos;
+  graphStatus ret = AicoreRtParseAndTiling(op, platform_infos, run_info);
+  EXPECT_EQ(ret, GRAPH_SUCCESS);
+
+  EXPECT_EQ(run_info.GetTilingKey(), 0);
+  EXPECT_EQ(run_info.GetBlockDim(), 8);
+  std::string tiling_data_str = parse_int(run_info.GetAllTilingData().str());
+  EXPECT_EQ(tiling_data_str, "1 2 3 ");
+  auto workspace = run_info.GetAllWorkspaces();
+  EXPECT_EQ(run_info.GetWorkspaceNum(), 1);
+  EXPECT_EQ(workspace[0], 1024);
+
+  ge::MmpaStub::GetInstance().Reset();
 }
 }  // namespace optiling

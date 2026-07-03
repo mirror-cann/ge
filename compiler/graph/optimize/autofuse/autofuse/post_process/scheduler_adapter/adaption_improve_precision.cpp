@@ -16,7 +16,6 @@
 #include "utils/autofuse_utils.h"
 #include "fusion/autofuse_attrs.h"
 #include "post_process/post_process_util.h"
-#include "common/platform_context.h"
 
 namespace ge {
 namespace {

@@ -14,7 +14,7 @@
 #include "can_fuse/strategy/fusion_strategy_registry.h"
 #include "utils/auto_fuse_config.h"
 #include "utils/not_fuse_reason_code.h"
-#include "backend/backend_spec.h"
+#include "common/autofuse_backend_spec_api.h"
 
 namespace ge {
 
@@ -24,7 +24,7 @@ bool GatherFusionStrategy::CanFuse(const NodePtr &node1, const NodePtr &node2) {
   const auto attr2 = BackendUtils::GetNodeAutoFuseAttr(node2);
   GE_ASSERT_NOTNULL(attr2);
 
-  const auto backend_spec = optimize::BackendSpec::GetInstance();
+  const auto backend_spec = ge::GetAutofuseBackendSpec();
   GE_CHECK_NOTNULL(backend_spec);
   // 1.gather不能前融合，只处理垂直融合; gather不能和gather融合，不区分垂直融合还是水平融合
   if (attr2->HasFuseType(loop::FuseType::kGather)) {

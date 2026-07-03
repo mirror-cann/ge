@@ -10,11 +10,11 @@
 
 #include "autofuser.h"
 #include "ge_context.h"
-#include "backend/backend_spec.h"
+#include "common/autofuse_backend_spec_api.h"
 #include "ge_common/ge_api_error_codes.h"
 #include "graph/debug/ge_attr_define.h"
 #include "common/checker.h"
-#include "common/platform_context.h"
+#include "common/autofuse_platform_api.h"
 #include "graph/utils/graph_utils.h"
 #include "graph/operator_reg.h"
 #include "pattern_fusion/pattern_fusion.h"
@@ -120,10 +120,10 @@ ge::Status UpdateAutoFuseConfigByChipType() {
   if (fe::PlatformInfoManager::GeInstance().GetPlatformInfos(soc_version, plat_form_infos, optional_infos) == 0U) {
     std::string npu_arch;
     GE_ASSERT_TRUE(plat_form_infos.GetPlatformRes("version", "NpuArch", npu_arch));
-    ge::PlatformContext::GetInstance().SetPlatform(npu_arch);
+    GE_ASSERT_SUCCESS(ge::SetAutofusePlatform(npu_arch));
   }
 
-  const auto backend_spec = optimize::BackendSpec::GetInstance();
+  const auto backend_spec = ge::GetAutofuseBackendSpec();
   if (backend_spec != nullptr) {
     AutoFuseConfig::MutableConfig().GetMutableFusionStrategySolver().max_input_nums_after_fuse =
         backend_spec->max_input_nums_after_fuse;

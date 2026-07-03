@@ -731,14 +731,6 @@ Status FlowModelSender::BuildUpdateDeployPlanRequest(const DeployState &deploy_s
   update_deploy_plan_request->set_device_type(target_device.GetType());
   update_deploy_plan_request->set_session_id(deploy_state.GetSessionId());
   update_deploy_plan_request->set_root_model_id(deploy_state.GetRootModelId());
-  auto device_info = ResourceManager::GetInstance().GetDeviceInfo(target_device.GetNodeId(),
-                                                                  target_device.GetDeviceId(), target_device.GetType());
-  if (device_info != nullptr) {
-    auto mem_config = deploy_state.GetFlowModel()->GetLogicDeviceToMemCfg();
-    auto model_mem_size = update_deploy_plan_request->mutable_model_mem_size();
-    model_mem_size->set_std_mem_size(mem_config[device_info->ToIndex()].first);
-    model_mem_size->set_shared_mem_size(mem_config[device_info->ToIndex()].second);
-  }
   for (auto &submodel_desc : submodel_descs) {
     *update_deploy_plan_request->add_submodel_descs() = std::move(submodel_desc);
   }

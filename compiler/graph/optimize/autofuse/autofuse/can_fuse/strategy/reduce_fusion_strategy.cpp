@@ -14,6 +14,7 @@
 #include "can_fuse/strategy/fusion_strategy_registry.h"
 #include "utils/not_fuse_reason_code.h"
 #include "utils/auto_fuse_config.h"
+#include "utils/autofuse_utils.h"
 #include "can_fuse/backend/asc_graph_axis_mapping.h"
 
 namespace ge {
@@ -36,6 +37,33 @@ void CheckAndInitReduceAllLoadState(const NodePtr &node, AutoFuseAttrs *attr, co
   }
 }
 
+bool HasReduceOriginalInfo(const AutoFuseAttrs *attr) {
+  return (!attr->GetReduceOriginalAxis().empty()) || (!attr->GetReduceOriginalRepeats().empty());
+}
+
+bool IsReduceOriginalInfoCompatible(const NodePtr &node1, const AutoFuseAttrs *attr1, const NodePtr &node2,
+                                    const AutoFuseAttrs *attr2) {
+  if (!HasReduceOriginalInfo(attr1) || !HasReduceOriginalInfo(attr2)) {
+    return true;
+  }
+
+  const auto &axis1 = attr1->GetReduceOriginalAxis();
+  const auto &axis2 = attr2->GetReduceOriginalAxis();
+  const auto &repeats1 = attr1->GetReduceOriginalRepeats();
+  const auto &repeats2 = attr2->GetReduceOriginalRepeats();
+  if ((axis1.size() != repeats1.size()) || (axis2.size() != repeats2.size()) || (axis1 != axis2) ||
+      (repeats1 != repeats2)) {
+    GELOGI(
+        "node1 %s(%s) and node2 %s(%s) cannot fuse, reduce original axis or repeats conflict. node1 axis:%s, "
+        "repeats:%s; node2 axis:%s, repeats:%s.",
+        node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
+        AutofuseUtils::VectorToStr(axis1).c_str(), AutofuseUtils::VectorToStr(repeats1).c_str(),
+        AutofuseUtils::VectorToStr(axis2).c_str(), AutofuseUtils::VectorToStr(repeats2).c_str());
+    return false;
+  }
+  return true;
+}
+
 bool ReduceFusionStrategy::CanFuse(const NodePtr &node1, const NodePtr &node2) {
   const auto attr1 = BackendUtils::GetNodeAutoFuseAttr(node1);
   GE_ASSERT_NOTNULL(attr1);
@@ -45,6 +73,10 @@ bool ReduceFusionStrategy::CanFuse(const NodePtr &node1, const NodePtr &node2) {
   // 构建节点描述信息用于日志
   std::string node1_desc = std::string("node1 ") + node1->GetNamePtr() + "(" + node1->GetType().c_str() + ")";
   std::string node2_desc = std::string("node2 ") + node2->GetNamePtr() + "(" + node2->GetType().c_str() + ")";
+
+  if (!IsReduceOriginalInfoCompatible(node1, attr1, node2, attr2)) {
+    return false;
+  }
 
   // 检查并初始化node1的is_reduce_all_load状态
   CheckAndInitReduceAllLoadState(node1, attr1, node1_desc);
