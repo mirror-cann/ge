@@ -236,7 +236,6 @@ class FLOW_FUNC_VISIBILITY FlowFuncProcessor {
   volatile bool wait_schedule_flag_ = false;
 
   std::mutex queue_event_guard_;
-  // std::mutex writerGuard_;
   volatile bool not_empty_event_ = false;
   volatile bool wait_not_empty_event_ = false;
   volatile bool not_full_event_ = false;

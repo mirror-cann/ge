@@ -33,10 +33,6 @@ int32_t PneExecutorClient::GetDeviceId() const {
   return device_id_;
 }
 
-int32_t PneExecutorClient::GetProcessId() const {
-  return context_.process_id;
-}
-
 int32_t PneExecutorClient::GetDeployerPid() const {
   return context_.deployer_pid;
 }

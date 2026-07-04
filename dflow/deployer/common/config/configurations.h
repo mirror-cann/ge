@@ -95,8 +95,6 @@ class Configurations {
 
   static Status GetResourceConfigPath(std::string &config_dir);
 
-  static Status GetConfigDir(std::string &config_dir);
-
   static std::vector<std::string> GetHeterogeneousEnvs();
 
  private:

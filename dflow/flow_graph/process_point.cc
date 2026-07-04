@@ -378,10 +378,6 @@ class FunctionPpImpl {
     return attrs_.SetByName(name, std::forward<T>(value));
   }
 
-  const ge::AttrStore &GetAttrMap() const {
-    return attrs_;
-  }
-
   void UpdataProcessPoint(dataflow::ProcessPoint &process_point) {
     AddInvokedPps(process_point);
     AddFunctionPpInitPara(process_point);

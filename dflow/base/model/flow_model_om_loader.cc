@@ -225,18 +225,6 @@ Status LoadSerializedModel(flow_model::proto::SubmodelDef &flow_submodel_def, co
 }
 }  // namespace
 
-Status FlowModelOmLoader::LoadToFlowModelDesc(const ge::ModelData &model_data, const FlowModelPtr &flow_model) {
-  OmFileLoadHelper om_file_load_helper;
-  GE_CHK_STATUS_RET(om_file_load_helper.Init(model_data), "Om file load helper init failed.");
-  const auto &model_partitions = om_file_load_helper.GetModelPartitions(0);
-  GE_CHK_STATUS_RET(CheckModelPartitions(model_partitions), "Check model partitions failed.");
-  std::vector<string> submodel_names;
-  GE_CHK_STATUS_RET(
-      LoadFlowModelPartition(model_partitions[kFlowModelPartitionsFlowModelIdx], flow_model, submodel_names),
-      "Load flow model partition failed.");
-  return SUCCESS;
-}
-
 bool FlowModelOmLoader::CheckFilePathValid(const std::string &base_dir, const std::string &check_dir) {
   const auto real_check_dir = RealPath(check_dir.c_str());
   return real_check_dir.find(base_dir) == 0UL;

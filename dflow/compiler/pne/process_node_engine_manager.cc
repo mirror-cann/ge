@@ -110,16 +110,6 @@ ProcessNodeEnginePtr ProcessNodeEngineManager::GetEngine(const std::string &engi
   return nullptr;
 }
 
-bool ProcessNodeEngineManager::IsEngineRegistered(const std::string &engine_id) const {
-  const std::lock_guard<std::mutex> lock(mutex_);
-  const auto iter = engines_map_.find(engine_id);
-  if (iter != engines_map_.end()) {
-    return true;
-  }
-  GELOGW("ProcessNodeEngine id:%s is not registered", engine_id.c_str());
-  return false;
-}
-
 Status ProcessNodeEngineManager::RegisterEngine(const std::string &engine_id, const ProcessNodeEnginePtr &engine,
                                                 CreateFn const fn) {
   const std::lock_guard<std::mutex> lock(mutex_);

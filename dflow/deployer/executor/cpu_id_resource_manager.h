@@ -24,8 +24,6 @@ class CpuIdResourceManager {
 
   Status Allocate(uint32_t &id);
   Status DeAllocate(std::vector<uint32_t> &ids);
-  Status GenerateAicpuStreamId(uint32_t &id);
-  Status FreeAicpuStreamId(const std::vector<uint32_t> &ids);
 
  private:
   std::vector<bool> resources_ = std::vector<bool>(kMaxResourceId, false);

@@ -39,7 +39,6 @@ class ResourceManager {
   int32_t GetLocalNodeId() const;
 
   static void ClearWorkingDir();
-  const std::map<std::string, std::vector<DeviceInfo>> &GetDeviceIp2DevicesMap() const;
   const ModelCompileResource &GetCompileResource() const {
     return compile_resource_;
   }

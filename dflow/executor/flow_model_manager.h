@@ -26,8 +26,6 @@ class FlowModelManager {
   Status ExecuteFlowModel(uint32_t model_id, const std::vector<GeTensor> &inputs, std::vector<GeTensor> &outputs);
   FlowModelPtr GetFlowModelByModelId(uint32_t model_id);
 
-  bool IsLoadedByFlowModel(uint32_t model_id);
-
   /// @ingroup domi_ome
   /// @brief unload model and free resources
   /// @param [in] model_id model id

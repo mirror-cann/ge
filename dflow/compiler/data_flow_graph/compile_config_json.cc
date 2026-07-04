@@ -11,9 +11,7 @@
 #include "dflow/compiler/data_flow_graph/compile_config_json.h"
 #include <fstream>
 #include "graph/utils/type_utils.h"
-#include "mmpa/mmpa_api.h"
 #include "graph/ge_global_options.h"
-#include "graph/ge_context.h"
 #include "framework/common/ge_types.h"
 
 namespace {

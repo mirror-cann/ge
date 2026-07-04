@@ -36,28 +36,6 @@ void Configurations::Finalize() {
   GELOGI("Finalize success, remote node size = %zu", information_.remote_node_config_list.size());
 }
 
-Status Configurations::GetConfigDir(std::string &config_dir) {
-  const char_t *file_path = nullptr;
-  MM_SYS_GET_ENV(MM_ENV_HELPER_RES_FILE_PATH, file_path);
-  if (file_path != nullptr) {
-    const std::string real_path = RealPath(file_path);
-    if (real_path.empty()) {
-      GELOGE(ACL_ERROR_GE_PARAM_INVALID, "The path[%s] of env[%s] is invalid", file_path, kHelperResFilePath);
-      return ACL_ERROR_GE_PARAM_INVALID;
-    }
-    if (ProcessUtils::IsValidPath(real_path) != SUCCESS) {
-      GELOGE(ACL_ERROR_GE_PARAM_INVALID, "env %s config value[%s] real path[%s] is invalid", kHelperResFilePath,
-             file_path, real_path.c_str());
-      return ACL_ERROR_GE_PARAM_INVALID;
-    }
-    config_dir = real_path;
-    GEEVENT("Get config dir[%s] success from env[%s]", config_dir.c_str(), kHelperResFilePath);
-    return SUCCESS;
-  }
-  GELOGE(ACL_ERROR_GE_PARAM_INVALID, "Env HELPER_RES_FILE_PATH doesn't exist.");
-  return ACL_ERROR_GE_PARAM_INVALID;
-}
-
 Status Configurations::GetWorkingDir(std::string &working_dir) const {
   if (!information_.node_config.deploy_res_path.empty()) {
     working_dir = information_.node_config.deploy_res_path;

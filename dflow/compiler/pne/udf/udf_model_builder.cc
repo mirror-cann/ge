@@ -200,19 +200,6 @@ Status UdfModelBuilder::BuildUdfDef(const OpDescPtr &op_desc, udf::UdfDef &udf_d
   return SUCCESS;
 }
 
-Status UdfModelBuilder::SetBin(const OpDescPtr &op_desc, udf::UdfDef &udf_def) const {
-  std::string bin_path;
-  GE_CHK_BOOL_RET_STATUS(AttrUtils::GetStr(op_desc, kUdfAttrNameBinPath, bin_path), FAILED,
-                         "Failed to get %s attr from op[%s].", kUdfAttrNameBinPath.c_str(), op_desc->GetName().c_str());
-  char_t *bin_buff = nullptr;
-  int32_t length = 0;
-  GE_CHK_BOOL_RET_STATUS(ReadBytesFromBinaryFile(bin_path.c_str(), &bin_buff, length), FAILED,
-                         "Failed to read bin from %s.", bin_path.c_str());
-  udf_def.set_bin(bin_buff, length);
-  delete[] bin_buff;
-  return SUCCESS;
-}
-
 Status UdfModelBuilder::SetBinName(const OpDescPtr &op_desc, udf::UdfDef &udf_def) const {
   std::string bin_path;
   GE_CHK_BOOL_RET_STATUS(AttrUtils::GetStr(op_desc, kUdfAttrNameBinPath, bin_path), FAILED,

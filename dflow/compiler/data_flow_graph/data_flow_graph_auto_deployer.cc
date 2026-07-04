@@ -15,10 +15,8 @@
 #include "common/checker.h"
 #include "common/string_util.h"
 #include "graph/debug/ge_attr_define.h"
-#include "graph/ge_context.h"
 #include "dflow/flow_graph/data_flow_attr_define.h"
 #include "mmpa/mmpa_api.h"
-#include "graph/ge_local_context.h"
 
 namespace ge {
 namespace {

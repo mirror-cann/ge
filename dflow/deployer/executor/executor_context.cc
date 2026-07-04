@@ -236,12 +236,6 @@ Status ExecutorContext::SyncSharedVarManager(const deployer::ExecutorRequest &re
   return SUCCESS;
 }
 
-void ExecutorContext::UpdateGraphOptions(const std::string &key, const std::string &value) {
-  std::map<std::string, std::string> graph_options = GetThreadLocalContext().GetAllGraphOptions();
-  graph_options[key] = value;
-  GetThreadLocalContext().SetGraphOption(graph_options);
-}
-
 void ExecutorContext::UpdateOptions(const deployer::Options &options) {
   std::map<std::string, std::string> global_options = GetThreadLocalContext().GetAllGlobalOptions();
   for (const auto &item : options.global_options()) {

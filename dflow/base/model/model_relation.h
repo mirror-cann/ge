@@ -107,7 +107,6 @@ class ModelRelationReader {
   const Endpoint *GetEndpoint(const std::string &queue_name) const;
 
   const ModelRelation::ModelEndpointInfo *GetSubmodelQueueInfo(const std::string &model_name) const;
-  static void LogDebugString(const ModelRelation &model_relation);
 
  private:
   const ModelRelation &model_relation_;

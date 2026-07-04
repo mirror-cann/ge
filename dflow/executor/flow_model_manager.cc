@@ -69,11 +69,6 @@ FlowModelPtr FlowModelManager::GetFlowModelByModelId(uint32_t model_id) {
   return iter->second->GetFlowModel();
 }
 
-bool FlowModelManager::IsLoadedByFlowModel(uint32_t model_id) {
-  const std::lock_guard<std::mutex> lk(map_mutex_);
-  return heterogeneous_model_map_.find(model_id) != heterogeneous_model_map_.cend();
-}
-
 Status FlowModelManager::StopAndUnloadModel(const std::shared_ptr<HeterogeneousModelExecutor> &executor,
                                             uint32_t deployed_model_id) const {
   if (executor != nullptr) {

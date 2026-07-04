@@ -367,15 +367,6 @@ const Endpoint *ModelRelationReader::GetEndpoint(const std::string &queue_name) 
   return it->second;
 }
 
-void ModelRelationReader::LogDebugString(const ModelRelation &model_relation) {
-  GELOGD("endpoints.size: %zu.", model_relation.endpoints.size());
-  GELOGD("root_model_endpoint_info.model_name: %s.", model_relation.root_model_endpoint_info.model_name.c_str());
-  GELOGD("root_model_endpoint_info.input_endpoint_names.size: %zu.",
-         model_relation.root_model_endpoint_info.input_endpoint_names.size());
-  GELOGD("root_model_endpoint_info.output_endpoint_names.size: %zu.",
-         model_relation.root_model_endpoint_info.output_endpoint_names.size());
-}
-
 Status ModelRelationReader::Initialize() {
   for (const auto &endpoint : model_relation_.endpoints) {
     (void)endpoints_.emplace(endpoint.GetName(), &endpoint);
