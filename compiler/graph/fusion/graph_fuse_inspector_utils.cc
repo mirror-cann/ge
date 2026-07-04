@@ -23,7 +23,7 @@ namespace {
 bool ConvertGNodes(const std::vector<GNode> &gnodes, std::vector<NodePtr> &nodes, std::string &error_msg) {
   nodes.clear();
   if (gnodes.empty()) {
-    error_msg = "nodes_before_fuse is empty, do not delete fused nodes before ReportFuse";
+    error_msg = "nodes_before_fuse is empty";
     return false;
   }
   for (const auto &g_node : gnodes) {
