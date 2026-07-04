@@ -460,6 +460,24 @@ TEST(DagStreamAllocatorPassTest, RunPass_WithAutoMultistreamMode_MainStream) {
 }
 
 /**
+ * 场景 C2-1: 设置 ge.autoMultistreamParallelMode="WeightedLoadBalance:6" - 解析冒号格式+WeightedLoadBalance策略
+ */
+TEST(DagStreamAllocatorPassTest, RunPass_WithAutoMultistreamMode_WeightedLoadBalance) {
+  std::map<std::string, std::string> options;
+  options["ge.autoMultistreamParallelMode"] = "WeightedLoadBalance:6";
+  ge::GetThreadLocalContext().SetGraphOption(options);
+
+  auto graph = BuildGraphWithControlEdge();
+  ASSERT_NE(graph, nullptr);
+
+  ge::StreamPassContext context(0);
+  auto ret = RunMiniDAGStreamPass(graph, context);
+  EXPECT_EQ(ret, ge::SUCCESS);
+
+  ge::GetThreadLocalContext().SetGraphOption({});
+}
+
+/**
  * 场景 C3: 设置 ge.autoMultistreamParallelMode="LoadBalance:invalid" - 无效max_stream值，返回FAILED
  */
 TEST(DagStreamAllocatorPassTest, RunPass_WithAutoMultistreamMode_InvalidMax) {
@@ -491,6 +509,24 @@ TEST(DagStreamAllocatorPassTest, RunPass_WithAutoMultistreamMode_LegacyFormat) {
   ge::StreamPassContext context(0);
   auto ret = RunMiniDAGStreamPass(graph, context);
   EXPECT_EQ(ret, ge::SUCCESS);
+
+  ge::GetThreadLocalContext().SetGraphOption({});
+}
+
+/**
+ * 场景 C4-1: 设置 ge.autoMultistreamParallelMode="WeightedLoadBalance" - 无冒号格式，返回FAILED
+ */
+TEST(DagStreamAllocatorPassTest, RunPass_WithAutoMultistreamMode_WeightedLoadBalanceLegacyFormat) {
+  std::map<std::string, std::string> options;
+  options["ge.autoMultistreamParallelMode"] = "WeightedLoadBalance";
+  ge::GetThreadLocalContext().SetGraphOption(options);
+
+  auto graph = BuildGraphWithControlEdge();
+  ASSERT_NE(graph, nullptr);
+
+  ge::StreamPassContext context(0);
+  auto ret = RunMiniDAGStreamPass(graph, context);
+  EXPECT_EQ(ret, ge::FAILED);
 
   ge::GetThreadLocalContext().SetGraphOption({});
 }

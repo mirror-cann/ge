@@ -9,6 +9,11 @@
  */
 
 #include <gtest/gtest.h>
+#include <cstdio>
+#include <cstdlib>
+#include <fstream>
+#include <string>
+#include <vector>
 #include <ge_running_env/ge_running_env_faker.h>
 #include <ge_running_env/fake_op.h>
 #include <common/share_graph.h>
@@ -33,6 +38,34 @@ namespace {
 graphStatus CallFromGEGraph(const ConstGraphPtr &ge_graph, std::shared_ptr<minidag::DAGGraph> &dag) {
   bool has_profiled_node_cost = false;
   return DAGAdapter::FromGEGraph(ge_graph, dag, has_profiled_node_cost);
+}
+
+struct GraphOptionGuard {
+  ~GraphOptionGuard() {
+    ge::GetThreadLocalContext().SetGraphOption({});
+  }
+};
+
+struct ProfilingPathGuard {
+  explicit ProfilingPathGuard(const char *path) : path_(path) {}
+  ~ProfilingPathGuard() {
+    unsetenv("MINIDAG_PROFILING_PATH");
+    std::remove(path_);
+    ge::GetThreadLocalContext().SetGraphOption({});
+  }
+  const char *path_;
+};
+
+bool WriteProfilingCsv(const char *profiling_path, const std::vector<std::string> &rows) {
+  std::ofstream file(profiling_path);
+  if (!file.is_open()) {
+    return false;
+  }
+  file << "Op Name,Task Type,Task Duration(us),Block Num,Mix Block Num\n";
+  for (const auto &row : rows) {
+    file << row << "\n";
+  }
+  return true;
 }
 }  // namespace
 
@@ -577,6 +610,107 @@ TEST_F(MiniDAGStreamPassTest, RunPass_InvalidUnknownAlgoName) {
   EXPECT_EQ(ret, ge::FAILED);
 
   ge::GetThreadLocalContext().SetGraphOption({});
+}
+
+/**
+ * 场景: profiling 命中时，MiniDAG Stream Pass 使用 WeightedLoadBalance 路径
+ */
+TEST_F(MiniDAGStreamPassTest, RunPass_ProfileHitUsesWeightedLoadBalance) {
+  const char *profiling_path = "/tmp/test_minidag_stream_pass_weighted_hit.csv";
+  ProfilingPathGuard guard(profiling_path);
+  ASSERT_TRUE(WriteProfilingCsv(profiling_path, {"add1,AI_CORE,100.0,8,0"}));
+  setenv("MINIDAG_PROFILING_PATH", profiling_path, 1);
+
+  std::map<std::string, std::string> options;
+  options["ge.autoMultistreamParallelMode"] = "LoadBalance:8";
+  ge::GetThreadLocalContext().SetGraphOption(options);
+
+  auto compute_graph = gert::ShareGraph::BuildTwoAddNodeKnownShapeGraph();
+  ASSERT_NE(compute_graph, nullptr);
+
+  auto graph = GraphUtilsEx::CreateGraphPtrFromComputeGraph(compute_graph);
+  ASSERT_NE(graph, nullptr);
+
+  std::shared_ptr<minidag::DAGGraph> dag;
+  bool has_profiled_node_cost = false;
+  ASSERT_EQ(DAGAdapter::FromGEGraph(graph, dag, has_profiled_node_cost), ge::GRAPH_SUCCESS);
+  EXPECT_TRUE(has_profiled_node_cost);
+
+  ge::StreamPassContext context(0);
+  auto ret = RunMiniDAGStreamPass(graph, context);
+  EXPECT_EQ(ret, ge::SUCCESS);
+  EXPECT_GT(context.GetCurrMaxStreamId(), 0);
+}
+
+/**
+ * 场景: 直接配置 WeightedLoadBalance，覆盖加权均衡策略解析分支
+ */
+TEST_F(MiniDAGStreamPassTest, RunPass_WithWeightedLoadBalanceMode) {
+  GraphOptionGuard guard;
+  std::map<std::string, std::string> options;
+  options["ge.autoMultistreamParallelMode"] = "WeightedLoadBalance:8";
+  ge::GetThreadLocalContext().SetGraphOption(options);
+
+  auto compute_graph = gert::ShareGraph::BuildTwoAddNodeKnownShapeGraph();
+  ASSERT_NE(compute_graph, nullptr);
+
+  auto graph = GraphUtilsEx::CreateGraphPtrFromComputeGraph(compute_graph);
+  ASSERT_NE(graph, nullptr);
+
+  ge::StreamPassContext context(0);
+  auto ret = RunMiniDAGStreamPass(graph, context);
+  EXPECT_EQ(ret, ge::SUCCESS);
+  EXPECT_GT(context.GetCurrMaxStreamId(), 0);
+}
+
+/**
+ * 场景: 直接配置 WeightedLoadBalance，复杂图端到端覆盖加权均衡路径
+ */
+TEST_F(MiniDAGStreamPassTest, RunPass_WithWeightedLoadBalanceModeOnComplexGraph) {
+  GraphOptionGuard guard;
+  std::map<std::string, std::string> options;
+  options["ge.autoMultistreamParallelMode"] = "WeightedLoadBalance:4";
+  ge::GetThreadLocalContext().SetGraphOption(options);
+
+  auto compute_graph = gert::ShareGraph::BuildStaticAbsReluExpAddNodeGraph();
+  ASSERT_NE(compute_graph, nullptr);
+  auto graph = GraphUtilsEx::CreateGraphPtrFromComputeGraph(compute_graph);
+  ASSERT_NE(graph, nullptr);
+
+  ge::StreamPassContext context(0);
+  auto ret = RunMiniDAGStreamPass(graph, context);
+  EXPECT_EQ(ret, ge::SUCCESS);
+  EXPECT_GT(context.GetCurrMaxStreamId(), 0);
+}
+
+/**
+ * 场景: 多节点 profiling 命中时，复杂图自动使用 WeightedLoadBalance 路径
+ */
+TEST_F(MiniDAGStreamPassTest, RunPass_ProfileMultiNodeHitUsesWeightedLoadBalance) {
+  const char *profiling_path = "/tmp/test_minidag_stream_pass_weighted_multi_hit.csv";
+  ProfilingPathGuard guard(profiling_path);
+  ASSERT_TRUE(WriteProfilingCsv(profiling_path, {"abs1,AI_CORE,120.0,8,0", "exp,MIX_AIC,60.0,6,2",
+                                                 "relu,AI_VECTOR_CORE,30.0,4,0", "add,MIX_AIV,150.0,3,7"}));
+  setenv("MINIDAG_PROFILING_PATH", profiling_path, 1);
+
+  std::map<std::string, std::string> options;
+  options["ge.autoMultistreamParallelMode"] = "LoadBalance:4";
+  ge::GetThreadLocalContext().SetGraphOption(options);
+
+  auto compute_graph = gert::ShareGraph::BuildStaticAbsReluExpAddNodeGraph();
+  ASSERT_NE(compute_graph, nullptr);
+  auto graph = GraphUtilsEx::CreateGraphPtrFromComputeGraph(compute_graph);
+  ASSERT_NE(graph, nullptr);
+
+  std::shared_ptr<minidag::DAGGraph> dag;
+  bool has_profiled_node_cost = false;
+  ASSERT_EQ(DAGAdapter::FromGEGraph(graph, dag, has_profiled_node_cost), ge::GRAPH_SUCCESS);
+  EXPECT_TRUE(has_profiled_node_cost);
+
+  ge::StreamPassContext context(0);
+  auto ret = RunMiniDAGStreamPass(graph, context);
+  EXPECT_EQ(ret, ge::SUCCESS);
+  EXPECT_GT(context.GetCurrMaxStreamId(), 0);
 }
 
 }  // namespace ge

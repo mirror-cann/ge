@@ -13,12 +13,12 @@
 #include "graph/build/dag/dag_log.h"
 #include "graph/build/dag/dag_stream_divide.h"
 #include "graph/build/dag/dag_stream_merger.h"
+#include "graph/build/dag/dag_weighted_stream_merger.h"
 #include <algorithm>
 #include <map>
 #include <memory>
 #include <queue>
 #include <set>
-#include <string>
 #include <utility>
 #include <vector>
 
@@ -275,14 +275,23 @@ graphStatus ByPathCoverCore(DAGGraph &graph, StreamAllocConfig &config) {
 
   auto index_routes = ConvertRoutesToIndexRoutes(routes);
 
-  StreamMergeOptions options;
-  options.physical_stream_limit =
-      (config.max_stream_id >= 0) ? static_cast<int32_t>(config.max_stream_id + 1) : kDefaultMaxPhysicalStreams;
-  options.strategy = config.merge_strategy;
-  StreamMerger merger(options);
   std::vector<int32_t> logical_to_physical;
-  MINIDAG_ASSERT_SUCCESS(merger.Merge(graph, index_routes, logical_to_physical),
-                         "StreamMerger failed, ByPathCover abort.");
+  const auto physical_stream_limit =
+      (config.max_stream_id >= 0) ? static_cast<int32_t>(config.max_stream_id + 1) : kDefaultMaxPhysicalStreams;
+  if (config.merge_strategy == StreamMergeStrategy::kWeightedLoadBalance) {
+    WeightedStreamMergeOptions options;
+    options.physical_stream_limit = physical_stream_limit;
+    WeightedStreamMerger merger(options);
+    MINIDAG_ASSERT_SUCCESS(merger.Merge(graph, index_routes, logical_to_physical),
+                           "WeightedStreamMerger failed, ByPathCover abort.");
+  } else {
+    StreamMergeOptions options;
+    options.physical_stream_limit = physical_stream_limit;
+    options.strategy = config.merge_strategy;
+    StreamMerger merger(options);
+    MINIDAG_ASSERT_SUCCESS(merger.Merge(graph, index_routes, logical_to_physical),
+                           "StreamMerger failed, ByPathCover abort.");
+  }
 
   AssignStreamIds(routes, logical_to_physical, id_to_node, config);
   MINIDAG_LOG_INFO("Logical stream num:%zu, merged physical stream num:%ld", routes.size(), config.required_streams);

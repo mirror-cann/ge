@@ -65,6 +65,8 @@ bool ParseStreamConfig(const std::string &multi_stream_mode, int64_t &out_max_st
     out_strategy = minidag::StreamMergeStrategy::kMainStream;
   } else if (algo == "LoadBalance") {
     out_strategy = minidag::StreamMergeStrategy::kLoadBalance;
+  } else if (algo == "WeightedLoadBalance") {
+    out_strategy = minidag::StreamMergeStrategy::kWeightedLoadBalance;
   } else {
     const auto invalid_strategy = static_cast<minidag::StreamMergeStrategy>(-1);
     const auto *strategy_name = GetStrategyName(invalid_strategy);
