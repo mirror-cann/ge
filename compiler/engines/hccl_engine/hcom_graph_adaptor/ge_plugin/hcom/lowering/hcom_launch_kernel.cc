@@ -16,6 +16,7 @@
 #include "acl/acl_rt.h"
 #include "hcom_acl_adapter.h"
 #include "adapter_dlhcclfunc.h"
+#include "common/op_hcom_comm.h"
 
 namespace hccl {
 enum class HcomOpLaunchInput {
@@ -128,6 +129,7 @@ HcclResult HcomLaunchAllGatherKernelV2(const HcomOpInputStruct *inputStruct, std
   void *hcclCommPtr = inputStruct->hcclCommPtr;
   uint64_t count = inputStruct->count;
 
+  CHK_RET(HcceSetAivCoreLimitGraphMode(launchArgs.opAttr.group, launchArgs.opAttr.aivCoreLimit));
   CHK_RET(
       HcceAllGather(inputAddrs[0], outputAddrs[0], count, launchArgs.opAttr.dataType, hcclCommPtr, launchArgs.stream));
   return HCCL_SUCCESS;
@@ -166,7 +168,13 @@ HcclResult HcomLaunchAllGatherVKernel(const HcomOpInputStruct *inputStruct, std:
   const void *recvDisplsPtr = static_cast<const void *>(recvDispls.data());
   const void *recvcountsPtr = static_cast<const void *>(recvcounts);
 
-  CHK_RET(HcomSetAivCoreLimit(launchArgs.opAttr.group, launchArgs.opAttr.aivCoreLimit));
+  bool openSourceTag = false;
+  CHK_RET(IsUsingOpenSource(openSourceTag));
+  if (openSourceTag) {
+    CHK_RET(HcceSetAivCoreLimitGraphMode(launchArgs.opAttr.group, launchArgs.opAttr.aivCoreLimit));
+  } else {
+    CHK_RET(HcomSetAivCoreLimit(launchArgs.opAttr.group, launchArgs.opAttr.aivCoreLimit));
+  }
 
   CHK_RET(HcceAllGatherV(inputAddrs[0], inputStruct->sendCount, outputAddrs[0], recvcountsPtr, recvDisplsPtr,
                          launchArgs.opAttr.dataType, hcclComm, launchArgs.stream));
@@ -377,6 +385,7 @@ HcclResult HcomLaunchAllReduceKernelV2(const HcomOpInputStruct *inputStruct, std
   HcomOpLaunchArgs launchArgs = inputStruct->launchArgs;
   std::vector<uint64_t> inputsCount = inputStruct->inputsCount;
   void *hcclCommPtr = inputStruct->hcclCommPtr;
+  CHK_RET(HcceSetAivCoreLimitGraphMode(launchArgs.opAttr.group, launchArgs.opAttr.aivCoreLimit));
   uint32_t inputOffset = 0;
   for (uint32_t i = 0; i < sliceIdxs.size(); i++) {
     if (sliceIdxs[i] == 1) {
@@ -478,6 +487,7 @@ HcclResult HcomLaunchBroadcastKernelV2(const HcomOpInputStruct *inputStruct, std
   void *hcclCommPtr = inputStruct->hcclCommPtr;
   uint64_t count = inputStruct->count;
 
+  CHK_RET(HcceSetAivCoreLimitGraphMode(launchArgs.opAttr.group, launchArgs.opAttr.aivCoreLimit));
   CHK_RET(HcceBroadcast(inputAddrs[0], count, launchArgs.opAttr.dataType, launchArgs.opAttr.op.broadcast.root,
                         hcclCommPtr, launchArgs.stream));
   return HCCL_SUCCESS;
@@ -564,7 +574,13 @@ HcclResult HcomLaunchReduceScatterVKernel(const HcomOpInputStruct *inputStruct, 
   }
   const void *sendDisplsPtr = static_cast<const void *>(sendDispls.data());
   const void *sendCountsPtr = static_cast<const void *>(sendCounts);
-  CHK_RET(HcomSetAivCoreLimit(launchArgs.opAttr.group, launchArgs.opAttr.aivCoreLimit));
+  bool openSourceTag = false;
+  CHK_RET(IsUsingOpenSource(openSourceTag));
+  if (openSourceTag) {
+    CHK_RET(HcceSetAivCoreLimitGraphMode(launchArgs.opAttr.group, launchArgs.opAttr.aivCoreLimit));
+  } else {
+    CHK_RET(HcomSetAivCoreLimit(launchArgs.opAttr.group, launchArgs.opAttr.aivCoreLimit));
+  }
   CHK_RET(HcceReduceScatterV(inputAddrs[0], sendCountsPtr, sendDisplsPtr, outputAddrs[0], inputStruct->recvCount,
                              launchArgs.opAttr.dataType, launchArgs.opAttr.op.reducescatterv.reduction, hcclComm,
                              launchArgs.stream));
@@ -595,6 +611,7 @@ HcclResult HcomLaunchReduceScatterKernelV2(const HcomOpInputStruct *inputStruct,
   void *hcclCommPtr = inputStruct->hcclCommPtr;
   uint64_t count = inputStruct->count;
 
+  CHK_RET(HcceSetAivCoreLimitGraphMode(launchArgs.opAttr.group, launchArgs.opAttr.aivCoreLimit));
   CHK_RET(HcceReduceScatter(inputAddrs[0], outputAddrs[0], count, launchArgs.opAttr.dataType,
                             launchArgs.opAttr.op.reducescatter.reduction, hcclCommPtr, launchArgs.stream));
   return HCCL_SUCCESS;
@@ -659,6 +676,7 @@ HcclResult HcomLaunchAllToAllVKernelV2(const HcomOpInputStruct *inputStruct, std
   HcomOpLaunchArgs launchArgs = inputStruct->launchArgs;
   void *hcclCommPtr = inputStruct->hcclCommPtr;
 
+  CHK_RET(HcceSetAivCoreLimitGraphMode(launchArgs.opAttr.group, launchArgs.opAttr.aivCoreLimit));
   CHK_RET(HcceAlltoAllV(inputAddrs[0], inputAddrs[1], inputAddrs[INPUT_INDEX_2], launchArgs.opAttr.dataType,
                         outputAddrs[0], inputAddrs[INPUT_INDEX_3], inputAddrs[INPUT_INDEX_4],
                         launchArgs.opAttr.op.alltoallv.recvType, hcclCommPtr, launchArgs.stream));
@@ -723,6 +741,7 @@ HcclResult HcomLaunchAllToAllVCKernelV2(const HcomOpInputStruct *inputStruct, st
   HcomOpLaunchArgs launchArgs = inputStruct->launchArgs;
   void *hcclCommPtr = inputStruct->hcclCommPtr;
 
+  CHK_RET(HcceSetAivCoreLimitGraphMode(launchArgs.opAttr.group, launchArgs.opAttr.aivCoreLimit));
   CHK_RET(HcceAlltoAllVC(inputAddrs[0], inputAddrs[1], launchArgs.opAttr.dataType, outputAddrs[0],
                          launchArgs.opAttr.dataType, hcclCommPtr, launchArgs.stream));
   return HCCL_SUCCESS;
@@ -755,7 +774,13 @@ HcclResult HcomLaunchAllToAllKernel(const HcomOpInputStruct *inputStruct, std::v
   HCCL_INFO("HcomLaunchAllToAllKernel: rankSize[%u], sendCount[%llu], recvCount[%llu], input sendCount[%llu], input recvCount[%llu]",
     rankSize, sendCount, recvCount, inputStruct->sendCount, inputStruct->recvCount);
   HcclComm hcclComm = inputStruct->hcclComm;
-  CHK_RET(HcomSetAivCoreLimit(launchArgs.opAttr.group, launchArgs.opAttr.aivCoreLimit));
+  bool openSourceTag = false;
+  CHK_RET(IsUsingOpenSource(openSourceTag));
+  if (openSourceTag) {
+    CHK_RET(HcceSetAivCoreLimitGraphMode(launchArgs.opAttr.group, launchArgs.opAttr.aivCoreLimit));
+  } else {
+    CHK_RET(HcomSetAivCoreLimit(launchArgs.opAttr.group, launchArgs.opAttr.aivCoreLimit));
+  }
   CHK_RET(HcceAlltoAll(inputAddrs[0], sendCount, launchArgs.opAttr.dataType, outputAddrs[0],
                        recvCount, launchArgs.opAttr.dataType, hcclComm, launchArgs.stream));
   return HCCL_SUCCESS;
