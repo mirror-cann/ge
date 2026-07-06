@@ -51,7 +51,6 @@ bool IsNeedDeviceQueue(const DeployPlan::SubmodelInfo &submodel_info) {
 
 std::atomic<int64_t> DeployPlannerBase::endpoint_name_id_gen_{};
 std::atomic<int64_t> DeployPlannerBase::plan_id_gen_{};
-using DynamicSchedInfo = std::map<std::string, DeployPlan::SubmodelInfo>;
 
 const std::vector<DeployPlan::QueueInfo> &DeployPlan::GetQueueInfoList() const {
   return queues_;
@@ -1592,10 +1591,6 @@ DeployPlan::SubmodelInfo &DeployPlannerBase::MutableSubmodelInfo(const std::stri
   } else {
     return deploy_plan_.submodels_[name];
   }
-}
-
-bool DeployPlannerBase::IsHeadOrTail(const std::string &name) const {
-  return (name == head_model_queue_info_.model_name) || (name == tail_model_queue_info_.model_name);
 }
 
 const std::string &DeployPlannerBase::GetSubmodelType(const std::string &name) {

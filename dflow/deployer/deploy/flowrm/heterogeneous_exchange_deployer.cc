@@ -579,9 +579,6 @@ Status HeterogeneousExchangeDeployer::UpdateExceptionRoutes(
 const ExchangeRoute *HeterogeneousExchangeDeployer::GetRoute() const {
   return &deploying_;
 }
-ExchangeRoute *HeterogeneousExchangeDeployer::MutableRoute() {
-  return &deploying_;
-}
 
 std::vector<deployer::EndpointBinding> HeterogeneousExchangeDeployer::GetBindingsAfterLoad() const {
   std::vector<deployer::EndpointBinding> bindings(route_plan_.bindings().cbegin(), route_plan_.bindings().cend());

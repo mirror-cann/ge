@@ -9,12 +9,12 @@
  */
 
 #include <gtest/gtest.h>
+
 #include "graph/build/dag/dag_graph.h"
 #include "graph/build/dag/dag_stream_allocator.h"
 
 namespace minidag {
 namespace test {
-
 class DagStreamAllocatorTest : public testing::Test {
  protected:
   void SetUp() override {
@@ -158,6 +158,41 @@ TEST_F(DagStreamAllocatorTest, ByPathCover_EdgeToNodeOutsideGraph_AbortWithoutAs
 
   EXPECT_EQ(config.required_streams, 0);
   EXPECT_EQ(n1->GetStreamId(), INVALID_STREAM_ID);
+}
+
+TEST_F(DagStreamAllocatorTest, ByPathCover_WeightedLoadBalanceStrategy_UsesNodeCostWithoutJson) {
+  auto n1 = graph_->AddNode("n1", "Op1");
+  auto n2 = graph_->AddNode("n2", "Op2");
+  auto n3 = graph_->AddNode("n3", "Op3");
+  auto n4 = graph_->AddNode("n4", "Op4");
+  ASSERT_EQ(graph_->AddEdge(n1, 0, n2, 0), graphStatus::SUCCESS);
+  ASSERT_EQ(graph_->AddEdge(n1, 0, n3, 0), graphStatus::SUCCESS);
+  ASSERT_EQ(graph_->AddEdge(n2, 0, n4, 0), graphStatus::SUCCESS);
+  ASSERT_EQ(graph_->AddEdge(n3, 0, n4, 0), graphStatus::SUCCESS);
+
+  NodeCost cost;
+  cost.execution_time = 10.0f;
+  cost.cube_block_num = 4;
+  cost.vec_block_num = 8;
+  n1->SetCost(cost);
+  n2->SetCost(cost);
+  n3->SetCost(cost);
+  n4->SetCost(cost);
+
+  StreamAllocConfig config{1, 0, 3};
+  config.merge_strategy = StreamMergeStrategy::kWeightedLoadBalance;
+  DagStreamAllocator::ByPathCover(*graph_, config);
+
+  EXPECT_GE(config.required_streams, 1);
+  EXPECT_LE(config.required_streams, 2);
+  EXPECT_GE(n1->GetStreamId(), 3);
+  EXPECT_GE(n2->GetStreamId(), 3);
+  EXPECT_GE(n3->GetStreamId(), 3);
+  EXPECT_GE(n4->GetStreamId(), 3);
+  EXPECT_LE(n1->GetStreamId(), 4);
+  EXPECT_LE(n2->GetStreamId(), 4);
+  EXPECT_LE(n3->GetStreamId(), 4);
+  EXPECT_LE(n4->GetStreamId(), 4);
 }
 
 }  // namespace test

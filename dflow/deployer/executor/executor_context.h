@@ -138,7 +138,6 @@ class ExecutorContext {
   Status ParseModelEschedPriority(const deployer::ExecutorRequest_LoadModelRequest &request, ModelHandle &handle) const;
   static Status ParseInputAlignAttrs(const deployer::ExecutorRequest_LoadModelRequest &request,
                                      InputAlignAttrs &input_align_attrs);
-  static void UpdateGraphOptions(const std::string &key, const std::string &value);
 
   // root_model_id, model_id, model_handle
   std::mutex mu_;

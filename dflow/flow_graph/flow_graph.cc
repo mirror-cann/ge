@@ -24,7 +24,6 @@
 
 namespace ge {
 namespace dflow {
-using ComputeGraphPtr = std::shared_ptr<ComputeGraph>;
 
 FlowOperator::FlowOperator(const char *name, const char *type) : ge::Operator(name, type) {}
 FlowOperator::~FlowOperator() = default;

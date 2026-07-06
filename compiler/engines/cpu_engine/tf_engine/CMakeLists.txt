@@ -74,6 +74,7 @@ target_link_libraries(aicpu_tf_engine PRIVATE
     ascend_protobuf
     aicpu_engine_common
     json
+    acl_rt
     slog_headers
     graph
 #    graph_base

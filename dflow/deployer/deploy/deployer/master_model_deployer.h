@@ -42,7 +42,6 @@ class MasterModelDeployer : public ModelDeployer {
   Status GetValidLogicDeviceId(std::string &device_id) override;
 
  private:
-  using ConstSubmodelInfoPtr = const DeployPlan::SubmodelInfo *;
   struct DeployedModel {
     uint32_t model_id = UINT32_MAX;
     // key: device_id, value: model_name

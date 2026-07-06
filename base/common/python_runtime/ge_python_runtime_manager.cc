@@ -11,13 +11,14 @@
 #include "common/python_runtime/ge_python_runtime_manager.h"
 #include "common/python_runtime/ge_python_runtime_manager_helper.h"
 
-#include <dlfcn.h>
 #include <string>
 
 #include "framework/common/debug/ge_log.h"
 #include "graph/utils/file_utils.h"
 
 namespace ge {
+
+PythonCApi g_python_api;
 
 GePythonRuntimeManager &GePythonRuntimeManager::Instance() {
   static GePythonRuntimeManager instance;

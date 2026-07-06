@@ -178,17 +178,6 @@ Status FlowModelOmSaver::SaveToOm(const std::string &output_file, const std::str
   return SUCCESS;
 }
 
-Status FlowModelOmSaver::SaveToModelData(ModelBufferData &model_buff) {
-  GE_ASSERT_SUCCESS(AddModelDefPartition(), "[Add][ModelPartition] failed.");
-  GE_ASSERT_SUCCESS(AddFlowModelPartition(), "[Add][FlowModelPartition] failed.");
-  GE_ASSERT_SUCCESS(AddFlowSubModelPartitions(), "[Add][FlowSubModelPartition] failed.");
-  GE_ASSERT_SUCCESS(UpdateModelHeader(), "[Update][Header] failed.");
-  GE_ASSERT_SUCCESS(SaveFlowModelToDataBuffer(model_buff), "[Save][FlowModelToBuffer] failed.");
-  buffers_.clear();
-  GELOGI("save to model data buffer success.");
-  return SUCCESS;
-}
-
 Status FlowModelOmSaver::AddModelDefPartition() {
   const auto &root_graph = flow_model_->GetRootGraph();
   GE_CHECK_NOTNULL(root_graph);

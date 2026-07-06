@@ -266,7 +266,6 @@ class DeployPlannerBase {
   DeployPlan::SubmodelInfo &MutableSubmodelInfo(const std::string &name);
   static Status ValidateModelAndRelation(const std::map<std::string, PneModelPtr> &models,
                                          const ModelRelation &model_relation);
-  bool IsHeadOrTail(const std::string &name) const;
   Status CreateEndpointInfo(const DeployPlan::QueueInfo &queue_info);
   Status CreateEndpointInfo(const DeployPlan::QueueInfo &queue_info, int32_t &queue_idx);
   Status CreateGroupEntry(const DeployPlan::QueueInfo &queue_info, int32_t &entry_index);

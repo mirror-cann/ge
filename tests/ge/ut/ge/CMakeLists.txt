@@ -499,6 +499,8 @@ set(MULTI_PARTS_TEST_FILES
     "graph/build/dag/dag_stream_allocator_test.cc"
     "graph/build/dag/dag_stream_divide_test.cc"
     "graph/build/dag/dag_stream_merger_test.cc"
+    "graph/build/dag/dag_weighted_stream_merger_test.cc"
+    "graph/build/dag/dag_weighted_stream_merger_whitebox_test.cc"
     "graph/build/dag/dag_profiling_parser_test.cc"
     "graph/execute/graph_execute_unittest.cc"
     "graph/execute/model_executor_unittest.cc"

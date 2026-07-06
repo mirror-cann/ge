@@ -105,11 +105,6 @@ class HeterogeneousModelExecutor {
   }
 
  private:
-  struct RunAsyncRequest {
-    RunAsyncCallback callback;
-    const void *shared_buffer = nullptr;
-  };
-
   struct ModelIndices {
     std::vector<int32_t> inputs;
     std::vector<int32_t> outputs;

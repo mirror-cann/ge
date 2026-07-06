@@ -56,8 +56,6 @@ class PneExecutorClient {
 
   int32_t GetDeviceId() const;
 
-  int32_t GetProcessId() const;
-
   int32_t GetDeployerPid() const;
 
   const ClientContext &GetContext() const;

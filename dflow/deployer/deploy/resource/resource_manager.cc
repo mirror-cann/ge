@@ -149,7 +149,4 @@ int32_t ResourceManager::GetLocalNodeId() const {
   return local_node_id_;
 }
 
-const std::map<std::string, std::vector<DeviceInfo>> &ResourceManager::GetDeviceIp2DevicesMap() const {
-  return device_ip_2_devices_;
-}
 }  // namespace ge

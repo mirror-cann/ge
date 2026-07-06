@@ -36,8 +36,6 @@ class UdfModelBuilder {
 
   Status BuildUdfDef(const OpDescPtr &op_desc, udf::UdfDef &udf_def) const;
 
-  Status SetBin(const OpDescPtr &op_desc, udf::UdfDef &udf_def) const;
-
   Status SetBinName(const OpDescPtr &op_desc, udf::UdfDef &udf_def) const;
 
   Status SetFuncNameAndInputOutputMaps(const OpDescPtr &op_desc, udf::UdfDef &udf_def) const;

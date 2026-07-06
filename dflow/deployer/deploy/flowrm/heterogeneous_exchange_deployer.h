@@ -61,7 +61,6 @@ class HeterogeneousExchangeDeployer {
   static Status Undeploy(ExchangeService &exchange_service, const ExchangeRoute &deployed,
                          FlowGwClientManager &client_manager);
   const ExchangeRoute *GetRoute() const;
-  ExchangeRoute *MutableRoute();
   static Status UpdateExceptionRoutes(ExchangeRoute &deployed, FlowGwClientManager &client_manager,
                                       const std::vector<FlowGwClient::ExceptionDeviceInfo> &exception_devices);
 

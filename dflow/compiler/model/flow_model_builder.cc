@@ -15,7 +15,6 @@
 #include "ge/ge_api_types.h"
 #include "graph/ge_context.h"
 #include "graph/ge_local_context.h"
-#include "graph/manager/util/graph_rebuild_state_ctrl.h"
 #include "dflow/compiler/pne/process_node_engine_manager.h"
 #include "dflow/compiler/pne/npu/npu_process_node_engine.h"
 #include "dflow/inc/data_flow/model/flow_model_helper.h"

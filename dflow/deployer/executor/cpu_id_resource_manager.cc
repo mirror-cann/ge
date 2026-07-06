@@ -41,26 +41,6 @@ Status CpuIdResourceManager::DeAllocate(std::vector<uint32_t> &ids) {
   return SUCCESS;
 }
 
-Status CpuIdResourceManager::GenerateAicpuStreamId(uint32_t &id) {
-  const std::lock_guard<std::mutex> lock(mutex_);
-  auto iter = std::find(streams_.begin(), streams_.end(), false);
-  if (iter == streams_.end()) {
-    GELOGE(FAILED, "Failed to generate available stream id.");
-    return FAILED;
-  }
-  id = std::distance(streams_.begin(), iter);
-  streams_[id] = true;
-  return SUCCESS;
-}
-
-Status CpuIdResourceManager::FreeAicpuStreamId(const std::vector<uint32_t> &ids) {
-  const std::lock_guard<std::mutex> lock(mutex_);
-  for (auto id : ids) {
-    streams_[id] = false;
-  }
-  return SUCCESS;
-}
-
 Status AicpuModelIdResourceManager::GenerateAicpuModelId(uint32_t &id) {
   GE_CHK_STATUS_RET(Allocate(id), "Fail to allocate stream id");
   return SUCCESS;

@@ -79,7 +79,8 @@ target_link_libraries(ge_runner_v2
         ascend_hal_stub
         msprofiler_fwk_share
         profapi_share
-        adump_server
+        ascend_dump
+        adump_headers
         $<$<BOOL:${ENABLE_OPEN_SRC}>:adcore>
         static_mmpa
         unified_dlog
@@ -163,7 +164,8 @@ target_link_libraries(ge_runner
         ascend_hal_stub
         msprofiler_fwk_share
         profapi_share
-        adump_server
+        ascend_dump
+        adump_headers
         $<$<BOOL:${ENABLE_OPEN_SRC}>:adcore>
         static_mmpa
         unified_dlog

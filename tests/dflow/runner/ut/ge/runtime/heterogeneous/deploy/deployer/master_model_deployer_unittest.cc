@@ -135,13 +135,6 @@ class MockRuntimeNoLeaks : public RuntimeStub {
   std::vector<void *> mem_bufs_;
 };
 
-class MockMasterModelDeployer : public MasterModelDeployer {
- public:
-  MOCK_CONST_METHOD2(DeployLocalExchangePlan, Status(const deployer::FlowRoutePlan &, ExchangeRoute &));
-  MOCK_METHOD3(DeployRemoteVarManager,
-               Status(const DeployPlan &, const std::map<int32_t, std::vector<ConstSubmodelInfoPtr>> &,
-                      MasterModelDeployer::DeployedModel &));
-};
 }  // namespace
 
 class MasterModelDeployerTest : public testing::Test {
@@ -200,7 +193,7 @@ TEST_F(MasterModelDeployerTest, TestDeployModel_Success) {
   AttrUtils::SetBool(flow_model->GetRootGraph(), "_inputs_align_dropout", true);
 
   MasterModelDeployer::DeployedModel deployed_model;
-  MockMasterModelDeployer model_deployer;
+  MasterModelDeployer model_deployer;
   DeployResult deploy_result;
   auto mock_runtime = std::make_shared<MockRuntimeNoLeaks>();
   RuntimeStub::SetInstance(mock_runtime);
@@ -216,7 +209,7 @@ TEST_F(MasterModelDeployerTest, TestDeployModel_Success) {
 }
 
 TEST_F(MasterModelDeployerTest, SetTrimmingModelInstanceNames) {
-  MockMasterModelDeployer model_deployer;
+  MasterModelDeployer model_deployer;
   std::map<std::string, std::vector<std::string>> org_model_instance_names;
   org_model_instance_names["name1"] = {"name2", "name3"};
   org_model_instance_names["name2"] = {"name4"};
@@ -242,7 +235,7 @@ TEST_F(MasterModelDeployerTest, TestInitinalize) {
 TEST_F(MasterModelDeployerTest, TestFinalize) {
   auto flow_model = StubModels::BuildFlowModel(StubModels::BuildGraphWithoutNeedForBindingQueues());
   MasterModelDeployer::DeployedModel deployed_model;
-  MockMasterModelDeployer model_deployer;
+  MasterModelDeployer model_deployer;
   DeployResult deploy_result;
   ASSERT_EQ(model_deployer.DeployModel(flow_model, deploy_result), SUCCESS);
   ASSERT_EQ(model_deployer.deployed_models_.size(), 1);
@@ -259,7 +252,7 @@ TEST_F(MasterModelDeployerTest, TestWithErrorHostCompileRes) {
   flow_model->SetCompileResource(compile_resource);
 
   MasterModelDeployer::DeployedModel deployed_model;
-  MockMasterModelDeployer model_deployer;
+  MasterModelDeployer model_deployer;
   DeployResult deploy_result;
   ASSERT_EQ(model_deployer.DeployModel(flow_model, deploy_result), FAILED);
 }
@@ -269,7 +262,7 @@ TEST_F(MasterModelDeployerTest, TestGetDeviceMeshIndex) {
   DeviceInfo local_device(0, NPU, 0);
   local_device.SetNodeMeshIndex({0, 0});
   ResourceManager::GetInstance().device_info_map_[0][0][NPU] = &local_device;
-  MockMasterModelDeployer model_deployer;
+  MasterModelDeployer model_deployer;
   std::vector<int32_t> device_mesh_index;
   ASSERT_EQ(model_deployer.GetDeviceMeshIndex(0, device_mesh_index), SUCCESS);
   ASSERT_EQ(device_mesh_index.size(), 4);
@@ -278,7 +271,7 @@ TEST_F(MasterModelDeployerTest, TestGetDeviceMeshIndex) {
 }
 
 TEST_F(MasterModelDeployerTest, TestGetValidLogicDeviceId) {
-  MockMasterModelDeployer model_deployer;
+  MasterModelDeployer model_deployer;
   std::string logic_device_id = "0:0:0:0";
   ASSERT_EQ(model_deployer.GetValidLogicDeviceId(logic_device_id), SUCCESS);
 }
@@ -295,7 +288,7 @@ TEST_F(MasterModelDeployerTest, TestWithDeviceCompileRes) {
   ResourceManager::GetInstance().compile_resource_.logic_dev_id_to_res_type["0"] = "Arrch";
 
   MasterModelDeployer::DeployedModel deployed_model;
-  MockMasterModelDeployer model_deployer;
+  MasterModelDeployer model_deployer;
   DeployResult deploy_result;
   ASSERT_EQ(model_deployer.DeployModel(flow_model, deploy_result), FAILED);
 
@@ -320,7 +313,7 @@ TEST_F(MasterModelDeployerTest, TestWithDeviceCompileResMoreErr) {
   ResourceManager::GetInstance().compile_resource_.logic_dev_id_to_res_type["0"] = "Ascend";
 
   MasterModelDeployer::DeployedModel deployed_model;
-  MockMasterModelDeployer model_deployer;
+  MasterModelDeployer model_deployer;
   DeployResult deploy_result;
   ASSERT_EQ(model_deployer.DeployModel(flow_model, deploy_result), FAILED);
 
@@ -471,7 +464,7 @@ TEST_F(MasterModelDeployerTest, TestDynamicSchedDeployModel_Success) {
 
   auto flow_model = StubModels::BuildFlowModel(StubModels::BuildGraphWithoutNeedForBindingQueues());
   MasterModelDeployer::DeployedModel deployed_model;
-  MockMasterModelDeployer model_deployer;
+  MasterModelDeployer model_deployer;
   DeployResult deploy_result;
   (void)AttrUtils::SetBool(flow_model->GetRootGraph(), "dynamic_schedule_enable", true);
   auto mock_runtime = std::make_shared<MockRuntimeNoLeaks>();
@@ -509,7 +502,7 @@ TEST_F(MasterModelDeployerTest, TestExceptionClearDeployModel_Success) {
 
   auto flow_model = StubModels::BuildFlowModel(StubModels::BuildGraphWithoutNeedForBindingQueues());
   MasterModelDeployer::DeployedModel deployed_model;
-  MockMasterModelDeployer model_deployer;
+  MasterModelDeployer model_deployer;
   DeployResult deploy_result;
   (void)AttrUtils::SetBool(flow_model->GetRootGraph(), "dynamic_schedule_enable", true);
   ASSERT_EQ(model_deployer.DeployModel(flow_model, deploy_result), SUCCESS);
@@ -551,7 +544,7 @@ TEST_F(MasterModelDeployerTest, TestExceptionClearDeployModelOneModel_Success) {
 
   auto flow_model = StubModels::BuildFlowModel(StubModels::BuildGraphWithoutNeedForBindingQueues());
   MasterModelDeployer::DeployedModel deployed_model;
-  MockMasterModelDeployer model_deployer;
+  MasterModelDeployer model_deployer;
   DeployResult deploy_result;
   (void)AttrUtils::SetBool(flow_model->GetRootGraph(), "dynamic_schedule_enable", true);
   ASSERT_EQ(model_deployer.DeployModel(flow_model, deploy_result), SUCCESS);

@@ -167,6 +167,7 @@ target_link_libraries(aicpu_ascend_engine PRIVATE
     mmpa_headers
     -Wl,--no-as-needed
     json
+    acl_rt
     slog_headers
     error_manager
     graph
@@ -189,6 +190,7 @@ target_link_libraries(host_cpu_engine PRIVATE
     mmpa_headers
     -Wl,--no-as-needed
     json
+    acl_rt
     slog_headers
     error_manager
     graph
@@ -211,6 +213,7 @@ target_link_libraries(host_cpu_opskernel_builder PRIVATE
     mmpa_headers
     -Wl,--no-as-needed
     json
+    acl_rt
     slog_headers
     error_manager
     graph
@@ -242,6 +245,7 @@ if (BUILD_OPEN_PROJECT OR ENABLE_OPEN_SRC)
         aicpu_engine_common
         mmpa
         json
+        acl_rt
         -Wl,--as-needed
     )
 else ()
@@ -257,6 +261,7 @@ else ()
         aicpu_engine_common
         mmpa
         json
+        acl_rt
         -Wl,--as-needed
     )
 endif ()

@@ -120,14 +120,6 @@ Status NetworkManager::GetDataPanelIp(std::string &host_ip) const {
   return SUCCESS;
 }
 
-std::string NetworkManager::GetCtrlPanelIp() const {
-  return Configurations::GetInstance().GetHostInformation().host_info.ctrl_panel.ipaddr;
-}
-
-std::string NetworkManager::GetCtrlPanelPorts() const {
-  return Configurations::GetInstance().GetHostInformation().host_info.ctrl_panel.available_ports;
-}
-
 Status NetworkManager::Initialize() {
   return SUCCESS;
 }

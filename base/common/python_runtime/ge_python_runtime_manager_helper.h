@@ -48,6 +48,8 @@ struct PythonProbeResult {
   std::string libpython_path;
 };
 
+extern PythonCApi g_python_api;
+
 constexpr const char *kPyIsInitializedSymbol = "Py_IsInitialized";
 constexpr const char *kPyInitializeSymbol = "Py_Initialize";
 constexpr const char *kPyFinalizeSymbol = "Py_Finalize";
@@ -91,41 +93,6 @@ constexpr const char *kLibpythonProbeScript =
     "        break\" 2>/dev/null";
 constexpr int kOpenFlags = RTLD_NOW | RTLD_GLOBAL;
 
-inline PythonCApi g_python_api;
-
-#define GE_BIND_PY_SYMBOL(func_field, py_symbol)                                                     \
-  do {                                                                                               \
-    resolved.func_field = reinterpret_cast<decltype(resolved.func_field)>(dlsym(handle, py_symbol)); \
-    if (resolved.func_field == nullptr) {                                                            \
-      if (log_failure) {                                                                             \
-        GELOGW("[GePythonRuntime] Failed to dlsym python symbol[%s].", py_symbol);                   \
-      }                                                                                              \
-      return false;                                                                                  \
-    }                                                                                                \
-  } while (0)
-
-inline bool ResolvePythonCApi(void *libpython_handle, const bool log_failure) {
-  void *handle = (libpython_handle != nullptr) ? libpython_handle : RTLD_DEFAULT;
-  PythonCApi resolved;
-  GE_BIND_PY_SYMBOL(py_is_initialized, kPyIsInitializedSymbol);
-  GE_BIND_PY_SYMBOL(py_initialize, kPyInitializeSymbol);
-  GE_BIND_PY_SYMBOL(py_finalize, kPyFinalizeSymbol);
-  GE_BIND_PY_SYMBOL(py_get_version, kPyGetVersionSymbol);
-  GE_BIND_PY_SYMBOL(py_eval_init_threads, kPyEvalInitThreadsSymbol);
-  GE_BIND_PY_SYMBOL(py_eval_threads_initialized, kPyEvalThreadsInitializedSymbol);
-  GE_BIND_PY_SYMBOL(py_eval_save_thread, kPyEvalSaveThreadSymbol);
-  GE_BIND_PY_SYMBOL(py_eval_restore_thread, kPyEvalRestoreThreadSymbol);
-  GE_BIND_PY_SYMBOL(py_gil_state_check, kPyGILStateCheckSymbol);
-  g_python_api = resolved;
-  return true;
-}
-
-#undef GE_BIND_PY_SYMBOL
-
-inline void ResetPythonCApi() {
-  g_python_api = PythonCApi{};
-}
-
 inline std::string FirstLine(const std::string &text) {
   const auto pos = text.find('\n');
   if (pos == std::string::npos) {
@@ -147,12 +114,12 @@ inline bool ReadCommandOutput(const std::string &command, std::string &output) {
   return (ret == 0) && (!output.empty());
 }
 
-inline bool ProbePythonRuntimeFromCommand(const char *python_command, PythonProbeResult &result) {
-  if ((python_command == nullptr) || (python_command[0] == '\0')) {
+inline bool ProbePythonRuntimeFromCommand(const std::string &python_command, PythonProbeResult &result) {
+  if (python_command.empty()) {
     return false;
   }
   std::string output;
-  if (!ReadCommandOutput(std::string(python_command) + kPythonRuntimeProbeScript, output)) {
+  if (!ReadCommandOutput(python_command + kPythonRuntimeProbeScript, output)) {
     return false;
   }
   const auto python_tag = FirstLine(output);
@@ -180,7 +147,7 @@ inline std::string ResolveLibpythonPathFromCommand(const std::string &python_com
   return real_path.empty() ? libpython_path : real_path;
 }
 
-inline bool ProbeRuntimeCandidate(const char *candidate, PythonProbeResult &probed) {
+inline bool ProbeRuntimeCandidate(const std::string &candidate, PythonProbeResult &probed) {
   if (!ProbePythonRuntimeFromCommand(candidate, probed)) {
     return false;
   }
@@ -193,6 +160,43 @@ inline bool ProbeRuntimeCandidate(const char *candidate, PythonProbeResult &prob
   return true;
 }
 
+template <typename T>
+inline bool ResolvePythonSymbol(void *handle, const char *symbol, const bool log_failure, T &func) {
+  func = reinterpret_cast<T>(dlsym(handle, symbol));
+  if (func != nullptr) {
+    return true;
+  }
+  if (log_failure) {
+    GELOGW("[GePythonRuntime] Failed to dlsym python symbol[%s].", symbol);
+  }
+  return false;
+}
+
+inline bool ResolvePythonCApi(void *libpython_handle, const bool log_failure) {
+  void *handle = (libpython_handle != nullptr) ? libpython_handle : RTLD_DEFAULT;
+  PythonCApi resolved;
+  const auto bind_symbol = [handle, log_failure](const char *symbol, auto &func) {
+    return ResolvePythonSymbol(handle, symbol, log_failure, func);
+  };
+  if (!bind_symbol(kPyIsInitializedSymbol, resolved.py_is_initialized) ||
+      !bind_symbol(kPyInitializeSymbol, resolved.py_initialize) ||
+      !bind_symbol(kPyFinalizeSymbol, resolved.py_finalize) ||
+      !bind_symbol(kPyGetVersionSymbol, resolved.py_get_version) ||
+      !bind_symbol(kPyEvalInitThreadsSymbol, resolved.py_eval_init_threads) ||
+      !bind_symbol(kPyEvalThreadsInitializedSymbol, resolved.py_eval_threads_initialized) ||
+      !bind_symbol(kPyEvalSaveThreadSymbol, resolved.py_eval_save_thread) ||
+      !bind_symbol(kPyEvalRestoreThreadSymbol, resolved.py_eval_restore_thread) ||
+      !bind_symbol(kPyGILStateCheckSymbol, resolved.py_gil_state_check)) {
+    return false;
+  }
+  g_python_api = resolved;
+  return true;
+}
+
+inline void ResetPythonCApi() {
+  g_python_api = PythonCApi{};
+}
+
 inline bool EnsureLibpythonLoaded(void **handle) {
   if (handle == nullptr) {
     return false;
@@ -202,7 +206,7 @@ inline bool EnsureLibpythonLoaded(void **handle) {
   }
 
   bool has_probe_result = false;
-  for (const char *candidate : {"python3", "python"}) {
+  for (const std::string candidate : {"python3", "python"}) {
     PythonProbeResult probe_result;
     if (!ProbeRuntimeCandidate(candidate, probe_result)) {
       continue;
@@ -211,8 +215,12 @@ inline bool EnsureLibpythonLoaded(void **handle) {
     void *opened_handle = dlopen(probe_result.libpython_path.c_str(), kOpenFlags);
     if (opened_handle == nullptr) {
       const char *open_error = dlerror();
+      std::string open_error_message;
+      if (open_error != nullptr) {
+        open_error_message = open_error;
+      }
       GELOGW("[GePythonRuntime] dlopen libpython[%s] failed: %s, try next candidate.",
-             probe_result.libpython_path.c_str(), open_error == nullptr ? "" : open_error);
+             probe_result.libpython_path.c_str(), open_error_message.c_str());
       continue;
     }
     *handle = opened_handle;

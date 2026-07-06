@@ -15,7 +15,6 @@
 #include "dflow/compiler/data_flow_graph/compile_config_json.h"
 
 namespace ge {
-using AutoDeployFunc = Status (*)(const std::map<std::string, std::string> &, const ComputeGraphPtr &);
 
 class DataFlowGraphAutoDeployer {
  public:

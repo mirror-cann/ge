@@ -38,7 +38,6 @@ class ProcessNodeEngineManager {
   inline const std::map<std::string, ProcessNodeEnginePtr> &GetEngines() const {
     return engines_map_;
   }
-  bool IsEngineRegistered(const std::string &engine_id) const;
 
  private:
   ProcessNodeEngineManager() = default;

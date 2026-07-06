@@ -54,20 +54,6 @@ class NetworkManager {
    */
   Status GetDataPanelPort(int32_t &port);
 
-  /*
-   *  @ingroup ge
-   *  @brief   get ctrl panel ip
-   *  @return: ctrl ip address
-   */
-  std::string GetCtrlPanelIp() const;
-
-  /*
-   *  @ingroup ge
-   *  @brief   get ctrl panel ports
-   *  @return: ctrl port range
-   */
-  std::string GetCtrlPanelPorts() const;
-
  private:
   NetworkManager() = default;
   ~NetworkManager() = default;

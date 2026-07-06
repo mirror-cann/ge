@@ -24,7 +24,6 @@ class FlowModelOmSaver {
   ~FlowModelOmSaver() = default;
   // split om data dir is not empty in cache function. split_om_data_base_dir = ./cache_dir/graph_key
   Status SaveToOm(const std::string &output_file, const std::string &split_om_data_base_dir = "");
-  Status SaveToModelData(ModelBufferData &model_buff);
 
  private:
   Status AddModelDefPartition();
