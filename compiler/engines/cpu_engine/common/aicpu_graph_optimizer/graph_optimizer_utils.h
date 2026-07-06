@@ -47,7 +47,7 @@ class GraphOptimizerUtils {
 class CacheGraph {
  public:
   /**
-   * Generate the graph after inserte CacheUpdate node
+   * Generate the graph after inserting CacheUpdate node
    * @param graph Compute graph
    * @return status whether this operation success
    */

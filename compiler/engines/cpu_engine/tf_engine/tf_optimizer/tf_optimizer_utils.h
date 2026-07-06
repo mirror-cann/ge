@@ -17,7 +17,7 @@ namespace aicpu {
 class TfVariableGraph {
  public:
   /**
-   * Generate the graph after inserte CacheUpdate node
+   * Generate the graph after inserting CacheUpdate node
    * @param graph Compute graph
    * @param have_insert_variable whether have insert variable op
    * @return status whether this operation success
