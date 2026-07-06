@@ -3352,12 +3352,6 @@ Status BackendUtils::GetTransposeInfos(
 
 bool BackendUtils::IfNormLikeReduce(const NodePtr &node) {
   GE_CHECK_NOTNULL(node);
-
-  auto asc_graph = BackendUtils::GetNodeFusedAscGraph(node);
-  if (!asc_graph) {
-    return true;
-  }
-
-  return IsNormLikeReduceGraph(*asc_graph);
+  return false;
 }
 }  // namespace ge
