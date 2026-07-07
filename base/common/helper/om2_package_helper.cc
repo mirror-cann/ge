@@ -140,7 +140,7 @@ Status RewriteOm2ConstantsConfig(const std::string &output_file_name, JsonFile &
     }
     JsonFile const_info_json(const_info);
     std::string type;
-    if (const_info_json.Get("type", type) && type == "INTERNAL") {
+    if (const_info_json.Get("type", type) && (type == "INTERNAL")) {
       continue;
     }
     std::string old_file_path;
@@ -293,7 +293,7 @@ Status BuildOutputJsonArray(const std::vector<OpDescPtr> &output_ops, const std:
     const auto out_size = op_desc->GetInputsSize();
     const auto src_name = op_desc->GetSrcName();
     const auto src_index = op_desc->GetSrcIndex();
-    GE_ASSERT_TRUE(src_name.size() >= out_size && src_index.size() >= out_size);
+    GE_ASSERT_TRUE((src_name.size() >= out_size) && (src_index.size() >= out_size));
     for (size_t i = 0UL; i < out_size; ++i) {
       JsonFile output_info;
       std::string output_name;
@@ -331,7 +331,9 @@ void FillModelMetaInfo(const GeModelPtr &ge_model, const JsonFile::json &input_j
                        const JsonFile::json &output_json_array, const ModelMetaExtraInfo &extra_info,
                        const std::string &root_graph_name, JsonFile &model_meta_info) {
   int64_t work_size = 0;
+  int64_t zero_copy_size = 0;
   (void)AttrUtils::GetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, work_size);
+  (void)AttrUtils::GetInt(ge_model, ATTR_MODEL_ZERO_COPY_MEMORY_SIZE, zero_copy_size);
   (void)model_meta_info.Set("inputs", input_json_array);
   (void)model_meta_info.Set("outputs", output_json_array);
   (void)model_meta_info.Set("dynamic_output_shape", extra_info.dynamic_output_shape);
@@ -339,8 +341,13 @@ void FillModelMetaInfo(const GeModelPtr &ge_model, const JsonFile::json &input_j
   (void)model_meta_info.Set("user_designate_shape_order", extra_info.user_designate_shape_order);
   (void)model_meta_info.Set("dynamic_type", extra_info.dynamic_type);
   (void)model_meta_info.Set("work_size", work_size);
+  (void)model_meta_info.Set("zero_copy_size", zero_copy_size);
   (void)model_meta_info.Set("name", ge_model->GetName());
   (void)model_meta_info.Set("root_graph_name", root_graph_name);
+  GELOGD("[OM2] FillModelMetaInfo: name=[%s], root_graph=[%s], work_size=[%" PRId64 "], zero_copy_size=[%" PRId64
+         "], dynamic_type=[%d], dynamic_output_shape_size=[%zu], dynamic_batch_info_size=[%zu]",
+         ge_model->GetName().c_str(), root_graph_name.c_str(), work_size, zero_copy_size, extra_info.dynamic_type,
+         extra_info.dynamic_output_shape.size(), extra_info.dynamic_batch_info.size());
 }
 
 std::string GetRootGraphName(const GeModelPtr &ge_model) {
@@ -399,9 +406,7 @@ Status Om2PackageHelper::SaveToOmModel(const GeModelPtr &ge_model, const std::st
   // Set model-level attrs for OM2 JSON compatibility.
   const bool set_atc_cmdline =
       ge::AttrUtils::SetStr(*(ge_model.get()), ATTR_MODEL_ATC_CMDLINE, domi::GetContext().atc_cmdline);
-  GE_CHK_BOOL_EXEC(set_atc_cmdline,
-                   GELOGE(FAILED, "[OM2] SetStr for atc_cmdline failed.");
-                   return FAILED);
+  GE_CHK_BOOL_EXEC(set_atc_cmdline, GELOGE(FAILED, "[OM2] SetStr for atc_cmdline failed."); return FAILED);
   std::string opp_version;
   std::string opp_path;
   (void)PluginManager::GetOppPath(opp_path);
@@ -481,9 +486,8 @@ Status Om2PackageHelper::ExtractGraphProtoTxt(const void *model_data, size_t mod
   const auto file_list = reader.ListFiles();
   std::string entry_path;
   for (const auto &f : file_list) {
-    if (f.find(kProtoPrefix) != std::string::npos &&
-        f.size() >= strlen(kProtoSuffix) &&
-        f.compare(f.size() - strlen(kProtoSuffix), strlen(kProtoSuffix), kProtoSuffix) == 0) {
+    if ((f.find(kProtoPrefix) != std::string::npos) && (f.size() >= strlen(kProtoSuffix)) &&
+        (f.compare(f.size() - strlen(kProtoSuffix), strlen(kProtoSuffix), kProtoSuffix) == 0)) {
       entry_path = f;
       break;
     }
@@ -701,12 +705,11 @@ Status Om2PackageHelper::SaveOpAttrJson(std::shared_ptr<ZipArchiveWriter> &zip_w
 namespace {
 constexpr int32_t kDumpIndexWidth = 8;
 
-std::string MakeDebugFileName(const std::string &prefix, const size_t model_index,
-                              const uint32_t graph_id, const std::string &graph_name,
-                              const std::string &ext) {
+std::string MakeDebugFileName(const std::string &prefix, const size_t model_index, const uint32_t graph_id,
+                              const std::string &graph_name, const std::string &ext) {
   std::stringstream ss;
-  ss << prefix << std::setw(kDumpIndexWidth) << std::setfill('0') << model_index
-     << "_graph_" << graph_id << "_" << GetSanitizedName(graph_name) << ext;
+  ss << prefix << std::setw(kDumpIndexWidth) << std::setfill('0') << model_index << "_graph_" << graph_id << "_"
+     << GetSanitizedName(graph_name) << ext;
   return ss.str();
 }
 
@@ -715,7 +718,7 @@ void StripConstWeights(ge::proto::ModelDef &ge_proto) {
     auto *graph_def = ge_proto.mutable_graph(gi);
     for (int32_t oi = 0; oi < graph_def->op_size(); ++oi) {
       auto *op_def = graph_def->mutable_op(oi);
-      if (op_def->type() == "Const" || op_def->type() == "Constant") {
+      if ((op_def->type() == "Const") || (op_def->type() == "Constant")) {
         op_def->mutable_attr()->erase(ATTR_NAME_WEIGHTS);
       }
     }
@@ -723,29 +726,29 @@ void StripConstWeights(ge::proto::ModelDef &ge_proto) {
 }
 }  // namespace
 
-Status Om2PackageHelper::SaveOnnxGraphPbtxt(std::shared_ptr<ZipArchiveWriter> &zip_writer,
-                                            const ComputeGraphPtr &graph, const size_t model_index) {
+Status Om2PackageHelper::SaveOnnxGraphPbtxt(std::shared_ptr<ZipArchiveWriter> &zip_writer, const ComputeGraphPtr &graph,
+                                            const size_t model_index) {
   ge::Model model("GE", "");
   model.SetGraph(graph);
   ge::onnx::ModelProto onnx_proto;
   GE_ASSERT_TRUE(OnnxUtils::ConvertGeModelToModelProto(model, onnx_proto, DumpLevel::DUMP_WITH_OUT_DATA),
-      "[OM2] Failed to convert ComputeGraph to ONNX ModelProto");
+                 "[OM2] Failed to convert ComputeGraph to ONNX ModelProto");
 
   std::string onnx_str;
   GE_ASSERT_TRUE(google::protobuf::TextFormat::PrintToString(onnx_proto, &onnx_str),
-      "[OM2] Failed to convert ONNX ModelProto to pbtxt string");
+                 "[OM2] Failed to convert ONNX ModelProto to pbtxt string");
 
   const std::string debug_dir = FormatOm2Path(OM2_DEBUG_DIR_FORMAT, std::to_string(model_index).c_str());
-  const std::string entry_path = debug_dir +
-      MakeDebugFileName("ge_onnx_", model_index, graph->GetGraphID(), graph->GetName(), ".pbtxt");
+  const std::string entry_path =
+      debug_dir + MakeDebugFileName("ge_onnx_", model_index, graph->GetGraphID(), graph->GetName(), ".pbtxt");
   GE_ASSERT_TRUE(zip_writer->WriteBytes(entry_path, onnx_str.data(), onnx_str.size(), true),
-      "[OM2] Failed to write ONNX pbtxt to ZIP, entry:%s", entry_path.c_str());
+                 "[OM2] Failed to write ONNX pbtxt to ZIP, entry:%s", entry_path.c_str());
   GELOGI("[OM2] Saved ONNX pbtxt, size:%zu, entry:%s", onnx_str.size(), entry_path.c_str());
   return SUCCESS;
 }
 
-Status Om2PackageHelper::SaveGeGraphProtoTxt(std::shared_ptr<ZipArchiveWriter> &zip_writer,
-                                             const GeModelPtr &ge_model, const size_t model_index) {
+Status Om2PackageHelper::SaveGeGraphProtoTxt(std::shared_ptr<ZipArchiveWriter> &zip_writer, const GeModelPtr &ge_model,
+                                             const size_t model_index) {
   const auto &graph = ge_model->GetGraph();
   GE_ASSERT_NOTNULL(graph, "[OM2] ComputeGraph is nullptr");
 
@@ -760,29 +763,29 @@ Status Om2PackageHelper::SaveGeGraphProtoTxt(std::shared_ptr<ZipArchiveWriter> &
 
   ge::Buffer model_buffer;
   GE_ASSERT_SUCCESS(model_tmp->SaveWithoutSeparate(model_buffer, false),
-      "[OM2] Failed to serialize ComputeGraph to ModelDef buffer");
+                    "[OM2] Failed to serialize ComputeGraph to ModelDef buffer");
 
   ge::proto::ModelDef ge_proto;
   GE_ASSERT_TRUE(ge_proto.ParseFromArray(model_buffer.GetData(), model_buffer.GetSize()),
-      "[OM2] Failed to parse ModelDef from buffer");
+                 "[OM2] Failed to parse ModelDef from buffer");
 
   StripConstWeights(ge_proto);
 
   std::string proto_str;
   GE_ASSERT_TRUE(google::protobuf::TextFormat::PrintToString(ge_proto, &proto_str),
-      "[OM2] Failed to convert ModelDef to proto txt string");
+                 "[OM2] Failed to convert ModelDef to proto txt string");
 
   const std::string debug_dir = FormatOm2Path(OM2_DEBUG_DIR_FORMAT, std::to_string(model_index).c_str());
-  const std::string entry_path = debug_dir +
-      MakeDebugFileName("ge_proto_", model_index, graph->GetGraphID(), graph->GetName(), ".txt");
+  const std::string entry_path =
+      debug_dir + MakeDebugFileName("ge_proto_", model_index, graph->GetGraphID(), graph->GetName(), ".txt");
   GE_ASSERT_TRUE(zip_writer->WriteBytes(entry_path, proto_str.data(), proto_str.size(), true),
-      "[OM2] Failed to write GE proto txt to ZIP, entry:%s", entry_path.c_str());
+                 "[OM2] Failed to write GE proto txt to ZIP, entry:%s", entry_path.c_str());
   GELOGI("[OM2] Saved GE proto txt, size:%zu, entry:%s", proto_str.size(), entry_path.c_str());
   return SUCCESS;
 }
 
-Status Om2PackageHelper::SaveGraphDebugFiles(std::shared_ptr<ZipArchiveWriter> &zip_writer,
-                                             const GeModelPtr &ge_model, const size_t model_index) {
+Status Om2PackageHelper::SaveGraphDebugFiles(std::shared_ptr<ZipArchiveWriter> &zip_writer, const GeModelPtr &ge_model,
+                                             const size_t model_index) {
   GELOGI("[OM2] Begin to save graph debug files");
   const auto &graph = ge_model->GetGraph();
   GE_ASSERT_NOTNULL(graph, "[OM2] ComputeGraph is nullptr");

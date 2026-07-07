@@ -407,6 +407,7 @@ TEST_F(Om2PackageHelperUt, ConvertOm2Model_Ok_GenOm2WithAicoreNode) {
   EXPECT_EQ(model_meta_json.Raw().at("dynamic_output_shape"), JsonFile::json::array());
   EXPECT_EQ(model_meta_json.Raw().at("dynamic_type"), JsonFile::json(0));
   EXPECT_EQ(model_meta_json.Raw().at("work_size"), JsonFile::json(2048));
+  EXPECT_EQ(model_meta_json.Raw().at("zero_copy_size"), JsonFile::json(0));
   EXPECT_EQ(model_meta_json.Raw().at("user_designate_shape_order"), JsonFile::json::array());
 
   const JsonFile::json expected_inputs = JsonFile::json::array({
@@ -470,6 +471,45 @@ TEST_F(Om2PackageHelperUt, ConvertOm2Model_Ok_GenOm2WithAicoreNode) {
   EXPECT_EQ(consts.at("constant_1").at("op_name"), JsonFile::json(""));
   EXPECT_EQ(consts.at("constant_1").at("offset"), JsonFile::json(200704));
   EXPECT_EQ(consts.at("constant_1").at("size"), JsonFile::json(200704));
+}
+
+TEST_F(Om2PackageHelperUt, ConvertOm2Model_WithZeroCopySize_WorkSizeAdjusted) {
+  Om2PackageHelper om2_packager;
+  const auto ge_root_model = CreateGeRootModelWithAicoreOp();
+  ASSERT_NE(ge_root_model, nullptr);
+  const auto ge_model = ge_root_model->GetSubgraphInstanceNameToModel().begin()->second;
+  ASSERT_NE(ge_model, nullptr);
+  const auto parent_graph = std::make_shared<ComputeGraph>("root_g1");
+  ge_model->GetGraph()->SetParentGraph(parent_graph);
+
+  constexpr int64_t kMemorySize = 2048;
+  constexpr int64_t kZeroCopySize = 512;
+  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, kMemorySize);
+  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_ZERO_COPY_MEMORY_SIZE, kZeroCopySize);
+
+  ModelBufferData model_data;
+  const std::string output_file = PathUtils::Join({test_work_dir, kZipFileBaseName + "_zero_copy.om2"});
+  SyncKernelNameForAllModels(ge_root_model);
+  ASSERT_EQ(om2_packager.SaveToOmRootModel(ge_root_model, output_file, model_data, false), SUCCESS);
+
+  uint32_t model_buf_size = 0;
+  const auto model_buf = GetBinDataFromFile(output_file, model_buf_size);
+  SimpleZipArchiveReader archive(reinterpret_cast<const uint8_t *>(model_buf.get()), model_buf_size);
+  ASSERT_TRUE(archive.IsGood());
+
+  size_t model_meta_size = 0;
+  const auto model_meta_buf = archive.ExtractToMem("fake_test_zero_copy/data/model_0/model_meta.json", model_meta_size);
+  ASSERT_NE(model_meta_buf, nullptr);
+  const JsonFile model_meta_json(reinterpret_cast<const uint8_t *>(model_meta_buf.get()), model_meta_size);
+  ASSERT_TRUE(model_meta_json.IsValid());
+
+  int64_t work_size = 0;
+  ASSERT_TRUE(model_meta_json.Get("work_size", work_size));
+  EXPECT_EQ(work_size, kMemorySize);
+
+  int64_t zero_copy_size = 0;
+  ASSERT_TRUE(model_meta_json.Get("zero_copy_size", zero_copy_size));
+  EXPECT_EQ(zero_copy_size, kZeroCopySize);
 }
 
 TEST_F(Om2PackageHelperUt, SaveToOmModel_SaveModeFalse_ReturnsModelBuffer) {

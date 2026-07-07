@@ -851,6 +851,7 @@ std::string MakeFakeOm2ModelMetaJson() {
        "shape": [1, 1, 224, 224], "shape_range": [], "size": 0}
     ],
     "work_size": 2048,
+    "zero_copy_size": 0,
     "user_designate_shape_order": []
 })";
 }

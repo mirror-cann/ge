@@ -67,6 +67,7 @@ struct RunModelInfo {
 
 struct ModelMetaInfo {
   size_t work_size = 0U;
+  size_t zero_copy_size = 0U;
   std::vector<ge::Om2TensorDesc> input_desc;
   std::vector<ge::Om2TensorDesc> output_desc;
   std::vector<ge::Om2TensorDesc> input_desc_v2;
@@ -426,6 +427,7 @@ class Om2ModelExecutor::Impl {
       run_model_info_.root_graph_name = run_model_info_.model_name;
     }
     GE_ASSERT_SUCCESS(GetModelJsonValue("work_size", model_meta_info_.work_size, model_meta_json));
+    GE_ASSERT_SUCCESS(GetModelJsonValue("zero_copy_size", model_meta_info_.zero_copy_size, model_meta_json));
     GE_ASSERT_SUCCESS(GetModelJsonValue("dynamic_batch_info", model_meta_info_.dynamic_batch_info, model_meta_json));
     GE_ASSERT_SUCCESS(GetModelJsonValue("dynamic_type", model_meta_info_.dynamic_type, model_meta_json));
     GE_ASSERT_SUCCESS(
@@ -819,7 +821,7 @@ class Om2ModelExecutor::Impl {
 
  private:
   ge::Status PrepareWorkPtr(const Om2ModelLoadArg &load_arg, void *&work_ptr) {
-    const size_t required_work_size = model_meta_info_.work_size;
+    const size_t required_work_size = model_meta_info_.work_size - model_meta_info_.zero_copy_size;
     if (load_arg.work_ptr != nullptr) {
       work_ptr = load_arg.work_ptr;
       return ge::SUCCESS;

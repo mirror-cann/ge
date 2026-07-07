@@ -114,6 +114,7 @@ std::string MakeModelMetaJsonWithDynamicBatch() {
         }
     ],
     "work_size": 2048,
+    "zero_copy_size": 0,
     "user_designate_shape_order": ["data"]
 })";
 }
@@ -149,6 +150,7 @@ std::string MakeModelMetaJsonWithDynamicHW() {
         }
     ],
     "work_size": 2048,
+    "zero_copy_size": 0,
     "user_designate_shape_order": ["data"]
 })";
 }
@@ -184,6 +186,7 @@ std::string MakeModelMetaJsonWithDynamicDims() {
         }
     ],
     "work_size": 2048,
+    "zero_copy_size": 0,
     "user_designate_shape_order": ["data"]
 })";
 }
@@ -229,6 +232,7 @@ std::string MakeModelMetaJson() {
         }
     ],
     "work_size": 2048,
+    "zero_copy_size": 0,
     "user_designate_shape_order": []
 })";
 }
@@ -242,6 +246,7 @@ std::string MakeModelMetaJsonWithoutRootGraphName() {
     "name": "g1",
     "outputs": [],
     "work_size": 2048,
+    "zero_copy_size": 0,
     "user_designate_shape_order": []
 })";
 }
@@ -265,6 +270,7 @@ std::string MakeModelMetaJsonWithoutInputShapeV2() {
     "name": "g1",
     "outputs": [],
     "work_size": 2048,
+    "zero_copy_size": 0,
     "user_designate_shape_order": []
 })";
 }
