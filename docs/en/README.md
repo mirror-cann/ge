@@ -2,7 +2,7 @@
 
 ## Documentation
 
-- [Graph Mode Development Guide](https://hiascend.com/document/redirect/CannCommunityGraphguide)
+- [Graph Development Guide](https://hiascend.com/document/redirect/CannCommunityGraphguide)
 
   Designed for single-card graph compilation and execution, providing GE basic concepts, principles, and how to use GE graph engine interfaces for graph construction, compilation and execution.
 

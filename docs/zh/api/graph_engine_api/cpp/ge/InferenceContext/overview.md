@@ -1,0 +1,33 @@
+# 简介
+
+获取推理上下文对象，并设置相应对象的形状和数据类型，主要用于资源类算子。
+
+## 需要包含的头文件
+
+```c++
+#include <graph/inference_context.h>
+```
+
+## Public成员函数
+
+```c++
+void SetInputHandleShapesAndTypes(std::vector<std::vector<ShapeAndType>> &&shapes_and_types)
+void SetOutputHandleShapesAndTypes(const std::vector<std::vector<ShapeAndType>> &shapes_and_types)
+void SetOutputHandleShapesAndTypes(std::vector<std::vector<ShapeAndType>> &&shapes_and_types)
+const std::vector<std::vector<ShapeAndType>> &GetInputHandleShapesAndTypes() const
+const std::vector<std::vector<ShapeAndType>> &GetOutputHandleShapesAndTypes() const
+void SetMarks(const std::vector<std::string> &marks)
+void SetMarks(const std::vector<AscendString> &marks)
+const std::vector<std::string> &GetMarks() const
+void GetMarks(std::vector<AscendString> &marks) const
+static std::unique_ptr<InferenceContext> Create(
+void *resource_context_mgr = nullptr
+)
+ResourceContext *GetResourceContext(const ge::AscendString &key)
+graphStatus SetResourceContext(const ge::AscendString &key, ResourceContext *resource_context)
+graphStatus RegisterReliedOnResourceKey(const ge::AscendString &key)
+graphStatus AddChangedResourceKey(const ge::AscendString &key)
+const std::set<ge::AscendString>& GetReliedOnResourceKeys() const
+const std::set<ge::AscendString>& GetChangedResourceKeys() const
+void ClearChangedResourceKeys()
+```

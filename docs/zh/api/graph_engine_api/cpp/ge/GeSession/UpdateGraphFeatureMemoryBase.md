@@ -1,0 +1,42 @@
+# UpdateGraphFeatureMemoryBase
+
+## 头文件/库文件
+
+- 头文件：\#include <ge/ge\_api\_v2.h\>
+- 库文件：libge\_runner\_v2.so
+
+## 功能说明
+
+用于更新Graph的Feature内存基址。
+
+在调用本接口前，必须先调用[CompileGraph](./CompileGraph.md)接口进行图编译；内存大小从[GetCompiledGraphSummary](./GetCompiledGraphSummary.md)\>**GetFeatureMemorySize**接口中获取。
+
+Feature内存指的是模型执行过程中所需要的中间内存（比如中间节点的输入输出等内存）。
+
+## 函数原型
+
+```c++
+Status UpdateGraphFeatureMemoryBase(uint32_t graph_id, const void *const memory, size_t size)
+```
+
+## 参数说明
+
+| 参数名 | 输入/输出 | 说明 |
+| --- | --- | --- |
+| graph_id | 输入 | Graph对应的ID。 |
+| memory | 输入 | 设置的Feature内存基地址。 |
+| size | 输入 | 设置的Feature内存大小。 |
+
+## 返回值说明
+
+| 参数名 | 类型 | 说明 |
+| --- | --- | --- |
+| - | Status | SUCCESS：设置成功。<br>FAILED：设置失败。 |
+
+## 约束说明
+
+- 调用CompileGraph完成图编译后，您可以通过GetCompiledGraphSummary接口获取Feature地址是否可刷新，只有Feature地址可刷新的图才支持重复调用本接口刷新Feature地址。
+- 该接口只适用于静态编译图，可以通过GetCompiledGraphSummary接口中的**IsStatic**接口获取图是否为静态编译。
+- 若使用了本接口，又配置了[RegisterExternalAllocator](./RegisterExternalAllocator.md)接口，则RegisterExternalAllocator接口不生效。
+- 不能与[SetGraphFixedFeatureMemoryBaseWithType](./SetGraphFixedFeatureMemoryBaseWithType.md)接口入参为**MEMORY\_TYPE\_DEFAULT**同时使用。
+- 不能与[UpdateGraphRefreshableFeatureMemoryBase](./UpdateGraphRefreshableFeatureMemoryBase.md)同时使用。

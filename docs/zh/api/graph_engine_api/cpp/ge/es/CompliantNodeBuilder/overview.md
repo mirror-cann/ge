@@ -1,0 +1,76 @@
+# 简介
+
+节点构建器类，用于构建符合IR规范的图节点，该类提供了链式API来定义节点的IR输入、输出、属性等信息，确保生成的节点符合IR规范要求，属于ES generated API内部调用的类，构图者如果直接基于ES generated API来构图，无需感知这个类，如果要自定义ES API，则需使用此类提供的能力来构建节点。
+
+## 需要包含的头文件
+
+```c++
+#include "compliant_node_builder.h"
+```
+
+## public成员函数
+
+```c++
+explicit CompliantNodeBuilder(ge::Graph *graph)
+~CompliantNodeBuilder()
+CompliantNodeBuilder(CompliantNodeBuilder &&) noexcept
+CompliantNodeBuilder(const CompliantNodeBuilder &)
+CompliantNodeBuilder &OpType(const char_t *type)
+CompliantNodeBuilder &IrDefInputs(std::vector<IrInputDef> input_ir_def)
+CompliantNodeBuilder &IrDefInputsV2(const IrInputDefV2 *input_ir_def, size_t input_ir_def_num);
+CompliantNodeBuilder &IrDefInputsV2(std::initializer_list<IrInputDefV2> input_ir_def)
+CompliantNodeBuilder &IrDefInputsV2(const std::vector<IrInputDefV2> &input_ir_def)
+CompliantNodeBuilder &IrDefOutputs(std::vector<IrOutputDef> output_ir_def)
+CompliantNodeBuilder &IrDefOutputsV2(const IrOutputDefV2 *output_ir_def, size_t output_ir_def_num);
+CompliantNodeBuilder &IrDefOutputsV2(std::initializer_list<IrOutputDefV2> output_ir_def)
+CompliantNodeBuilder &IrDefOutputsV2(const std::vector<IrOutputDefV2> &output_ir_def)
+CompliantNodeBuilder &IrDefAttrs(std::vector<IrAttrDef> attr_ir_def)
+CompliantNodeBuilder &IrDefAttrsV2(const IrAttrDefV2 *attr_ir_def, size_t attr_ir_def_num);
+CompliantNodeBuilder &IrDefAttrsV2(std::initializer_list<IrAttrDefV2> attr_ir_def)
+CompliantNodeBuilder &IrDefAttrsV2(const std::vector<IrAttrDefV2> &attr_ir_def)
+CompliantNodeBuilder &Name(const char_t *name)
+CompliantNodeBuilder &InstanceDynamicInputNum(const char_t *ir_name, int32_t num)
+CompliantNodeBuilder &InstanceDynamicOutputNum(const char_t *ir_name, int32_t num)
+CompliantNodeBuilder &InstanceOutputDataType(const char_t *name, ge::DataType data_type)
+CompliantNodeBuilder &InstanceOutputShape(const char_t *name, const std::vector<int64_t> &shape)
+CompliantNodeBuilder &InstanceOutputOriginShape(const char_t *name, const std::vector<int64_t> &shape)
+CompliantNodeBuilder &InstanceOutputStorageShape(const char_t *name, const std::vector<int64_t> &shape)
+CompliantNodeBuilder &InstanceOutputFormat(const char_t *name, ge::Format format)
+CompliantNodeBuilder &InstanceOutputOriginFormat(const char_t *name, ge::Format format)
+CompliantNodeBuilder &InstanceOutputStorageFormat(const char_t *name, ge::Format format)
+ge::GNode Build() const
+```
+
+## 对外函数
+
+```c++
+AttrValue CreateFrom(T &&t)
+bool ValuesEqual(const T &a, const T &b)
+bool ValuesEqual(const std::vector<T> &a, const std::vector<T> &b)
+AttrValue CreateFromIfNotEqual(T &&value, typename std::decay<T>::type default_value)
+graphStatus AddEdgeAndUpdatePeerDesc(Graph &graph, GNode &src_node, int32_t src_port_index, GNode &dst_node, int32_t dst_port_index)
+```
+
+## 枚举
+
+```c++
+enum IrAttrType
+enum IrInputType
+enum IrOutputType
+```
+
+## 结构体
+
+```c++
+struct IrAttrDef
+struct IrInputDef
+struct IrOutputDef
+```
+
+## 嵌套类
+
+```c++
+class IrInputDefV2
+class IrOutputDefV2
+class IrAttrDefV2
+```

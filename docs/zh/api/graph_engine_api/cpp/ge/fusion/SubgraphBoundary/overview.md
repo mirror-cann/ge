@@ -1,0 +1,29 @@
+# 简介
+
+用于圈定Subgraph边界：
+
+- Subgraph需要自包含除了边界的输出算子，边界内所有算子的数据输出消费者都要在边界内。若有边界外的消费者，会导致消费者在重写后找不到原始Tensor。
+- Subgraph中的节点不能跨图。
+- Subgraph不能包含所在图的边界算子（data/netoutput/variable等）。
+
+## 需要包含的头文件
+
+```c++
+#include <ge/fusion/subgraph_boundary.h>
+```
+
+## Public成员函数
+
+```c++
+SubgraphBoundary()
+SubgraphBoundary(std::vector<SubgraphInput> inputs, std::vector<SubgraphOutput> outputs)
+SubgraphBoundary(const SubgraphBoundary &other) noexcept
+SubgraphBoundary &operator=(SubgraphBoundary &&other) noexcept
+SubgraphBoundary &operator=(const SubgraphBoundary &other) noexcept
+Status AddInput(int64_t index, SubgraphInput input)
+Status AddOutput(int64_t index, SubgraphOutput output)
+Status GetInput(int64_t index, SubgraphInput &subgraph_input) const
+Status GetAllInputs(std::vector<SubgraphInput> &subgraph_input) const
+Status GetOutput(int64_t index, SubgraphOutput &subgraph_output) const
+Status GetAllOutputs(std::vector<SubgraphOutput> &subgraph_outputs) const
+```

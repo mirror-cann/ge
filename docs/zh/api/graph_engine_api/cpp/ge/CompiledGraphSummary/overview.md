@@ -1,0 +1,31 @@
+# 简介
+
+图编译结果的概要信息。
+
+## 需要包含的头文件
+
+```c++
+#include <ge/ge_graph_compile_summary.h>
+```
+
+## Public成员函数
+
+```c++
+~CompiledGraphSummary()
+CompiledGraphSummary &operator=(const CompiledGraphSummary &) & = delete
+CompiledGraphSummary(const CompiledGraphSummary &) = delete
+bool IsStatic() const
+Status GetConstMemorySize(size_t &size) const
+Status GetFeatureMemorySize(size_t &size) const
+Status GetFixedFeatureMemorySize(size_t &size) const
+std::vector<FeatureMemoryPtr> GetAllFeatureMemoryTypeSize() const
+Status GetRefreshableFeatureMemorySize(size_t &size) const
+Status GetFeatureMemoryBaseRefreshable (bool &v) const
+Status GetStreamNum(size_t &num) const
+Status GetEventNum(size_t &num) const
+Status GetOutputShapes(std::vector<ge::Shape> &shapes) const
+Status GetOutputDtypes(std::vector<ge::DataType> &dtypes) const
+Status GetIOIndexesWithSameAddr(std::vector<std::pair<uint32_t, uint32_t>> &io_indexes) const
+Status GetExternalWeightPaths(std::vector<ExternalWeightDescPtr> &paths) const
+Status GetStreamAllocationSummary(std::shared_ptr<StreamAllocationSummary> &stream_allocation) const
+```

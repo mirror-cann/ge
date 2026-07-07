@@ -1,0 +1,51 @@
+# 数据类型及其操作接口
+
+- **[aclError](aclError.md)**
+
+- **[aclTransType](aclTransType.md)**
+
+- **[aclComputeType](aclComputeType.md)**
+
+- **[aclAippInputFormat](aclAippInputFormat.md)**
+
+- **[aclAippInfo](aclAippInfo.md)**
+
+- **[aclAippDims](aclAippDims.md)**
+
+- **[aclmdlIODims](aclmdlIODims.md)**
+
+- **[aclmdlInputAippType](aclmdlInputAippType.md)**
+
+- **[aclCompileOpt](aclCompileOpt.md)**
+
+- **[aclmdlConfigAttr](aclmdlConfigAttr.md)**
+
+- **[aclOpCompileFlag](aclOpCompileFlag.md)**
+
+- **[aclopEngineType](aclopEngineType.md)**
+
+- **[aclopCompileType](aclopCompileType.md)**
+
+- **[aclmdlExecConfigAttr](aclmdlExecConfigAttr.md)**
+
+- **[aclmdlExeOMDesc](aclmdlExeOMDesc.md)**
+
+- **[aclmdlIODimsRange](aclmdlIODimsRange.md)**
+
+- **[aclmdlAIPP](aclmdlAIPP.md)**
+
+- **[aclopHandle](aclopHandle.md)**
+
+- **[aclmdlDataset](aclmdlDataset.md)**
+
+- **[aclmdlDesc](aclmdlDesc.md)**
+
+- **[aclTensorDesc](aclTensorDesc.md)**
+
+- **[aclopAttr](aclopAttr.md)**
+
+- **[aclmdlConfigHandle](aclmdlConfigHandle.md)**
+
+- **[aclGraphDumpOption](aclGraphDumpOption.md)**
+
+- **[aclmdlExecConfigHandle](aclmdlExecConfigHandle.md)**

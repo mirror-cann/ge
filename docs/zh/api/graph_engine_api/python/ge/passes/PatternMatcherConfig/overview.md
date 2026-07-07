@@ -1,0 +1,3 @@
+# 简介
+
+模式匹配器行为配置，用于控制常量值匹配、IR属性匹配等匹配行为。通过PatternMatcherConfigBuilder构造，并在PatternFusionPass的构造函数中传入。
