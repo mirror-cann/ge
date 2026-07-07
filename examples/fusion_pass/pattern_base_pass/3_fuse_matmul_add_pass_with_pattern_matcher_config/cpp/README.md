@@ -113,6 +113,10 @@
      ```
      export BUILD_PATH=/path/to/build
      ```
+   - 安装es_all.whl
+     ```
+     pip install --force-reinstall --upgrade --target ${ASCEND_PATH}/python/site-packages/ ${BUILD_PATH}/es_output/whl/es_all-*.whl
+     ```
    - 设置环境变量，添加es_all.so的路径
      ```
      export LD_LIBRARY_PATH="${BUILD_PATH}/es_output/lib64:${LD_LIBRARY_PATH}"

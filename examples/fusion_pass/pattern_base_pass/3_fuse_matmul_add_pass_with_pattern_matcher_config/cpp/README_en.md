@@ -118,6 +118,12 @@ Assume CANN software package installation directory is INSTALL_PATH, e.g., `/hom
      export BUILD_PATH=/path/to/build
      ```
 
+   - Install es_all.whl
+
+     ```bash
+     pip install --force-reinstall --upgrade --target ${ASCEND_PATH}/python/site-packages/ ${BUILD_PATH}/es_output/whl/es_all-*.whl
+     ```
+
    - Set environment variable to add es_all.so path
 
      ```bash
