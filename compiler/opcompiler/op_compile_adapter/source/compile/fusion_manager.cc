@@ -1243,7 +1243,9 @@ bool TeFusionManager::BuildFusionOp(OpBuildTaskPtr &opTask, const std::string &o
     TE_FUSION_CHECK(BinaryManager::Instance().CanReuseBinaryKernel(opTask), {
       opTask->newCompile = false;
       if (opTask->status == OP_TASK_STATUS::OP_TASK_SUCC) {
-        TE_INFOLOG("reuse binary result for node(%s). No need to compile.", GetTaskNodeName(opTask).c_str());
+        TE_INFOLOG("reuse binary result for node(%s). No need to compile, add reuse attr.",
+                   GetTaskNodeName(opTask).c_str());
+        (void)ge::AttrUtils::SetBool(opTask->opNodes.at(0)->GetOpDesc(), "_op_ensure_reuse_binary", true);
         TraceUtils::SubmitCompileDetailTrace(opTask->graphId, opTask->opNodes.at(0)->GetOpDesc()->GetId(),
                                              opTask->opNodes.at(0)->GetOpDesc()->GetType(), "reuse binary");
         reuseCount++;

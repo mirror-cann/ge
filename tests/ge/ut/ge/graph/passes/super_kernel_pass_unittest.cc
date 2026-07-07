@@ -1293,6 +1293,7 @@ TEST_F(SuperKernelPassTest, tiling_sink_op_allows_fusion) {
   AttrUtils::SetStr(op1->GetOpDesc(), "_super_kernel_scope", "scope1");
   AttrUtils::SetInt(op1->GetOpDesc(), "supportSuperKernel", 1);
   AttrUtils::SetBool(op1->GetOpDesc(), "_tiling_sink_op", true);
+  AttrUtils::SetBool(op1->GetOpDesc(), "_op_ensure_reuse_binary", false);
   AttrUtils::SetStr(op2->GetOpDesc(), "_super_kernel_scope", "scope1");
   AttrUtils::SetInt(op2->GetOpDesc(), "supportSuperKernel", 1);
   AttrUtils::SetBool(op2->GetOpDesc(), "_tiling_sink_op", true);

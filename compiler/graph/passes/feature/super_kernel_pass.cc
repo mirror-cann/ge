@@ -121,13 +121,16 @@ Status SuperKernelPass::Run(ge::ComputeGraphPtr graph) {
     GE_ASSERT_SUCCESS(IsSupportTilingOnAicpu(node, is_ir_support_tiling_on_aicpu));
     bool is_tiling_sink_op = false;
     (void)ge::AttrUtils::GetBool(op_desc, "_tiling_sink_op", is_tiling_sink_op);
-    bool is_tiling_op_no_sink = is_ir_support_tiling_on_aicpu && !is_tiling_sink_op;
+    bool is_op_reuse_binary = false;
+    (void)ge::AttrUtils::GetBool(op_desc, "_op_ensure_reuse_binary", is_op_reuse_binary);
+    // only reuse binary scene can not be sk fusion
+    bool is_tiling_op_can_not_fusion = is_ir_support_tiling_on_aicpu && !is_tiling_sink_op && is_op_reuse_binary;
     std::string super_kernel_options;
     (void)AttrUtils::GetStr(op_desc, ATTR_NAME_SUPER_KERNEL_OPTIONS, super_kernel_options);
     std::string check_val;
     GE_ASSERT_SUCCESS(ParseSuperKernelOptions(super_scope_name, super_kernel_options, check_val));
     const bool no_support_sk_fusion =
-        (is_tiling_op_no_sink || (support != 1) || (is_simt_op)) && !IsHcomOpSupportSk(op_desc);
+        (is_tiling_op_can_not_fusion || (support != 1) || (is_simt_op)) && !IsHcomOpSupportSk(op_desc);
     // cannot delete _super_kernel_scope attr when strict-scope-check is not empty,
     // because strict-scope-check logic need this attr to verify
     const bool need_del_attr = no_support_sk_fusion && check_val.empty();
