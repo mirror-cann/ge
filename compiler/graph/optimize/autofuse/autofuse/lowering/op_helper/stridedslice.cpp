@@ -64,13 +64,13 @@ Status AppendNewAxis(const std::pair<int64_t, int64_t> &ellipsis_mask_range, con
   const size_t begin_len = index_input.start_indexes.size();
   int64_t new_axis_num = 0L;
   for (size_t i = 0U; i < begin_len; ++i) {
-    if ((static_cast<size_t>(new_axis_mask) & (1 << i)) > 0) {
+    if ((static_cast<uint64_t>(new_axis_mask) & (1ULL << i)) > 0) {
       new_axis_num++;
     }
   }
   uint64_t mask_pos = 0U;
   for (size_t i = 0UL; i < input_dims.size();) {
-    if ((static_cast<uint64_t>(new_axis_mask) & (1 << mask_pos)) > 0) {
+    if ((static_cast<uint64_t>(new_axis_mask) & (1ULL << mask_pos)) > 0) {
       if (IsInEllipsisMaskRange(ellipsis_mask_range, static_cast<int64_t>(input_append_axis_shape.size()))) {
         input_append_axis_shape.emplace_back(input_dims[i++]);
         index_input.is_new_axis.emplace_back(false);

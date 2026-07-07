@@ -105,13 +105,13 @@ Status AppendNewAxis(const std::pair<int64_t, int64_t> &ellipsis_mask_range, con
   const size_t begin_len = index_input.start_indexes.size();
   int64_t new_axis_num = 0L;
   for (size_t i = 0UL; i < begin_len; ++i) {
-    if ((static_cast<size_t>(new_axis_mask) & (1 << i)) > 0) {
+    if ((static_cast<size_t>(new_axis_mask) & (1ULL << i)) > 0) {
       new_axis_num++;
     }
   }
   int64_t mask_pos = 0L;
   for (size_t i = 0UL; i < input_dims.size();) {
-    if ((static_cast<size_t>(new_axis_mask) & (1 << mask_pos)) > 0) {
+    if ((static_cast<size_t>(new_axis_mask) & (1ULL << mask_pos)) > 0) {
       if (IsInEllipsisMaskRange(ellipsis_mask_range, static_cast<int64_t>(input_append_axis_shape.size()))) {
         input_append_axis_shape.emplace_back(input_dims[i++]);
         index_input.is_new_axis.emplace_back(false);
@@ -260,7 +260,7 @@ Status FillMissionIndex(const std::pair<int64_t, int64_t> &ellipsis_mask_range,
 
 Status HandleBeginEndMask(const StridedSliceAttr &strided_slice_attr, const std::vector<Expression> &input_dims,
                           const std::pair<int64_t, int64_t> &ellipsis_mask_range, StrdedSliceIndexInputs &index_input) {
-  int64_t mask_pos = 0L;
+  uint64_t mask_pos = 0ULL;
   for (size_t i = 0UL; i < index_input.start_indexes.size(); i++) {
     if (IsInEllipsisMaskRange(ellipsis_mask_range, static_cast<int64_t>(i))) {
       if (static_cast<int64_t>(i) == ellipsis_mask_range.first) {
@@ -270,10 +270,10 @@ Status HandleBeginEndMask(const StridedSliceAttr &strided_slice_attr, const std:
     }
     int64_t strides_value = 0L;
     GE_ASSERT_TRUE(index_input.strides_indexes[i].GetConstValue(strides_value));
-    if ((static_cast<uint64_t>(strided_slice_attr.begin_mask) & (1 << mask_pos)) > 0) {
+    if ((static_cast<uint64_t>(strided_slice_attr.begin_mask) & (1ULL << mask_pos)) > 0) {
       index_input.start_indexes[i] = (strides_value > 0) ? Symbol(0) : input_dims[i] - Symbol(1);
     }
-    if ((static_cast<uint64_t>(strided_slice_attr.end_mask) & (1 << mask_pos)) > 0) {
+    if ((static_cast<uint64_t>(strided_slice_attr.end_mask) & (1ULL << mask_pos)) > 0) {
       index_input.end_indexes[i] = (strides_value > 0) ? input_dims[i] : Symbol(0);
     }
     mask_pos++;

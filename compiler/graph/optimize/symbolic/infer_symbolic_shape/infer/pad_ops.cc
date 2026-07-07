@@ -99,7 +99,7 @@ graphStatus InferShape4PadD(gert::InferSymbolShapeContext *context) {
 graphStatus PadV3InferShape(const gert::InferSymbolShapeContext *context, const gert::SymbolShape *x_shape,
                             const gert::SymbolTensor *paddings_tensor, gert::SymbolShape *y_shape) {
   const auto paddings_value = paddings_tensor->GetSymbolicValue();
-  GE_ASSERT_NOTNULL(paddings_value);
+  GE_UNSUPPORTED_IF_NULL(paddings_value);
   const auto attrs = context->GetAttrs();
   GE_ASSERT_NOTNULL(attrs);
   const auto paddings_contiguous = attrs->GetAttrPointer<bool>(1);

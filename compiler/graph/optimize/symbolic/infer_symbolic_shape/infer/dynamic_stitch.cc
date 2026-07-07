@@ -35,10 +35,10 @@ graphStatus InferShapeForDynamicStitch(gert::InferSymbolShapeContext *context) {
 
   for (int32_t i = 0U; i < *attr_n; ++i) {
     const auto indices_shape = context->GetDynamicInputSymbolShape(0, i);
-    GE_ASSERT_NOTNULL(indices_shape);
+    GE_UNSUPPORTED_IF_NULL(indices_shape);
     const auto indices_dims = indices_shape->GetDims();
     const auto x_shape = context->GetDynamicInputSymbolShape(1, i);
-    GE_ASSERT_NOTNULL(x_shape);
+    GE_UNSUPPORTED_IF_NULL(x_shape);
     const auto x_dims = x_shape->GetDims();
     GE_ASSERT_TRUE(x_dims.size() >= indices_dims.size(), "Op %s: x rank %zu is smaller than indices rank %zu.",
                    context->GetNodeName(), x_dims.size(), indices_dims.size());
@@ -53,9 +53,9 @@ graphStatus InferShapeForDynamicStitch(gert::InferSymbolShapeContext *context) {
     }
 
     const auto indices_tensor = context->GetDynamicInputSymbolTensor(0, i);
-    GE_ASSERT_NOTNULL(indices_tensor);
+    GE_UNSUPPORTED_IF_NULL(indices_tensor);
     const auto indices_tensor_val = indices_tensor->GetSymbolicValue();
-    GE_ASSERT_NOTNULL(indices_tensor_val);
+    GE_UNSUPPORTED_IF_NULL(indices_tensor_val);
     for (const auto &tensor : *indices_tensor_val) {
       out_shape_dims[0] = sym::Max(out_shape_dims[0], tensor);
     }

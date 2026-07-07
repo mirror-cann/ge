@@ -47,7 +47,7 @@ graphStatus InferShape4UnsortedSegment(gert::InferSymbolShapeContext *context) {
   GE_ASSERT(num_segments_shape->GetDims().size() == 1UL, "The size of num_segments must be 1, it is %zu!",
             num_segments_shape->GetDims().size());
   const auto num_segments_value = num_segments_tensor->GetSymbolicValue();
-  GE_ASSERT_NOTNULL(num_segments_value);
+  GE_UNSUPPORTED_IF_NULL(num_segments_value);
   GE_ASSERT_EQ(num_segments_value->size(), 1UL);
   const auto dim_desc = context->GetInputDesc(INPUT_NUM_SEGMENTS_IDX);
   GE_ASSERT_NOTNULL(dim_desc);
