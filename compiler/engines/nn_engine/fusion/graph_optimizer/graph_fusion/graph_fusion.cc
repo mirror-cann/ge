@@ -64,15 +64,15 @@ CastOptimizationType GetCastOptimizationType(const ge::DataType &input_dtype, co
    * c. input: fp32, NDC1HWC0, output: fp16, NDC1HWC0. (c is for the case of
    * Transdata from 5D to NDC1HWC0 with dtype fp32 which is currently not
    * supported by TBE op) */
-  bool condition1 = ((input_dtype == ge::DT_FLOAT16 || input_dtype == ge::DT_FLOAT) && output_dtype != ge::DT_FLOAT16 &&
-                     output_dtype != ge::DT_FLOAT);
+  bool condition1 = ((input_dtype == ge::DT_FLOAT16 || input_dtype == ge::DT_FLOAT || input_dtype == ge::DT_BF16) &&
+                     output_dtype != ge::DT_FLOAT16 && output_dtype != ge::DT_FLOAT && output_dtype != ge::DT_BF16);
 
-  bool condition2 = ((output_dtype == ge::DT_FLOAT16 || output_dtype == ge::DT_FLOAT) &&
-                     input_dtype != ge::DT_FLOAT16 && input_dtype != ge::DT_FLOAT);
+  bool condition2 = ((output_dtype == ge::DT_FLOAT16 || output_dtype == ge::DT_FLOAT || output_dtype == ge::DT_BF16) &&
+                     input_dtype != ge::DT_FLOAT16 && input_dtype != ge::DT_FLOAT && input_dtype != ge::DT_BF16);
 
-  bool condition3 = (input_dtype == ge::DT_FLOAT16 && output_dtype == ge::DT_FLOAT);
+  bool condition3 = ((input_dtype == ge::DT_FLOAT16 || input_dtype == ge::DT_BF16) && output_dtype == ge::DT_FLOAT);
 
-  bool condition4 = (input_dtype == ge::DT_FLOAT && output_dtype == ge::DT_FLOAT16);
+  bool condition4 = (input_dtype == ge::DT_FLOAT && (output_dtype == ge::DT_FLOAT16 || output_dtype == ge::DT_BF16));
 
   if (condition1 || condition3) {
     return CastOptimizationType::OPTIMIZE_WITH_TRANSDATA_AT_TAIL;
