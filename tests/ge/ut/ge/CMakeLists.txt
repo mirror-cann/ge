@@ -710,6 +710,7 @@ target_include_directories(ut_libge_multiparts_utest PRIVATE
     ${ASCGEN_DIR}/inc
     ${CMAKE_BINARY_DIR}/proto/data_flow_protos
     ${AIR_CODE_DIR}/inc/graph_metadef
+    ${AIR_CODE_DIR}/pkg_inc
     ${AIR_CODE_DIR}/tests/ge/st/stubs/
 )
 

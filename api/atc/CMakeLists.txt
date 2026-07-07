@@ -89,6 +89,7 @@ target_include_directories(atc_static PRIVATE
         ${AIR_CODE_DIR}/parser
         ${AIR_CODE_DIR}/inc/parser
         ${AIR_CODE_DIR}/inc/parser/external/
+		${AIR_CODE_DIR}/pkg_inc
         ${CMAKE_BINARY_DIR}
         ${CMAKE_BINARY_DIR}/proto/graphengine_protos
         ${ASCGEN_DIR}/inc

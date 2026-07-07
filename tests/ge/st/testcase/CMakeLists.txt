@@ -224,6 +224,7 @@ target_include_directories(ge_common_atc PRIVATE
     ${AIR_CODE_DIR}/compiler/graph/optimize/autofuse/autofuse
     ${CMAKE_BINARY_DIR}/proto/data_flow_protos
     ${AIR_CODE_DIR}/inc/graph_metadef
+    ${AIR_CODE_DIR}/pkg_inc
     ${ASCEND_INSTALL_PATH}/include/exe_graph
     ${ASCEND_INSTALL_PATH}/pkg_inc/autofuse
     )

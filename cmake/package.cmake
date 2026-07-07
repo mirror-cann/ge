@@ -319,8 +319,8 @@ if("ge-executor" IN_LIST BUILD_COMPONENT)
                   ${CMAKE_CURRENT_SOURCE_DIR}/graph_metadef/third_party/transformer/inc/transfer_shape_according_to_format_ext.h
             DESTINATION ${ARCH_LINUX_PATH}/include/transformer COMPONENT ge-executor
     )
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/inc/graph_metadef/register/amct_interface.h
-                  ${CMAKE_CURRENT_SOURCE_DIR}/inc/graph_metadef/register/amct_registry.h
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/pkg_inc/register/amct_interface.h
+                  ${CMAKE_CURRENT_SOURCE_DIR}/pkg_inc/register/amct_registry.h
             DESTINATION ${ARCH_LINUX_PATH}/pkg_inc/register COMPONENT ge-executor
     )
 endif()

@@ -48,6 +48,7 @@ graphengine:
       - inc/framework/pne/
       - inc/framework/runtime/
       - inc/graph_metadef/
+      - pkg_inc/
       - api/session/
       - dflow/
       - runtime/stub
