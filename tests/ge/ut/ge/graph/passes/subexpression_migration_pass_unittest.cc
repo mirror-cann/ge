@@ -117,7 +117,7 @@ static ComputeGraphPtr BuildIdentityGraph() {
               ->NODE("sub1/identityn", IDENTITYN)
               ->EDGE(1, 1)
               ->NODE("sub1/add", ADD));
-    CHAIN(NODE("sub1/variale", VARIABLE)
+    CHAIN(NODE("sub1/variable", VARIABLE)
               ->NODE("sub1/identity3", IDENTITY)
               ->EDGE(0, 2)
               ->NODE("sub1/identityn", IDENTITYN)
@@ -141,7 +141,7 @@ static ComputeGraphPtr BuildIdentityGraph() {
               ->NODE("sub2/identityn", IDENTITYN)
               ->EDGE(1, 1)
               ->NODE("sub2/add", ADD));
-    CHAIN(NODE("sub2/variale", VARIABLE)
+    CHAIN(NODE("sub2/variable", VARIABLE)
               ->NODE("sub2/identity3", IDENTITY)
               ->EDGE(0, 2)
               ->NODE("sub2/identityn", IDENTITYN)
@@ -182,7 +182,7 @@ static ComputeGraphPtr BuildIdentityGraph2() {
               ->EDGE(0, 0)
               ->NODE("sub1/add3", ADD)
               ->NODE("sub1/netoutput", NETOUTPUT));
-    CHAIN(NODE("sub1/variale", VARIABLE)
+    CHAIN(NODE("sub1/variable", VARIABLE)
               ->EDGE(0, 2)
               ->NODE("sub1/identityn", IDENTITYN)
               ->EDGE(2, 1)
@@ -210,7 +210,7 @@ static ComputeGraphPtr BuildIdentityGraph2() {
               ->EDGE(0, 0)
               ->NODE("sub2/add3", ADD)
               ->NODE("sub2/netoutput", NETOUTPUT));
-    CHAIN(NODE("sub2/variale", VARIABLE)
+    CHAIN(NODE("sub2/variable", VARIABLE)
               ->EDGE(0, 2)
               ->NODE("sub2/identityn", IDENTITYN)
               ->EDGE(2, 1)

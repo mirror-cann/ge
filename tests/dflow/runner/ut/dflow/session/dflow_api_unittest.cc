@@ -637,10 +637,10 @@ TEST_F(UtestDflowApi, test_build) {
   std::map<std::string, std::string> options = {{"ge.buildMode", "tuning"}, {"ge.buildStep", "after_merge"}};
   ge::DFlowSessionImpl impl(0, {});
   impl.Initialize(options);
-  ge::FlowModelBuilder &builer = impl.dflow_graph_manager_.flow_model_builder_;
-  EXPECT_FALSE(builer.process_node_engines_.empty());
-  auto pne_iter = builer.process_node_engines_.find(ge::PNE_ID_NPU);
-  ASSERT_NE(pne_iter, builer.process_node_engines_.cend());
+  ge::FlowModelBuilder &builder = impl.dflow_graph_manager_.flow_model_builder_;
+  EXPECT_FALSE(builder.process_node_engines_.empty());
+  auto pne_iter = builder.process_node_engines_.find(ge::PNE_ID_NPU);
+  ASSERT_NE(pne_iter, builder.process_node_engines_.cend());
   ge::ProcessNodeEnginePtr pne = pne_iter->second;
   ComputeGraphPtr graph = ge::MakeShared<ge::ComputeGraph>("test");
   ge::PneModelPtr model;

@@ -138,7 +138,7 @@ void AddNextIterNodes(const NodePtr &cur_node, OrderedNodeSet &out_nodes_before_
   //
   for (const auto &node : out_nodes_before_pass) {
     // A-->B-->C  if B was
-    // unlink edge may happend, add these node to queue if needed
+    // Unlink edge may happen, add these node to queue if needed
     if ((!IsNodeAlreadySeen(node, graph_state)) && (IsNodeReadyToQueue(node, graph_state))) {
       GELOGD("Node %s may lost from cur node %s, add to queue if not seen.", node->GetName().c_str(),
              cur_node->GetName().c_str());

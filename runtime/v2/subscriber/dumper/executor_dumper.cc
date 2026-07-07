@@ -1118,8 +1118,8 @@ ge::Status ExecutorDumper::FillExtraDumpInfo(const Node &node) {
   GE_ASSERT_NOTNULL(kernel_extend_info);
   const auto kernel_type = kernel_extend_info->GetKernelType();
   ge::Status ret = ge::SUCCESS;
-  ExecutorExceptionDumpInfoWrapper warpper(&node_names_to_extra_units_[node_name]);
-  ret = filler(reinterpret_cast<const KernelContext *>(ctx), static_cast<ExceptionDumpInfoWrapper &>(warpper));
+  ExecutorExceptionDumpInfoWrapper wrapper(&node_names_to_extra_units_[node_name]);
+  ret = filler(reinterpret_cast<const KernelContext *>(ctx), static_cast<ExceptionDumpInfoWrapper &>(wrapper));
   GE_ASSERT_SUCCESS(ret, "Dump filler failed, node %s, kernel %s.", node_name, kernel_type);
   GELOGI("Exception dump filler, node %s, kernel %s.", node_name, kernel_type);
   return ret;

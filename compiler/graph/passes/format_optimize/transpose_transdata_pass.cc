@@ -81,7 +81,7 @@ Status TransposeTransDataPass::Run(NodePtr &node) {
   GE_ASSERT_NOTNULL(op_desc->GetOutputDescPtr(0));
   auto output_format = op_desc->GetOutputDescPtr(0)->GetFormat();
   if (input_format == output_format) {
-    GELOGW("Node %s input format is %s, output format is %s, should not happend. Ignore pass.",
+    GELOGW("Node %s input format is %s, output format is %s, should not happened. Ignore pass.",
            op_desc->GetName().c_str(), TypeUtils::FormatToSerialString(input_format).c_str(),
            TypeUtils::FormatToSerialString(output_format).c_str());
     return SUCCESS;

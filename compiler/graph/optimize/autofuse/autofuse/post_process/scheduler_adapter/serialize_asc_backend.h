@@ -39,7 +39,7 @@ inline Status SerilizeAscBackendNode(const ComputeGraphPtr &graph) {
         "_extra_param_builder", std::function<std::string()>([node_ptr]() -> std::string {
           std::string output;
           if (AutofuseUtils::SerilizeAscBackend(node_ptr, output) != SUCCESS) {
-            GELOGE(FAILED, "node:%s(%s) serilize failed.", node_ptr->GetName().c_str(), node_ptr->GetType().c_str());
+            GELOGE(FAILED, "node:%s(%s) serialize failed.", node_ptr->GetName().c_str(), node_ptr->GetType().c_str());
             return std::string("");
           }
           return output;

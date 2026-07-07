@@ -867,7 +867,7 @@ graphStatus LowerSplit(const NodePtr &node) {
   InDataAnchorPtr x_anchor;
   vector<ge::Expression> x_dims;
   LOWERING_WARN_RECORD_REASON(ParseSplitNodeAndValidate(node, x_anchor, split_dim, x_dims) == GRAPH_SUCCESS, node,
-                              "Faile to ParseSplitNodeAndValidate");
+                              "Failed to ParseSplitNodeAndValidate");
   const auto backend_spec = ge::GetAutofuseBackendSpec();
   GE_CHECK_NOTNULL(backend_spec);
   if (split_dim < 0) {

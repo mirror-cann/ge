@@ -601,7 +601,7 @@ bool CheckCacheResult(const std::string &cache_dir, const std::string &graph_key
 
   std::vector<ge::CacheFileIndex> cache_file_list;
   if (!ReadIndexFile(cache_idx_file, cache_file_list)) {
-    std::cout << "Faile to read cache index file:" << cache_idx_file << std::endl;
+    std::cout << "Failed to read cache index file:" << cache_idx_file << std::endl;
     return false;
   }
   for (auto &idx : cache_file_list) {

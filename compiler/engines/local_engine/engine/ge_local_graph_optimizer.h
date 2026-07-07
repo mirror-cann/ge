@@ -33,7 +33,7 @@ class GeLocalGraphOptimizer : public ge::GraphOptimizer {
   ge::Status Finalize() override;
 
   /**
-   * @brief optimize original graph, using in graph prepatation stage
+   * @brief optimize original graph, using in graph preparation stage
    * @param graph computation graph
    * @return status whether success
    */
@@ -41,7 +41,7 @@ class GeLocalGraphOptimizer : public ge::GraphOptimizer {
 
   /**
    * @brief optimize original graph
-   *        using for conversion op insert in graph prepatation stage
+   *        using for conversion op insert in graph preparation stage
    * @param graph computation graph
    * @return status whether success
    */

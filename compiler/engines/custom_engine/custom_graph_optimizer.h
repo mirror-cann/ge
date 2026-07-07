@@ -34,7 +34,7 @@ class CustomGraphOptimizer : public ge::GraphOptimizer {
   ge::Status Finalize() override;
 
   /**
-   * @brief optimize original graph, using in graph prepatation stage
+   * @brief optimize original graph, using in graph preparation stage
    * @param graph computation graph
    * @return status whether success
    */

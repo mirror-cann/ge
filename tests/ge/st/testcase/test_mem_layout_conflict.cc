@@ -1071,7 +1071,7 @@ TEST_F(MemLayoutConflictTest, UserInputConnectToNoPaddingContinuousOutput_NotIns
 TEST_F(MemLayoutConflictTest, UserInputConnectToNoPaddingContinuousOutput_InsertIdentity_CheckAddressCorrect) {
   DUMP_GRAPH_WHEN("PreRunAfterMemConflictProc");
   auto graph = MemConflictShareGraph::BuildUserInConnectNoPaddingContinuousOutputGraph();
-  ge::AttrUtils::SetBool(graph, ge::ATTR_SINGLE_OP_SCENE, true);  // set graph to signle op
+  ge::AttrUtils::SetBool(graph, ge::ATTR_SINGLE_OP_SCENE, true);  // set graph to single op
 
   map<AscendString, AscendString> options;
   Session session(options);
@@ -1506,7 +1506,7 @@ TEST_F(MemLayoutConflictTest, UserInOutAndContinuousInOut_InsertIdentity) {
  * 期望：
  * phonyconcat1 输入前面插入identity
  * phonysplit output_0 后面插入identity
- * phonysplit 输入插入identity (offline 编译， signle op, load model withq 场景)
+ * phonysplit 输入插入identity (offline 编译， single op, load model withq 场景)
  */
 TEST_F(MemLayoutConflictTest, UserInOutAndNoPaddingContinuousInOut_InsertIdentity) {
   DUMP_GRAPH_WHEN("PreRunAfterMemConflictProc");

@@ -1115,7 +1115,7 @@ Status DeployPlannerBase::AssignDequeueQueues() {
         } else {
           GE_CHK_STATUS_RET_NOLOG(GetOrCreateInputEndpoint(model_queue_loc, queue_info, dst_endpoint_idx));
           GE_CHK_STATUS_RET_NOLOG(ResolveDequeueFusion(src_endpoint_idx, dst_endpoint_idx));
-          // aggregation endpoint need to known current intance index
+          // aggregation endpoint need to know current instance index
           InputGroupAttr input_group_attr = {};
           input_group_attr.instance_num = static_cast<int32_t>(queue_loc_and_queue_infos.second.size());
           input_group_attr.instance_idx = static_cast<int32_t>(i);
