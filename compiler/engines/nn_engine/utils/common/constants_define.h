@@ -50,7 +50,7 @@ const std::string SUPPORT_FUSSION_PASS_FILE = "built-in.support.pass.file";
 const int32_t PRIORITY_START_NUM = 0;
 const int32_t OP_STORE_FORMAT_MAX_SIZE = 7;  // The size of opstore config items in fe.ini file
 
-const int32_t DATA_VISIT_DIST_THRESHOLD = 5;  // data distance threshlod for rc cache optimization
+const int32_t DATA_VISIT_DIST_THRESHOLD = 5;  // data distance threshold for rc cache optimization
 const int32_t MEM_REUSE_DIST_THRESHOLD = 2;   // mem reuse distance threshold
 
 const std::map<L2CacheReadMode, std::string> L2CACHE_READ_MODE_STRING_MAP{

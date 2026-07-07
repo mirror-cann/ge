@@ -105,7 +105,7 @@ FE_DEF_ERRORNO_SHAPE_FORMAT_TRANSFER(ADD_CAST_OP_NODE_FAILED, 4, "Failed to add 
 FE_DEF_ERRORNO_SHAPE_FORMAT_TRANSFER(RESHAPE_TYPE_NOT_SUPPORTED, 5,
                                      "Failed to insert Reshape! Reshape type is invalid!");  // 0x3340005
 FE_DEF_ERRORNO_SHAPE_FORMAT_TRANSFER(RESHAPE_NOT_NECESSARY, 6,
-                                     "Failed to insert Reshape! Uncessary to reshape!");  // 0x3340006
+                                     "Failed to insert Reshape! Unnecessary to reshape!");  // 0x3340006
 FE_DEF_ERRORNO_SHAPE_FORMAT_TRANSFER(MERGE_TRANS_OP_NO_MORE_PREDECESSOR, 7,
                                      "There is no more trans op for merging!");  // 0x3340007
 

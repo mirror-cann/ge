@@ -415,7 +415,7 @@ const std::map<OpImplType, std::string> IMPL_TYPE_STRING_MAP{
     {EN_IMPL_NON_PERSISTENT_CUSTOM_TBE, "tbe-custom-non-persistent"},
 };
 
-// the origin fromat
+// the origin format
 const std::vector<ge::Format> FE_IDENTIFIABLE_ORIGIN_FORMAT_VECTOR = {
     ge::FORMAT_NCHW,  ge::FORMAT_NHWC,  ge::FORMAT_HWCN,  ge::FORMAT_CHWN,
     ge::FORMAT_NDHWC, ge::FORMAT_NCDHW, ge::FORMAT_DHWCN, ge::FORMAT_DHWNC};

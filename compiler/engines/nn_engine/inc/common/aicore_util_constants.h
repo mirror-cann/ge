@@ -110,7 +110,7 @@ const uint32_t kAutoMode = 1U;
 
 const size_t kMixNotifyIdNum = 2;
 
-const int32_t kDataVisitDistThreshold = 5;  // data distance threshlod for rc cache optimization
+const int32_t kDataVisitDistThreshold = 5;  // data distance threshold for rc cache optimization
 
 const int32_t kRuntimeTypeHeterogeneous = 1;  // Helper scene
 
