@@ -140,14 +140,30 @@ graphStatus GeApiWrapper_GNode_SetOutputAttr(GNode *node, const char *attr_name,
 graphStatus GeApiWrapper_GNode_GetOutDataNodesAndPortIndexes(const GNode *node, int32_t out_index, GNode **&out_node,
                                                              int32_t *&index, int *size) {
   GE_ASSERT_NOTNULL(node);
+  GE_ASSERT_NOTNULL(size);
+  out_node = nullptr;
+  index = nullptr;
   auto out_nodes_and_indexes = node->GetOutDataNodesAndPortIndexs(out_index);
   *size = out_nodes_and_indexes.size();
   auto c_out_nodes = new (std::nothrow) GNode *[*size];
   auto c_out_indexes = new (std::nothrow) int32_t[*size];
+  if ((c_out_nodes == nullptr) || (c_out_indexes == nullptr)) {
+    delete[] c_out_nodes;
+    delete[] c_out_indexes;
+    return GRAPH_FAILED;
+  }
   for (int i = 0; i < *size; ++i) {
     auto node_index_pair = out_nodes_and_indexes.at(i);
     GE_ASSERT_NOTNULL(node_index_pair.first);
     c_out_nodes[i] = new (std::nothrow) GNode(*node_index_pair.first);
+    if (c_out_nodes[i] == nullptr) {
+      for (int j = 0; j < i; ++j) {
+        delete c_out_nodes[j];
+      }
+      delete[] c_out_nodes;
+      delete[] c_out_indexes;
+      return GRAPH_FAILED;
+    }
     c_out_indexes[i] = node_index_pair.second;
   }
   out_node = c_out_nodes;
