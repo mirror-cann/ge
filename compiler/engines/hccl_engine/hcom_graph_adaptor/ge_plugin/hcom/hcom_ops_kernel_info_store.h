@@ -229,7 +229,7 @@ class HcomOpsKernelInfoStore : public HCCLOpsKernelInfoStore {
 #endif
   HcclResult CleanInterMemory(std::vector<std::int64_t> &crackAddr, std::vector<std::int64_t> &crackSize,
                               rtStream_t stream);
-
+  HcclResult GetHcclUnfoldStream(const std::string &group, uint64_t streamMode, rtStream_t &unfoldStream);
   std::mutex workSpaceMemMutex_;
   std::map<std::string, std::tuple<void *, u64>> workSpaceMemInfo_;  // key:group name,value:workSpace mem ptr and size
   std::mutex taskIDtoTagMutex_;
