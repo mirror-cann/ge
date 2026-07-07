@@ -194,14 +194,15 @@ graphStatus ParseConcatDim(const NodePtr &node, int64_t &concat_dim, int64_t &co
     const std::vector<int64_t> dims = concat_dim_tensor.GetTensorDesc().GetShape().GetDims();
     LOWERING_WARN_RECORD_REASON(dims.empty() || (dims.size() == 1U && dims[0] == 1U), node,
                                 "Concat dim must be a scalar or [1]");
-    LOWERING_WARN_RECORD_REASON(concat_dim_tensor.GetData() != nullptr, node, "Concat_dim_tensor is null");
+    const auto data = concat_dim_tensor.GetData();
+    GE_CHK_BOOL_RET_SPECIAL_STATUS(data == nullptr, GRAPH_FAILED, "Concat_dim_tensor is null");
 
     const ge::DataType tensor_dtype = concat_dim_tensor.GetTensorDesc().GetDataType();
     if (tensor_dtype == ge::DT_INT32) {
-      concat_dim = *reinterpret_cast<const int32_t *>(concat_dim_tensor.GetData());
+      concat_dim = *reinterpret_cast<const int32_t *>(data);
     } else {
       LOWERING_WARN_RECORD_REASON(tensor_dtype == ge::DT_INT64, node, "Concat dim tensor type must be int32 or int64");
-      concat_dim = *reinterpret_cast<const int64_t *>(concat_dim_tensor.GetData());
+      concat_dim = *reinterpret_cast<const int64_t *>(data);
     }
   }
   return GRAPH_SUCCESS;

@@ -1020,21 +1020,41 @@ bool CheckAllBranchesSupportBackward(const std::vector<std::vector<NodePtr>> &al
  */
 Status UpdateTopoIdsForMultiRefBackward(const NodePtr &merge_node, const std::vector<NodePtr> &bro_nodes,
                                         AscGraph &graph) {
-  int64_t merge_node_id = merge_node->GetOpDesc()->GetId();
+  const auto merge_op_desc = merge_node->GetOpDesc();
+  GE_CHK_BOOL_RET_SPECIAL_STATUS(merge_op_desc == nullptr, FAILED, "Merge node %s op desc is null",
+                                 merge_node->GetNamePtr());
+  int64_t merge_node_id = merge_op_desc->GetId();
   size_t bro_nodes_count = bro_nodes.size();
+  std::vector<OpDescPtr> update_op_descs;
+  std::vector<int64_t> update_node_ids;
+  std::vector<OpDescPtr> bro_op_descs;
+
+  for (const auto &node : graph.GetAllNodes()) {
+    const auto op_desc = node->GetOpDesc();
+    GE_CHK_BOOL_RET_SPECIAL_STATUS(op_desc == nullptr, FAILED, "Node %s op desc is null", node->GetNamePtr());
+    int64_t node_id = op_desc->GetId();
+    if (node_id > merge_node_id) {
+      update_op_descs.emplace_back(op_desc);
+      update_node_ids.emplace_back(node_id);
+    }
+  }
+
+  for (const auto &bro_node : bro_nodes) {
+    const auto bro_op_desc = bro_node->GetOpDesc();
+    GE_CHK_BOOL_RET_SPECIAL_STATUS(bro_op_desc == nullptr, FAILED, "Broadcast node %s op desc is null",
+                                   bro_node->GetNamePtr());
+    bro_op_descs.emplace_back(bro_op_desc);
+  }
 
   // 更新所有id大于merge_node_id的节点
-  for (const auto &node : graph.GetAllNodes()) {
-    int64_t node_id = node->GetOpDesc()->GetId();
-    if (node_id > merge_node_id) {
-      node->GetOpDesc()->SetId(node_id + bro_nodes_count);
-    }
+  for (size_t i = 0U; i < update_op_descs.size(); ++i) {
+    update_op_descs[i]->SetId(update_node_ids[i] + bro_nodes_count);
   }
 
   // 更新新插入的Broadcast节点的id
   int64_t current_id = merge_node_id + 1;
-  for (const auto &bro_node : bro_nodes) {
-    bro_node->GetOpDesc()->SetId(current_id++);
+  for (const auto &bro_op_desc : bro_op_descs) {
+    bro_op_desc->SetId(current_id++);
   }
 
   return SUCCESS;

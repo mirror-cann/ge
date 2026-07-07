@@ -21,6 +21,7 @@
 #include "post_process/scheduler_adapter/adaption_fallback_load.h"
 #include "post_process/scheduler_adapter/adaption_fallback_scalar.h"
 #include "post_process/asc_backend_post_processor.h"
+#include "post_process/pass/cube_fixpip_pass.h"
 #include "fusion/autofuse_attrs.h"
 #include "ascgen_log.h"
 #include "attribute_group/attr_group_shape_env.h"
@@ -11247,6 +11248,34 @@ ComputeGraphPtr BuildGraph1(const std::string node_type = "") {
   return builder.GetGraph();
 }
 
+Status CreateMatMulReluAscGraph(ge::AscGraph &graph, std::shared_ptr<AscGraph> &asc_graph) {
+  const Expression M = graph.CreateSizeVar("M");
+  const Expression N = graph.CreateSizeVar("N");
+
+  auto m = graph.CreateAxis("M", M);
+  auto n = graph.CreateAxis("N", N);
+
+  af::ascir_op::Data data("data", graph);
+  data.attr.sched.axis = {m.id, n.id};
+  *data.y.axis = {m.id, n.id};
+  *data.y.repeats = {M, N};
+
+  af::ascir_op::MatMul matmul("matmul");
+  matmul.x1 = data.y;
+  matmul.attr.sched.axis = {m.id, n.id};
+  *matmul.y.axis = {m.id, n.id};
+  *matmul.y.repeats = {M, N};
+
+  af::ascir_op::Relu relu("relu");
+  relu.x = matmul.y;
+  relu.attr.sched.axis = {m.id, n.id};
+  *relu.y.axis = {m.id, n.id};
+  *relu.y.repeats = {M, N};
+
+  asc_graph = std::make_shared<ge::AscGraph>(graph);
+  return SUCCESS;
+}
+
 ComputeGraphPtr BuildGraphWithSubGraph(const std::string node_type = "") {
   auto root_builder = GraphBuilder("root", node_type);
   const auto &data0 = root_builder.AddNode("data0", "Data", 1, 1);
@@ -11360,6 +11389,41 @@ TEST_F(AscBackendPostProcessorTest, AdapterAndPass_OK) {
   auto shape_env_attr = compute_graph->GetOrCreateAttrsGroup<ShapeEnvAttr>();
   ASSERT_NE(shape_env_attr, nullptr);
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
+}
+
+TEST_F(AscBackendPostProcessorTest, CubeFixpipSetReluAttr_OK) {
+  ComputeGraphPtr compute_graph = BuildGraph1("AscBackend");
+  ASSERT_NE(compute_graph, nullptr);
+
+  auto addn1 = compute_graph->FindNode("addn1");
+  ASSERT_NE(addn1, nullptr);
+  auto op_desc1 = addn1->GetOpDescBarePtr();
+  ASSERT_NE(op_desc1, nullptr);
+  auto attr1 = GetOrCreateAutoFuseAttrs(op_desc1);
+  ASSERT_NE(attr1, nullptr);
+
+  ge::AscGraph cube_graph("cube");
+  std::shared_ptr<AscGraph> asc_graph;
+  ASSERT_EQ(CreateMatMulReluAscGraph(cube_graph, asc_graph), SUCCESS);
+  ASSERT_NE(asc_graph, nullptr);
+  attr1->SetAscGraph(asc_graph, loop::FuseType::kCube);
+
+  CubeFixpipPass cube_fixpip_pass;
+  EXPECT_EQ(cube_fixpip_pass.Run(compute_graph), SUCCESS);
+
+  auto fused_asc_graph = attr1->GetAscGraph();
+  ASSERT_NE(fused_asc_graph, nullptr);
+  auto matmul = fused_asc_graph->FindNode("matmul");
+  ASSERT_NE(matmul, nullptr);
+  auto matmul_op_desc = matmul->GetOpDesc();
+  ASSERT_NE(matmul_op_desc, nullptr);
+  auto matmul_attr = matmul_op_desc->GetAttrsGroup<AscNodeAttr>();
+  ASSERT_NE(matmul_attr, nullptr);
+  auto matmul_ir_attr = dynamic_cast<af::ascir_op::MatMul::AscMatMulIrAttrDef *>(matmul_attr->ir_attr.get());
+  ASSERT_NE(matmul_ir_attr, nullptr);
+  int64_t has_relu = 0;
+  EXPECT_EQ(matmul_ir_attr->GetHas_relu(has_relu), SUCCESS);
+  EXPECT_EQ(has_relu, 1);
 }
 
 TEST_F(AscBackendPostProcessorTest, Adaption_EmptyRepeatsAfterLoad_OK) {

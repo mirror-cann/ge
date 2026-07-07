@@ -1066,7 +1066,8 @@ Status BackendUtils::FusedApplyViewOpSlice(AscTensorAttr *output_attr, const Nod
 
   TensorAttrInfo temp_pre_out_data_attr;
   AscTensorAttr *pre_output_attr = SliceGetDataPeerOutNodeAttr(node2, data_node);
-  GE_ASSERT_NOTNULL(pre_output_attr);
+  GE_CHK_BOOL_RET_SPECIAL_STATUS(pre_output_attr == nullptr, FAILED, "Failed to get slice pre output attr, node:%s",
+                                 node2->GetNamePtr());
   temp_pre_out_data_attr.axis = pre_output_attr->axis;
   temp_pre_out_data_attr.repeats = pre_output_attr->repeats;
   temp_pre_out_data_attr.strides = pre_output_attr->strides;

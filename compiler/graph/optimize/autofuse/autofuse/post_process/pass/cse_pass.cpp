@@ -45,9 +45,10 @@ struct CandidateNodes {
 };
 
 Status GetCseKeyOffset(const NodePtr &node, std::stringstream &ss) {
-  GE_ASSERT_NOTNULL(node->GetOpDesc());
-  const auto &attr = node->GetOpDesc()->GetAttrsGroup<AscNodeAttr>();
-  GE_ASSERT_NOTNULL(attr);
+  const auto op_desc = node->GetOpDesc();
+  GE_CHK_BOOL_RET_SPECIAL_STATUS(op_desc == nullptr, FAILED, "Node %s op desc is null", node->GetNamePtr());
+  const auto &attr = op_desc->GetAttrsGroup<AscNodeAttr>();
+  GE_CHK_BOOL_RET_SPECIAL_STATUS(attr == nullptr, FAILED, "Node %s asc node attr is null", node->GetNamePtr());
   auto load_attr = dynamic_cast<ascir_op::Load::AscLoadIrAttrDef *>(attr->ir_attr.get());
   GE_ASSERT_NOTNULL(load_attr);
   Expression load_offset;
@@ -67,8 +68,10 @@ Status GetCseKeyGatherAxis(const NodePtr &node, std::stringstream &ss) {
 }
 
 Status GetCseKeyScalarValue(const NodePtr &node, std::stringstream &ss) {
-  const auto &attr = node->GetOpDesc()->GetAttrsGroup<AscNodeAttr>();
-  GE_ASSERT_NOTNULL(attr);
+  const auto op_desc = node->GetOpDesc();
+  GE_CHK_BOOL_RET_SPECIAL_STATUS(op_desc == nullptr, FAILED, "Node %s op desc is null", node->GetNamePtr());
+  const auto &attr = op_desc->GetAttrsGroup<AscNodeAttr>();
+  GE_CHK_BOOL_RET_SPECIAL_STATUS(attr == nullptr, FAILED, "Node %s asc node attr is null", node->GetNamePtr());
   const auto scalar_attr = dynamic_cast<ascir_op::Scalar::AscScalarIrAttrDef *>(attr->ir_attr.get());
   GE_ASSERT_NOTNULL(scalar_attr);
   std::string value;
@@ -80,8 +83,10 @@ Status GetCseKeyScalarValue(const NodePtr &node, std::stringstream &ss) {
 }
 
 Status GetCseKeySplitIndex(const NodePtr &node, std::stringstream &ss) {
-  const auto &attr = node->GetOpDesc()->GetAttrsGroup<AscNodeAttr>();
-  GE_ASSERT_NOTNULL(attr);
+  const auto op_desc = node->GetOpDesc();
+  GE_CHK_BOOL_RET_SPECIAL_STATUS(op_desc == nullptr, FAILED, "Node %s op desc is null", node->GetNamePtr());
+  const auto &attr = op_desc->GetAttrsGroup<AscNodeAttr>();
+  GE_CHK_BOOL_RET_SPECIAL_STATUS(attr == nullptr, FAILED, "Node %s asc node attr is null", node->GetNamePtr());
   const auto split_attr = dynamic_cast<ascir_op::Split::AscSplitIrAttrDef *>(attr->ir_attr.get());
   GE_ASSERT_NOTNULL(split_attr);
   int64_t value;

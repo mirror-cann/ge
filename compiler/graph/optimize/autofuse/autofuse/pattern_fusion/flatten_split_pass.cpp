@@ -55,10 +55,12 @@ bool GetSplitNodeSplitDim(const NodePtr &split_node, int64_t &node_split_dim_val
     int32_t index = op_desc->GetInputIndexByName("split_dim");
     auto op = ge::OpDescUtils::CreateOperatorFromNode(split_node);
     const GeTensor *perm_tensor = ge::OpDescUtils::GetInputConstData(op, index);
-    GE_WARN_ASSERT(perm_tensor != nullptr, "split dim input is not const data");
+    GE_CHK_BOOL_RET_SPECIAL_STATUS(perm_tensor == nullptr, false, "split dim input is not const data");
 
     const auto &tensor_desc = perm_tensor->GetTensorDesc();
-    GE_ASSERT_TRUE((tensor_desc.GetShape().GetShapeSize() == 1) || (tensor_desc.GetShape().IsScalar()));
+    GE_CHK_BOOL_RET_SPECIAL_STATUS(
+        !((tensor_desc.GetShape().GetShapeSize() == 1) || (tensor_desc.GetShape().IsScalar())), false,
+        "split dim input shape is invalid");
 
     if (tensor_desc.GetDataType() == DT_INT32) {
       const auto *perm_data = reinterpret_cast<const int32_t *>(perm_tensor->GetData().data());

@@ -12,6 +12,8 @@
 #define AIR_CXX_COMPILER_GRAPH_OPTIMIZE_AUTOFUSE_LOWERING_CUBE_H_
 
 #include <cstdint>
+#include <string>
+#include <vector>
 #include "graph/types.h"
 
 namespace ge {

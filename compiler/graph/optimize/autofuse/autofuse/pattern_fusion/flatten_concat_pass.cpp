@@ -59,10 +59,12 @@ bool GetConcatNodeConcatDim(const NodePtr &concat_node, int64_t &node_concat_dim
     int32_t index = op_desc->GetInputIndexByName("concat_dim");
     auto op = ge::OpDescUtils::CreateOperatorFromNode(concat_node);
     const GeTensor *perm_tensor = ge::OpDescUtils::GetInputConstData(op, index);
-    GE_WARN_ASSERT(perm_tensor != nullptr, "concat dim input is not const data");
+    GE_CHK_BOOL_RET_SPECIAL_STATUS(perm_tensor == nullptr, false, "concat dim input is not const data");
 
     const auto &tensor_desc = perm_tensor->GetTensorDesc();
-    GE_ASSERT_TRUE((tensor_desc.GetShape().GetShapeSize() == 1) || (tensor_desc.GetShape().IsScalar()));
+    GE_CHK_BOOL_RET_SPECIAL_STATUS(
+        !((tensor_desc.GetShape().GetShapeSize() == 1) || (tensor_desc.GetShape().IsScalar())), false,
+        "concat dim input shape is invalid");
 
     if (tensor_desc.GetDataType() == DT_INT32) {
       const auto *perm_data = reinterpret_cast<const int32_t *>(perm_tensor->GetData().data());
@@ -341,7 +343,8 @@ graphStatus FlattenConcatPass::CanFlatten(const NodePtr &node, size_t concat_dim
 
 graphStatus FlattenConcatPass::ResolveConcatDim(const NodePtr &concat_node, size_t &concat_dim) {
   int64_t dim;
-  GE_WARN_ASSERT(GetConcatNodeConcatDim(concat_node, dim));
+  GE_CHK_BOOL_RET_SPECIAL_STATUS(!GetConcatNodeConcatDim(concat_node, dim), GRAPH_FAILED,
+                                 "Failed to get concat dim for node %s", concat_node->GetNamePtr());
   concat_dim = static_cast<size_t>(dim);
   return GRAPH_SUCCESS;
 }

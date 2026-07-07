@@ -1227,6 +1227,8 @@ TEST_F(UTestLoweringAndCanfuseV2, CubeAndReduceLoweringCanfuseOnlyRelu) {
 
   AscBackendPostProcessor post_processor;
   EXPECT_EQ(post_processor.Do(cg), SUCCESS);
+  CubeFixpipPass cube_fixpip_pass;
+  EXPECT_EQ(cube_fixpip_pass.Run(cg), SUCCESS);
 
   for (auto &node : cg->GetDirectNode()) {
     std::cout << "node name is " << node->GetNamePtr() << std::endl;

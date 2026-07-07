@@ -23,9 +23,10 @@
 namespace ge {
 namespace {
 Status SetReluAttr(const NodePtr &node) {
-  GE_ASSERT_NOTNULL(node->GetOpDesc());
-  const auto &attr = node->GetOpDesc()->GetAttrsGroup<AscNodeAttr>();
-  GE_ASSERT_NOTNULL(attr);
+  const auto op_desc = node->GetOpDesc();
+  GE_CHK_BOOL_RET_SPECIAL_STATUS(op_desc == nullptr, FAILED, "Node %s op desc is null", node->GetNamePtr());
+  const auto &attr = op_desc->GetAttrsGroup<AscNodeAttr>();
+  GE_CHK_BOOL_RET_SPECIAL_STATUS(attr == nullptr, FAILED, "Node %s asc node attr is null", node->GetNamePtr());
   if (node->GetType() == kMatMul) {
     auto mm_attr = dynamic_cast<ascir_op::MatMul::AscMatMulIrAttrDef *>(attr->ir_attr.get());
     GE_ASSERT_NOTNULL(mm_attr);

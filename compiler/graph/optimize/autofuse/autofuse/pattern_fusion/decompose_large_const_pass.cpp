@@ -95,7 +95,9 @@ void ResolveTileMultiples(const T *buffer, const GeShape &shape, std::vector<int
 
 NodePtr AddValueNode(const ComputeGraphPtr &graph, const NodePtr &node, const GeShape &new_const_shape) {
   ConstGeTensorPtr value;
-  GE_ASSERT_TRUE(AttrUtils::GetTensor(node->GetOpDesc(), ATTR_NAME_WEIGHTS, value));
+  GE_CHK_BOOL_RET_SPECIAL_STATUS(!AttrUtils::GetTensor(node->GetOpDesc(), ATTR_NAME_WEIGHTS, value), nullptr,
+                                 "Failed to get const value from node %s", node->GetNamePtr());
+  GE_CHK_BOOL_RET_SPECIAL_STATUS(value == nullptr, nullptr, "Const value of node %s is null", node->GetNamePtr());
   const auto new_const_tensor = MakeShared<GeTensor>();
   GE_ASSERT_NOTNULL(new_const_tensor);
   new_const_tensor->MutableTensorDesc().Update(new_const_shape, FORMAT_ND, value->GetTensorDesc().GetDataType());
@@ -143,7 +145,7 @@ Status DecomposeConst(NodePtr &node, const GeShape &new_const_shape, const std::
   const ComputeGraphPtr &graph = node->GetOwnerComputeGraph();
   GE_ASSERT_NOTNULL(graph);
   auto new_const_node = AddValueNode(graph, node, new_const_shape);
-  GE_ASSERT_NOTNULL(new_const_node);
+  GE_CHK_BOOL_RET_SPECIAL_STATUS(new_const_node == nullptr, FAILED, "Failed to add value node");
   GE_ASSERT_SUCCESS(UpdateSymShape(new_const_node, new_const_shape));
   GE_CHK_GRAPH_STATUS_RET(GraphUtils::MoveInCtrlEdges(node, new_const_node));
   GE_CHK_GRAPH_STATUS_RET(GraphUtils::MoveOutCtrlEdges(node, new_const_node));
@@ -185,7 +187,9 @@ Status DecomposeConst(NodePtr &node, const GeShape &new_const_shape, const std::
 Status ResolveNewConstShapeAndTileMultiples(const NodePtr &node, GeShape &new_shape, std::vector<int64_t> &multiples) {
   auto op_desc = node->GetOpDesc();
   ConstGeTensorPtr value;
-  GE_ASSERT_TRUE(AttrUtils::GetTensor(op_desc, ATTR_NAME_WEIGHTS, value));
+  GE_CHK_BOOL_RET_SPECIAL_STATUS(!AttrUtils::GetTensor(op_desc, ATTR_NAME_WEIGHTS, value), FAILED,
+                                 "Failed to get const value from node %s", node->GetNamePtr());
+  GE_CHK_BOOL_RET_SPECIAL_STATUS(value == nullptr, FAILED, "Const value of node %s is null", node->GetNamePtr());
   const auto &shape = value->GetTensorDesc().GetShape();
   const auto buffer = value->GetData().GetData();
   const auto dtype_size = ge::GetSizeByDataType(value->GetTensorDesc().GetDataType());

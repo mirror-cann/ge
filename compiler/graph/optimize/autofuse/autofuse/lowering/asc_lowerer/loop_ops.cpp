@@ -180,6 +180,8 @@ bool PointwiseOp::InferDataType(const std::vector<DataType> &input_dtypes,
 }
 
 CseVar LoadOp::Compute(const LoopCtx &ctx) const {
+  const auto owner_node = src_->GetOwnerNode();
+  GE_CHK_BOOL_RET_SPECIAL_STATUS(owner_node == nullptr, CseVar(), "LoadOp owner node is null");
   const auto god_spec_iter = ctx.load_2_god_desc.find(this);
   if (god_spec_iter != ctx.load_2_god_desc.end()) {
     std::string buffer = BufferName(src_);
@@ -190,12 +192,17 @@ CseVar LoadOp::Compute(const LoopCtx &ctx) const {
   }
 
   const auto iter = ctx.load_2_index.find(this);
-  GE_WARN_ASSERT(iter != ctx.load_2_index.end(), "LoadOp %s has no index", src_->GetOwnerNode()->GetName().c_str());
+  GE_CHK_BOOL_RET_SPECIAL_STATUS(iter == ctx.load_2_index.end(), CseVar(), "LoadOp %s has no index",
+                                 owner_node->GetNamePtr());
   const auto &index = *iter->second;
   auto &loop_axis = ctx.loop_axis;
-  const auto desc = src_->GetOwnerNode()->GetOpDesc()->GetOutputDescPtr(src_->GetIdx());
+  const auto op_desc = owner_node->GetOpDesc();
+  GE_CHK_BOOL_RET_SPECIAL_STATUS(op_desc == nullptr, CseVar(), "LoadOp %s op desc is null", owner_node->GetNamePtr());
+  const auto desc = op_desc->GetOutputDescPtr(src_->GetIdx());
+  GE_CHK_BOOL_RET_SPECIAL_STATUS(desc == nullptr, CseVar(), "LoadOp %s output desc is null", owner_node->GetNamePtr());
   const auto sym_attr = desc->GetAttrsGroup<SymbolicDescAttr>();
-  GE_WARN_ASSERT(sym_attr != nullptr);
+  GE_CHK_BOOL_RET_SPECIAL_STATUS(sym_attr == nullptr, CseVar(), "LoadOp %s symbolic desc attr is null",
+                                 owner_node->GetNamePtr());
   const auto &dims = sym_attr->symbolic_tensor.GetOriginSymbolShape().GetDims();
   GE_WARN_ASSERT(dims.size() == index.size());
 
