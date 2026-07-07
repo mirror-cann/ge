@@ -397,12 +397,13 @@ target_link_libraries(npu_executor_static PRIVATE
         error_manager_headers
         hccl_headers
         c_sec_headers
+        adump_headers
         -Wl,--no-as-needed
         unified_dlog
         ascend_protobuf
         json
         runtime
-        adump_server
+        ascend_dump
         rt
         dl
         ${AIR_COMMON_LINK_OPTION}
@@ -441,6 +442,7 @@ target_link_libraries(npu_executor_main PRIVATE
         datagw_headers
         hccl_headers
         air_headers
+        adump_headers
         -Wl,--whole-archive
         npu_executor_static
         -Wl,--no-whole-archive
@@ -454,7 +456,7 @@ target_link_libraries(npu_executor_main PRIVATE
         profapi_share
         ascend_hal_stub
         msprofiler_fwk_share
-        adump_server
+        ascend_dump
         $<$<BOOL:${ENABLE_OPEN_SRC}>:adcore>
         metadef
         static_mmpa
@@ -546,6 +548,7 @@ target_link_libraries(host_cpu_executor_main PRIVATE
         datagw_headers
         hccl_headers
         air_headers
+        adump_headers
         -Wl,--no-as-needed
         ascend_protobuf
         unified_dlog
@@ -556,7 +559,7 @@ target_link_libraries(host_cpu_executor_main PRIVATE
         ascend_hal_stub
         msprofiler_fwk_share
         profapi_share
-        adump_server
+        ascend_dump
         $<$<BOOL:${ENABLE_OPEN_SRC}>:adcore>
         metadef
         static_mmpa
