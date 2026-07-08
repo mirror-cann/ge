@@ -17,7 +17,7 @@
 #include "register/kernel_registry.h"
 #include "exe_graph/runtime/continuous_vector.h"
 #include "kernel/kernel_log.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "kernel/memory/caching_mem_allocator.h"
 #include "exe_graph/runtime/gert_mem_allocator.h"
 #include "kernel/memory/single_stream_l2_allocator.h"

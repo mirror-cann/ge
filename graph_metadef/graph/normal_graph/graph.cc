@@ -23,7 +23,7 @@
 #include "common/checker.h"
 #include "graph/ge_attr_value.h"
 #include "graph/ge_tensor.h"
-#include "graph/type_utils.h"
+#include "graph/type_id.h"
 #include "utils/tensor_adapter.h"
 #include "proto/onnx/ge_onnx.pb.h"
 #include "utils/ge_ir_utils.h"

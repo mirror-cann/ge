@@ -65,7 +65,7 @@
 #include "graph/graph.h"
 #include "graph/tensor.h"
 #include "ge/ge_allocator.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 namespace ge {
 using RunCallback = std::function<Status(uint32_t graph_id, const std::map<AscendString, gert::Tensor> &params_list)>;
 // Initialize GE

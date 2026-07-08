@@ -30,7 +30,7 @@
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/tensor_utils.h"
 #include "common/model/executor.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "base/err_mgr.h"
 
 namespace ge {

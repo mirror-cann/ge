@@ -14,7 +14,7 @@
 #include "graph/types.h"
 #include "core/execution_data.h"
 #include "register/kernel_registry.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "faker/fake_value.h"
 #include "faker/model_desc_holder_faker.h"
 

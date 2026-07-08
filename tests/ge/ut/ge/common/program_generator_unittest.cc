@@ -1680,7 +1680,7 @@ TEST_F(ProgramGeneratorUt, GenerateInterfaceHeader_Ok) {
 #include "securec.h"
 #include "acl/acl.h"
 #include "acl/acl_base.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "rt_external.h"
 #include "dlog_pub.h"
 #include <sys/syscall.h>

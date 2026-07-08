@@ -13,7 +13,7 @@
 
 #include <memory>
 #include "graph/ge_error_codes.h"
-#include "graph/type_utils.h"
+#include "graph/type_id.h"
 
 namespace ge {
 namespace proto {

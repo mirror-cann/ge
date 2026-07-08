@@ -12,9 +12,13 @@
 #include <nlohmann/json.hpp>
 
 #include "fe_llt_utils.h"
+#define protected public
+#define private public
 #include "fusion_manager/fusion_manager.h"
 #include "itf_handler/itf_handler.h"
 #include "common/configuration.h"
+#undef private
+#undef protected
 
 using namespace std;
 using namespace fe;
@@ -59,27 +63,29 @@ TEST_F(itfhandler_unittest, initialize_and_finalize) {
 }
 
 TEST_F(itfhandler_unittest, GetOpsKernelInfoStores_suc) {
-  map<string, string> options;
-  options.emplace("ge.socVersion", "Ascend910B1");
-  Configuration::Instance(AI_CORE_NAME).is_init_ = false;
-  Configuration::Instance(AI_CORE_NAME).lib_path_ =
-      GetCodeDir() + "/tests/engines/nn_engine/depends/CANN_910b_stub/cann/x86_64-linux/lib64/";
-  Configuration::Instance(AI_CORE_NAME).ascend_ops_path_ = GetCodeDir();
-  Status ret = Initialize(options);
+  FusionManager &fm_ai = FusionManager::Instance(AI_CORE_NAME);
+  fm_ai.ops_kernel_info_store_ = make_shared<FEOpsKernelInfoStore>(AI_CORE_NAME);
+
+  FusionManager &fm_vec = FusionManager::Instance(VECTOR_CORE_NAME);
+  fm_vec.ops_kernel_info_store_ = make_shared<FEOpsKernelInfoStore>(VECTOR_CORE_NAME);
+
   map<string, OpsKernelInfoStorePtr> op_kern_infos;
-  GetOpsKernelInfoStores(op_kern_infos);
+  fm_ai.GetOpsKernelInfoStores(op_kern_infos, AI_CORE_NAME);
+  fm_vec.GetOpsKernelInfoStores(op_kern_infos, VECTOR_CORE_NAME);
   EXPECT_EQ(op_kern_infos.size(), 2);
 }
 
 TEST_F(itfhandler_unittest, get_graph_optimizer_objs_success) {
-  map<string, string> options;
-  options.emplace("ge.socVersion", "Ascend910B1");
-  Configuration::Instance(AI_CORE_NAME).is_init_ = false;
-  Configuration::Instance(AI_CORE_NAME).lib_path_ =
-      GetCodeDir() + "/tests/engines/nn_engine/depends/CANN_910b_stub/cann/x86_64-linux/lib64/";
-  Configuration::Instance(AI_CORE_NAME).ascend_ops_path_ = GetCodeDir();
-  Status ret = Initialize(options);
+  FusionManager &fm_ai = FusionManager::Instance(AI_CORE_NAME);
+  fm_ai.ops_kernel_info_store_ = make_shared<FEOpsKernelInfoStore>(AI_CORE_NAME);
+  fm_ai.graph_opt_ = make_shared<FEGraphOptimizer>(fm_ai.ops_kernel_info_store_, AI_CORE_NAME);
+
+  FusionManager &fm_vec = FusionManager::Instance(VECTOR_CORE_NAME);
+  fm_vec.ops_kernel_info_store_ = make_shared<FEOpsKernelInfoStore>(VECTOR_CORE_NAME);
+  fm_vec.graph_opt_ = make_shared<FEGraphOptimizer>(fm_vec.ops_kernel_info_store_, VECTOR_CORE_NAME);
+
   map<string, GraphOptimizerPtr> graph_optimizers;
-  GetGraphOptimizerObjs(graph_optimizers);
+  fm_ai.GetGraphOptimizerObjs(graph_optimizers, AI_CORE_NAME);
+  fm_vec.GetGraphOptimizerObjs(graph_optimizers, VECTOR_CORE_NAME);
   EXPECT_EQ(graph_optimizers.size(), 2);
 }

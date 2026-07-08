@@ -16,7 +16,7 @@
 #include "graph/types.h"
 #include "graph/utils/type_utils.h"
 #include "exe_graph/runtime/storage_shape.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "register/kernel_registry.h"
 #include "rt_external_mem.h"
 #include "exe_graph/runtime/gert_tensor_data.h"

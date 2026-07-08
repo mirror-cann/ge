@@ -12,7 +12,7 @@
 #include "kernel/memory/caching_mem_allocator.h"
 #include "kernel/kernel_log.h"
 #include "exe_graph/runtime/kernel_context.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "graph/debug/ge_attr_define.h"
 #include "common/checker.h"
 #include "register/kernel_registry.h"

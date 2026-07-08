@@ -14,7 +14,7 @@
 #include <mutex>
 #include "graph/compute_graph.h"
 #include "execution_point.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "api/session/jit_execution/utils/partitioner/binary_partitioner.h"
 
 namespace ge {

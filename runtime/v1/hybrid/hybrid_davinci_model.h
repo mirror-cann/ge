@@ -15,7 +15,7 @@
 #include "ge/ge_api_error_codes.h"
 #include "graph/load/model_manager/data_inputer.h"
 #include "common/model/ge_root_model.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "acl/acl_rt.h"
 
 namespace ge {

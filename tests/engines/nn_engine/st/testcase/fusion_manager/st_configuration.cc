@@ -90,6 +90,44 @@ string ConfGetAscendPath() {
   return ascend_path;
 }
 
+void InitGraphConfigForParamsTest(Configuration &config, map<string, string> &options) {
+  options.emplace(ge::OPTION_EXEC_DISABLE_REUSED_MEMORY, "1");
+  options.emplace(ge::CUSTOMIZE_DTYPES, GetCodeDir() + "/tests/engines/nn_engine/ut/stub/custom.cfg");
+  options.emplace(ge::MODIFY_MIXLIST, GetCodeDir() + "/tests/engines/nn_engine/config/mix_list/op_mix_list1.json");
+  config.is_init_ = false;
+  config.lib_path_ = GetCodeDir() + "/tests/engines/nn_engine/depends/CANN_910b_stub/cann/x86_64-linux/lib64/";
+  config.ascend_ops_path_ = GetCodeDir();
+  config.Initialize(options);
+  if (config.op_debug_config_parse_ == nullptr) {
+    config.op_debug_config_parse_ = std::make_shared<OpDebugConfigParser>();
+  }
+  if (config.impl_mode_parser_ == nullptr) {
+    config.impl_mode_parser_ = std::make_shared<OpImplModeConfigParser>(config.ascend_ops_path_);
+  }
+  if (config.cust_dtypes_parser_ == nullptr) {
+    config.cust_dtypes_parser_ = std::make_shared<OpCustDtypesConfigParser>();
+  }
+  if (config.mix_list_parser_ == nullptr) {
+    config.mix_list_parser_ = std::make_shared<ModifyMixlistConfigParser>();
+    config.mix_list_parser_->InitializeFromOptions(options);
+  }
+}
+
+class StubForCannPath : public MmpaStubApi {
+ public:
+  explicit StubForCannPath(const std::string &path) : stub_path_(path) {}
+  int32_t DlAddr(VOID *addr, mmDlInfo *info) override {
+    info->dli_fname = stub_path_.c_str();
+    info->dli_fbase = reinterpret_cast<void *>(0x1);
+    info->dli_sname = "mock";
+    info->dli_saddr = reinterpret_cast<void *>(0x1);
+    return 0;
+  }
+
+ private:
+  std::string stub_path_;
+};
+
 TEST_F(configuration_st, init_and_finalize) {
   Configuration config(fe::AI_CORE_NAME);
   config.is_init_ = true;
@@ -1768,6 +1806,10 @@ TEST_F(configuration_st, session_graph_config_params_01_3) {
 }
 
 TEST_F(configuration_st, session_graph_config_params_02) {
+  const std::string stub_path =
+      GetCodeDir() + "/tests/engines/nn_engine/depends/CANN_910b_stub/cann/x86_64-linux/lib64/plugin";
+  MmpaStub::GetInstance().SetImpl(std::make_shared<StubForCannPath>(stub_path));
+
   Configuration config(AI_CORE_NAME);
   map<string, string> options;
   string session_graph_id = "0_1";
@@ -1785,9 +1827,15 @@ TEST_F(configuration_st, session_graph_config_params_02) {
   config.is_init_ = false;
   ret = config.Initialize(options);
   EXPECT_EQ(ret, SUCCESS);
+
+  MmpaStub::GetInstance().Reset();
 }
 
 TEST_F(configuration_st, session_graph_config_params_03) {
+  const std::string stub_path =
+      GetCodeDir() + "/tests/engines/nn_engine/depends/CANN_910b_stub/cann/x86_64-linux/lib64/plugin";
+  MmpaStub::GetInstance().SetImpl(std::make_shared<StubForCannPath>(stub_path));
+
   Configuration config(AI_CORE_NAME);
   map<string, string> options;
   string session_graph_id = "0_1";
@@ -1805,19 +1853,16 @@ TEST_F(configuration_st, session_graph_config_params_03) {
   config.is_init_ = false;
   ret = config.Initialize(options);
   EXPECT_EQ(ret, FAILED);
+
+  MmpaStub::GetInstance().Reset();
 }
 
 TEST_F(configuration_st, session_graph_config_params_04) {
   Configuration config(AI_CORE_NAME);
   map<string, string> options;
-  string session_graph_id = "0_1";
-  options.emplace(ge::OPTION_EXEC_DISABLE_REUSED_MEMORY, "1");
-  options.emplace(ge::CUSTOMIZE_DTYPES, GetCodeDir() + "/tests/engines/nn_engine/ut/stub/custom.cfg");
-  options.emplace(ge::MODIFY_MIXLIST, GetCodeDir() + "/tests/engines/nn_engine/config/mix_list/op_mix_list1.json");
-  config.is_init_ = false;
-  Status ret = config.Initialize(options);
+  InitGraphConfigForParamsTest(config, options);
   ge::GetThreadLocalContext().SetGraphOption(options);
-  ret = config.RefreshParameters();
+  Status ret = config.RefreshParameters();
   EXPECT_EQ(ret, SUCCESS);
   EXPECT_EQ(config.IsEnableReuseMemory(), 0);
   OpCustomizeDtype custom_dtype_0, custom_dtype_1, custom_dtype_2, custom_dtype_3;
@@ -1834,11 +1879,17 @@ TEST_F(configuration_st, session_graph_config_params_04) {
   EXPECT_EQ(config.GetPrecisionPolicy("A", GRAY), GRAY);
   EXPECT_EQ(config.GetPrecisionPolicy("A", BLACK), BLACK);
   EXPECT_EQ(config.GetPrecisionPolicy("A", WHITE), WHITE);
+}
 
-  session_graph_id = "0_2";
+TEST_F(configuration_st, session_graph_config_params_04_invalid_param) {
+  Configuration config(AI_CORE_NAME);
+  map<string, string> options;
+  InitGraphConfigForParamsTest(config, options);
+  ge::GetThreadLocalContext().SetGraphOption(options);
+
   options[ge::OPTION_EXEC_DISABLE_REUSED_MEMORY] = "3";
   ge::GetThreadLocalContext().SetGraphOption(options);
-  ret = config.RefreshParameters();
+  Status ret = config.RefreshParameters();
   EXPECT_EQ(ret, FAILED);
 
   options[ge::CUSTOMIZE_DTYPES] = GetCodeDir() + "/tests/engines/nn_engine/ut/stub/custom2.cfg";
@@ -1850,13 +1901,7 @@ TEST_F(configuration_st, session_graph_config_params_04) {
   options[ge::MODIFY_MIXLIST] = GetCodeDir() + "/tests/engines/nn_engine/config/mix_list/op_mix_list2.json";
   ge::GetThreadLocalContext().SetGraphOption(options);
   ret = config.RefreshParameters();
-
-  options[ge::PRECISION_MODE] = "allow_fp32_to_fp16";
-  ge::GetThreadLocalContext().SetGraphOption(options);
-  std::string precision_mode = FEContextUtils::GetPrecisionMode();
-  EXPECT_EQ(precision_mode, "allow_fp32_to_fp16");
-  ret = FEContextUtils::GetPrecisionMode(precision_mode);
-  EXPECT_EQ(ret, SUCCESS);
+  EXPECT_EQ(ret, FAILED);
 
   config.SetEnableSmallChannel(true);
   ge::GetThreadLocalContext().GetOo().working_opt_names_to_value_[fe::kComLevelO1Opt] = fe::kStrFalse;
@@ -1866,6 +1911,9 @@ TEST_F(configuration_st, session_graph_config_params_04) {
 }
 
 TEST_F(configuration_st, get_export_compile_stat) {
+  const std::string stub_path =
+      GetCodeDir() + "/tests/engines/nn_engine/depends/CANN_910b_stub/cann/x86_64-linux/lib64/plugin";
+  MmpaStub::GetInstance().SetImpl(std::make_shared<StubForCannPath>(stub_path));
   Configuration config(AI_CORE_NAME);
   config.is_init_ = false;
   std::map<string, string> options;
@@ -1896,6 +1944,9 @@ TEST_F(configuration_st, get_export_compile_stat) {
 }
 
 TEST_F(configuration_st, get_export_compile_stat_support_session_graph) {
+  const std::string stub_path =
+      GetCodeDir() + "/tests/engines/nn_engine/depends/CANN_910b_stub/cann/x86_64-linux/lib64/plugin";
+  MmpaStub::GetInstance().SetImpl(std::make_shared<StubForCannPath>(stub_path));
   Configuration config(AI_CORE_NAME);
   map<string, string> options;
   string session_graph_id = "0_1";

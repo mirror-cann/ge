@@ -21,7 +21,7 @@
 #include "graph/def_types.h"
 #include "register/kernel_registry.h"
 #include "framework/common/debug/log.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "kernel/memory/mem_block.h"
 #include "kernel/memory/multi_stream_mem_block.h"
 #include "rt_kernel_launch_args_ex.h"

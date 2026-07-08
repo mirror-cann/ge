@@ -16,7 +16,7 @@
 #include "graph/utils/math_util.h"
 #include "aicore/launch_kernel/rt_kernel_launch_args_ex.h"
 #include "rt_external_kernel.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "exe_graph/runtime/continuous_vector.h"
 #include "exe_graph/runtime/tiling_data.h"
 

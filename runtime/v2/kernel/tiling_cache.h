@@ -14,7 +14,7 @@
 #include "cache_strategy.h"
 #include "graph/types.h"
 #include "graph/node.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "exe_graph/runtime/shape.h"
 #include "lowering/lowering_global_data.h"
 

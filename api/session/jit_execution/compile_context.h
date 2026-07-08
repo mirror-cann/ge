@@ -12,7 +12,7 @@
 #define COMPILE_CONTEXT_H
 #include <cstdint>
 #include "ge/ge_api_types.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "graph/compute_graph.h"
 #include "graph/manager/graph_manager.h"
 #include "acl/acl_rt.h"

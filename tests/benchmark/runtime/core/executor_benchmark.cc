@@ -16,7 +16,7 @@
 
 #include "graph/types.h"
 #include "register/kernel_registry.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 
 #include "graph/utils/graph_utils.h"
 #include "lowering/graph_converter.h"

@@ -12,7 +12,7 @@
 #define CANN_GRAPH_ENGINE_TENSOR_TRANS_UTILS_H
 #include "ge_common/ge_common_api_types.h"
 #include "ge/ge_allocator.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "graph/tensor.h"
 #include "graph/ge_tensor.h"
 #include "acl/acl_rt.h"

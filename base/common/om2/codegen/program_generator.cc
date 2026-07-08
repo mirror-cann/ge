@@ -69,7 +69,7 @@ std::vector<DeclNode *> ProgramGenerator::BuildInterfaceHeaderIncludes() const {
       ast_.Include("securec.h"),
       ast_.Include("acl/acl.h"),
       ast_.Include("acl/acl_base.h"),
-      ast_.Include("exe_graph/runtime/tensor.h"),
+      ast_.Include("exe_graph/runtime/runtime_tensor.h"),
       ast_.Include("rt_external.h"),
       ast_.Include("dlog_pub.h", IncludeDecl::Kind::kQuote),
       ast_.Include("sys/syscall.h", IncludeDecl::Kind::kAngle),

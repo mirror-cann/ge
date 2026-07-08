@@ -11,7 +11,7 @@
 #ifndef AIR_CXX_RUNTIME_V2_OP_IMPL_DATAFLOW_OP_IMPL_H_
 #define AIR_CXX_RUNTIME_V2_OP_IMPL_DATAFLOW_OP_IMPL_H_
 
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 
 namespace gert {
 std::vector<std::string> GetStatExecNodesCount();

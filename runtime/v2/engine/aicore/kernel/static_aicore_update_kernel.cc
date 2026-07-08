@@ -21,7 +21,7 @@
 #include "rt_external_ffts.h"
 #include "common/math/math_util.h"
 #include "common/sgt_slice_type.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "engine/ffts_plus/converter/ffts_plus_proto_transfer.h"
 #include "core/executor/multi_thread_topological/executor/schedule/producer/producers/kernel_tags/critical_section_config.h"
 namespace gert {

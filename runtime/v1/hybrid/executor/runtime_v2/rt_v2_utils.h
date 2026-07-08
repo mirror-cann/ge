@@ -11,7 +11,7 @@
 #ifndef GE_HYBRID_EXECUTOR_RT_V2_UTILS_H_
 #define GE_HYBRID_EXECUTOR_RT_V2_UTILS_H_
 
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "graph/utils/type_utils.h"
 #include "graph/ge_tensor.h"
 

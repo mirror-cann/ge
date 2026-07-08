@@ -12,7 +12,7 @@
 #include "rt_external_mem.h"
 #include "register/kernel_registry_impl.h"
 #include "common/checker.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "exe_graph/runtime/gert_tensor_data.h"
 #include "common/runtime_api_wrapper.h"
 #include "acl/acl_rt.h"

@@ -12,7 +12,7 @@
 #define METADEF_CXX_INC_EXE_GRAPH_RUNTIME_DVPP_CONTEXT_H_
 #include <type_traits>
 #include "exe_graph/runtime/storage_shape.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "exe_graph/runtime/extended_kernel_context.h"
 
 namespace gert {

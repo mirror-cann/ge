@@ -12,7 +12,7 @@
 #include "graph_metadef/graph/debug/ge_util.h"
 #include "graph/ge_attr_value.h"
 #include "graph/ge_tensor.h"
-#include "graph/type_utils.h"
+#include "graph/type_id.h"
 #include "graph/utils/tensor_adapter.h"
 #include "common/checker.h"
 

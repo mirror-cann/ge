@@ -11,7 +11,7 @@
 #ifndef INC_383E8BD8062B45F5A81AF6E929734D33_H
 #define INC_383E8BD8062B45F5A81AF6E929734D33_H
 
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "graph/ge_tensor.h"
 #include "exe_graph/runtime/gert_tensor_data.h"
 #include <vector>

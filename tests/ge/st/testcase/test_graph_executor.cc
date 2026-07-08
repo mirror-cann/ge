@@ -41,7 +41,7 @@
 #include "graph/manager/graph_var_manager.h"
 #include "ge/ut/ge/ffts_plus_proto_tools.h"
 #include "macro_utils/dt_public_unscope.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "common/opskernel/ops_kernel_info_types.h"
 #include "ge_running_env/ge_running_env_faker.h"
 #include "ge_running_env/fake_op.h"

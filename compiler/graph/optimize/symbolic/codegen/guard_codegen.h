@@ -13,7 +13,7 @@
 
 #include "ge_common/ge_common_api_types.h"
 #include "graph/compute_graph.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 
 namespace ge {
 // GuardCheckFunc函数原型, 返回值true表示检查通过，false表示检查失败

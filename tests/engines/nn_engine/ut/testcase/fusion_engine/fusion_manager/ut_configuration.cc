@@ -66,10 +66,8 @@ class configuration_ut : public testing::Test {
     if (config.cust_dtypes_parser_ == nullptr) {
       config.cust_dtypes_parser_ = std::make_shared<OpCustDtypesConfigParser>();
     }
-    if (config.mix_list_parser_ == nullptr) {
-      config.mix_list_parser_ = std::make_shared<ModifyMixlistConfigParser>();
-      config.mix_list_parser_->InitializeFromOptions(options);
-    }
+    config.mix_list_parser_ = std::make_shared<ModifyMixlistConfigParser>();
+    config.mix_list_parser_->InitializeFromOptions(options);
     if (config.op_debug_config_parse_ == nullptr) {
       config.op_debug_config_parse_ = std::make_shared<OpDebugConfigParser>();
     }
@@ -104,7 +102,25 @@ string ConfGetAscendPath() {
   return ascend_path;
 }
 
+class StubForCannPath : public MmpaStubApi {
+ public:
+  explicit StubForCannPath(const std::string &path) : stub_path_(path) {}
+  int32_t DlAddr(VOID *addr, mmDlInfo *info) override {
+    info->dli_fname = stub_path_.c_str();
+    info->dli_fbase = reinterpret_cast<void *>(0x1);
+    info->dli_sname = "mock";
+    info->dli_saddr = reinterpret_cast<void *>(0x1);
+    return 0;
+  }
+
+ private:
+  std::string stub_path_;
+};
+
 TEST_F(configuration_ut, init_and_finalize) {
+  const std::string stub_path =
+      GetCodeDir() + "/tests/engines/nn_engine/depends/CANN_910b_stub/cann/x86_64-linux/lib64/plugin";
+  MmpaStub::GetInstance().SetImpl(std::make_shared<StubForCannPath>(stub_path));
   Configuration config(fe::AI_CORE_NAME);
   map<string, string> options;
   options.emplace(ge::PRECISION_MODE, ALLOW_FP32_TO_FP16);
@@ -153,23 +169,20 @@ TEST_F(configuration_ut, get_boolvalue_abnormal) {
 
 TEST_F(configuration_ut, loadconfigfile_success) {
   Configuration config(fe::AI_CORE_NAME);
-  map<string, string> options;
-  options.emplace(ge::PRECISION_MODE, ALLOW_FP32_TO_FP16);
-  string soc_version = "Ascend910B";
-  PlatformUtils::Instance().soc_version_ = soc_version;
-  config.Initialize(options);
-  config.content_map_.clear();
+  config.lib_path_ = GetCodeDir() + "/tests/engines/nn_engine/depends/CANN_910b_stub/cann/x86_64-linux/lib64/";
   Status status = config.LoadConfigFile();
   EXPECT_EQ(status, SUCCESS);
 }
 
 TEST_F(configuration_ut, AssembleOpsStoreInfoVector_success) {
   Configuration config(fe::AI_CORE_NAME);
-  map<string, string> options;
-  string soc_version = "Ascend910B";
-  PlatformUtils::Instance().soc_version_ = soc_version;
-  options.emplace(ge::PRECISION_MODE, ALLOW_FP32_TO_FP16);
-  config.Initialize(options);
+  PlatformUtils::Instance().soc_version_ = "Ascend910B";
+  PlatformUtils::Instance().short_soc_version_ = "Ascend910B";
+  config.content_map_.clear();
+  config.content_map_.emplace(
+      "op.store.tbe-builtin",
+      "2|6|/tests/engines/nn_engine/config/fe_config|/tests/engines/nn_engine/config/fe_config|true|true");
+  config.ascend_ops_path_ = GetCurpath() + "../../../../../..";
   Status status = config.AssembleOpsStoreInfoVector();
   EXPECT_EQ(status, SUCCESS);
 }
@@ -550,6 +563,7 @@ TEST_F(configuration_ut, getcustomfilepath) {
 }
 
 TEST_F(configuration_ut, dsagetgraphfilepath) {
+  Configuration::Instance(fe::kDsaCoreName).content_map_["fusionrulemgr.dsacore.graphfilepath"] = "";
   string graph_file_path;
   Status status = Configuration::Instance(fe::kDsaCoreName).GetGraphFilePath(graph_file_path);
   EXPECT_EQ(status, SUCCESS);
@@ -557,6 +571,7 @@ TEST_F(configuration_ut, dsagetgraphfilepath) {
 }
 
 TEST_F(configuration_ut, dsagetcustomfilepath) {
+  Configuration::Instance(fe::kDsaCoreName).content_map_["fusionrulemgr.dsacore.customfilepath"] = "";
   string custom_file_path;
   Status status = Configuration::Instance(fe::kDsaCoreName).GetCustomFilePath(custom_file_path);
   EXPECT_EQ(status, SUCCESS);
@@ -564,6 +579,7 @@ TEST_F(configuration_ut, dsagetcustomfilepath) {
 }
 
 TEST_F(configuration_ut, dsagetcustompassfilepath) {
+  Configuration::Instance(fe::kDsaCoreName).content_map_["fusionpassmgr.dsacore.custompasspath"] = "";
   string graph_file_path;
   Status status = Configuration::Instance(fe::kDsaCoreName).GetCustomPassFilePath(graph_file_path);
   EXPECT_EQ(status, SUCCESS);
@@ -571,6 +587,7 @@ TEST_F(configuration_ut, dsagetcustompassfilepath) {
 }
 
 TEST_F(configuration_ut, dsagetbuiltinpassfilepath) {
+  Configuration::Instance(fe::kDsaCoreName).content_map_["fusionpassmgr.dsacore.graphpasspath"] = "";
   string custom_file_path;
   Status status = Configuration::Instance(fe::kDsaCoreName).GetBuiltinPassFilePath(custom_file_path);
   EXPECT_EQ(status, SUCCESS);

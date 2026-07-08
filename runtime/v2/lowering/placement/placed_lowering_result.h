@@ -15,7 +15,7 @@
 #include "graph/node.h"
 #include "exe_graph/lowering/value_holder.h"
 #include "exe_graph/lowering/frame_selector.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "register/node_converter_registry.h"
 #include "common/table_driven.h"
 namespace gert {

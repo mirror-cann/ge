@@ -17,7 +17,7 @@
 #include "kernel/memory/ffts_mem_allocator.h"
 #include "exe_graph/runtime/gert_tensor_data.h"
 #include "framework/common/debug/log.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "rt_external_mem.h"
 #include "common/dump/kernel_tracing_utils.h"
 #include "rt_external_mem.h"

@@ -37,7 +37,7 @@
 #include "common/model/executor.h"
 #include "graph/resource_context_mgr.h"
 #include "ge/ge_allocator.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 
 namespace ge {
 class GraphManager {

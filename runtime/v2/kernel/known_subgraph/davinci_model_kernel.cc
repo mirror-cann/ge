@@ -14,7 +14,7 @@
 #include <algorithm>
 #include "graph/ge_error_codes.h"
 #include "graph/def_types.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "register/kernel_registry.h"
 #include "framework/common/debug/log.h"
 #include "kernel/memory/mem_block.h"

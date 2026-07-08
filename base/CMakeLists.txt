@@ -296,6 +296,11 @@ target_link_options(ge_common_base PRIVATE
 )
 
 target_link_libraries(ge_common_base
+    PUBLIC
+        ge_metadef_headers
+)
+
+target_link_libraries(ge_common_base
     PRIVATE
         ge_intf_pub
         msprof_headers
@@ -325,7 +330,6 @@ target_link_libraries(ge_common_base
         ${AIR_COMMON_LINK_OPTION}
     PUBLIC
         air_headers
-        ge_metadef_headers
         $<$<NOT:$<BOOL:${MDC_COMPILE_RUNTIME}>>:atrace_headers>
 )
 

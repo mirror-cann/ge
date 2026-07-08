@@ -10,7 +10,7 @@
 
 #ifndef AIR_CXX_RUNTIME_V2_KERNEL_TENSOR_ATTR_H_
 #define AIR_CXX_RUNTIME_V2_KERNEL_TENSOR_ATTR_H_
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "graph/types.h"
 
 namespace gert {

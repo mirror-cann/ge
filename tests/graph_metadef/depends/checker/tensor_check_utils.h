@@ -13,7 +13,7 @@
 
 #include "ge_tensor.h"
 #include "ge_common/ge_common_api_types.h"
-#include "runtime/tensor.h"
+#include "runtime/runtime_tensor.h"
 
 namespace ge {
 class TensorCheckUtils {

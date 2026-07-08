@@ -31,7 +31,7 @@
 #include "ge_running_env/fake_graph_optimizer.h"
 #include "ge_running_env/ge_running_env_faker.h"
 #include "ge_running_env/fake_op.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "easy_graph/builder/graph_dsl.h"
 #include "ge_graph_dsl/graph_dsl.h"
 #include "common/global_variables/diagnose_switch.h"

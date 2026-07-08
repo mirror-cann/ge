@@ -10,7 +10,7 @@
 
 #include "graph/ge_error_codes.h"
 #include "exe_graph/runtime/storage_shape.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "register/node_converter_registry.h"
 #include "register/kernel_registry.h"
 #include "core/utils/tensor_utils.h"

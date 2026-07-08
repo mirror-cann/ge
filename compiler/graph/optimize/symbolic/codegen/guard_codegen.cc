@@ -57,7 +57,7 @@ std::string GetFileHeader() {
 #include <limits>
 #include <algorithm>
 #include <initializer_list>
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "securec.h"
 
 using char_t = char;

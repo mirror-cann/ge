@@ -11,7 +11,7 @@
 #ifndef AIR_CXX_RUNTIME_V2_KERNEL_MEMORY_MEMORY_KERNEL_H_
 #define AIR_CXX_RUNTIME_V2_KERNEL_MEMORY_MEMORY_KERNEL_H_
 #include "graph/types.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "exe_graph/runtime/kernel_context.h"
 namespace gert {
 namespace kernel {

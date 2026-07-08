@@ -13,7 +13,7 @@
 #include <map>
 #include "proto/task.pb.h"
 #include "value_holder.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "exe_graph/runtime/allocator.h"
 #include "exe_graph/runtime/execute_graph_types.h"
 #include "base/registry/op_impl_space_registry_v2.h"

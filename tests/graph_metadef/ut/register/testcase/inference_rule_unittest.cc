@@ -28,7 +28,7 @@
 #include "exe_graph/runtime/storage_shape.h"
 #include "exe_graph/runtime/storage_format.h"
 #include "exe_graph/runtime/tensor_data.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "faker/space_registry_faker.h"
 
 using Json = nlohmann::json;

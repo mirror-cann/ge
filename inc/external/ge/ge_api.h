@@ -23,7 +23,7 @@
 #include "graph/graph.h"
 #include "graph/tensor.h"
 #include "ge/ge_allocator.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 namespace ge {
 typedef uint32_t (*pCallBackFunc)(uint32_t graph_id, const std::map<std::string, ge::Tensor> &params_list);
 

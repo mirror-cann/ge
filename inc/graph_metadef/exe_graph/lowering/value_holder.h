@@ -23,7 +23,7 @@
 #include "graph/node.h"
 #include "common/hyper_status.h"
 #include "graph_frame.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "common/checker.h"
 #include "common/util/mem_utils.h"
 #include "graph/fast_graph/execute_graph.h"

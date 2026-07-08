@@ -16,7 +16,7 @@
 #include "graph/preprocess/graph_prepare.h"
 #include "graph/optimize/graph_optimize.h"
 #include "graph/utils/graph_utils_ex.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 
 namespace ge {
 class JitInferUtils {

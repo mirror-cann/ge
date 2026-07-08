@@ -14,7 +14,7 @@
 #include "ge/ge_api_types.h"
 #include "graph/ge_local_context.h"
 #include "graph/manager/graph_manager_utils.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "base/err_msg.h"
 #include "base/err_mgr.h"
 #include "acl/acl_rt.h"

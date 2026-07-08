@@ -19,7 +19,7 @@
 #include "compute_graph.h"
 #include "ge_common/ge_common_api_types.h"
 
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "guarded_execution_point.h"
 
 using ComputeGraphPtr = std::shared_ptr<ge::ComputeGraph>;

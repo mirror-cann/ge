@@ -17,7 +17,7 @@
 #include "graph/ge_error_codes.h"
 #include "model_desc.h"
 #include "rt_external_stream.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "common/ge_visibility.h"
 #include "exe_graph_resource_guard.h"
 #include "exe_graph_executor.h"

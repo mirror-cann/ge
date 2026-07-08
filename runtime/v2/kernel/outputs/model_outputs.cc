@@ -10,7 +10,7 @@
 
 #include "model_outputs.h"
 #include "register/kernel_registry.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "common/checker.h"
 #include "common/plugin/ge_make_unique_util.h"
 #include "exe_graph/runtime/gert_mem_allocator.h"

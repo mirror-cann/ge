@@ -10,7 +10,7 @@
 
 #include "hcom_node_converter.h"
 #include "hcom_build_graph.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "exe_graph/lowering/generate_exe_graph.h"
 #include "exe_graph/lowering/frame_selector.h"
 #include "graph/utils/op_desc_utils.h"

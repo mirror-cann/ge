@@ -17,7 +17,7 @@
 #include "common/log_inner.h"
 #include "graph/tensor.h"
 #include "graph/types.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "exe_graph/runtime/shape.h"
 #include "model_desc_internal.h"
 #include "error_codes_inner.h"

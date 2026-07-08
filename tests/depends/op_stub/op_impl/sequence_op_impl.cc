@@ -13,7 +13,7 @@
 #include "exe_graph/runtime/storage_shape.h"
 #include "register/op_impl_registry.h"
 #include "register/kernel_registry.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 
 #include "exe_graph/runtime/infer_shape_context.h"
 #include "sequence_op_impl.h"

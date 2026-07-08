@@ -16,7 +16,7 @@
 #include <limits>
 #include "graph/ge_error_codes.h"
 #include "graph/types.h"
-#include "graph/type_utils.h"
+#include "graph/type_id.h"
 #include "graph/symbolizer/symbol_operator.h"
 #include "graph/symbolizer/symbol_checker.h"
 // 不允许添加symbolic_utils.h，后续symbolic.h需要开源

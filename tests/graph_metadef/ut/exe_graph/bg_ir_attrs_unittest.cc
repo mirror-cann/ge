@@ -17,7 +17,7 @@
 #include "exe_graph/runtime/context_extend.h"
 #include "exe_graph/runtime/continuous_vector.h"
 #include "runtime/runtime_attrs_def.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "exe_graph/lowering/bg_ir_attrs.h"
 #include "graph/debug/ge_attr_define.h"
 #include "expand_dimension.h"

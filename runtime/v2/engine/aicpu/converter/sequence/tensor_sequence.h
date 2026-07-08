@@ -15,7 +15,7 @@
 #include <sstream>
 
 #include "exe_graph/runtime/shape.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "exe_graph/runtime/tensor_data.h"
 #include "graph/types.h"
 #include "framework/common/debug/ge_log.h"

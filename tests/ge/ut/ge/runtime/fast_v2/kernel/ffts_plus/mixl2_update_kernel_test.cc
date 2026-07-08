@@ -19,7 +19,7 @@
 #include "kernel/common_kernel_impl/sink_node_bin.h"
 #include "kernel/memory/single_stream_l2_allocator.h"
 #include "stub/gert_runtime_stub.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "engine/aicore/kernel/rt_ffts_plus_launch_args.h"
 #include "engine/ffts_plus/converter/ffts_plus_proto_transfer.h"
 #include "macro_utils/dt_public_scope.h"

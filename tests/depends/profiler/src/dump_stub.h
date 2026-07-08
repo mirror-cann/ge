@@ -17,7 +17,7 @@
 
 #include "adump_api.h"
 #include "adump_pub.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 
 namespace ge {
 

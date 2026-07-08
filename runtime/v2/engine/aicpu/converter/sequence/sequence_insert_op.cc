@@ -10,7 +10,7 @@
 
 #include "exe_graph/runtime/extended_kernel_context.h"
 #include "exe_graph/runtime/kernel_context.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "register/kernel_registry_impl.h"
 #include "tensor_sequence.h"
 #include "resource_mgr.h"

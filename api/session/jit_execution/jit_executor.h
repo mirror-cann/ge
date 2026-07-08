@@ -15,7 +15,7 @@
 #include <mutex>
 
 #include "acl/acl_rt.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "ge/ge_api_types.h"
 
 #include "exe_points/execution_order.h"

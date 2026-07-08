@@ -15,7 +15,7 @@
 #include <set>
 
 #include "graph/graph.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "ge/ge_api_types.h"
 
 #include "user_graph_ctrl.h"

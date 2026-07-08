@@ -19,7 +19,7 @@
 #include "common/checker.h"
 #include "graph_metadef/graph/debug/ge_util.h"
 
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "graph_metadef/base/attr/attrs_to_buffer.h"
 
 namespace gert {

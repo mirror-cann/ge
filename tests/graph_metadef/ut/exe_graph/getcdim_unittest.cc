@@ -15,7 +15,7 @@
 #include "graph/compute_graph.h"
 #include "exe_graph/runtime/context_extend.h"
 #include "exe_graph/runtime/continuous_vector.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "graph/debug/ge_attr_define.h"
 #include "expand_dimension.h"
 #include "graph/utils/graph_utils.h"

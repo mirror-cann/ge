@@ -15,7 +15,7 @@
 #include <stack>
 #include <memory>
 
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "ge/ge_api_types.h"
 
 #include "graph/compute_graph.h"

@@ -40,7 +40,7 @@
 #include "common/aclrt_malloc_helper.h"
 
 #include "adump_opinfo_builder.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "base/err_msg.h"
 
 namespace ge {

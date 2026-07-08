@@ -12,7 +12,7 @@
 #include "graph/def_types.h"
 #include "register/kernel_registry.h"
 #include "framework/common/debug/log.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "kernel/memory/mem_block.h"
 #include "aicpu_engine_struct.h"
 #include "rt_external_mem.h"

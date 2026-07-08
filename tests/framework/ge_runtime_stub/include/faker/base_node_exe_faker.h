@@ -10,7 +10,7 @@
 
 #ifndef AIR_CXX_TESTS_FRAMEWORK_GE_RUNTIME_STUB_SRC_NODES_FAKER_BASE_NODE_EXE_FAKER_H_
 #define AIR_CXX_TESTS_FRAMEWORK_GE_RUNTIME_STUB_SRC_NODES_FAKER_BASE_NODE_EXE_FAKER_H_
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "exe_graph/runtime/kernel_context.h"
 #include "graph/node.h"
 #include "graph/fast_graph/fast_node.h"

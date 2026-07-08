@@ -11,7 +11,7 @@
 #include "graph/ge_error_codes.h"
 #include "register/kernel_registry_impl.h"
 #include "common/checker.h"
-#include "exe_graph/runtime/tensor.h"
+#include "exe_graph/runtime/runtime_tensor.h"
 #include "exe_graph/runtime/continuous_vector.h"
 #include "core/debug/kernel_tracing.h"
 #include "kernel/common_kernel_impl/calc_tenorsize_from_shape.h"
