@@ -613,10 +613,10 @@ TEST_F(AutofuseNodeUT, lowering_data_node_set_host_tensor_placement_test) {
   bg::LowerConstDataNode(global_data);
   LowerInput data_input = {{}, {}, &global_data};
 
-  // Case 1: 设置 ATTR_NAME_HOST_TENSOR = true，验证 placement 为 kOnHost
+  // Case 1: 设置 ATTR_NAME_HOST_TENSOR_AS_MODEL_INPUT = true，验证 placement 为 kOnHost
   auto data0 = graph->FindNode("data0");
   ASSERT_NE(data0, nullptr);
-  (void)ge::AttrUtils::SetBool(data0->GetOpDesc(), ge::ATTR_NAME_HOST_TENSOR, true);
+  (void)ge::AttrUtils::SetBool(data0->GetOpDesc(), ge::ATTR_NAME_HOST_TENSOR_AS_MODEL_INPUT, true);
   auto data0_ret = LoweringDataNode(data0, data_input);
   ASSERT_TRUE(data0_ret.result.IsSuccess());
   ASSERT_EQ(data0_ret.out_addrs[0]->GetPlacement(), static_cast<int32_t>(kOnHost));

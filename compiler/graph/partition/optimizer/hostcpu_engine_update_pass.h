@@ -34,6 +34,7 @@ class HostcpuEngineUpdatePass : public EngineReAssignPass {
   Status FindHostInputOfControlV2Node(const NodePtr &node, std::deque<NodePtr> &q);
   Status FindAndMarkHostCpuNode(std::deque<NodePtr> &q, NodeEngineMap &node_atomic_engine_map,
                                 NodeEngineMap &node_composite_engine_map);
+  Status MarkHostTensorAsModelInput(const ComputeGraphPtr &graph);
   Status UpdateHostcpuEngine(const ComputeGraphPtr &graph, NodeEngineMap &node_atomic_engine_map,
                              NodeEngineMap &node_composite_engine_map, bool is_partition_call = false);
 

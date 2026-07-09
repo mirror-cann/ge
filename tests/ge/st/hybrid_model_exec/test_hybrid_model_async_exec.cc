@@ -164,6 +164,18 @@ std::vector<gert::Tensor> InputData2GertTensors(const InputData &input_data) {
   }
   return input_tensors;
 }
+
+bool MarkInputNodeAsHostModelInput(const ge::ComputeGraphPtr &graph, const int32_t input_index) {
+  for (const auto &node : graph->GetDirectNode()) {
+    int32_t node_index = -1;
+    (void)ge::AttrUtils::GetInt(node->GetOpDesc(), ge::ATTR_NAME_INDEX, node_index);
+    if ((node->GetType() == "Data" || node->GetType() == "RefData") && node_index == input_index) {
+      (void)ge::AttrUtils::SetBool(node->GetOpDesc(), ge::ATTR_NAME_HOST_TENSOR_AS_MODEL_INPUT, true);
+      return true;
+    }
+  }
+  return false;
+}
 }  // namespace
 namespace ge {
 class HybridModelAsyncTest : public testing::Test {
@@ -172,6 +184,36 @@ class HybridModelAsyncTest : public testing::Test {
 
   void TearDown() {}
 };
+
+TEST_F(HybridModelAsyncTest, InitHostInputFlagsCollectsHostModelInput) {
+  auto graph = ShareGraph::AicoreGraph();
+  auto data1 = graph->FindNode("data1");
+  auto data2 = graph->FindNode("data2");
+  ASSERT_NE(data1, nullptr);
+  ASSERT_NE(data2, nullptr);
+  (void)AttrUtils::SetBool(data2->GetOpDesc(), ATTR_NAME_HOST_TENSOR_AS_MODEL_INPUT, true);
+
+  HybridModelRtV2Executor executor_rt_v2(nullptr, 0, nullptr);
+  executor_rt_v2.num_inputs_ = 2U;
+  executor_rt_v2.InitHostInputFlags(graph);
+
+  ASSERT_EQ(executor_rt_v2.is_host_input_.size(), 2U);
+  EXPECT_FALSE(executor_rt_v2.IsHostModelInput(0U));
+  EXPECT_TRUE(executor_rt_v2.IsHostModelInput(1U));
+  EXPECT_FALSE(executor_rt_v2.IsHostModelInput(2U));
+}
+
+TEST_F(HybridModelAsyncTest, SetInputOnHostSetsTensorDataPlacement) {
+  HybridModelRtV2Executor executor_rt_v2(nullptr, 0, nullptr);
+  std::unique_ptr<uint8_t[]> data_buf(new (std::nothrow) uint8_t[16]);
+  ASSERT_NE(data_buf, nullptr);
+  gert::Tensor input;
+
+  EXPECT_EQ(executor_rt_v2.SetInputOnHost(0U, data_buf.get(), 16U, input), SUCCESS);
+  EXPECT_EQ(input.GetPlacement(), gert::kOnHost);
+  EXPECT_EQ(input.GetAddr(), data_buf.get());
+  EXPECT_EQ(input.GetSize(), 16U);
+}
 
 TEST_F(HybridModelAsyncTest, test_hybrid_model_malloc_failed) {
   ProfilingProperties::Instance().SetLoadProfiling(true);
@@ -987,6 +1029,7 @@ TEST_F(HybridModelAsyncTest, Test_multi_thread_executor_success) {
 
 TEST_F(HybridModelAsyncTest, ExecuteWithStreamAsync_execute_model_online_host_input) {
   auto graph = ShareGraph::AicoreGraph();
+  ASSERT_TRUE(MarkInputNodeAsHostModelInput(graph, 0));
   graph->TopologicalSorting();
   ge::AttrUtils::SetBool(graph, "need_set_stream_core_limits", true);
   std::map<std::string, std::string> options;

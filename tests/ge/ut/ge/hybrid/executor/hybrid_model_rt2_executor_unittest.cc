@@ -68,6 +68,19 @@ std::vector<gert::Tensor> InputData2GertTensors(const InputData &input_data) {
   }
   return input_tensors;
 }
+
+bool MarkInputNodeAsHostModelInput(const ge::ComputeGraphPtr &graph, const int32_t input_index) {
+  for (const auto &node : graph->GetDirectNode()) {
+    int32_t node_index = -1;
+    (void)ge::AttrUtils::GetInt(node->GetOpDesc(), ge::ATTR_NAME_INDEX, node_index);
+    if ((node->GetType() == "Data" || node->GetType() == "RefData") && node_index == input_index) {
+      (void)ge::AttrUtils::SetBool(node->GetOpDesc(), ge::ATTR_NAME_HOST_TENSOR_AS_MODEL_INPUT, true);
+      return true;
+    }
+  }
+  return false;
+}
+
 void TestHybridModelExecuteWithIterationLoop() {
   auto graph = ShareGraph::SimpleFooGraph();
   graph->SetNeedIteration(true);
@@ -401,6 +414,59 @@ void HybridRt2ExecutorRunImpl() {
     sleep(1);
   }
   executor.Stop();
+}
+
+TEST_F(UtestHybridRt2Executor, InitHostInputFlagsCollectsHostModelInput) {
+  auto graph = ShareGraph::AicoreGraph();
+  auto data1 = graph->FindNode("data1");
+  auto data2 = graph->FindNode("data2");
+  ASSERT_NE(data1, nullptr);
+  ASSERT_NE(data2, nullptr);
+  (void)AttrUtils::SetBool(data2->GetOpDesc(), ATTR_NAME_HOST_TENSOR_AS_MODEL_INPUT, true);
+
+  HybridModelRtV2Executor executor_rt_v2(nullptr, 0, nullptr);
+  executor_rt_v2.num_inputs_ = 2U;
+  executor_rt_v2.InitHostInputFlags(graph);
+
+  ASSERT_EQ(executor_rt_v2.is_host_input_.size(), 2U);
+  EXPECT_FALSE(executor_rt_v2.IsHostModelInput(0U));
+  EXPECT_TRUE(executor_rt_v2.IsHostModelInput(1U));
+  EXPECT_FALSE(executor_rt_v2.IsHostModelInput(2U));
+}
+
+TEST_F(UtestHybridRt2Executor, SetInputOnHostSetsTensorDataPlacement) {
+  HybridModelRtV2Executor executor_rt_v2(nullptr, 0, nullptr);
+  std::unique_ptr<uint8_t[]> data_buf(new (std::nothrow) uint8_t[16]);
+  ASSERT_NE(data_buf, nullptr);
+  gert::Tensor input;
+
+  EXPECT_EQ(executor_rt_v2.SetInputOnHost(0U, data_buf.get(), 16U, input), SUCCESS);
+  EXPECT_EQ(input.GetPlacement(), gert::kOnHost);
+  EXPECT_EQ(input.GetAddr(), data_buf.get());
+  EXPECT_EQ(input.GetSize(), 16U);
+}
+
+TEST_F(UtestHybridRt2Executor, CheckInputIsOnDeviceSkipsHostModelInput) {
+  HybridModelRtV2Executor executor_rt_v2(nullptr, 0, nullptr);
+  executor_rt_v2.num_inputs_ = 2U;
+  executor_rt_v2.run_ctx_.host_exec_flag_ = false;
+  executor_rt_v2.is_host_input_ = {true, false};
+
+  gert::Tensor host_input;
+  host_input.SetPlacement(gert::kOnHost);
+  gert::Tensor device_input;
+  device_input.SetPlacement(gert::kOnDeviceHbm);
+  executor_rt_v2.rt_inputs_ = {&host_input, &device_input};
+
+  std::map<std::string, std::string> options;
+  options["ge.inputPlacement"] = "DeviceHbm";
+  ge::GetThreadLocalContext().SetGraphOption(options);
+  EXPECT_EQ(executor_rt_v2.CheckInputIsOnDevice(), SUCCESS);
+
+  device_input.SetPlacement(gert::kOnHost);
+  EXPECT_NE(executor_rt_v2.CheckInputIsOnDevice(), SUCCESS);
+  std::map<std::string, std::string> empty_options;
+  ge::GetThreadLocalContext().SetGraphOption(empty_options);
 }
 
 TEST_F(UtestHybridRt2Executor, run_success) {
@@ -926,6 +992,63 @@ TEST_F(UtestHybridRt2Executor, SyncExecute_GertTensor) {
   EXPECT_EQ(executor_rt_v2.Execute(inputs, outputs, ctrl_args), SUCCESS);
   EXPECT_EQ(executor_rt_v2.rt_inputs_.size(), 1);
   EXPECT_EQ(executor_rt_v2.rt_inputs_[0]->GetPlacement(), gert::kOnHost);
+}
+
+TEST_F(UtestHybridRt2Executor, SyncExecuteUsesHostModelInputForInputDataAndGertTensor) {
+  auto graph = ShareGraph::SimpleFooGraph();
+  ASSERT_TRUE(MarkInputNodeAsHostModelInput(graph, 0));
+  for (auto &node : graph->GetAllNodes()) {
+    if (node->GetType() == "Foo") {
+      MockLessImportantNodeKernel(node);
+    }
+  }
+  auto netoutput = graph->FindFirstNodeMatchType(ge::NETOUTPUT);
+  netoutput->GetOpDesc()->SetSrcName({"foo"});
+  netoutput->GetOpDesc()->SetSrcIndex({0});
+  graph->TopologicalSorting();
+
+  std::map<std::string, std::string> options_empty;
+  ge::GetThreadLocalContext().SetSessionOption(options_empty);
+  ge::GetThreadLocalContext().SetGraphOption(options_empty);
+
+  GeModelBuilder builder(graph);
+  auto ge_root_model = builder.BuildGeRootModel();
+
+  HybridModel hybrid_model(ge_root_model);
+  hybrid_model.root_graph_item_.reset(new GraphItem);
+  hybrid_model.root_graph_ = ge_root_model->GetRootGraph();
+  EXPECT_EQ(hybrid_model.Init(), SUCCESS);
+  EXPECT_TRUE(hybrid_model.execute_by_rt_v2_);
+
+  rtStream_t stream = nullptr;
+  HybridModelRtV2Executor executor_rt_v2(&hybrid_model, 0, stream);
+  auto ret = executor_rt_v2.Init();
+  EXPECT_EQ(ret, SUCCESS);
+  EXPECT_FALSE(executor_rt_v2.run_ctx_.host_exec_flag_);
+
+  unique_ptr<uint8_t[]> data_buf(new (std::nothrow) uint8_t[3072]);
+  InputData input_data;
+  input_data.blobs.push_back(DataBuffer(data_buf.get(), 3072, false));
+  input_data.shapes.push_back({1, 16, 16, 3});
+  HybridModelExecutor::ExecuteArgs args;
+  EXPECT_EQ(executor_rt_v2.Execute(input_data, args), SUCCESS);
+  EXPECT_EQ(executor_rt_v2.rt_inputs_[0]->GetPlacement(), gert::kOnHost);
+
+  std::vector<gert::Tensor> inputs(1U);
+  inputs[0] = {{{1, 16, 16, 3}, {1, 16, 16, 3}},
+               {ge::FORMAT_ND, ge::FORMAT_ND, {}},
+               gert::kOnHost,
+               ge::DT_FLOAT16,
+               (void *)data_buf.get()};
+
+  std::vector<gert::Tensor> outputs;
+  HybridModelExecutor::CtrlArgs ctrl_args;
+  EXPECT_EQ(executor_rt_v2.Execute(inputs, outputs, ctrl_args), SUCCESS);
+  EXPECT_EQ(executor_rt_v2.rt_inputs_[0]->GetPlacement(), gert::kOnHost);
+
+  RuntimeStub::Reset();
+  ge::GetThreadLocalContext().SetSessionOption(options_empty);
+  ge::GetThreadLocalContext().SetGraphOption(options_empty);
 }
 
 TEST_F(UtestHybridRt2Executor, prepare_inputdata_failed) {
@@ -1738,6 +1861,7 @@ TEST_F(UtestHybridRt2Executor, ExecuteWithStreamAsync_execute_model_online_host_
 
 TEST_F(UtestHybridRt2Executor, ExecuteWithStreamAsync_execute_model_online_host_input) {
   auto graph = ShareGraph::AicoreGraph();
+  ASSERT_TRUE(MarkInputNodeAsHostModelInput(graph, 0));
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.BuildGeRootModel();
@@ -1793,6 +1917,37 @@ TEST_F(UtestHybridRt2Executor, ExecuteWithStreamAsync_execute_model_online_host_
   output_tensors[0].SetData(nullptr, 0U);
   ret = executor_rt_v2.ExecuteWithStreamAsync(input_tensors, output_tensors, stream);
   EXPECT_NE(ret, SUCCESS);
+
+  RuntimeStub::Reset();
+}
+
+TEST_F(UtestHybridRt2Executor, ExecuteWithStreamAsyncGertTensorSetsHostModelInputOnHost) {
+  auto graph = ShareGraph::AicoreGraph();
+  ASSERT_TRUE(MarkInputNodeAsHostModelInput(graph, 0));
+  graph->TopologicalSorting();
+  GeModelBuilder builder(graph);
+  auto ge_root_model = builder.BuildGeRootModel();
+
+  HybridModel hybrid_model(ge_root_model);
+  hybrid_model.root_graph_item_.reset(new GraphItem);
+  hybrid_model.root_graph_ = ge_root_model->GetRootGraph();
+  EXPECT_EQ(hybrid_model.Init(), SUCCESS);
+  EXPECT_TRUE(hybrid_model.execute_by_rt_v2_);
+  rtStream_t stream = (void *)0x01;
+  HybridModelRtV2Executor executor_rt_v2(&hybrid_model, 0, stream);
+  auto ret = executor_rt_v2.Init();
+  EXPECT_EQ(ret, SUCCESS);
+  executor_rt_v2.run_ctx_.host_exec_flag_ = false;
+
+  std::vector<gert::Tensor> input_tensors(2U);
+  TensorCheckUtils::ConstructGertTensor(input_tensors[0], {1, 1, 1, 128}, DT_FLOAT, FORMAT_NCHW, gert::kOnHost);
+  input_tensors[0].SetPlacement(gert::kTensorPlacementEnd);
+  TensorCheckUtils::ConstructGertTensor(input_tensors[1], {1, 1, 1, 128}, DT_FLOAT, FORMAT_NCHW, gert::kOnDeviceHbm);
+  std::vector<gert::Tensor> output_tensors;
+
+  ret = executor_rt_v2.ExecuteWithStreamAsync(input_tensors, output_tensors, stream);
+  EXPECT_EQ(ret, SUCCESS);
+  EXPECT_EQ(input_tensors[0].GetPlacement(), gert::kOnHost);
 
   RuntimeStub::Reset();
 }

@@ -77,7 +77,7 @@ const ge::GeTensor *GetWeightFromResourceCenter(const ge::NodePtr &node, gert::L
 
 void SetFeedDataPlacement(const ge::NodePtr &node, const bg::ValueHolderPtr &address, int32_t index) {
   bool is_host_tensor = false;
-  (void)ge::AttrUtils::GetBool(node->GetOpDesc(), ge::ATTR_NAME_HOST_TENSOR, is_host_tensor);
+  (void)ge::AttrUtils::GetBool(node->GetOpDesc(), ge::ATTR_NAME_HOST_TENSOR_AS_MODEL_INPUT, is_host_tensor);
   if (is_host_tensor) {
     address->SetPlacement(kOnHost);
     GELOGI("Data node [%s] index=%d, is host tensor, set placement onHost", node->GetNamePtr(), index);

@@ -1552,6 +1552,8 @@ const std::string ATTR_NAME_GRAPH_OPTIONS = "GraphOptions";
 
 // host tensor
 const std::string ATTR_NAME_HOST_TENSOR = "_host_tensor";
+// 标记经 Host CPU 调度传播后需要保留在 Host 侧的模型输入。
+const std::string ATTR_NAME_HOST_TENSOR_AS_MODEL_INPUT = "_host_tensor_as_model_input";
 // 是否支持分档属性
 const std::string ATTR_NAME_ENABLE_DYNAMIC_BATCH = "_enable_dynamic_batch";
 // 需要分档输入索引
