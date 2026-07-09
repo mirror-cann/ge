@@ -310,10 +310,9 @@ fi
 # 需要在此处补充设置文件权限
 if [ -n "${common_parse_dir}" ]; then
     chmod 550 "${common_parse_dir}/fwkacllib/lib64/switch_by_index.o" 2>/dev/null
-    chmod 550 "${common_parse_dir}/python/site-packages/autofuse/"*.py 2>/dev/null
-    chmod 440 "${common_parse_dir}/python/site-packages/autofuse/pyautofuse.so" 2>/dev/null
     chmod 640 "${common_parse_dir}/${pkg_arch_name}-linux/lib64/plugin/opskernel/config/init.conf" 2>/dev/null
     chmod 550 "${common_parse_dir}/${pkg_arch_name}-linux/python/func2graph/func2graph.py" 2>/dev/null
+    chmod 444 "${common_parse_dir}/${pkg_arch_name}-linux/lib64/"ge_py_pass_bridge-*.whl 2>/dev/null
 fi
 
 exit 0
