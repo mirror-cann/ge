@@ -17,7 +17,6 @@
 #include "entity/llm_comm_entity_mgr.h"
 #include "fsm/state_define.h"
 #include "fsm/state_manager.h"
-#include "llm_common/kv_cache_manager.h"
 #include "llm_common/cache_manager.h"
 #include "llm_common/llm_common.h"
 #include "llm_common/statistic_manager.h"
@@ -1104,10 +1103,6 @@ FsmStatus LlmCommEntity::ReceiveKvCache(const PullKvReqInfo &req_info, const Syn
   }
   UDF_LOG_INFO("enable_paged_attention_ = %d, cache_id = %ld", static_cast<int32_t>(enable_paged_attention_),
                req_info.cache_id);
-  if ((!enable_paged_attention_) && (req_info.cache_id <= 0)) {
-    const auto &cache = KvCacheManager::GetInstance().GetDecoderKvCache(req_info.model_id);
-    (void)KvCacheManager::GetInstance().SaveDecoderKvCache({req_info.req_id, req_info.model_id}, cache);
-  }
   bool max_time_cost_flag = false;
   UpdateTickCost(tick_cost, stat_info_.recv_kv_total_times, stat_info_.recv_kv_min_tick_cost,
                  stat_info_.recv_kv_max_tick_cost, stat_info_.recv_kv_total_tick_cost, max_time_cost_flag);
@@ -1252,22 +1247,6 @@ std::vector<uintptr_t> LlmCommEntity::GetRecvAddrs(const PullKvReqInfo &req_info
       }
     }
     return recv_addrs;
-  }
-  if (enable_paged_attention_) {
-    auto &kv_blocks_tensors = KvCacheManager::GetInstance().QueryKvBlocksTensors(req_info.model_id);
-    for (uint32_t index = 0U; index < transfer_count; ++index) {
-      auto kv_index = index / sync_req_info->buffer_count_per_layer;
-      auto kv_blocks_addr = reinterpret_cast<uintptr_t>(kv_blocks_tensors[kv_index]->GetTensor()->GetData());
-      recv_addrs.emplace_back(kv_blocks_addr);
-    }
-  } else {
-    // get kv cache: no need check kvCache nullptr
-    std::shared_ptr<FlowMsg> kv_cache = KvCacheManager::GetInstance().GetDecoderKvCache(req_info.model_id);
-    const auto kv_cache_addr = reinterpret_cast<uintptr_t>(kv_cache->GetTensor()->GetData());
-    for (uint32_t index = 0U; index < transfer_count; ++index) {
-      auto kv_index = index / sync_req_info->buffer_count_per_layer;
-      recv_addrs.emplace_back(kv_cache_addr + kv_index * req_info.block_len);
-    }
   }
   return recv_addrs;
 }
@@ -1475,27 +1454,6 @@ FsmStatus LlmCommEntity::CheckSyncKvMetaInfo(const PullKvReqInfo &req_info, Sync
       return FsmStatus::kFsmParamInvalid;
     }
     return FsmStatus::kFsmSuccess;
-  }
-  if (!enable_paged_attention_) {
-    std::shared_ptr<FlowMsg> kv_cache = KvCacheManager::GetInstance().GetDecoderKvCache(req_info.model_id);
-    const uint64_t kv_cache_size = kv_cache->GetTensor()->GetDataSize();
-    if (resp_info.transfer_count * req_info.block_len > kv_cache_size) {
-      UDF_LOG_ERROR(
-          "Invalid param, req_id:%lu, transfer_count:%u, block_len:%lu, kv_cache_size:%lu, "
-          "model_id:%lu, entity:%s.",
-          req_info.req_id, resp_info.transfer_count, req_info.block_len, kv_cache_size, req_info.model_id,
-          desc_.c_str());
-      return FsmStatus::kFsmParamInvalid;
-    }
-    return FsmStatus::kFsmSuccess;
-  }
-  size_t send_count_per_layer = sync_req_info->buffer_count_per_layer;
-  const auto &kv_block_tensors = KvCacheManager::GetInstance().QueryKvBlocksTensors(req_info.model_id);
-  if (resp_info.transfer_count != (kv_block_tensors.size() * send_count_per_layer)) {
-    UDF_LOG_ERROR("Invalid param, req_id:%lu, transfer_count:%u, send_count_per_layer:%u, kvSize:%zu, entity:%s.",
-                  req_info.req_id, resp_info.transfer_count, send_count_per_layer, kv_block_tensors.size(),
-                  desc_.c_str());
-    return FsmStatus::kFsmParamInvalid;
   }
   return FsmStatus::kFsmSuccess;
 }

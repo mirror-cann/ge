@@ -29,7 +29,6 @@ class SendState : public BaseState {
   SendState &operator=(const SendState &&) = delete;
 
  private:
-  static FsmStatus CheckKvCacheManagerReq(const std::vector<KvTensor> &kv_tensors, const SyncKvReqInfo *req_info);
   static FsmStatus CheckNotBlocksReq(const SyncKvReqInfo *req_info);
   static FsmStatus GenerateSyncKvMetaInfo(LlmCommEntity &entity);
   static FsmStatus SendSyncKvMetaAsync(LlmCommEntity &entity);

@@ -31,7 +31,6 @@
 
 #include "flow_func/flow_func_run_context.h"
 #include "hccl_stub.h"
-#include "llm_common/kv_cache_manager.h"
 #include "llm_common/hccl_proxy.h"
 
 namespace FlowFunc {

@@ -12,7 +12,6 @@
 #include <vector>
 #include "entity/llm_comm_entity_mgr.h"
 #include "fsm/state_manager.h"
-#include "llm_common/kv_cache_manager.h"
 #include "llm_common/cache_manager.h"
 #include "llm_common/llm_common.h"
 #include "llm_common/hccl_proxy.h"
@@ -167,33 +166,6 @@ FsmStatus SendState::QueryPromptKvCache(const SyncKvReqInfo *req_info, std::vect
     }
     return ret;
   }
-  kv_tensors = KvCacheManager::GetInstance().QueryPromptKvCache({req_info->req_id, req_info->model_id});
-  if (!kv_tensors.empty()) {
-    if (CheckKvCacheManagerReq(kv_tensors, req_info) != FsmStatus::kFsmSuccess) {
-      return FsmStatus::kFsmParamInvalid;
-    }
-  }
-  return FsmStatus::kFsmSuccess;
-}
-
-FsmStatus SendState::CheckKvCacheManagerReq(const std::vector<KvTensor> &kv_tensors, const SyncKvReqInfo *req_info) {
-  uint64_t real_kv_len = kv_tensors.front().data_size;
-  uint64_t req_kv_len = 0UL;
-  for (uint32_t i = 0U; i < req_info->buffer_count_per_layer; ++i) {
-    if (req_info->transfer_infos[i].buffer_info.block_index != UINT64_MAX) {
-      UDF_LOG_ERROR("Invalid buffer info, i:%u, block_index:%lu", i,
-                    req_info->transfer_infos[i].buffer_info.block_index);
-      return FsmStatus::kFsmParamInvalid;
-    }
-    if ((req_info->buffer_count_per_layer > 1) && (i < req_info->buffer_count_per_layer - 1U)) {
-      req_kv_len += req_info->transfer_infos[i].buffer_info.buffer_len;
-    }
-  }
-  if (req_kv_len >= real_kv_len) {
-    UDF_LOG_ERROR("Invalid param, req_kv_len:%lu, real_kv_len:%lu, req_id:%lu, prefix_id:%lu, model_id:%lu.",
-                  req_kv_len, real_kv_len, req_info->req_id, req_info->prefix_id, req_info->model_id);
-    return FsmStatus::kFsmParamInvalid;
-  }
   return FsmStatus::kFsmSuccess;
 }
 
@@ -338,8 +310,6 @@ void SendState::ReleaseKvCacheForPrompt(const LlmCommEntity &entity) {
       CacheManager::GetInstance().RemoveCacheIndex(std::make_pair(entity.GetCurReqId(), entity.GetCurModelId()), false,
                                                    tensor_num_and_indices.first, tensor_num_and_indices.second);
     }
-  } else {
-    (void)KvCacheManager::GetInstance().ReleaseKvCacheForPrompt({entity.GetCurReqId(), entity.GetCurModelId()});
   }
 }
 
