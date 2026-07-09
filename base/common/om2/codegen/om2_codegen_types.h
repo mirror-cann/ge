@@ -23,6 +23,7 @@
 #include "common/om2/codegen/ast/ast_nodes.h"
 #include "ast/ast_context.h"
 #include "framework/common/taskdown_common.h"
+#include "graph/op_desc.h"
 #include "proto/task.pb.h"
 #include "common/math/ge_math_util.h"
 
@@ -37,13 +38,6 @@ struct OpInputEdges {
   std::vector<int64_t> input_op_ids;
   std::vector<int32_t> input_anchor_indices;
   std::vector<std::string> output_var_names;
-};
-
-enum class Om2MemoryAppType : int32_t {
-  kMemoryTypeFix,  // const and var and fix fm
-  kMemoryTypeFeatureMap,
-  kMemoryTypeModelIo,
-  kEnd
 };
 
 struct MemInfo {
@@ -242,6 +236,52 @@ enum class MemoryAppType : int32_t {
   kModelIo,
 };
 
+struct OpDispatchType {
+  enum Value : uint32_t {
+    DISPATCH_AICORE = 0,
+    DISPATCH_AICPU = 1,
+    DISPATCH_EVENT_RECORD = 2,
+    DISPATCH_EVENT_WAIT = 3,
+    DISPATCH_FUSION_START = 4,
+    DISPATCH_FUSION_END = 5,
+    DISPATCH_END_GRAPH = 6,
+    DISPATCH_LABEL_SET = 7,
+    DISPATCH_NOTIFY_RECORD = 8,
+    DISPATCH_NOTIFY_WAIT = 9,
+    DISPATCH_STREAM_ACTIVE = 10,
+    DISPATCH_STREAM_SWITCH = 11,
+    DISPATCH_LABEL_GOTO_EX = 12,
+    DISPATCH_LABEL_SWITCH_BY_INDEX = 13,
+    DISPATCH_BARRIER = 14,
+    DISPATCH_CMO = 15,
+    DISPATCH_MEMCPY_ASYNC = 16,
+    DISPATCH_MEMCPY_ADDR_ASYNC = 17,
+    DISPATCH_CMO_ADDR = 18,
+    DISPATCH_DSA = 19,
+    DISPATCH_KERNEL_EX = 20,
+  };
+
+  static std::string ToString() {
+    static const char *kNames[] = {"DISPATCH_AICORE",        "DISPATCH_AICPU",
+                                   "DISPATCH_EVENT_RECORD",  "DISPATCH_EVENT_WAIT",
+                                   "DISPATCH_FUSION_START",  "DISPATCH_FUSION_END",
+                                   "DISPATCH_END_GRAPH",     "DISPATCH_LABEL_SET",
+                                   "DISPATCH_NOTIFY_RECORD", "DISPATCH_NOTIFY_WAIT",
+                                   "DISPATCH_STREAM_ACTIVE", "DISPATCH_STREAM_SWITCH",
+                                   "DISPATCH_LABEL_GOTO_EX", "DISPATCH_LABEL_SWITCH_BY_INDEX",
+                                   "DISPATCH_BARRIER",       "DISPATCH_CMO",
+                                   "DISPATCH_MEMCPY_ASYNC",  "DISPATCH_MEMCPY_ADDR_ASYNC",
+                                   "DISPATCH_CMO_ADDR",      "DISPATCH_DSA",
+                                   "DISPATCH_KERNEL_EX"};
+    std::string code = "enum OpDispatchType : uint32_t {\n";
+    for (uint32_t i = 0U; i <= static_cast<uint32_t>(DISPATCH_KERNEL_EX); i++) {
+      code += "    " + std::string(kNames[i]) + " = " + std::to_string(i) + ",\n";
+    }
+    code += "    DISPATCH_TYPE_COUNT\n};\n";
+    return code;
+  }
+};
+
 struct AddrSemantic {
   AddrValueKind kind{AddrValueKind::kInputInstance};
   MemoryAppType memory_app{MemoryAppType::kFix};
@@ -313,6 +353,71 @@ struct Om2CodegenModel {
   ArgsTableSemantic args_table;
   std::vector<ConstInputEntry> const_inputs;
   uint32_t aicpu_task_count{0U};
+};
+
+// shape 维度数的上限（与 OpArgInfo.tensor.shape 数组大小一致）
+constexpr size_t kShapeMaxDims = 8U;
+
+// OpArgType 枚举 - 与 generated code 中的 OpArgType 保持一致
+enum OpArgType : int32_t {
+  OP_ARG_INPUT = 0,
+  OP_ARG_OUTPUT = 1,
+  OP_ARG_WORKSPACE = 2,
+  OP_ARG_CONST_TENSOR = 3,
+  OP_ARG_LEVEL1_DESC = 4,
+  OP_ARG_SHAPE_INFO = 5,
+  OP_ARG_CUSTOM_VALUE = 6,
+  OP_ARG_PLACEHOLDER = 7,
+  OP_ARG_OPTIONAL_EMPTY = 8,
+  OP_ARG_FFTS_ADDR = 9,
+  OP_ARG_EVENT_ADDR = 10,
+  OP_ARG_OVERFLOW_ADDR = 11,
+  OP_ARG_TILING = 12,
+  OP_ARG_RAW_ADDR = 13,
+};
+
+// 算子参数构建数据 —— TaskCodeBuilder 子类填充后，由 BuildOpArgList() 转换为 OpArgInfo 数组 AST
+struct OpArgDesc {
+  int32_t type{0};                       // OpArgType 枚举值（INPUT/OUTPUT/WORKSPACE/TILING/...）
+  uint32_t mem_src{0U};                  // 内存来源（0=设备内存，0xFFFFFFFF=session，≥1=常量数组索引）
+  uint64_t offset{0U};                   // 内存偏移量
+  uint64_t size{0U};                     // 数据大小（字节），INPUT/OUTPUT/WORKSPACE 使用
+  int32_t data_type{0};                  // 数据类型（INPUT/OUTPUT）
+  int32_t format{0};                     // 数据格式（INPUT/OUTPUT）
+  std::vector<int64_t> shape_dims;       // shape 维度数组（INPUT/OUTPUT）
+  bool has_tensor_info{false};           // 是否有 tensor 元数据（无则不生成 data 字段）
+  uint64_t custom_value{0U};             // 自定义值（LEVEL1_DESC/SHAPE_INFO/CUSTOM_VALUE/EVENT_ADDR）
+  std::vector<uint8_t> raw_data;         // Tiling 原始二进制数据
+  std::vector<int64_t> shape_info_data;  // Shape 信息数据
+  uint64_t args_offset{UINT64_MAX};      // args table 内字节偏移
+};
+
+struct IoAddrRefreshRecord {
+  uint64_t compile_state_io_addr_offset{0U};
+  uint64_t host_offset{0U};
+};
+
+struct CustomValueEntry {
+  uint64_t host_offset;  // 编译期确定的 offset（含 align_offset）
+  uint64_t value;        // 编译期确定的写入值
+  uint32_t size;         // 4（uint32_t）或 8（uint64_t），编译期确定
+};
+
+struct TaskSemanticContributeContext {
+  ModelTaskType task_type;
+  const domi::TaskDef &task_def;
+  int64_t op_index{kInvalidOpIndex};
+  OpDescPtr op_desc;
+  const RuntimeResourceSemantic *runtime{nullptr};
+  ModelIoSemantic *model_io{nullptr};
+  const std::unordered_map<std::string, uint32_t> *func_handle_indices{nullptr};
+  const std::unordered_map<int64_t, std::string> *weight_offset_to_varname{nullptr};
+  const std::unordered_map<int64_t, std::string> *fileconst_output_offset_to_varname{nullptr};
+  std::unordered_map<int64_t, OpInputEdges> *op_id_to_input_edges{nullptr};
+  std::unordered_map<uint32_t, uint32_t> *op_index_to_count_map{nullptr};
+  uint64_t *next_args_table_index{nullptr};
+  uint64_t *next_host_args_offset{nullptr};
+  uint32_t *aicpu_task_count{nullptr};
 };
 
 }  // namespace ge

@@ -9,6 +9,7 @@
  */
 
 #include "cmo_addr_task_code_builder.h"
+#include "common/om2/codegen/task_code_builder/task_code_builder_util.h"
 
 #include <cinttypes>
 
@@ -66,7 +67,7 @@ Status CmoAddrTaskCodeBuilder::Contribute(TaskSemanticContributeContext &context
 
   const domi::CmoAddrTaskDef &cmo_addr_task = context.task_def.cmo_addr_task();
 
-  cmo_op_code_ = cmo_addr_task.cmo_op_code();
+  build_data_.cmo_op_code = cmo_addr_task.cmo_op_code();
 
   args_format_str_ = cmo_addr_task.args_format().empty() ? BuildAutoArgsFormat(context) : cmo_addr_task.args_format();
   GE_ASSERT_SUCCESS(ArgsFormatDesc::Parse(context.op_desc, args_format_str_, arg_descs_));
@@ -80,38 +81,56 @@ Status CmoAddrTaskCodeBuilder::Contribute(TaskSemanticContributeContext &context
   GE_ASSERT_TRUE(header_.stream_id < context.runtime->stream_num, "[OM2][Check][Param] stream list size:%u, cur:%u!",
                  context.runtime->stream_num, header_.stream_id);
   GELOGI("CmoAddrTaskCodeBuilder: op[%s], cmo_op_code[%u], args_format[%s], stream_id[%u]",
-         context.op_desc->GetName().c_str(), cmo_op_code_, args_format_str_.c_str(), header_.stream_id);
+         context.op_desc->GetName().c_str(), build_data_.cmo_op_code, args_format_str_.c_str(), header_.stream_id);
 
+  build_data_.stream_id = header_.stream_id;
+  build_data_.args_table_idx = static_cast<uint32_t>(entry_->table_index);
+  build_data_.args_info_num = static_cast<uint32_t>(ordered_arg_values_.size());
+  for (const auto &semantic : ordered_arg_values_) {
+    build_data_.ordered_args.push_back(TaskCodeBuilderUtil::ConvertAddrDesc(semantic));
+  }
+  size_t host_offset = build_data_.align_offset;
+  for (size_t i = 0; i < arg_descs_.size(); ++i) {
+    if (arg_descs_[i].addr_type == AddrType::CUSTOM_VALUE) {
+      OpArgDesc arg;
+      arg.offset = static_cast<uint64_t>(host_offset);
+      arg.custom_value = *reinterpret_cast<const uint64_t *>(arg_descs_[i].reserved);
+      arg.size = (arg_descs_[i].ir_idx == static_cast<int32_t>(ArgsFormatWidth::BIT32)) ? 4U : 8U;
+      build_data_.custom_value_args.push_back(std::move(arg));
+    }
+    host_offset += arg_sizes_[i];
+  }
   return SUCCESS;
 }
 
 Status CmoAddrTaskCodeBuilder::BuildOrderedArgs(TaskSemanticContributeContext &context,
                                                 const AddrSemantic &src_addr_node) {
   const uint64_t current_host_offset = *context.next_host_args_offset;
-  align_offset_ = (current_host_offset + kAlignment - 1U) / kAlignment * kAlignment - current_host_offset;
+  build_data_.align_offset =
+      static_cast<uint32_t>((current_host_offset + kAlignment - 1U) / kAlignment * kAlignment - current_host_offset);
 
-  args_size_ = 0U;
+  build_data_.args_size = 0U;
   arg_sizes_.clear();
   bool io_encountered = false;
   for (const auto &arg_desc : arg_descs_) {
     if (arg_desc.addr_type == AddrType::INPUT_INSTANCE && !io_encountered) {
-      GELOGI("align_offset: %zu, io_offset: %zu", align_offset_, args_size_);
-      io_offset_ = args_size_;
+      GELOGI("align_offset: %u, io_offset: %u", build_data_.align_offset, build_data_.args_size);
+      build_data_.io_offset = build_data_.args_size;
       io_encountered = true;
     }
     if (arg_desc.addr_type == AddrType::INPUT_INSTANCE) {
-      AppendOrderedArgValue(src_addr_node, current_host_offset + align_offset_ + args_size_);
+      AppendOrderedArgValue(src_addr_node, current_host_offset + build_data_.align_offset + build_data_.args_size);
     }
     size_t arg_size = 0U;
     GE_ASSERT_SUCCESS(ArgsFormatDesc::GetArgSize(context.op_desc, arg_desc, arg_size));
-    args_size_ += arg_size;
+    build_data_.args_size += static_cast<uint32_t>(arg_size);
     arg_sizes_.push_back(arg_size);
   }
 
   (void)entry_.emplace();
   entry_->table_index = *context.next_args_table_index;
-  total_args_size_ = align_offset_ + args_size_ + kAlignment;
-  entry_->args_size = total_args_size_;
+  const size_t total_args_size = build_data_.align_offset + build_data_.args_size + kAlignment;
+  entry_->args_size = total_args_size;
   entry_->host_offset = *context.next_host_args_offset;
   args_table_entry_ = &(*entry_);
   ++(*context.next_args_table_index);
@@ -119,112 +138,154 @@ Status CmoAddrTaskCodeBuilder::BuildOrderedArgs(TaskSemanticContributeContext &c
   return SUCCESS;
 }
 
-Status CmoAddrTaskCodeBuilder::CollectIoAddrVars(std::vector<BodyItem> &items, std::vector<Arg> &args_vars) {
-  for (const auto &semantic : ordered_arg_values_) {
-    if (semantic.kind == AddrValueKind::kInputInstance || semantic.kind == AddrValueKind::kOutputInstance) {
-      auto &base_ptr = (semantic.memory_type == (kSessionScopeMemoryMask | RT_MEMORY_HBM)) ? session_scope_mem_ptr_
-                                                                                           : total_dev_mem_ptr_;
-      items.push_back(ast_.VarDecl("auto", semantic.symbol_hint, GetAddr(base_ptr, semantic.mem_offset)));
-      (void)args_vars.emplace_back(ast_.Var("auto", semantic.symbol_hint));
-    } else if (semantic.kind == AddrValueKind::kConstTensor) {
-      items.push_back(
-          ast_.VarDecl("auto", semantic.symbol_hint, Arg(constants_[static_cast<int64_t>(*semantic.const_index)])));
-      (void)args_vars.emplace_back(ast_.Var("auto", semantic.symbol_hint));
-    } else {
-      GELOGE(FAILED, "[OM2] CmoAddrAsync unsupported addr kind %d.", static_cast<int32_t>(semantic.kind));
-      return FAILED;
-    }
-  }
-  return SUCCESS;
-}
-
-void CmoAddrTaskCodeBuilder::RenderCustomValueWriteback(std::vector<BodyItem> &items) {
-  size_t host_offset = align_offset_;
-  for (size_t i = 0; i < arg_descs_.size(); ++i) {
-    if (arg_descs_[i].addr_type == AddrType::CUSTOM_VALUE) {
-      const uint64_t value = *PtrToPtr<uint8_t, const uint64_t>(arg_descs_[i].reserved);
-      auto host_base = args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_->table_index)).Arrow("host_addr");
-      auto target_ptr = ast_.ReinterpretCast(
-          arg_descs_[i].ir_idx == static_cast<int32_t>(ArgsFormatWidth::BIT32) ? "uint32_t *" : "uint64_t *",
-          ast_.Call("ValueToPtr", {ast_.Call("PtrToValue", {host_base}) + host_offset}));
-      if (arg_descs_[i].ir_idx == static_cast<int32_t>(ArgsFormatWidth::BIT32)) {
-        items.push_back(ast_.Assign(ast_.Deref(target_ptr), ast_.StaticCast("uint32_t", value)));
-      } else {
-        items.push_back(ast_.Assign(ast_.Deref(target_ptr), ast_.UInt(value)));
-      }
-    }
-    host_offset += arg_sizes_[i];
-  }
-}
-
-Status CmoAddrTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items) {
-  items.push_back(
-      ast_.Comment("============================= " + header_.op_name + " (CMO_ADDR) ==============================="));
-
-  std::vector<Arg> args_vars;
-  GE_ASSERT_SUCCESS(CollectIoAddrVars(items, args_vars));
-
-  const std::string ioaddr_var_name = "op" + std::to_string(header_.op_index) + "_iow_addr0";
-  auto ioaddr_var = ast_.Var("std::vector<uint64_t>", ioaddr_var_name);
-  (void)items.emplace_back(ast_.VarDecl(ioaddr_var, FlattenHostArgs(args_vars)));
-
-  auto dev_addr_expr = ast_.Call(
-      "ValueToPtr",
-      {ast_.Call("PtrToValue",
-                 {args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_->table_index)).Arrow("dev_addr")}) +
-       align_offset_});
-  auto host_addr_expr = ast_.Call(
-      "ValueToPtr",
-      {ast_.Call("PtrToValue",
-                 {args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_->table_index)).Arrow("host_addr")}) +
-       align_offset_});
-
-  items.push_back(
-      ChkStatus(ast_.Call("KernelCmoAddrTaskDistribute",
-                          {ast_.Str(header_.op_name), dev_addr_expr, ast_.UInt(static_cast<uint64_t>(args_size_)),
-                           ast_.StaticCast("rtCmoOpCode_t", cmo_op_code_),
-                           stream_list_[static_cast<int32_t>(header_.stream_id)], ast_.UInt(0)})));
-
-  items.push_back(
-      ChkStatus(AclrtMemcpy(host_addr_expr, args_size_, dev_addr_expr, args_size_, "ACL_MEMCPY_DEVICE_TO_HOST")));
-
-  items.push_back(ChkStatus(MemcpyS(
-      ast_.Call(
-          "ValueToPtr",
-          {ast_.Call("PtrToValue",
-                     {args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_->table_index)).Arrow("host_addr")}) +
-           align_offset_ + io_offset_}),
-      args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_->table_index)).Arrow("size") -
-          (align_offset_ + io_offset_),
-      ioaddr_var.Data(), ioaddr_var.Size() * ast_.Sizeof("uint64_t"))));
-
-  RenderCustomValueWriteback(items);
-
-  return SUCCESS;
-}
-
-Status CmoAddrTaskCodeBuilder::RenderDistHelper(std::vector<DeclNode *> &items) {
+Status CmoAddrTaskCodeBuilder::RenderKernelDistributeFunc(std::vector<DeclNode *> &items) {
   auto op_name = ast_.Var("const char_t *const", "op_name");
   auto args_addr = ast_.Var("void *", "args_addr");
   auto args_size = ast_.Var("uint32_t", "args_size");
   auto cmo_op_code = ast_.Var("rtCmoOpCode_t", "cmo_op_code");
   auto stream = ast_.Var("aclrtStream", "stream");
   auto flag = ast_.Var("uint32_t", "flag");
+  (void)items.push_back(ast_.DefineFunction(
+      "KernelCmoAddrTaskDistribute", {op_name, args_addr, args_size, cmo_op_code, stream, flag}, "aclError",
+      {
+          ChkRt(RtSetTaskTag(op_name)),
+          ChkRt(ast_.Call("rtCmoAddrTaskLaunch", {args_addr, args_size, cmo_op_code, stream, flag})),
+          ast_.Return("ACL_SUCCESS"),
+      }));
+  return SUCCESS;
+}
 
-  items.push_back(ast_.DefineFunction("KernelCmoAddrTaskDistribute",
-                                      {op_name, args_addr, args_size, cmo_op_code, stream, flag}, "aclError",
-                                      {
-                                          ChkRt(RtSetTaskTag(op_name)),
-                                          ChkRt(RtCmoAddrTaskLaunch(args_addr, args_size, cmo_op_code, stream, flag)),
-                                          ast_.Return("ACL_SUCCESS"),
-                                      }));
+Status CmoAddrTaskCodeBuilder::RenderKernelLaunch(std::vector<BodyItem> &body, const VarRef &op, const VarRef &ctx,
+                                                  const ExprRef &dev_addr_off, const ExprRef &host_addr_off) {
+  (void)body.push_back(ChkStatus(ast_.Call(
+      "KernelCmoAddrTaskDistribute",
+      {
+          Arg(op.Arrow("op_name")),
+          Arg(dev_addr_off),
+          Arg(op.Arrow("dispatch_info").Attr("cmo_addr").Attr("args_size")),
+          Arg(ast_.StaticCast("rtCmoOpCode_t", op.Arrow("dispatch_info").Attr("cmo_addr").Attr("cmo_op_code"))),
+          Arg(ctx.Attr("stream_list")[op.Arrow("dispatch_info").Attr("cmo_addr").Attr("stream_id")]),
+          Arg(ast_.UInt(0)),
+      })));
+  (void)body.push_back(ChkStatus(AclrtMemcpy(
+      Arg(host_addr_off), Arg(op.Arrow("dispatch_info").Attr("cmo_addr").Attr("args_size")), Arg(dev_addr_off),
+      Arg(op.Arrow("dispatch_info").Attr("cmo_addr").Attr("args_size")), "ACL_MEMCPY_DEVICE_TO_HOST")));
+  return SUCCESS;
+}
 
+Status CmoAddrTaskCodeBuilder::RenderArgsWriteback(std::vector<BodyItem> &body, const VarRef &op, const VarRef &ctx,
+                                                   const VarRef &iow_addr, const ExprRef &args_table_idx) {
+  (void)body.push_back(ChkStatus(MemcpyS(
+      ast_.Call(
+          "ValueToPtr",
+          {ast_.Call("PtrToValue", {ctx.Attr("args_table").Attr("GetArgsInfo")(args_table_idx).Arrow("host_addr")}) +
+           op.Arrow("dispatch_info").Attr("cmo_addr").Attr("align_offset") +
+           op.Arrow("dispatch_info").Attr("cmo_addr").Attr("io_offset")}),
+      ctx.Attr("args_table").Attr("GetArgsInfo")(args_table_idx).Arrow("size") -
+          (op.Arrow("dispatch_info").Attr("cmo_addr").Attr("align_offset") +
+           op.Arrow("dispatch_info").Attr("cmo_addr").Attr("io_offset")),
+      iow_addr.Data(), iow_addr.Size() * ast_.Sizeof("uint64_t"))));
+  RenderCustomValueWriteback(body, ctx, args_table_idx);
+  return SUCCESS;
+}
+
+void CmoAddrTaskCodeBuilder::RenderCustomValueWriteback(std::vector<BodyItem> &body, const VarRef &ctx,
+                                                        const ExprRef &args_table_idx) {
+  auto op = ast_.Var("const TaskDispatchInfo *", "op");
+  auto host_addr_info = ctx.Attr("args_table").Attr("GetArgsInfo")(args_table_idx).Arrow("host_addr");
+  (void)body.emplace_back(ast_.For(
+      ast_.VarDecl("uint32_t", "_j", ast_.UInt(0U)),
+      ast_.Var("", "_j") < op.Arrow("dispatch_info").Attr("cmo_addr").Attr("num_custom_values"),
+      ast_.PostInc(ast_.Var("", "_j")),
+      std::initializer_list<BodyItem>{
+          ast_.VarDecl("auto", "cv",
+                       op.Arrow("dispatch_info").Attr("cmo_addr").Attr("custom_values")[ast_.Var("", "_j")]),
+          ast_.VarDecl("auto", "host_base",
+                       ast_.Call("ValueToPtr",
+                                 {ast_.Call("PtrToValue", {host_addr_info}) + ast_.Var("", "cv").Attr("host_offset")})),
+          ast_.If(Arg(ast_.Var("", "cv").Attr("size") == ast_.UInt(4)),
+                  std::initializer_list<BodyItem>{
+                      ast_.Assign(ast_.Deref(ast_.ReinterpretCast("uint32_t *", ast_.Var("", "host_base"))),
+                                  ast_.StaticCast("uint32_t", ast_.Var("", "cv").Attr("value")))},
+                  std::initializer_list<BodyItem>{
+                      ast_.Assign(ast_.Deref(ast_.ReinterpretCast("uint64_t *", ast_.Var("", "host_base"))),
+                                  ast_.Var("", "cv").Attr("value"))})}));
+}
+
+Status CmoAddrTaskCodeBuilder::RenderDispatchFunc(std::vector<DeclNode *> &items) {
+  std::vector<BodyItem> body;
+  auto op = ast_.Var("const TaskDispatchInfo *", "op");
+  auto ctx = ast_.Var("const DispatchOpContext &", "ctx");
+  VarRef args_info = ast_.Var("ArgsInfo *", "args_info");
+  VarRef iow_addr = ast_.Var("std::vector<uint64_t>", "iow_addr");
+  ExprRef args_table_idx = op.Arrow("dispatch_info").Attr("cmo_addr").Attr("args_table_idx");
+  (void)body.push_back(ast_.VarDecl(args_info, ctx.Attr("args_table").Attr("GetArgsInfo")(args_table_idx)));
+  const auto align_offset = Arg(op.Arrow("dispatch_info").Attr("cmo_addr").Attr("align_offset"));
+  ExprRef dev_addr_off = ast_.Call("GET_ADDR", {args_info.Arrow("dev_addr"), align_offset});
+  ExprRef host_addr_off = ast_.Call("GET_ADDR", {args_info.Arrow("host_addr"), align_offset});
+  (void)body.emplace_back(ast_.VarDecl(iow_addr));
+  (void)body.emplace_back(ast_.For(
+      ast_.VarDecl("uint32_t", "_i", ast_.UInt(0U)),
+      ast_.Var("", "_i") < op.Arrow("dispatch_info").Attr("cmo_addr").Attr("args_info_num"),
+      ast_.PostInc(ast_.Var("", "_i")),
+      {iow_addr.PushBack(ast_.ReinterpretCast(
+          "uint64_t", ast_.Call("ResolveOpAddr", {op.Arrow("dispatch_info")
+                                                      .Attr("cmo_addr")
+                                                      .Attr("args_info")[ast_.Var("", "_i")]
+                                                      .Attr("addr")
+                                                      .Attr("mem_src"),
+                                                  op.Arrow("dispatch_info")
+                                                      .Attr("cmo_addr")
+                                                      .Attr("args_info")[ast_.Var("", "_i")]
+                                                      .Attr("addr")
+                                                      .Attr("offset"),
+                                                  ctx.Attr("total_dev_mem_ptr"), ctx.Attr("session_scope_mem_ptr"),
+                                                  ctx.Attr("constants")})))}));
+  GE_ASSERT_SUCCESS(RenderKernelLaunch(body, op, ctx, dev_addr_off, host_addr_off));
+  GE_ASSERT_SUCCESS(RenderArgsWriteback(body, op, ctx, iow_addr, args_table_idx));
+
+  GE_ASSERT_SUCCESS(TaskCodeBuilderUtil::RenderDispatchFunc(ast_, kDispatchFuncName, body, items));
+  return SUCCESS;
+}
+
+Status CmoAddrTaskCodeBuilder::RenderDistHelper(std::vector<DeclNode *> &items) {
+  GE_ASSERT_SUCCESS(RenderKernelDistributeFunc(items));
+  GE_ASSERT_SUCCESS(RenderDispatchFunc(items));
   return SUCCESS;
 }
 
 int64_t CmoAddrTaskCodeBuilder::ParseOpIndex(const domi::TaskDef &task_def) {
   const domi::CmoAddrTaskDef &cmo_addr_task = task_def.cmo_addr_task();
   return static_cast<int64_t>(cmo_addr_task.op_index());
+}
+
+std::string CmoAddrTaskCodeBuilder::GetFuncName() const {
+  return kDispatchFuncName;
+}
+
+Status CmoAddrTaskCodeBuilder::RenderOpDefTableFields(std::vector<std::pair<std::string, Arg>> &fields) {
+  fields.push_back({"dispatch_type", ast_.StaticCast("OpDispatchType", static_cast<int64_t>(kDispatchType))});
+  fields.push_back({"op_name", Arg::StringLiteral(header_.op_name)});
+
+  // 构建 CustomValueEntry 复合字面量（复用 RenderOpArgDesc 的 CCast 模式）
+  std::vector<Arg> cv_entries;
+  cv_entries.reserve(build_data_.custom_value_args.size());
+  for (const auto &entry : build_data_.custom_value_args) {
+    cv_entries.push_back(ast_.InitList({static_cast<int64_t>(entry.offset), static_cast<int64_t>(entry.custom_value),
+                                        static_cast<uint32_t>(entry.size)}));
+  }
+  auto cv_init =
+      cv_entries.empty() ? Arg(nullptr) : ast_.CCast("const CustomValueEntry[]", ast_.InitList(cv_entries, true));
+
+  fields.push_back(
+      {"dispatch_info",
+       ast_.DesignatedInit(
+           {{"cmo_addr", ast_.InitList({TaskCodeBuilderUtil::RenderOpArgDesc(ast_, build_data_.ordered_args),
+                                        build_data_.args_info_num, build_data_.args_size, build_data_.align_offset,
+                                        build_data_.cmo_op_code, build_data_.stream_id, build_data_.args_table_idx,
+                                        build_data_.io_offset,
+                                        static_cast<uint32_t>(build_data_.custom_value_args.size()), cv_init})}})});
+  return SUCCESS;
 }
 
 REGISTER_TASK_CODE_BUILDER(MODEL_TASK_CMO_ADDR, CmoAddrTaskCodeBuilder);

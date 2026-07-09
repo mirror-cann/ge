@@ -457,10 +457,11 @@ Status BlockStmt::Accept(CodeEmitter &emitter, std::string &output) const {
   return emitter.Emit(*this, output);
 }
 
-IfStmt *IfStmt::Create(AstContext &ctx, Expr *cond, BlockStmt *then_block, BlockStmt *else_block) {
+IfStmt *IfStmt::Create(AstContext &ctx, Expr *cond, BlockStmt *then_block, BlockStmt *else_block,
+                       bool is_preprocessor) {
   GE_ASSERT_NOTNULL(cond);
   GE_ASSERT_NOTNULL(then_block);
-  return AllocateNode<IfStmt>(ctx, cond, then_block, else_block);
+  return AllocateNode<IfStmt>(ctx, cond, then_block, else_block, is_preprocessor);
 }
 
 Status IfStmt::Accept(CodeEmitter &emitter, std::string &output) const {

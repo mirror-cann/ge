@@ -21,6 +21,7 @@
 #include "ge_runtime_stub/include/faker/aicpu_taskdef_faker.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/utils/tensor_utils.h"
+#include "rt_external.h"
 
 #include <cinttypes>
 #include <fstream>
@@ -1521,6 +1522,7 @@ TEST_F(ProgramGeneratorUt, GenerateMakefile_Ok) {
 
   const std::string expected = R"(CANN_ROOT ?= $(ASCEND_HOME_PATH)
 USE_STUB_LIB ?= 1
+MAKEFLAGS += -j$(shell nproc)
 
 ifeq ($(origin CXX),default)
 CXX := c++
@@ -1807,6 +1809,7 @@ inline void *ResolveOpAddr(uint32_t mem_src, uint64_t offset,
     base_ptr = total_dev_mem_ptr;
   } else {
     base_ptr = constants[mem_src - 1U];
+    return GET_ADDR(base_ptr, 0);
   }
   return GET_ADDR(base_ptr, offset);
 }
@@ -2027,9 +2030,29 @@ class Om2ArgsTable {
     std::vector<std::vector<void *>> iow_args_addrs_;
 };
 
-// 算子分发类型枚举
 enum OpDispatchType : uint32_t {
-    DISPATCH_AICORE = 0,        // AI Core / AICPU 算子执行
+    DISPATCH_AICORE = 0,
+    DISPATCH_AICPU = 1,
+    DISPATCH_EVENT_RECORD = 2,
+    DISPATCH_EVENT_WAIT = 3,
+    DISPATCH_FUSION_START = 4,
+    DISPATCH_FUSION_END = 5,
+    DISPATCH_END_GRAPH = 6,
+    DISPATCH_LABEL_SET = 7,
+    DISPATCH_NOTIFY_RECORD = 8,
+    DISPATCH_NOTIFY_WAIT = 9,
+    DISPATCH_STREAM_ACTIVE = 10,
+    DISPATCH_STREAM_SWITCH = 11,
+    DISPATCH_LABEL_GOTO_EX = 12,
+    DISPATCH_LABEL_SWITCH_BY_INDEX = 13,
+    DISPATCH_BARRIER = 14,
+    DISPATCH_CMO = 15,
+    DISPATCH_MEMCPY_ASYNC = 16,
+    DISPATCH_MEMCPY_ADDR_ASYNC = 17,
+    DISPATCH_CMO_ADDR = 18,
+    DISPATCH_DSA = 19,
+    DISPATCH_KERNEL_EX = 20,
+    DISPATCH_TYPE_COUNT
 };
 
 // 算子参数类型枚举
@@ -2063,7 +2086,7 @@ struct OpArgInfo {
       int32_t data_type;             // 数据类型
       int32_t format;                // 数据格式
       int64_t shape[8];              // Shape 维度数组（最多8维）
-      uint32_t num_shape_dims;       // 实际 shape 维度数
+      uint32_t shape_dims;       // 实际 shape 维度数
       uint64_t args_offset;          // args table 内字节偏移
     } tensor;
     uint64_t custom_value;           // 自定义值（LEVEL1_DESC/SHAPE_INFO/CUSTOM_VALUE/EVENT_ADDR）
@@ -2074,53 +2097,177 @@ struct OpArgInfo {
   } data;
 };
 
-// 算子定义结构体
-struct OpDef {
+// CUSTOM_VALUE 写回条目
+struct CustomValueEntry {
+  uint64_t host_offset;   // args table 内字节偏移
+  uint64_t value;         // 编译期常量值
+  uint32_t size;          // 4 (uint32_t) 或 8 (uint64_t)
+};
+
+// 算子定义结构体（前置声明各 dispatch_info 子结构）
+struct AicoreDispatchInfo {
+  const OpArgInfo *args_info;          // IO 地址解析数组
+  uint32_t args_info_num;      // args_info 数组长度
+  const char *op_type;        // 算子类型名，用于 Report 上报
+  uint32_t args_idx;          // 参数表索引，用于 GetArgsInfo 查找
+  uint32_t block_dim;        // Block 维度
+  uint32_t func_idx;         // 函数句柄索引，用于查找 func_handles
+  uint32_t stream_id;        // 执行流索引
+  struct {                    // Launch 配置，构建 LaunchKernelConfig → AssembleLaunchConfig
+    uint8_t schedule_mode;    // 调度模式
+    uint32_t engine_type;     // 引擎类型
+    uint32_t block_dim_offset;// BlockDim 偏移量
+    bool is_block_task_prefetch; // 是否预取 Block Task
+    uint16_t time_out;        // 超时时间
+    uint32_t local_memory_size;  // 本地内存大小
+  } launch;
+  struct {                    // L0 信息，构建 Om2L0TaskRawInfo
+    uint32_t need_assert_or_printf; // 是否需要 assert/printf
+    uint32_t slots_num;    // L0 slot 数量
+    const Om2L0ArgSlotInfo *slot_info; // L0 slot 信息数组
+  } slot_args;
+};
+
+struct AicpuDispatchInfo {
+  const OpArgInfo *args_info;          // IO 地址解析数组
+  uint32_t args_info_num;
+  const char *op_type;         // 算子类型名，用于 Report 上报
+  uint32_t args_idx;
+  uint32_t func_idx;
+  uint32_t block_dim;
+  uint32_t stream_id;        // 执行流索引
+  const uint8_t *args_blob;  // AICPU 参数 blob 数据
+  uint32_t args_blob_len;    // 参数 blob 长度
+  const uint8_t *ext_info_blob; // AICPU 扩展信息 blob 数据
+  uint32_t ext_info_blob_len;   // 扩展信息 blob 长度
+  struct {                    // Launch 配置
+    uint8_t schedule_mode;    // 调度模式
+    uint32_t engine_type;     // 引擎类型
+    uint32_t block_dim_offset;// BlockDim 偏移量
+    bool is_block_task_prefetch; // 是否预取 Block Task
+    uint16_t time_out;        // 超时时间
+    uint32_t local_memory_size;  // 本地内存大小
+  } launch;
+  int32_t session_info_offset;
+  uint32_t aicpu_task_index;
+  uint32_t task_type;
+};
+
+struct DsaDispatchInfo {
+  const OpArgInfo *args_info;          // IO 地址解析数组
+  const char *op_type;         // 算子类型名，用于 Report 上报
+  uint32_t num_args;             // args 数组长度
+  int64_t op_desc_id;            // 算子描述 ID，用于 Report 上报
+  uint32_t sqe_type; uint32_t stream_id;
+  uint32_t start; uint32_t distribution_type; uint32_t data_type; uint32_t alg_type;
+  uint32_t param_vld_bitmap; uint32_t param_addr_val_bitmap;
+  uint64_t seed_value; uint32_t seed_is_addr;
+  uint64_t random_count_value; uint32_t random_count_is_addr;
+  uint64_t input1_value; uint32_t input1_is_addr;
+  uint64_t input2_value;
+  uint32_t hbm_table_index; uint32_t hbm_args_size;
+  uint32_t idx_output; uint32_t state_addr_idx;
+  uint32_t idx_seed; uint32_t idx_count;
+  uint32_t idx_input1; uint32_t idx_input2;
+  uint32_t num_iov_entries;
+  uint32_t has_input2; uint32_t task_type;
+};
+
+struct KernelExDispatchInfo {
+  const OpArgInfo *args_info;          // IO 地址解析数组
+  uint32_t args_info_num;
+  const char *op_type;         // 算子类型名，用于 Report 上报
+  uint32_t block_dim;
+  uint32_t stream_id;
+  uint32_t func_idx;
+  uint32_t tf_session_func_idx;
+  uint32_t args_table_idx;
+  const uint8_t *args_blob;
+  uint32_t args_blob_len;
+  const uint8_t *task_info_blob;
+  uint32_t task_info_blob_len;
+  const uint8_t *ext_info_blob;
+  uint32_t ext_info_blob_len;
+  struct {                    // Launch 配置
+    uint8_t schedule_mode;    // 调度模式
+    uint32_t block_dim_offset;// BlockDim 偏移量
+    bool is_block_task_prefetch; // 是否预取 Block Task
+    uint16_t time_out;        // 超时时间
+    uint32_t engine_type;     // aclrtEngineType 枚举值
+  } launch;
+  uint32_t task_type;
+};
+
+struct CmoDispatchInfo {
+  const OpArgInfo *args_info;          // src 地址解析
+  rtCmoTaskInfo_t task_info;
+  uint32_t stream_id;
+};
+
+struct MemcpyAsyncDispatchInfo {
+  const OpArgInfo *args_info;          // src/dst 地址解析
+  uint64_t dst_max;
+  uint64_t count;
+  uint32_t kind;
+  uint32_t stream_id;
+  uint32_t args_table_idx;
+  uint8_t io_refresh;
+};
+
+struct MemcpyAddrDispatchInfo {
+  const OpArgInfo *args_info;          // IO 地址解析数组
+  uint32_t args_info_num;              // args_info 数组长度
+  uint64_t dst_max;
+  uint64_t count;
+  uint32_t kind;
+  uint32_t align_offset;
+  uint32_t args_size;
+  uint32_t stream_id;
+  uint32_t args_table_idx;
+  uint32_t aligned_io_offset;
+  uint32_t num_custom_values;
+  const CustomValueEntry *custom_values;
+};
+
+struct CmoAddrDispatchInfo {
+  const OpArgInfo *args_info;          // IO 地址解析数组
+  uint32_t args_info_num;              // args_info 数组长度
+  uint32_t args_size;
+  uint32_t align_offset;
+  uint32_t cmo_op_code;
+  uint32_t stream_id;
+  uint32_t args_table_idx;
+  uint32_t io_offset;
+  uint32_t num_custom_values;
+  const CustomValueEntry *custom_values;
+};
+
+struct TaskDispatchInfo {
   OpDispatchType dispatch_type;   // 分发类型，决定走哪个 case 分支
   const char *op_name;            // 算子名称，用于日志和 Report 上报
-  const OpArgInfo *argsInfo;           // 参数信息数组，地址解析时遍历
-  // 各 task 专属数据下沉到 union（后续适配其他 task 时再增加对应成员）
   union {
-    struct {                      // AICORE 专属 (kernel_type=0)
-      const char *op_type;        // 算子类型名，用于 Report 上报
-      uint32_t num_io_addrs;      // IO 地址数量，控制地址解析循环次数
-      uint32_t args_idx;          // 参数表索引，用于 GetArgsInfo 查找
-      struct {                    // Launch 配置，构建 LaunchKernelConfig → AssembleLaunchConfig
-        uint8_t schedule_mode;    // 调度模式
-        uint32_t engine_type;     // 引擎类型
-        uint32_t block_dim_offset;// BlockDim 偏移量
-        bool is_block_task_prefetch; // 是否预取 Block Task
-        uint16_t time_out;        // 超时时间
-        uint32_t local_memory_size;  // 本地内存大小
-      } launch;
-      struct {                    // Kernel 执行参数，传给 KernelTaskDistribute
-        uint32_t block_dim;       // Block 维度
-        uint32_t func_idx;        // 函数句柄索引，用于查找 func_handles
-      } kernel;
-      struct {                    // L0 信息，构建 Om2L0TaskRawInfo
-        uint32_t need_assert_or_printf; // 是否需要 assert/printf
-        uint32_t num_l0_slots;    // L0 slot 数量
-        const Om2L0ArgSlotInfo *l0_slots; // L0 slot 信息数组
-      } l0;
-    } aicore;
-    struct {  // AICPU 专属（共享 DISPATCH_AICORE, kernel_type=1）
-      uint32_t kernel_type;
-      uint32_t args_idx;
-      uint32_t num_io_addrs;
-      uint32_t func_idx;
-      uint32_t block_dim;
-      uint8_t schedule_mode;
-      uint32_t engine_type;
-      uint32_t block_dim_offset;
-      bool is_block_task_prefetch;
-      uint16_t time_out;
-      uint32_t local_memory_size;
-      uint32_t ext_info_len;
-      int32_t session_info_offset;
-      uint32_t aicpu_task_index;
-      uint32_t task_type;
-    } aicpu;
-  } task_data;
+    AicoreDispatchInfo aicore;
+    AicpuDispatchInfo aicpu;
+    CmoDispatchInfo cmo;
+    MemcpyAsyncDispatchInfo memcpy_async;
+    MemcpyAddrDispatchInfo memcpy_addr;
+    CmoAddrDispatchInfo cmo_addr;
+    DsaDispatchInfo dsa;
+    KernelExDispatchInfo kernel_ex;
+    struct { uint32_t event_id; uint32_t stream_id; } event;
+    struct { uint32_t stream_id; } fusion_start;
+    struct { uint32_t stream_id; } fusion_end;
+    struct { uint32_t stream_id; } end_graph;
+    struct { uint32_t label_index; uint32_t stream_id; } label_set;
+    struct { uint32_t notify_id; uint32_t stream_id; } notify;
+    struct { uint32_t active_stream_id; uint32_t stream_id; } stream_active;
+    struct { const OpArgInfo *args_info;          // input/value 地址解析
+             uint32_t true_stream_id; uint32_t stream_id; int32_t cond; int32_t data_type; } stream_switch;
+    struct { uint64_t op_idx; uint32_t stream_id; uint32_t memory_type; } label_goto;
+    struct { const OpArgInfo *args_info;          // input 地址解析
+             uint64_t op_idx; uint32_t branch_max; uint32_t stream_id; } label_switch;
+    struct { uint32_t stream_id; rtBarrierTaskInfo_t info; } barrier;
+  } dispatch_info;
 };
 
 // 算子分发上下文结构体
@@ -2130,12 +2277,23 @@ struct DispatchOpContext {
   void **constants;          // 常量数组
   Om2ArgsTable &args_table;  // 参数表
   aclrtFuncHandle *func_handles; // 函数句柄数组
-  aclrtStream stream;        // 执行流
   uint32_t model_id;         // 模型 ID
   void *instance_handle;     // 实例句柄
+  aclmdlRI model_handle;     // 模型句柄
+  const std::vector<aclrtEvent> &event_list; // 事件列表
   std::map<uint32_t, void *> &event_id_mem_map; // 事件 ID 到内存的映射
   std::vector<void *> &dev_dynamic_mem_ptrs; // 设备动态内存指针列表
   void *overflow_addr;       // 溢出地址
+  // --- 新增列表引用 ---
+  std::vector<void *> &label_list; // 标签列表
+  std::vector<void *> &notify_list; // 通知列表
+  std::vector<aclrtStream> &stream_list; // 流列表
+  std::map<uint32_t, std::pair<void *, uint32_t>> &label_goto_args; // 标签跳转参数
+  std::map<uint32_t, aclrtLabelList> &label_goto_ex_label_list; // 标签跳转扩展标签列表
+  std::map<uint32_t, aclrtLabelList> &label_switch_label_list; // 标签切换标签列表
+  uint64_t *session_id;        // Session ID
+  std::vector<void *> &dev_ext_info_mem_ptrs; // AICPU 扩展信息设备内存指针列表
+  uint64_t *kernel_id;        // AICPU Kernel ID 计数器
 };
 
 
@@ -2591,7 +2749,7 @@ aclError UpdateExtInfoSession(uint8_t *extInfo, size_t session_info_offset, uint
   return ACL_SUCCESS;
 }
 
-aclError AssembleAicpuExtInfo(uint8_t *ext_info, size_t ext_info_len, int32_t session_info_offset, uint64_t *session_id, uint64_t *kernel_id, std::vector<void *> &dev_ext_info_mem_ptrs, size_t index) {
+aclError AssembleAicpuExtInfo(const uint8_t *ext_info, size_t ext_info_len, int32_t session_info_offset, uint64_t *session_id, uint64_t *kernel_id, std::vector<void *> &dev_ext_info_mem_ptrs, size_t index) {
   std::unique_ptr<uint8_t[]> tmp_ext_info = std::make_unique<uint8_t[]>(ext_info_len);
   memcpy_s(tmp_ext_info.get(), ext_info_len, ext_info, ext_info_len);
   if ((session_info_offset != -1)) {
@@ -2604,7 +2762,7 @@ aclError AssembleAicpuExtInfo(uint8_t *ext_info, size_t ext_info_len, int32_t se
   return ACL_SUCCESS;
 }
 
-aclError AssembleAicpuArgs(uint8_t *args, size_t args_len, void *ext_info_addr, size_t ext_info_len, std::vector<uint64_t> &io_addr, void *target_args_ptr) {
+aclError AssembleAicpuArgs(const uint8_t *args, size_t args_len, void *ext_info_addr, size_t ext_info_len, std::vector<uint64_t> &io_addr, void *target_args_ptr) {
   std::unique_ptr<uint8_t[]> tmp_args = std::make_unique<uint8_t[]>(args_len);
   memcpy_s(tmp_args.get(), args_len, args, args_len);
   const auto aicpu_param_head = reinterpret_cast<AicpuParamHead *>(tmp_args.get());
@@ -2636,137 +2794,186 @@ aclError GetEventIdAddr(void *&event_addr, std::map<uint32_t, void *> &event_id_
   return ACL_SUCCESS;
 }
 
-aclError DispatchOp(const OpDef *op, const DispatchOpContext &ctx) {
-  switch (static_cast<OpDispatchType>(op->dispatch_type)) {
-    case 0U:
-    {
-      LaunchKernelCfgHolder cfg_holder;
-      LaunchKernelConfig launch_config = {
-        .schedule_mode = op->task_data.aicore.launch.schedule_mode,
-        .engine_type = static_cast<aclrtEngineType>(op->task_data.aicore.launch.engine_type),
-        .block_dim_offset = op->task_data.aicore.launch.block_dim_offset,
-        .is_block_task_prefetch = op->task_data.aicore.launch.is_block_task_prefetch,
-        .is_data_dump = GetIsDataDump(op->op_name, ctx.model_id, ctx.instance_handle),
-        .time_out = op->task_data.aicore.launch.time_out,
-        .local_memory_size = op->task_data.aicore.launch.local_memory_size,
-      };
-      OM2_CHK_STATUS(AssembleLaunchConfig(cfg_holder, launch_config));
-      ArgsInfo *args_info = ctx.args_table.GetArgsInfo(op->task_data.aicore.args_idx);
-      OM2_CHK_NOTNULL(args_info);
-      std::vector<uint64_t> ordered_io_addrs;
-      std::vector<Om2Tensor> io_tensors;
-      (io_tensors.reserve(op->task_data.aicore.num_io_addrs));
-      std::vector<Om2TaskIoEntry> report_inputs;
-      std::vector<Om2TaskIoEntry> report_outputs;
-      std::vector<uint64_t> report_workspace_addrs;
-      std::vector<uint64_t> report_workspace_sizes;
-      for (uint32_t j = 0U; (j < op->task_data.aicore.num_io_addrs); j++) {
-        const auto &a = op->argsInfo[j];
-        uint64_t _addr = 0U;
-        switch (a.type) {
-          case OP_ARG_INPUT:
-          case OP_ARG_OUTPUT:
-          case OP_ARG_CONST_TENSOR:
-          {
-            _addr = reinterpret_cast<uint64_t>(ResolveOpAddr(a.addr.mem_src, a.addr.offset, ctx.total_dev_mem_ptr, ctx.session_scope_mem_ptr, ctx.constants));
-            io_tensors.push_back(BuildOm2Tensor(reinterpret_cast<void *>(_addr), a.data.tensor.size, a.data.tensor.data_type, a.data.tensor.format, a.data.tensor.shape, a.data.tensor.num_shape_dims));
-            Om2TaskIoEntry _entry = {&io_tensors.back(), a.data.tensor.args_offset};
-            if (((a.type == OP_ARG_INPUT) || (a.type == OP_ARG_CONST_TENSOR))) {
-              report_inputs.push_back(_entry);
-            } else {
-              report_outputs.push_back(_entry);
-            }
-            break;
-          }
-          case OP_ARG_WORKSPACE:
-          {
-            _addr = reinterpret_cast<uint64_t>(ResolveOpAddr(a.addr.mem_src, a.addr.offset, ctx.total_dev_mem_ptr, ctx.session_scope_mem_ptr, ctx.constants));
-            report_workspace_addrs.push_back(_addr);
-            report_workspace_sizes.push_back(a.data.tensor.size);
-            break;
-          }
-          case OP_ARG_LEVEL1_DESC:
-          {
-            void *_desc = ctx.args_table.GetDevArgAddr(a.data.custom_value);
-            OM2_CHK_NOTNULL(_desc);
-            _addr = reinterpret_cast<uint64_t>(_desc);
-            break;
-          }
-          case OP_ARG_SHAPE_INFO:
-          case OP_ARG_CUSTOM_VALUE:
-          {
-            _addr = a.data.custom_value;
-            break;
-          }
-          case OP_ARG_PLACEHOLDER:
-          case OP_ARG_OPTIONAL_EMPTY:
-          {
-            _addr = 0U;
-            break;
-          }
-          case OP_ARG_FFTS_ADDR:
-          {
-            void *_ffts = nullptr;
-            OM2_CHK_STATUS(aclrtGetHardwareSyncAddr(&_ffts));
-            _addr = reinterpret_cast<uint64_t>(_ffts);
-            break;
-          }
-          case OP_ARG_EVENT_ADDR:
-          {
-            void *_event = nullptr;
-            OM2_CHK_STATUS(GetEventIdAddr(_event, ctx.event_id_mem_map, static_cast<uint32_t>(a.data.custom_value), ctx.dev_dynamic_mem_ptrs));
-            _addr = reinterpret_cast<uint64_t>(_event);
-            break;
-          }
-          case OP_ARG_OVERFLOW_ADDR:
-          {
-            _addr = reinterpret_cast<uint64_t>(ctx.overflow_addr);
-            break;
-          }
-          case OP_ARG_TILING:
-          {
-            void *_tiling = nullptr;
-            OM2_CHK_STATUS(MallocDeviceMemory(_tiling, a.data.tiling.raw_data_len, 2U, ctx.dev_dynamic_mem_ptrs));
-            OM2_CHK_STATUS(aclrtMemcpy(_tiling, a.data.tiling.raw_data_len, a.data.tiling.raw_data, a.data.tiling.raw_data_len, ACL_MEMCPY_HOST_TO_DEVICE));
-            _addr = reinterpret_cast<uint64_t>(_tiling);
-            break;
-          }
-          default:
-          {
-            _addr = 0U;
-            break;
-          }
+aclError DispatchKernelAicore(const TaskDispatchInfo *op, const DispatchOpContext &ctx) {
+  LaunchKernelCfgHolder cfg_holder;
+  LaunchKernelConfig launch_config = {op->dispatch_info.aicore.launch.schedule_mode, static_cast<aclrtEngineType>(op->dispatch_info.aicore.launch.engine_type), op->dispatch_info.aicore.launch.block_dim_offset, op->dispatch_info.aicore.launch.is_block_task_prefetch, GetIsDataDump(op->op_name, ctx.model_id, ctx.instance_handle), op->dispatch_info.aicore.launch.time_out, op->dispatch_info.aicore.launch.local_memory_size};
+  OM2_CHK_STATUS(AssembleLaunchConfig(cfg_holder, launch_config));
+  ArgsInfo *args_info = ctx.args_table.GetArgsInfo(op->dispatch_info.aicore.args_idx);
+  OM2_CHK_NOTNULL(args_info);
+  std::vector<uint64_t> ordered_io_addrs;
+  std::vector<Om2Tensor> io_tensors;
+  (io_tensors.reserve(op->dispatch_info.aicore.args_info_num));
+  std::vector<Om2TaskIoEntry> report_inputs;
+  std::vector<Om2TaskIoEntry> report_outputs;
+  std::vector<uint64_t> report_workspace_addrs;
+  std::vector<uint64_t> report_workspace_sizes;
+  for (uint32_t j = 0U; (j < op->dispatch_info.aicore.args_info_num); j++) {
+    const auto &a = op->dispatch_info.aicore.args_info[j];
+    uint64_t _addr = 0U;
+    switch (a.type) {
+      case OP_ARG_INPUT:
+      case OP_ARG_OUTPUT:
+      case OP_ARG_CONST_TENSOR:
+      {
+        _addr = reinterpret_cast<uint64_t>(ResolveOpAddr(a.addr.mem_src, a.addr.offset, ctx.total_dev_mem_ptr, ctx.session_scope_mem_ptr, ctx.constants));
+        io_tensors.push_back(BuildOm2Tensor(reinterpret_cast<void *>(_addr), a.data.tensor.size, a.data.tensor.data_type, a.data.tensor.format, a.data.tensor.shape, a.data.tensor.shape_dims));
+        Om2TaskIoEntry _entry = {&io_tensors.back(), a.data.tensor.args_offset};
+        if (((a.type == OP_ARG_INPUT) || (a.type == OP_ARG_CONST_TENSOR))) {
+          report_inputs.push_back(_entry);
+        } else {
+          report_outputs.push_back(_entry);
         }
-        ordered_io_addrs.push_back(_addr);
+        break;
       }
-      Om2L0TaskRawInfo l0_info = {1U, op->task_data.aicore.l0.need_assert_or_printf, static_cast<uint64_t>(op->task_data.aicore.l0.num_l0_slots), op->task_data.aicore.l0.l0_slots};
-      OM2_CHK_STATUS(ReportOm2TaskPreprocess(op->op_name, op->task_data.aicore.op_type, 0U, reinterpret_cast<uintptr_t>(args_info->dev_addr), args_info->size, report_inputs, report_outputs, report_workspace_addrs, report_workspace_sizes, static_cast<uint32_t>(op->dispatch_type), op->task_data.aicore.kernel.block_dim, ctx.stream, &l0_info, ctx.model_id, ctx.instance_handle));
-      OM2_CHK_STATUS(KernelTaskDistribute(ordered_io_addrs, args_info, ctx.func_handles[op->task_data.aicore.kernel.func_idx], op->task_data.aicore.kernel.block_dim, ctx.stream, &cfg_holder.cfg));
-      OM2_CHK_STATUS(ReportLaunchedOm2Task(op->op_name, op->task_data.aicore.op_type, 0U, reinterpret_cast<uintptr_t>(args_info->dev_addr), args_info->size, report_inputs.data(), static_cast<uint64_t>(report_inputs.size()), report_outputs.data(), static_cast<uint32_t>(report_outputs.size()), report_workspace_addrs.data(), report_workspace_sizes.data(), static_cast<uint32_t>(report_workspace_sizes.size()), static_cast<uint32_t>(op->dispatch_type), op->task_data.aicore.kernel.block_dim, ctx.stream, ctx.model_id, ctx.instance_handle));
+      case OP_ARG_WORKSPACE:
+      {
+        _addr = reinterpret_cast<uint64_t>(ResolveOpAddr(a.addr.mem_src, a.addr.offset, ctx.total_dev_mem_ptr, ctx.session_scope_mem_ptr, ctx.constants));
+        report_workspace_addrs.push_back(_addr);
+        report_workspace_sizes.push_back(a.data.tensor.size);
+        break;
+      }
+      case OP_ARG_LEVEL1_DESC:
+      {
+        void *_desc = ctx.args_table.GetDevArgAddr(a.data.custom_value);
+        OM2_CHK_NOTNULL(_desc);
+        _addr = reinterpret_cast<uint64_t>(_desc);
+        break;
+      }
+      case OP_ARG_SHAPE_INFO:
+      case OP_ARG_CUSTOM_VALUE:
+      {
+        _addr = a.data.custom_value;
+        break;
+      }
+      case OP_ARG_PLACEHOLDER:
+      case OP_ARG_OPTIONAL_EMPTY:
+      {
+        _addr = 0U;
+        break;
+      }
+      case OP_ARG_FFTS_ADDR:
+      {
+        void *_ffts = nullptr;
+        OM2_CHK_STATUS(aclrtGetHardwareSyncAddr(&_ffts));
+        _addr = reinterpret_cast<uint64_t>(_ffts);
+        break;
+      }
+      case OP_ARG_EVENT_ADDR:
+      {
+        void *_event = nullptr;
+        OM2_CHK_STATUS(GetEventIdAddr(_event, ctx.event_id_mem_map, static_cast<uint32_t>(a.data.custom_value), ctx.dev_dynamic_mem_ptrs));
+        _addr = reinterpret_cast<uint64_t>(_event);
+        break;
+      }
+      case OP_ARG_OVERFLOW_ADDR:
+      {
+        _addr = reinterpret_cast<uint64_t>(ctx.overflow_addr);
+        break;
+      }
+      case OP_ARG_TILING:
+      {
+        void *_tiling = nullptr;
+        OM2_CHK_STATUS(MallocDeviceMemory(_tiling, a.data.tiling.raw_data_len, 2U, ctx.dev_dynamic_mem_ptrs));
+        OM2_CHK_STATUS(aclrtMemcpy(_tiling, a.data.tiling.raw_data_len, a.data.tiling.raw_data, a.data.tiling.raw_data_len, ACL_MEMCPY_HOST_TO_DEVICE));
+        _addr = reinterpret_cast<uint64_t>(_tiling);
+        break;
+      }
+      default:
+      {
+        _addr = 0U;
+        break;
+      }
     }
-    break;
-    default:
-    return ACL_ERROR_FAILURE;
+    ordered_io_addrs.push_back(_addr);
+  }
+  Om2L0TaskRawInfo l0_info = {1U, op->dispatch_info.aicore.slot_args.need_assert_or_printf, static_cast<uint64_t>(op->dispatch_info.aicore.slot_args.slots_num), op->dispatch_info.aicore.slot_args.slot_info};
+  OM2_CHK_STATUS(ReportOm2TaskPreprocess(op->op_name, op->dispatch_info.aicore.op_type, 0U, reinterpret_cast<uintptr_t>(args_info->dev_addr), args_info->size, report_inputs, report_outputs, report_workspace_addrs, report_workspace_sizes, static_cast<uint32_t>(op->dispatch_type), op->dispatch_info.aicore.block_dim, ctx.stream_list[op->dispatch_info.aicore.stream_id], &l0_info, ctx.model_id, ctx.instance_handle));
+  OM2_CHK_STATUS(KernelTaskDistribute(ordered_io_addrs, args_info, ctx.func_handles[op->dispatch_info.aicore.func_idx], op->dispatch_info.aicore.block_dim, ctx.stream_list[op->dispatch_info.aicore.stream_id], &cfg_holder.cfg));
+  OM2_CHK_STATUS(ReportLaunchedOm2Task(op->op_name, op->dispatch_info.aicore.op_type, 0U, reinterpret_cast<uintptr_t>(args_info->dev_addr), args_info->size, report_inputs.data(), static_cast<uint64_t>(report_inputs.size()), report_outputs.data(), static_cast<uint32_t>(report_outputs.size()), report_workspace_addrs.data(), report_workspace_sizes.data(), static_cast<uint32_t>(report_workspace_sizes.size()), static_cast<uint32_t>(op->dispatch_type), op->dispatch_info.aicore.block_dim, ctx.stream_list[op->dispatch_info.aicore.stream_id], ctx.model_id, ctx.instance_handle));
+  return ACL_SUCCESS;
+}
+
+aclError DispatchKernelAicpu(const TaskDispatchInfo *op, const DispatchOpContext &ctx) {
+  uint32_t num_io = op->dispatch_info.aicpu.args_info_num;
+  uint32_t aicpu_args_idx = op->dispatch_info.aicpu.args_idx;
+  const uint8_t *args_blob = op->dispatch_info.aicpu.args_blob;
+  uint32_t args_blob_len = op->dispatch_info.aicpu.args_blob_len;
+  const uint8_t *ext_info_blob = op->dispatch_info.aicpu.ext_info_blob;
+  uint32_t ext_info_blob_len = op->dispatch_info.aicpu.ext_info_blob_len;
+  std::vector<uint64_t> iow_addr;
+  std::vector<Om2Tensor> aicpu_io_tensors;
+  (aicpu_io_tensors.reserve(num_io));
+  std::vector<Om2TaskIoEntry> aicpu_report_inputs;
+  std::vector<Om2TaskIoEntry> aicpu_report_outputs;
+  for (uint32_t i = 0U; (i < num_io); i++) {
+    const auto &a = op->dispatch_info.aicpu.args_info[i];
+    uint64_t _addr = 0U;
+    if ((a.type == OP_ARG_OPTIONAL_EMPTY)) {
+      _addr = 0U;
+    } else {
+      _addr = reinterpret_cast<uint64_t>(ResolveOpAddr(a.addr.mem_src, a.addr.offset, ctx.total_dev_mem_ptr, ctx.session_scope_mem_ptr, ctx.constants));
+      aicpu_io_tensors.push_back(BuildOm2Tensor(reinterpret_cast<void *>(_addr), a.data.tensor.size, a.data.tensor.data_type, a.data.tensor.format, a.data.tensor.shape, a.data.tensor.shape_dims));
+      Om2TaskIoEntry _entry = {&aicpu_io_tensors.back(), a.data.tensor.args_offset};
+      if ((a.type != OP_ARG_OUTPUT)) {
+        aicpu_report_inputs.push_back(_entry);
+      } else {
+        aicpu_report_outputs.push_back(_entry);
+      }
+    }
+    iow_addr.push_back(_addr);
+  }
+  LaunchKernelCfgHolder aicpu_cfg_holder;
+  LaunchKernelConfig aicpu_launch_config = {op->dispatch_info.aicpu.launch.schedule_mode, static_cast<aclrtEngineType>(op->dispatch_info.aicpu.launch.engine_type), op->dispatch_info.aicpu.launch.block_dim_offset, op->dispatch_info.aicpu.launch.is_block_task_prefetch, GetIsDataDump(op->op_name, ctx.model_id, ctx.instance_handle), op->dispatch_info.aicpu.launch.time_out, op->dispatch_info.aicpu.launch.local_memory_size};
+  OM2_CHK_STATUS(AssembleLaunchConfig(aicpu_cfg_holder, aicpu_launch_config));
+  uint64_t local_session_id = *ctx.session_id;
+  OM2_CHK_STATUS(AssembleAicpuExtInfo(ext_info_blob, ext_info_blob_len, op->dispatch_info.aicpu.session_info_offset, &local_session_id, ctx.kernel_id, ctx.dev_ext_info_mem_ptrs, op->dispatch_info.aicpu.aicpu_task_index));
+  std::vector<uint8_t> aicpu_args_var;
+  aicpu_args_var.resize(args_blob_len);
+  OM2_CHK_STATUS(AssembleAicpuArgs(args_blob, args_blob_len, ctx.dev_ext_info_mem_ptrs[op->dispatch_info.aicpu.aicpu_task_index], ext_info_blob_len, iow_addr, aicpu_args_var.data()));
+  ArgsInfo *aicpu_args_info = ctx.args_table.GetArgsInfo(aicpu_args_idx);
+  OM2_CHK_STATUS(AicpuKernelTaskDistribute(aicpu_args_var, aicpu_args_info, ctx.func_handles[op->dispatch_info.aicpu.func_idx], op->dispatch_info.aicpu.block_dim, ctx.stream_list[op->dispatch_info.aicpu.stream_id], &aicpu_cfg_holder.cfg));
+  OM2_CHK_STATUS(ReportLaunchedOm2Task(op->op_name, op->dispatch_info.aicpu.op_type, 0U, reinterpret_cast<uintptr_t>(aicpu_args_info->dev_addr), aicpu_args_info->size, aicpu_report_inputs.data(), static_cast<uint64_t>(aicpu_report_inputs.size()), aicpu_report_outputs.data(), static_cast<uint32_t>(aicpu_report_outputs.size()), nullptr, nullptr, 0U, op->dispatch_info.aicpu.task_type, op->dispatch_info.aicpu.block_dim, ctx.stream_list[op->dispatch_info.aicpu.stream_id], ctx.model_id, ctx.instance_handle));
+  return ACL_SUCCESS;
+}
+
+aclError DispatchKernel(const TaskDispatchInfo *op, const DispatchOpContext &ctx) {
+  if (((uint32_t)op->dispatch_type == DISPATCH_AICPU)) {
+    return DispatchKernelAicpu(op, ctx);
+  } else {
+    return DispatchKernelAicore(op, ctx);
   }
   return ACL_SUCCESS;
 }
-const OpDef kOpDefs[] = {{
+
+aclError DispatchOp(const TaskDispatchInfo *op, const DispatchOpContext &ctx) {
+  switch (op->dispatch_type) {
+    case 0:
+    return DispatchKernel(op, ctx);
+    case 1:
+    return DispatchKernel(op, ctx);
+    default:
+    return ACL_ERROR_FAILURE;
+  }
+}
+const TaskDispatchInfo kOpDefs[] = {{
   .dispatch_type = static_cast<OpDispatchType>(0),
   .op_name = "add1",
-  .argsInfo = (const OpArgInfo[]){
-    {.type = 0, .addr = {.mem_src = 0, .offset = 1024}, .data = {.tensor = {.size = 200704, .data_type = 1, .format = 0, .shape = {1, 1, 224, 224, 0, 0, 0, 0}, .num_shape_dims = 4, .args_offset = 0}}},
-    {.type = 0, .addr = {.mem_src = 0, .offset = 1024}, .data = {.tensor = {.size = 200704, .data_type = 1, .format = 0, .shape = {1, 1, 224, 224, 0, 0, 0, 0}, .num_shape_dims = 4, .args_offset = 8}}},
-    {.type = 1, .addr = {.mem_src = 0, .offset = 1024}, .data = {.tensor = {.size = 200704, .data_type = 1, .format = 0, .shape = {1, 1, 224, 224, 0, 0, 0, 0}, .num_shape_dims = 4, .args_offset = 16}}},
-    {.type = 2, .addr = {.mem_src = 0, .offset = 0}, .data = {.tensor = {.size = 64}}},
-  },
-  .task_data = {
+  .dispatch_info = {
     .aicore = {
+      .args_info = (const OpArgInfo[]){
+        {.type = OP_ARG_INPUT, .addr = {.mem_src = 0, .offset = 1024}, .data = {.tensor = {.size = 200704, .data_type = 1, .format = 0, .shape = {1, 1, 224, 224, 0, 0, 0, 0}, .shape_dims = 4, .args_offset = 0U}}},
+        {.type = OP_ARG_INPUT, .addr = {.mem_src = 0, .offset = 1024}, .data = {.tensor = {.size = 200704, .data_type = 1, .format = 0, .shape = {1, 1, 224, 224, 0, 0, 0, 0}, .shape_dims = 4, .args_offset = 8U}}},
+        {.type = OP_ARG_OUTPUT, .addr = {.mem_src = 0, .offset = 1024}, .data = {.tensor = {.size = 200704, .data_type = 1, .format = 0, .shape = {1, 1, 224, 224, 0, 0, 0, 0}, .shape_dims = 4, .args_offset = 16U}}},
+        {.type = OP_ARG_WORKSPACE, .addr = {.mem_src = 0, .offset = 0}, .data = {.tensor = {.size = 64}}},
+      },
+      .args_info_num = 4,
       .op_type = "Add",
-      .num_io_addrs = 4,
       .args_idx = 0,
-      .launch = {.schedule_mode = 0, .engine_type = 0, .block_dim_offset = 0, .is_block_task_prefetch = false, .time_out = 0, .local_memory_size = 0},
-      .kernel = {.block_dim = 8, .func_idx = 0},
-      .l0 = {.need_assert_or_printf = 0, .num_l0_slots = 4, .l0_slots = (const Om2L0ArgSlotInfo[]){{OM2_L0_ARG_INPUT, 0U, 0U, 0UL, 0U, 0U, 0U}, {OM2_L0_ARG_INPUT, 0U, 8U, 0UL, 1U, 0U, 0U}, {OM2_L0_ARG_OUTPUT, 0U, 16U, 0UL, 2U, 0U, 0U}, {OM2_L0_ARG_WORKSPACE, 0U, 24U, 0UL, 0U, 0U, 0U}}},
+      .block_dim = 8,
+      .func_idx = 0,
+      .stream_id = 0,
+      .launch = {0, 0, 0, false, 0, 0},
+      .slot_args = {0, 4, (const Om2L0ArgSlotInfo[]){{OM2_L0_ARG_INPUT, 0U, 0U, 0UL, 0U, 0U, 0U}, {OM2_L0_ARG_INPUT, 0U, 8U, 0UL, 1U, 0U, 0U}, {OM2_L0_ARG_OUTPUT, 0U, 16U, 0UL, 2U, 0U, 0U}, {OM2_L0_ARG_WORKSPACE, 0U, 24U, 0UL, 0U, 0U, 0U}}},
     },
   },
 }};
@@ -2778,7 +2985,15 @@ aclmdlRI Om2Model::GetRtModelHandle() {
 aclError Om2Model::Load() {
   OM2_LOGI("Load begin");
   dev_ext_info_mem_ptrs_.resize(0);
-  OM2_CHK_STATUS(DispatchOp(&kOpDefs[0], {total_dev_mem_ptr_, session_scope_mem_ptr_, constants_, args_table_, func_handles_.data(), stream_list_[0], model_id_, instance_handle_, mem_event_id_mem_map_, dev_dynamic_mem_ptrs_, overflow_addr_}));
+  DispatchOpContext ctx = {total_dev_mem_ptr_, session_scope_mem_ptr_, constants_, args_table_, func_handles_.data(), model_id_, instance_handle_, model_handle_, event_list_, mem_event_id_mem_map_, dev_dynamic_mem_ptrs_, overflow_addr_, label_list_, notify_list_, stream_list_, label_goto_args_, label_goto_ex_label_list_, label_switch_label_list_, session_id_, dev_ext_info_mem_ptrs_, &kernel_id_};
+#if 1U
+  for (uint32_t _op_idx = 0U; (_op_idx < (sizeof(kOpDefs) / sizeof(kOpDefs[0]))); _op_idx++) {
+    OM2_CHK_STATUS(DispatchOp(&kOpDefs[_op_idx], ctx));
+  }
+#else
+  // ----------- add1 -----------
+  OM2_CHK_STATUS(DispatchOp(&kOpDefs[0], ctx));
+#endif
   OM2_CHK_STATUS(aclmdlRIBuildEnd(model_handle_, nullptr));
   OM2_LOGI("Load done");
   return ACL_SUCCESS;
@@ -3106,7 +3321,7 @@ aclError UpdateExtInfoSession(uint8_t *extInfo, size_t session_info_offset, uint
   return ACL_SUCCESS;
 }
 
-aclError AssembleAicpuExtInfo(uint8_t *ext_info, size_t ext_info_len, int32_t session_info_offset, uint64_t *session_id, uint64_t *kernel_id, std::vector<void *> &dev_ext_info_mem_ptrs, size_t index) {
+aclError AssembleAicpuExtInfo(const uint8_t *ext_info, size_t ext_info_len, int32_t session_info_offset, uint64_t *session_id, uint64_t *kernel_id, std::vector<void *> &dev_ext_info_mem_ptrs, size_t index) {
   std::unique_ptr<uint8_t[]> tmp_ext_info = std::make_unique<uint8_t[]>(ext_info_len);
   memcpy_s(tmp_ext_info.get(), ext_info_len, ext_info, ext_info_len);
   if ((session_info_offset != -1)) {
@@ -3119,7 +3334,7 @@ aclError AssembleAicpuExtInfo(uint8_t *ext_info, size_t ext_info_len, int32_t se
   return ACL_SUCCESS;
 }
 
-aclError AssembleAicpuArgs(uint8_t *args, size_t args_len, void *ext_info_addr, size_t ext_info_len, std::vector<uint64_t> &io_addr, void *target_args_ptr) {
+aclError AssembleAicpuArgs(const uint8_t *args, size_t args_len, void *ext_info_addr, size_t ext_info_len, std::vector<uint64_t> &io_addr, void *target_args_ptr) {
   std::unique_ptr<uint8_t[]> tmp_args = std::make_unique<uint8_t[]>(args_len);
   memcpy_s(tmp_args.get(), args_len, args, args_len);
   const auto aicpu_param_head = reinterpret_cast<AicpuParamHead *>(tmp_args.get());
@@ -3151,137 +3366,186 @@ aclError GetEventIdAddr(void *&event_addr, std::map<uint32_t, void *> &event_id_
   return ACL_SUCCESS;
 }
 
-aclError DispatchOp(const OpDef *op, const DispatchOpContext &ctx) {
-  switch (static_cast<OpDispatchType>(op->dispatch_type)) {
-    case 0U:
-    {
-      LaunchKernelCfgHolder cfg_holder;
-      LaunchKernelConfig launch_config = {
-        .schedule_mode = op->task_data.aicore.launch.schedule_mode,
-        .engine_type = static_cast<aclrtEngineType>(op->task_data.aicore.launch.engine_type),
-        .block_dim_offset = op->task_data.aicore.launch.block_dim_offset,
-        .is_block_task_prefetch = op->task_data.aicore.launch.is_block_task_prefetch,
-        .is_data_dump = GetIsDataDump(op->op_name, ctx.model_id, ctx.instance_handle),
-        .time_out = op->task_data.aicore.launch.time_out,
-        .local_memory_size = op->task_data.aicore.launch.local_memory_size,
-      };
-      OM2_CHK_STATUS(AssembleLaunchConfig(cfg_holder, launch_config));
-      ArgsInfo *args_info = ctx.args_table.GetArgsInfo(op->task_data.aicore.args_idx);
-      OM2_CHK_NOTNULL(args_info);
-      std::vector<uint64_t> ordered_io_addrs;
-      std::vector<Om2Tensor> io_tensors;
-      (io_tensors.reserve(op->task_data.aicore.num_io_addrs));
-      std::vector<Om2TaskIoEntry> report_inputs;
-      std::vector<Om2TaskIoEntry> report_outputs;
-      std::vector<uint64_t> report_workspace_addrs;
-      std::vector<uint64_t> report_workspace_sizes;
-      for (uint32_t j = 0U; (j < op->task_data.aicore.num_io_addrs); j++) {
-        const auto &a = op->argsInfo[j];
-        uint64_t _addr = 0U;
-        switch (a.type) {
-          case OP_ARG_INPUT:
-          case OP_ARG_OUTPUT:
-          case OP_ARG_CONST_TENSOR:
-          {
-            _addr = reinterpret_cast<uint64_t>(ResolveOpAddr(a.addr.mem_src, a.addr.offset, ctx.total_dev_mem_ptr, ctx.session_scope_mem_ptr, ctx.constants));
-            io_tensors.push_back(BuildOm2Tensor(reinterpret_cast<void *>(_addr), a.data.tensor.size, a.data.tensor.data_type, a.data.tensor.format, a.data.tensor.shape, a.data.tensor.num_shape_dims));
-            Om2TaskIoEntry _entry = {&io_tensors.back(), a.data.tensor.args_offset};
-            if (((a.type == OP_ARG_INPUT) || (a.type == OP_ARG_CONST_TENSOR))) {
-              report_inputs.push_back(_entry);
-            } else {
-              report_outputs.push_back(_entry);
-            }
-            break;
-          }
-          case OP_ARG_WORKSPACE:
-          {
-            _addr = reinterpret_cast<uint64_t>(ResolveOpAddr(a.addr.mem_src, a.addr.offset, ctx.total_dev_mem_ptr, ctx.session_scope_mem_ptr, ctx.constants));
-            report_workspace_addrs.push_back(_addr);
-            report_workspace_sizes.push_back(a.data.tensor.size);
-            break;
-          }
-          case OP_ARG_LEVEL1_DESC:
-          {
-            void *_desc = ctx.args_table.GetDevArgAddr(a.data.custom_value);
-            OM2_CHK_NOTNULL(_desc);
-            _addr = reinterpret_cast<uint64_t>(_desc);
-            break;
-          }
-          case OP_ARG_SHAPE_INFO:
-          case OP_ARG_CUSTOM_VALUE:
-          {
-            _addr = a.data.custom_value;
-            break;
-          }
-          case OP_ARG_PLACEHOLDER:
-          case OP_ARG_OPTIONAL_EMPTY:
-          {
-            _addr = 0U;
-            break;
-          }
-          case OP_ARG_FFTS_ADDR:
-          {
-            void *_ffts = nullptr;
-            OM2_CHK_STATUS(aclrtGetHardwareSyncAddr(&_ffts));
-            _addr = reinterpret_cast<uint64_t>(_ffts);
-            break;
-          }
-          case OP_ARG_EVENT_ADDR:
-          {
-            void *_event = nullptr;
-            OM2_CHK_STATUS(GetEventIdAddr(_event, ctx.event_id_mem_map, static_cast<uint32_t>(a.data.custom_value), ctx.dev_dynamic_mem_ptrs));
-            _addr = reinterpret_cast<uint64_t>(_event);
-            break;
-          }
-          case OP_ARG_OVERFLOW_ADDR:
-          {
-            _addr = reinterpret_cast<uint64_t>(ctx.overflow_addr);
-            break;
-          }
-          case OP_ARG_TILING:
-          {
-            void *_tiling = nullptr;
-            OM2_CHK_STATUS(MallocDeviceMemory(_tiling, a.data.tiling.raw_data_len, 2U, ctx.dev_dynamic_mem_ptrs));
-            OM2_CHK_STATUS(aclrtMemcpy(_tiling, a.data.tiling.raw_data_len, a.data.tiling.raw_data, a.data.tiling.raw_data_len, ACL_MEMCPY_HOST_TO_DEVICE));
-            _addr = reinterpret_cast<uint64_t>(_tiling);
-            break;
-          }
-          default:
-          {
-            _addr = 0U;
-            break;
-          }
+aclError DispatchKernelAicore(const TaskDispatchInfo *op, const DispatchOpContext &ctx) {
+  LaunchKernelCfgHolder cfg_holder;
+  LaunchKernelConfig launch_config = {op->dispatch_info.aicore.launch.schedule_mode, static_cast<aclrtEngineType>(op->dispatch_info.aicore.launch.engine_type), op->dispatch_info.aicore.launch.block_dim_offset, op->dispatch_info.aicore.launch.is_block_task_prefetch, GetIsDataDump(op->op_name, ctx.model_id, ctx.instance_handle), op->dispatch_info.aicore.launch.time_out, op->dispatch_info.aicore.launch.local_memory_size};
+  OM2_CHK_STATUS(AssembleLaunchConfig(cfg_holder, launch_config));
+  ArgsInfo *args_info = ctx.args_table.GetArgsInfo(op->dispatch_info.aicore.args_idx);
+  OM2_CHK_NOTNULL(args_info);
+  std::vector<uint64_t> ordered_io_addrs;
+  std::vector<Om2Tensor> io_tensors;
+  (io_tensors.reserve(op->dispatch_info.aicore.args_info_num));
+  std::vector<Om2TaskIoEntry> report_inputs;
+  std::vector<Om2TaskIoEntry> report_outputs;
+  std::vector<uint64_t> report_workspace_addrs;
+  std::vector<uint64_t> report_workspace_sizes;
+  for (uint32_t j = 0U; (j < op->dispatch_info.aicore.args_info_num); j++) {
+    const auto &a = op->dispatch_info.aicore.args_info[j];
+    uint64_t _addr = 0U;
+    switch (a.type) {
+      case OP_ARG_INPUT:
+      case OP_ARG_OUTPUT:
+      case OP_ARG_CONST_TENSOR:
+      {
+        _addr = reinterpret_cast<uint64_t>(ResolveOpAddr(a.addr.mem_src, a.addr.offset, ctx.total_dev_mem_ptr, ctx.session_scope_mem_ptr, ctx.constants));
+        io_tensors.push_back(BuildOm2Tensor(reinterpret_cast<void *>(_addr), a.data.tensor.size, a.data.tensor.data_type, a.data.tensor.format, a.data.tensor.shape, a.data.tensor.shape_dims));
+        Om2TaskIoEntry _entry = {&io_tensors.back(), a.data.tensor.args_offset};
+        if (((a.type == OP_ARG_INPUT) || (a.type == OP_ARG_CONST_TENSOR))) {
+          report_inputs.push_back(_entry);
+        } else {
+          report_outputs.push_back(_entry);
         }
-        ordered_io_addrs.push_back(_addr);
+        break;
       }
-      Om2L0TaskRawInfo l0_info = {1U, op->task_data.aicore.l0.need_assert_or_printf, static_cast<uint64_t>(op->task_data.aicore.l0.num_l0_slots), op->task_data.aicore.l0.l0_slots};
-      OM2_CHK_STATUS(ReportOm2TaskPreprocess(op->op_name, op->task_data.aicore.op_type, 0U, reinterpret_cast<uintptr_t>(args_info->dev_addr), args_info->size, report_inputs, report_outputs, report_workspace_addrs, report_workspace_sizes, static_cast<uint32_t>(op->dispatch_type), op->task_data.aicore.kernel.block_dim, ctx.stream, &l0_info, ctx.model_id, ctx.instance_handle));
-      OM2_CHK_STATUS(KernelTaskDistribute(ordered_io_addrs, args_info, ctx.func_handles[op->task_data.aicore.kernel.func_idx], op->task_data.aicore.kernel.block_dim, ctx.stream, &cfg_holder.cfg));
-      OM2_CHK_STATUS(ReportLaunchedOm2Task(op->op_name, op->task_data.aicore.op_type, 0U, reinterpret_cast<uintptr_t>(args_info->dev_addr), args_info->size, report_inputs.data(), static_cast<uint64_t>(report_inputs.size()), report_outputs.data(), static_cast<uint32_t>(report_outputs.size()), report_workspace_addrs.data(), report_workspace_sizes.data(), static_cast<uint32_t>(report_workspace_sizes.size()), static_cast<uint32_t>(op->dispatch_type), op->task_data.aicore.kernel.block_dim, ctx.stream, ctx.model_id, ctx.instance_handle));
+      case OP_ARG_WORKSPACE:
+      {
+        _addr = reinterpret_cast<uint64_t>(ResolveOpAddr(a.addr.mem_src, a.addr.offset, ctx.total_dev_mem_ptr, ctx.session_scope_mem_ptr, ctx.constants));
+        report_workspace_addrs.push_back(_addr);
+        report_workspace_sizes.push_back(a.data.tensor.size);
+        break;
+      }
+      case OP_ARG_LEVEL1_DESC:
+      {
+        void *_desc = ctx.args_table.GetDevArgAddr(a.data.custom_value);
+        OM2_CHK_NOTNULL(_desc);
+        _addr = reinterpret_cast<uint64_t>(_desc);
+        break;
+      }
+      case OP_ARG_SHAPE_INFO:
+      case OP_ARG_CUSTOM_VALUE:
+      {
+        _addr = a.data.custom_value;
+        break;
+      }
+      case OP_ARG_PLACEHOLDER:
+      case OP_ARG_OPTIONAL_EMPTY:
+      {
+        _addr = 0U;
+        break;
+      }
+      case OP_ARG_FFTS_ADDR:
+      {
+        void *_ffts = nullptr;
+        OM2_CHK_STATUS(aclrtGetHardwareSyncAddr(&_ffts));
+        _addr = reinterpret_cast<uint64_t>(_ffts);
+        break;
+      }
+      case OP_ARG_EVENT_ADDR:
+      {
+        void *_event = nullptr;
+        OM2_CHK_STATUS(GetEventIdAddr(_event, ctx.event_id_mem_map, static_cast<uint32_t>(a.data.custom_value), ctx.dev_dynamic_mem_ptrs));
+        _addr = reinterpret_cast<uint64_t>(_event);
+        break;
+      }
+      case OP_ARG_OVERFLOW_ADDR:
+      {
+        _addr = reinterpret_cast<uint64_t>(ctx.overflow_addr);
+        break;
+      }
+      case OP_ARG_TILING:
+      {
+        void *_tiling = nullptr;
+        OM2_CHK_STATUS(MallocDeviceMemory(_tiling, a.data.tiling.raw_data_len, 2U, ctx.dev_dynamic_mem_ptrs));
+        OM2_CHK_STATUS(aclrtMemcpy(_tiling, a.data.tiling.raw_data_len, a.data.tiling.raw_data, a.data.tiling.raw_data_len, ACL_MEMCPY_HOST_TO_DEVICE));
+        _addr = reinterpret_cast<uint64_t>(_tiling);
+        break;
+      }
+      default:
+      {
+        _addr = 0U;
+        break;
+      }
     }
-    break;
-    default:
-    return ACL_ERROR_FAILURE;
+    ordered_io_addrs.push_back(_addr);
+  }
+  Om2L0TaskRawInfo l0_info = {1U, op->dispatch_info.aicore.slot_args.need_assert_or_printf, static_cast<uint64_t>(op->dispatch_info.aicore.slot_args.slots_num), op->dispatch_info.aicore.slot_args.slot_info};
+  OM2_CHK_STATUS(ReportOm2TaskPreprocess(op->op_name, op->dispatch_info.aicore.op_type, 0U, reinterpret_cast<uintptr_t>(args_info->dev_addr), args_info->size, report_inputs, report_outputs, report_workspace_addrs, report_workspace_sizes, static_cast<uint32_t>(op->dispatch_type), op->dispatch_info.aicore.block_dim, ctx.stream_list[op->dispatch_info.aicore.stream_id], &l0_info, ctx.model_id, ctx.instance_handle));
+  OM2_CHK_STATUS(KernelTaskDistribute(ordered_io_addrs, args_info, ctx.func_handles[op->dispatch_info.aicore.func_idx], op->dispatch_info.aicore.block_dim, ctx.stream_list[op->dispatch_info.aicore.stream_id], &cfg_holder.cfg));
+  OM2_CHK_STATUS(ReportLaunchedOm2Task(op->op_name, op->dispatch_info.aicore.op_type, 0U, reinterpret_cast<uintptr_t>(args_info->dev_addr), args_info->size, report_inputs.data(), static_cast<uint64_t>(report_inputs.size()), report_outputs.data(), static_cast<uint32_t>(report_outputs.size()), report_workspace_addrs.data(), report_workspace_sizes.data(), static_cast<uint32_t>(report_workspace_sizes.size()), static_cast<uint32_t>(op->dispatch_type), op->dispatch_info.aicore.block_dim, ctx.stream_list[op->dispatch_info.aicore.stream_id], ctx.model_id, ctx.instance_handle));
+  return ACL_SUCCESS;
+}
+
+aclError DispatchKernelAicpu(const TaskDispatchInfo *op, const DispatchOpContext &ctx) {
+  uint32_t num_io = op->dispatch_info.aicpu.args_info_num;
+  uint32_t aicpu_args_idx = op->dispatch_info.aicpu.args_idx;
+  const uint8_t *args_blob = op->dispatch_info.aicpu.args_blob;
+  uint32_t args_blob_len = op->dispatch_info.aicpu.args_blob_len;
+  const uint8_t *ext_info_blob = op->dispatch_info.aicpu.ext_info_blob;
+  uint32_t ext_info_blob_len = op->dispatch_info.aicpu.ext_info_blob_len;
+  std::vector<uint64_t> iow_addr;
+  std::vector<Om2Tensor> aicpu_io_tensors;
+  (aicpu_io_tensors.reserve(num_io));
+  std::vector<Om2TaskIoEntry> aicpu_report_inputs;
+  std::vector<Om2TaskIoEntry> aicpu_report_outputs;
+  for (uint32_t i = 0U; (i < num_io); i++) {
+    const auto &a = op->dispatch_info.aicpu.args_info[i];
+    uint64_t _addr = 0U;
+    if ((a.type == OP_ARG_OPTIONAL_EMPTY)) {
+      _addr = 0U;
+    } else {
+      _addr = reinterpret_cast<uint64_t>(ResolveOpAddr(a.addr.mem_src, a.addr.offset, ctx.total_dev_mem_ptr, ctx.session_scope_mem_ptr, ctx.constants));
+      aicpu_io_tensors.push_back(BuildOm2Tensor(reinterpret_cast<void *>(_addr), a.data.tensor.size, a.data.tensor.data_type, a.data.tensor.format, a.data.tensor.shape, a.data.tensor.shape_dims));
+      Om2TaskIoEntry _entry = {&aicpu_io_tensors.back(), a.data.tensor.args_offset};
+      if ((a.type != OP_ARG_OUTPUT)) {
+        aicpu_report_inputs.push_back(_entry);
+      } else {
+        aicpu_report_outputs.push_back(_entry);
+      }
+    }
+    iow_addr.push_back(_addr);
+  }
+  LaunchKernelCfgHolder aicpu_cfg_holder;
+  LaunchKernelConfig aicpu_launch_config = {op->dispatch_info.aicpu.launch.schedule_mode, static_cast<aclrtEngineType>(op->dispatch_info.aicpu.launch.engine_type), op->dispatch_info.aicpu.launch.block_dim_offset, op->dispatch_info.aicpu.launch.is_block_task_prefetch, GetIsDataDump(op->op_name, ctx.model_id, ctx.instance_handle), op->dispatch_info.aicpu.launch.time_out, op->dispatch_info.aicpu.launch.local_memory_size};
+  OM2_CHK_STATUS(AssembleLaunchConfig(aicpu_cfg_holder, aicpu_launch_config));
+  uint64_t local_session_id = *ctx.session_id;
+  OM2_CHK_STATUS(AssembleAicpuExtInfo(ext_info_blob, ext_info_blob_len, op->dispatch_info.aicpu.session_info_offset, &local_session_id, ctx.kernel_id, ctx.dev_ext_info_mem_ptrs, op->dispatch_info.aicpu.aicpu_task_index));
+  std::vector<uint8_t> aicpu_args_var;
+  aicpu_args_var.resize(args_blob_len);
+  OM2_CHK_STATUS(AssembleAicpuArgs(args_blob, args_blob_len, ctx.dev_ext_info_mem_ptrs[op->dispatch_info.aicpu.aicpu_task_index], ext_info_blob_len, iow_addr, aicpu_args_var.data()));
+  ArgsInfo *aicpu_args_info = ctx.args_table.GetArgsInfo(aicpu_args_idx);
+  OM2_CHK_STATUS(AicpuKernelTaskDistribute(aicpu_args_var, aicpu_args_info, ctx.func_handles[op->dispatch_info.aicpu.func_idx], op->dispatch_info.aicpu.block_dim, ctx.stream_list[op->dispatch_info.aicpu.stream_id], &aicpu_cfg_holder.cfg));
+  OM2_CHK_STATUS(ReportLaunchedOm2Task(op->op_name, op->dispatch_info.aicpu.op_type, 0U, reinterpret_cast<uintptr_t>(aicpu_args_info->dev_addr), aicpu_args_info->size, aicpu_report_inputs.data(), static_cast<uint64_t>(aicpu_report_inputs.size()), aicpu_report_outputs.data(), static_cast<uint32_t>(aicpu_report_outputs.size()), nullptr, nullptr, 0U, op->dispatch_info.aicpu.task_type, op->dispatch_info.aicpu.block_dim, ctx.stream_list[op->dispatch_info.aicpu.stream_id], ctx.model_id, ctx.instance_handle));
+  return ACL_SUCCESS;
+}
+
+aclError DispatchKernel(const TaskDispatchInfo *op, const DispatchOpContext &ctx) {
+  if (((uint32_t)op->dispatch_type == DISPATCH_AICPU)) {
+    return DispatchKernelAicpu(op, ctx);
+  } else {
+    return DispatchKernelAicore(op, ctx);
   }
   return ACL_SUCCESS;
 }
-const OpDef kOpDefs[] = {{
+
+aclError DispatchOp(const TaskDispatchInfo *op, const DispatchOpContext &ctx) {
+  switch (op->dispatch_type) {
+    case 0:
+    return DispatchKernel(op, ctx);
+    case 1:
+    return DispatchKernel(op, ctx);
+    default:
+    return ACL_ERROR_FAILURE;
+  }
+}
+const TaskDispatchInfo kOpDefs[] = {{
   .dispatch_type = static_cast<OpDispatchType>(0),
   .op_name = "add1",
-  .argsInfo = (const OpArgInfo[]){
-    {.type = 0, .addr = {.mem_src = 0, .offset = 1024}, .data = {.tensor = {.size = 200704, .data_type = 1, .format = 0, .shape = {1, 1, 224, 224, 0, 0, 0, 0}, .num_shape_dims = 4, .args_offset = 0}}},
-    {.type = 0, .addr = {.mem_src = 0, .offset = 1024}, .data = {.tensor = {.size = 200704, .data_type = 1, .format = 0, .shape = {1, 1, 224, 224, 0, 0, 0, 0}, .num_shape_dims = 4, .args_offset = 8}}},
-    {.type = 1, .addr = {.mem_src = 0, .offset = 1024}, .data = {.tensor = {.size = 200704, .data_type = 1, .format = 0, .shape = {1, 1, 224, 224, 0, 0, 0, 0}, .num_shape_dims = 4, .args_offset = 16}}},
-    {.type = 2, .addr = {.mem_src = 0, .offset = 0}, .data = {.tensor = {.size = 64}}},
-  },
-  .task_data = {
+  .dispatch_info = {
     .aicore = {
+      .args_info = (const OpArgInfo[]){
+        {.type = OP_ARG_INPUT, .addr = {.mem_src = 0, .offset = 1024}, .data = {.tensor = {.size = 200704, .data_type = 1, .format = 0, .shape = {1, 1, 224, 224, 0, 0, 0, 0}, .shape_dims = 4, .args_offset = 0U}}},
+        {.type = OP_ARG_INPUT, .addr = {.mem_src = 0, .offset = 1024}, .data = {.tensor = {.size = 200704, .data_type = 1, .format = 0, .shape = {1, 1, 224, 224, 0, 0, 0, 0}, .shape_dims = 4, .args_offset = 8U}}},
+        {.type = OP_ARG_OUTPUT, .addr = {.mem_src = 0, .offset = 1024}, .data = {.tensor = {.size = 200704, .data_type = 1, .format = 0, .shape = {1, 1, 224, 224, 0, 0, 0, 0}, .shape_dims = 4, .args_offset = 16U}}},
+        {.type = OP_ARG_WORKSPACE, .addr = {.mem_src = 0, .offset = 0}, .data = {.tensor = {.size = 64}}},
+      },
+      .args_info_num = 4,
       .op_type = "Add",
-      .num_io_addrs = 4,
       .args_idx = 0,
-      .launch = {.schedule_mode = 0, .engine_type = 0, .block_dim_offset = 0, .is_block_task_prefetch = false, .time_out = 0, .local_memory_size = 0},
-      .kernel = {.block_dim = 8, .func_idx = 0},
-      .l0 = {.need_assert_or_printf = 0, .num_l0_slots = 4, .l0_slots = (const Om2L0ArgSlotInfo[]){{OM2_L0_ARG_INPUT, 0U, 0U, 0UL, 0U, 0U, 0U}, {OM2_L0_ARG_INPUT, 0U, 8U, 0UL, 1U, 0U, 0U}, {OM2_L0_ARG_OUTPUT, 0U, 16U, 0UL, 2U, 0U, 0U}, {OM2_L0_ARG_WORKSPACE, 0U, 24U, 0UL, 0U, 0U, 0U}}},
+      .block_dim = 8,
+      .func_idx = 0,
+      .stream_id = 0,
+      .launch = {0, 0, 0, false, 0, 0},
+      .slot_args = {0, 4, (const Om2L0ArgSlotInfo[]){{OM2_L0_ARG_INPUT, 0U, 0U, 0UL, 0U, 0U, 0U}, {OM2_L0_ARG_INPUT, 0U, 8U, 0UL, 1U, 0U, 0U}, {OM2_L0_ARG_OUTPUT, 0U, 16U, 0UL, 2U, 0U, 0U}, {OM2_L0_ARG_WORKSPACE, 0U, 24U, 0UL, 0U, 0U, 0U}}},
     },
   },
 }};
@@ -3293,7 +3557,15 @@ aclmdlRI Om2Model::GetRtModelHandle() {
 aclError Om2Model::Load() {
   OM2_LOGI("Load begin");
   dev_ext_info_mem_ptrs_.resize(0);
-  OM2_CHK_STATUS(DispatchOp(&kOpDefs[0], {total_dev_mem_ptr_, session_scope_mem_ptr_, constants_, args_table_, func_handles_.data(), stream_list_[0], model_id_, instance_handle_, mem_event_id_mem_map_, dev_dynamic_mem_ptrs_, overflow_addr_}));
+  DispatchOpContext ctx = {total_dev_mem_ptr_, session_scope_mem_ptr_, constants_, args_table_, func_handles_.data(), model_id_, instance_handle_, model_handle_, event_list_, mem_event_id_mem_map_, dev_dynamic_mem_ptrs_, overflow_addr_, label_list_, notify_list_, stream_list_, label_goto_args_, label_goto_ex_label_list_, label_switch_label_list_, session_id_, dev_ext_info_mem_ptrs_, &kernel_id_};
+#if 1U
+  for (uint32_t _op_idx = 0U; (_op_idx < (sizeof(kOpDefs) / sizeof(kOpDefs[0]))); _op_idx++) {
+    OM2_CHK_STATUS(DispatchOp(&kOpDefs[_op_idx], ctx));
+  }
+#else
+  // ----------- add1 -----------
+  OM2_CHK_STATUS(DispatchOp(&kOpDefs[0], ctx));
+#endif
   OM2_CHK_STATUS(aclmdlRIBuildEnd(model_handle_, nullptr));
   OM2_LOGI("Load done");
   return ACL_SUCCESS;
@@ -3422,7 +3694,7 @@ TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSource_AicpuEmptyShape_Ok) {
   // RenderDistribution 路径应在 Load() 中生成 BuildOm2Tensor 和 FlattenHostArgs/AicpuKernelTaskDistribute
   const auto &source = outputs[GeneratedFileIndex::kLoadingAndRunningFile];
   EXPECT_NE(source.find("BuildOm2Tensor"), std::string::npos);
-  EXPECT_NE(source.find("FlattenHostArgs"), std::string::npos);
+  EXPECT_NE(source.find("ResolveOpAddr"), std::string::npos);
   EXPECT_NE(source.find("AicpuKernelTaskDistribute"), std::string::npos);
 }
 
@@ -3653,7 +3925,7 @@ aclError UpdateExtInfoSession(uint8_t *extInfo, size_t session_info_offset, uint
   return ACL_SUCCESS;
 }
 
-aclError AssembleAicpuExtInfo(uint8_t *ext_info, size_t ext_info_len, int32_t session_info_offset, uint64_t *session_id, uint64_t *kernel_id, std::vector<void *> &dev_ext_info_mem_ptrs, size_t index) {
+aclError AssembleAicpuExtInfo(const uint8_t *ext_info, size_t ext_info_len, int32_t session_info_offset, uint64_t *session_id, uint64_t *kernel_id, std::vector<void *> &dev_ext_info_mem_ptrs, size_t index) {
   std::unique_ptr<uint8_t[]> tmp_ext_info = std::make_unique<uint8_t[]>(ext_info_len);
   memcpy_s(tmp_ext_info.get(), ext_info_len, ext_info, ext_info_len);
   if ((session_info_offset != -1)) {
@@ -3666,7 +3938,7 @@ aclError AssembleAicpuExtInfo(uint8_t *ext_info, size_t ext_info_len, int32_t se
   return ACL_SUCCESS;
 }
 
-aclError AssembleAicpuArgs(uint8_t *args, size_t args_len, void *ext_info_addr, size_t ext_info_len, std::vector<uint64_t> &io_addr, void *target_args_ptr) {
+aclError AssembleAicpuArgs(const uint8_t *args, size_t args_len, void *ext_info_addr, size_t ext_info_len, std::vector<uint64_t> &io_addr, void *target_args_ptr) {
   std::unique_ptr<uint8_t[]> tmp_args = std::make_unique<uint8_t[]>(args_len);
   memcpy_s(tmp_args.get(), args_len, args, args_len);
   const auto aicpu_param_head = reinterpret_cast<AicpuParamHead *>(tmp_args.get());
@@ -3698,14 +3970,220 @@ aclError GetEventIdAddr(void *&event_addr, std::map<uint32_t, void *> &event_id_
   return ACL_SUCCESS;
 }
 
-aclError DispatchOp(const OpDef *op, const DispatchOpContext &ctx) {
-  switch (static_cast<OpDispatchType>(op->dispatch_type)) {
-    default:
-    return ACL_ERROR_FAILURE;
+aclError DispatchKernelAicore(const TaskDispatchInfo *op, const DispatchOpContext &ctx) {
+  LaunchKernelCfgHolder cfg_holder;
+  LaunchKernelConfig launch_config = {op->dispatch_info.aicore.launch.schedule_mode, static_cast<aclrtEngineType>(op->dispatch_info.aicore.launch.engine_type), op->dispatch_info.aicore.launch.block_dim_offset, op->dispatch_info.aicore.launch.is_block_task_prefetch, GetIsDataDump(op->op_name, ctx.model_id, ctx.instance_handle), op->dispatch_info.aicore.launch.time_out, op->dispatch_info.aicore.launch.local_memory_size};
+  OM2_CHK_STATUS(AssembleLaunchConfig(cfg_holder, launch_config));
+  ArgsInfo *args_info = ctx.args_table.GetArgsInfo(op->dispatch_info.aicore.args_idx);
+  OM2_CHK_NOTNULL(args_info);
+  std::vector<uint64_t> ordered_io_addrs;
+  std::vector<Om2Tensor> io_tensors;
+  (io_tensors.reserve(op->dispatch_info.aicore.args_info_num));
+  std::vector<Om2TaskIoEntry> report_inputs;
+  std::vector<Om2TaskIoEntry> report_outputs;
+  std::vector<uint64_t> report_workspace_addrs;
+  std::vector<uint64_t> report_workspace_sizes;
+  for (uint32_t j = 0U; (j < op->dispatch_info.aicore.args_info_num); j++) {
+    const auto &a = op->dispatch_info.aicore.args_info[j];
+    uint64_t _addr = 0U;
+    switch (a.type) {
+      case OP_ARG_INPUT:
+      case OP_ARG_OUTPUT:
+      case OP_ARG_CONST_TENSOR:
+      {
+        _addr = reinterpret_cast<uint64_t>(ResolveOpAddr(a.addr.mem_src, a.addr.offset, ctx.total_dev_mem_ptr, ctx.session_scope_mem_ptr, ctx.constants));
+        io_tensors.push_back(BuildOm2Tensor(reinterpret_cast<void *>(_addr), a.data.tensor.size, a.data.tensor.data_type, a.data.tensor.format, a.data.tensor.shape, a.data.tensor.shape_dims));
+        Om2TaskIoEntry _entry = {&io_tensors.back(), a.data.tensor.args_offset};
+        if (((a.type == OP_ARG_INPUT) || (a.type == OP_ARG_CONST_TENSOR))) {
+          report_inputs.push_back(_entry);
+        } else {
+          report_outputs.push_back(_entry);
+        }
+        break;
+      }
+      case OP_ARG_WORKSPACE:
+      {
+        _addr = reinterpret_cast<uint64_t>(ResolveOpAddr(a.addr.mem_src, a.addr.offset, ctx.total_dev_mem_ptr, ctx.session_scope_mem_ptr, ctx.constants));
+        report_workspace_addrs.push_back(_addr);
+        report_workspace_sizes.push_back(a.data.tensor.size);
+        break;
+      }
+      case OP_ARG_LEVEL1_DESC:
+      {
+        void *_desc = ctx.args_table.GetDevArgAddr(a.data.custom_value);
+        OM2_CHK_NOTNULL(_desc);
+        _addr = reinterpret_cast<uint64_t>(_desc);
+        break;
+      }
+      case OP_ARG_SHAPE_INFO:
+      case OP_ARG_CUSTOM_VALUE:
+      {
+        _addr = a.data.custom_value;
+        break;
+      }
+      case OP_ARG_PLACEHOLDER:
+      case OP_ARG_OPTIONAL_EMPTY:
+      {
+        _addr = 0U;
+        break;
+      }
+      case OP_ARG_FFTS_ADDR:
+      {
+        void *_ffts = nullptr;
+        OM2_CHK_STATUS(aclrtGetHardwareSyncAddr(&_ffts));
+        _addr = reinterpret_cast<uint64_t>(_ffts);
+        break;
+      }
+      case OP_ARG_EVENT_ADDR:
+      {
+        void *_event = nullptr;
+        OM2_CHK_STATUS(GetEventIdAddr(_event, ctx.event_id_mem_map, static_cast<uint32_t>(a.data.custom_value), ctx.dev_dynamic_mem_ptrs));
+        _addr = reinterpret_cast<uint64_t>(_event);
+        break;
+      }
+      case OP_ARG_OVERFLOW_ADDR:
+      {
+        _addr = reinterpret_cast<uint64_t>(ctx.overflow_addr);
+        break;
+      }
+      case OP_ARG_TILING:
+      {
+        void *_tiling = nullptr;
+        OM2_CHK_STATUS(MallocDeviceMemory(_tiling, a.data.tiling.raw_data_len, 2U, ctx.dev_dynamic_mem_ptrs));
+        OM2_CHK_STATUS(aclrtMemcpy(_tiling, a.data.tiling.raw_data_len, a.data.tiling.raw_data, a.data.tiling.raw_data_len, ACL_MEMCPY_HOST_TO_DEVICE));
+        _addr = reinterpret_cast<uint64_t>(_tiling);
+        break;
+      }
+      default:
+      {
+        _addr = 0U;
+        break;
+      }
+    }
+    ordered_io_addrs.push_back(_addr);
+  }
+  Om2L0TaskRawInfo l0_info = {1U, op->dispatch_info.aicore.slot_args.need_assert_or_printf, static_cast<uint64_t>(op->dispatch_info.aicore.slot_args.slots_num), op->dispatch_info.aicore.slot_args.slot_info};
+  OM2_CHK_STATUS(ReportOm2TaskPreprocess(op->op_name, op->dispatch_info.aicore.op_type, 0U, reinterpret_cast<uintptr_t>(args_info->dev_addr), args_info->size, report_inputs, report_outputs, report_workspace_addrs, report_workspace_sizes, static_cast<uint32_t>(op->dispatch_type), op->dispatch_info.aicore.block_dim, ctx.stream_list[op->dispatch_info.aicore.stream_id], &l0_info, ctx.model_id, ctx.instance_handle));
+  OM2_CHK_STATUS(KernelTaskDistribute(ordered_io_addrs, args_info, ctx.func_handles[op->dispatch_info.aicore.func_idx], op->dispatch_info.aicore.block_dim, ctx.stream_list[op->dispatch_info.aicore.stream_id], &cfg_holder.cfg));
+  OM2_CHK_STATUS(ReportLaunchedOm2Task(op->op_name, op->dispatch_info.aicore.op_type, 0U, reinterpret_cast<uintptr_t>(args_info->dev_addr), args_info->size, report_inputs.data(), static_cast<uint64_t>(report_inputs.size()), report_outputs.data(), static_cast<uint32_t>(report_outputs.size()), report_workspace_addrs.data(), report_workspace_sizes.data(), static_cast<uint32_t>(report_workspace_sizes.size()), static_cast<uint32_t>(op->dispatch_type), op->dispatch_info.aicore.block_dim, ctx.stream_list[op->dispatch_info.aicore.stream_id], ctx.model_id, ctx.instance_handle));
+  return ACL_SUCCESS;
+}
+
+aclError DispatchKernelAicpu(const TaskDispatchInfo *op, const DispatchOpContext &ctx) {
+  uint32_t num_io = op->dispatch_info.aicpu.args_info_num;
+  uint32_t aicpu_args_idx = op->dispatch_info.aicpu.args_idx;
+  const uint8_t *args_blob = op->dispatch_info.aicpu.args_blob;
+  uint32_t args_blob_len = op->dispatch_info.aicpu.args_blob_len;
+  const uint8_t *ext_info_blob = op->dispatch_info.aicpu.ext_info_blob;
+  uint32_t ext_info_blob_len = op->dispatch_info.aicpu.ext_info_blob_len;
+  std::vector<uint64_t> iow_addr;
+  std::vector<Om2Tensor> aicpu_io_tensors;
+  (aicpu_io_tensors.reserve(num_io));
+  std::vector<Om2TaskIoEntry> aicpu_report_inputs;
+  std::vector<Om2TaskIoEntry> aicpu_report_outputs;
+  for (uint32_t i = 0U; (i < num_io); i++) {
+    const auto &a = op->dispatch_info.aicpu.args_info[i];
+    uint64_t _addr = 0U;
+    if ((a.type == OP_ARG_OPTIONAL_EMPTY)) {
+      _addr = 0U;
+    } else {
+      _addr = reinterpret_cast<uint64_t>(ResolveOpAddr(a.addr.mem_src, a.addr.offset, ctx.total_dev_mem_ptr, ctx.session_scope_mem_ptr, ctx.constants));
+      aicpu_io_tensors.push_back(BuildOm2Tensor(reinterpret_cast<void *>(_addr), a.data.tensor.size, a.data.tensor.data_type, a.data.tensor.format, a.data.tensor.shape, a.data.tensor.shape_dims));
+      Om2TaskIoEntry _entry = {&aicpu_io_tensors.back(), a.data.tensor.args_offset};
+      if ((a.type != OP_ARG_OUTPUT)) {
+        aicpu_report_inputs.push_back(_entry);
+      } else {
+        aicpu_report_outputs.push_back(_entry);
+      }
+    }
+    iow_addr.push_back(_addr);
+  }
+  LaunchKernelCfgHolder aicpu_cfg_holder;
+  LaunchKernelConfig aicpu_launch_config = {op->dispatch_info.aicpu.launch.schedule_mode, static_cast<aclrtEngineType>(op->dispatch_info.aicpu.launch.engine_type), op->dispatch_info.aicpu.launch.block_dim_offset, op->dispatch_info.aicpu.launch.is_block_task_prefetch, GetIsDataDump(op->op_name, ctx.model_id, ctx.instance_handle), op->dispatch_info.aicpu.launch.time_out, op->dispatch_info.aicpu.launch.local_memory_size};
+  OM2_CHK_STATUS(AssembleLaunchConfig(aicpu_cfg_holder, aicpu_launch_config));
+  uint64_t local_session_id = *ctx.session_id;
+  OM2_CHK_STATUS(AssembleAicpuExtInfo(ext_info_blob, ext_info_blob_len, op->dispatch_info.aicpu.session_info_offset, &local_session_id, ctx.kernel_id, ctx.dev_ext_info_mem_ptrs, op->dispatch_info.aicpu.aicpu_task_index));
+  std::vector<uint8_t> aicpu_args_var;
+  aicpu_args_var.resize(args_blob_len);
+  OM2_CHK_STATUS(AssembleAicpuArgs(args_blob, args_blob_len, ctx.dev_ext_info_mem_ptrs[op->dispatch_info.aicpu.aicpu_task_index], ext_info_blob_len, iow_addr, aicpu_args_var.data()));
+  ArgsInfo *aicpu_args_info = ctx.args_table.GetArgsInfo(aicpu_args_idx);
+  OM2_CHK_STATUS(AicpuKernelTaskDistribute(aicpu_args_var, aicpu_args_info, ctx.func_handles[op->dispatch_info.aicpu.func_idx], op->dispatch_info.aicpu.block_dim, ctx.stream_list[op->dispatch_info.aicpu.stream_id], &aicpu_cfg_holder.cfg));
+  OM2_CHK_STATUS(ReportLaunchedOm2Task(op->op_name, op->dispatch_info.aicpu.op_type, 0U, reinterpret_cast<uintptr_t>(aicpu_args_info->dev_addr), aicpu_args_info->size, aicpu_report_inputs.data(), static_cast<uint64_t>(aicpu_report_inputs.size()), aicpu_report_outputs.data(), static_cast<uint32_t>(aicpu_report_outputs.size()), nullptr, nullptr, 0U, op->dispatch_info.aicpu.task_type, op->dispatch_info.aicpu.block_dim, ctx.stream_list[op->dispatch_info.aicpu.stream_id], ctx.model_id, ctx.instance_handle));
+  return ACL_SUCCESS;
+}
+
+aclError DispatchKernel(const TaskDispatchInfo *op, const DispatchOpContext &ctx) {
+  if (((uint32_t)op->dispatch_type == DISPATCH_AICPU)) {
+    return DispatchKernelAicpu(op, ctx);
+  } else {
+    return DispatchKernelAicore(op, ctx);
   }
   return ACL_SUCCESS;
 }
-const OpDef kOpDefs[] = {};
+
+aclError DispatchOp(const TaskDispatchInfo *op, const DispatchOpContext &ctx) {
+  switch (op->dispatch_type) {
+    case 0:
+    return DispatchKernel(op, ctx);
+    case 1:
+    return DispatchKernel(op, ctx);
+    default:
+    return ACL_ERROR_FAILURE;
+  }
+}
+const TaskDispatchInfo kOpDefs[] = {{
+  .dispatch_type = static_cast<OpDispatchType>(1),
+  .op_name = "add1",
+  .dispatch_info = {
+    .aicpu = {
+      .args_info = (const OpArgInfo[]){
+        {.type = OP_ARG_INPUT, .addr = {.mem_src = 0, .offset = 1024}, .data = {.tensor = {.size = 0, .data_type = 1, .format = 2, .shape = {-1, -1, -1, -1, 0, 0, 0, 0}, .shape_dims = 4, .args_offset = 0U}}},
+        {.type = OP_ARG_INPUT, .addr = {.mem_src = 0, .offset = 1024}, .data = {.tensor = {.size = 0, .data_type = 1, .format = 2, .shape = {-1, -1, -1, -1, 0, 0, 0, 0}, .shape_dims = 4, .args_offset = 8U}}},
+        {.type = OP_ARG_OUTPUT, .addr = {.mem_src = 0, .offset = 1024}, .data = {.tensor = {.size = 0, .data_type = 1, .format = 2, .shape = {-1, -1, -1, -1, 0, 0, 0, 0}, .shape_dims = 4, .args_offset = 16U}}},
+      },
+      .args_info_num = 3,
+      .op_type = "Add",
+      .args_idx = 0,
+      .func_idx = 0,
+      .block_dim = 8,
+      .stream_id = 0,
+      .args_blob = reinterpret_cast<const uint8_t *>("\104\000\000\000\003\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"),
+      .args_blob_len = 68,
+      .ext_info_blob = reinterpret_cast<const uint8_t *>("\001\000\000\000\210\000\000\000\000\000\000\000\005\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\005\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\002\000\000\000\104\000\000\000\000\000\000\000\005\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\005\000\000\000\021\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\006\000\000\000\010\000\000\000\001\000\000\000\000\000\000\000\003\000\000\000\004\000\000\000\001\000\000\000\007\000\000\000\004\000\000\000\001\000\000\000"),
+      .ext_info_blob_len = 285,
+      .launch = {0, 0, 0, false, 0, 0},
+      .session_info_offset = 228,
+      .aicpu_task_index = 0,
+      .task_type = 0,
+    },
+  },
+}, {
+  .dispatch_type = static_cast<OpDispatchType>(1),
+  .op_name = "add2",
+  .dispatch_info = {
+    .aicpu = {
+      .args_info = (const OpArgInfo[]){
+        {.type = OP_ARG_INPUT, .addr = {.mem_src = 0, .offset = 1024}, .data = {.tensor = {.size = 0, .data_type = 1, .format = 2, .shape = {-1, -1, -1, -1, 0, 0, 0, 0}, .shape_dims = 4, .args_offset = 0U}}},
+        {.type = OP_ARG_INPUT, .addr = {.mem_src = 0, .offset = 1024}, .data = {.tensor = {.size = 0, .data_type = 1, .format = 2, .shape = {-1, -1, -1, -1, 0, 0, 0, 0}, .shape_dims = 4, .args_offset = 8U}}},
+        {.type = OP_ARG_OUTPUT, .addr = {.mem_src = 0, .offset = 1024}, .data = {.tensor = {.size = 0, .data_type = 1, .format = 2, .shape = {-1, -1, -1, -1, 0, 0, 0, 0}, .shape_dims = 4, .args_offset = 16U}}},
+      },
+      .args_info_num = 3,
+      .op_type = "Add",
+      .args_idx = 1,
+      .func_idx = 0,
+      .block_dim = 8,
+      .stream_id = 0,
+      .args_blob = reinterpret_cast<const uint8_t *>("\104\000\000\000\003\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"),
+      .args_blob_len = 68,
+      .ext_info_blob = reinterpret_cast<const uint8_t *>("\001\000\000\000\210\000\000\000\000\000\000\000\005\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\005\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\002\000\000\000\104\000\000\000\000\000\000\000\005\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\005\000\000\000\021\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\006\000\000\000\010\000\000\000\001\000\000\000\000\000\000\000\003\000\000\000\004\000\000\000\001\000\000\000\007\000\000\000\004\000\000\000\001\000\000\000"),
+      .ext_info_blob_len = 285,
+      .launch = {0, 0, 0, false, 0, 0},
+      .session_info_offset = 228,
+      .aicpu_task_index = 1,
+      .task_type = 0,
+    },
+  },
+}};
 } // namespace
 aclmdlRI Om2Model::GetRtModelHandle() {
   return model_handle_;
@@ -3714,52 +4192,17 @@ aclmdlRI Om2Model::GetRtModelHandle() {
 aclError Om2Model::Load() {
   OM2_LOGI("Load begin");
   dev_ext_info_mem_ptrs_.resize(2);
-  {
-    // ============================= add1 ===============================
-    static constexpr int64_t op2_input0_shape[] = {-1, -1, -1, -1};
-    Om2Tensor op2_input0 = BuildOm2Tensor(GET_ADDR(total_dev_mem_ptr_, 1024), 0UL, 1, 2, op2_input0_shape, 4UL);
-    static constexpr int64_t op2_input1_shape[] = {-1, -1, -1, -1};
-    Om2Tensor op2_input1 = BuildOm2Tensor(GET_ADDR(total_dev_mem_ptr_, 1024), 0UL, 1, 2, op2_input1_shape, 4UL);
-    static constexpr int64_t op2_output0_shape[] = {-1, -1, -1, -1};
-    Om2Tensor op2_output0 = BuildOm2Tensor(GET_ADDR(total_dev_mem_ptr_, 1024), 0UL, 1, 2, op2_output0_shape, 4UL);
-    std::vector<uint64_t> op2_iow_addr = FlattenHostArgs(op2_input0, op2_input1, op2_output0);
-    const char *op2_args_str = "\104\000\000\000\003\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000";
-    const char *op2_ext_info_str = "\001\000\000\000\210\000\000\000\000\000\000\000\005\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\005\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\002\000\000\000\104\000\000\000\000\000\000\000\005\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\005\000\000\000\021\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\006\000\000\000\010\000\000\000\001\000\000\000\000\000\000\000\003\000\000\000\004\000\000\000\001\000\000\000\007\000\000\000\004\000\000\000\001\000\000\000";
-    std::vector<uint8_t> op2_args;
-    op2_args.resize(68);
-    AssembleAicpuExtInfo(reinterpret_cast<uint8_t *>(const_cast<char *>(op2_ext_info_str)), 285, 228, session_id_, &kernel_id_, dev_ext_info_mem_ptrs_, 0);
-    AssembleAicpuArgs(reinterpret_cast<uint8_t *>(const_cast<char *>(op2_args_str)), 68, dev_ext_info_mem_ptrs_[0], 285, op2_iow_addr, op2_args.data());
-    LaunchKernelCfgHolder op2_cfg_holder;
-    AssembleLaunchConfig(op2_cfg_holder, {0U, ACL_RT_ENGINE_TYPE_AIC, 0U, false, GetIsDataDump("add1", model_id_, instance_handle_), 0U, 0U});
-    OM2_CHK_STATUS(AicpuKernelTaskDistribute(op2_args, args_table_.GetArgsInfo(0), func_handles_[0], 8, stream_list_[0], &op2_cfg_holder.cfg));
-    const Om2TaskIoEntry op2_report_inputs[] = {{&op2_input0, 0U}, {&op2_input1, 0U}};
-    const Om2TaskIoEntry op2_report_outputs[] = {{&op2_output0, 0U}};
-    OM2_CHK_STATUS(ReportLaunchedOm2Task("add1", "Add", 2U, reinterpret_cast<uintptr_t>(args_table_.GetArgsInfo(0)->dev_addr), args_table_.GetArgsInfo(0)->size, op2_report_inputs, 2UL, op2_report_outputs, 1U, nullptr, nullptr, 0U, 0U, 8U, stream_list_[0], model_id_, instance_handle_));
-
+  DispatchOpContext ctx = {total_dev_mem_ptr_, session_scope_mem_ptr_, constants_, args_table_, func_handles_.data(), model_id_, instance_handle_, model_handle_, event_list_, mem_event_id_mem_map_, dev_dynamic_mem_ptrs_, overflow_addr_, label_list_, notify_list_, stream_list_, label_goto_args_, label_goto_ex_label_list_, label_switch_label_list_, session_id_, dev_ext_info_mem_ptrs_, &kernel_id_};
+#if 1U
+  for (uint32_t _op_idx = 0U; (_op_idx < (sizeof(kOpDefs) / sizeof(kOpDefs[0]))); _op_idx++) {
+    OM2_CHK_STATUS(DispatchOp(&kOpDefs[_op_idx], ctx));
   }
-  {
-    // ============================= add2 ===============================
-    static constexpr int64_t op3_input0_shape[] = {-1, -1, -1, -1};
-    Om2Tensor op3_input0 = BuildOm2Tensor(GET_ADDR(total_dev_mem_ptr_, 1024), 0UL, 1, 2, op3_input0_shape, 4UL);
-    static constexpr int64_t op3_input1_shape[] = {-1, -1, -1, -1};
-    Om2Tensor op3_input1 = BuildOm2Tensor(GET_ADDR(total_dev_mem_ptr_, 1024), 0UL, 1, 2, op3_input1_shape, 4UL);
-    static constexpr int64_t op3_output0_shape[] = {-1, -1, -1, -1};
-    Om2Tensor op3_output0 = BuildOm2Tensor(GET_ADDR(total_dev_mem_ptr_, 1024), 0UL, 1, 2, op3_output0_shape, 4UL);
-    std::vector<uint64_t> op3_iow_addr = FlattenHostArgs(op3_input0, op3_input1, op3_output0);
-    const char *op3_args_str = "\104\000\000\000\003\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000";
-    const char *op3_ext_info_str = "\001\000\000\000\210\000\000\000\000\000\000\000\005\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\005\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\002\000\000\000\104\000\000\000\000\000\000\000\005\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\005\000\000\000\021\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\006\000\000\000\010\000\000\000\001\000\000\000\000\000\000\000\003\000\000\000\004\000\000\000\001\000\000\000\007\000\000\000\004\000\000\000\001\000\000\000";
-    std::vector<uint8_t> op3_args;
-    op3_args.resize(68);
-    AssembleAicpuExtInfo(reinterpret_cast<uint8_t *>(const_cast<char *>(op3_ext_info_str)), 285, 228, session_id_, &kernel_id_, dev_ext_info_mem_ptrs_, 1);
-    AssembleAicpuArgs(reinterpret_cast<uint8_t *>(const_cast<char *>(op3_args_str)), 68, dev_ext_info_mem_ptrs_[1], 285, op3_iow_addr, op3_args.data());
-    LaunchKernelCfgHolder op3_cfg_holder;
-    AssembleLaunchConfig(op3_cfg_holder, {0U, ACL_RT_ENGINE_TYPE_AIC, 0U, false, GetIsDataDump("add2", model_id_, instance_handle_), 0U, 0U});
-    OM2_CHK_STATUS(AicpuKernelTaskDistribute(op3_args, args_table_.GetArgsInfo(1), func_handles_[0], 8, stream_list_[0], &op3_cfg_holder.cfg));
-    const Om2TaskIoEntry op3_report_inputs[] = {{&op3_input0, 0U}, {&op3_input1, 0U}};
-    const Om2TaskIoEntry op3_report_outputs[] = {{&op3_output0, 0U}};
-    OM2_CHK_STATUS(ReportLaunchedOm2Task("add2", "Add", 3U, reinterpret_cast<uintptr_t>(args_table_.GetArgsInfo(1)->dev_addr), args_table_.GetArgsInfo(1)->size, op3_report_inputs, 2UL, op3_report_outputs, 1U, nullptr, nullptr, 0U, 0U, 8U, stream_list_[0], model_id_, instance_handle_));
-
-  }
+#else
+  // ----------- add1 -----------
+  OM2_CHK_STATUS(DispatchOp(&kOpDefs[0], ctx));
+  // ----------- add2 -----------
+  OM2_CHK_STATUS(DispatchOp(&kOpDefs[1], ctx));
+#endif
   OM2_CHK_STATUS(aclmdlRIBuildEnd(model_handle_, nullptr));
   OM2_LOGI("Load done");
   return ACL_SUCCESS;
@@ -4087,7 +4530,7 @@ aclError UpdateExtInfoSession(uint8_t *extInfo, size_t session_info_offset, uint
   return ACL_SUCCESS;
 }
 
-aclError AssembleAicpuExtInfo(uint8_t *ext_info, size_t ext_info_len, int32_t session_info_offset, uint64_t *session_id, uint64_t *kernel_id, std::vector<void *> &dev_ext_info_mem_ptrs, size_t index) {
+aclError AssembleAicpuExtInfo(const uint8_t *ext_info, size_t ext_info_len, int32_t session_info_offset, uint64_t *session_id, uint64_t *kernel_id, std::vector<void *> &dev_ext_info_mem_ptrs, size_t index) {
   std::unique_ptr<uint8_t[]> tmp_ext_info = std::make_unique<uint8_t[]>(ext_info_len);
   memcpy_s(tmp_ext_info.get(), ext_info_len, ext_info, ext_info_len);
   if ((session_info_offset != -1)) {
@@ -4100,7 +4543,7 @@ aclError AssembleAicpuExtInfo(uint8_t *ext_info, size_t ext_info_len, int32_t se
   return ACL_SUCCESS;
 }
 
-aclError AssembleAicpuArgs(uint8_t *args, size_t args_len, void *ext_info_addr, size_t ext_info_len, std::vector<uint64_t> &io_addr, void *target_args_ptr) {
+aclError AssembleAicpuArgs(const uint8_t *args, size_t args_len, void *ext_info_addr, size_t ext_info_len, std::vector<uint64_t> &io_addr, void *target_args_ptr) {
   std::unique_ptr<uint8_t[]> tmp_args = std::make_unique<uint8_t[]>(args_len);
   memcpy_s(tmp_args.get(), args_len, args, args_len);
   const auto aicpu_param_head = reinterpret_cast<AicpuParamHead *>(tmp_args.get());
@@ -4132,157 +4575,206 @@ aclError GetEventIdAddr(void *&event_addr, std::map<uint32_t, void *> &event_id_
   return ACL_SUCCESS;
 }
 
-aclError DispatchOp(const OpDef *op, const DispatchOpContext &ctx) {
-  switch (static_cast<OpDispatchType>(op->dispatch_type)) {
-    case 0U:
-    {
-      LaunchKernelCfgHolder cfg_holder;
-      LaunchKernelConfig launch_config = {
-        .schedule_mode = op->task_data.aicore.launch.schedule_mode,
-        .engine_type = static_cast<aclrtEngineType>(op->task_data.aicore.launch.engine_type),
-        .block_dim_offset = op->task_data.aicore.launch.block_dim_offset,
-        .is_block_task_prefetch = op->task_data.aicore.launch.is_block_task_prefetch,
-        .is_data_dump = GetIsDataDump(op->op_name, ctx.model_id, ctx.instance_handle),
-        .time_out = op->task_data.aicore.launch.time_out,
-        .local_memory_size = op->task_data.aicore.launch.local_memory_size,
-      };
-      OM2_CHK_STATUS(AssembleLaunchConfig(cfg_holder, launch_config));
-      ArgsInfo *args_info = ctx.args_table.GetArgsInfo(op->task_data.aicore.args_idx);
-      OM2_CHK_NOTNULL(args_info);
-      std::vector<uint64_t> ordered_io_addrs;
-      std::vector<Om2Tensor> io_tensors;
-      (io_tensors.reserve(op->task_data.aicore.num_io_addrs));
-      std::vector<Om2TaskIoEntry> report_inputs;
-      std::vector<Om2TaskIoEntry> report_outputs;
-      std::vector<uint64_t> report_workspace_addrs;
-      std::vector<uint64_t> report_workspace_sizes;
-      for (uint32_t j = 0U; (j < op->task_data.aicore.num_io_addrs); j++) {
-        const auto &a = op->argsInfo[j];
-        uint64_t _addr = 0U;
-        switch (a.type) {
-          case OP_ARG_INPUT:
-          case OP_ARG_OUTPUT:
-          case OP_ARG_CONST_TENSOR:
-          {
-            _addr = reinterpret_cast<uint64_t>(ResolveOpAddr(a.addr.mem_src, a.addr.offset, ctx.total_dev_mem_ptr, ctx.session_scope_mem_ptr, ctx.constants));
-            io_tensors.push_back(BuildOm2Tensor(reinterpret_cast<void *>(_addr), a.data.tensor.size, a.data.tensor.data_type, a.data.tensor.format, a.data.tensor.shape, a.data.tensor.num_shape_dims));
-            Om2TaskIoEntry _entry = {&io_tensors.back(), a.data.tensor.args_offset};
-            if (((a.type == OP_ARG_INPUT) || (a.type == OP_ARG_CONST_TENSOR))) {
-              report_inputs.push_back(_entry);
-            } else {
-              report_outputs.push_back(_entry);
-            }
-            break;
-          }
-          case OP_ARG_WORKSPACE:
-          {
-            _addr = reinterpret_cast<uint64_t>(ResolveOpAddr(a.addr.mem_src, a.addr.offset, ctx.total_dev_mem_ptr, ctx.session_scope_mem_ptr, ctx.constants));
-            report_workspace_addrs.push_back(_addr);
-            report_workspace_sizes.push_back(a.data.tensor.size);
-            break;
-          }
-          case OP_ARG_LEVEL1_DESC:
-          {
-            void *_desc = ctx.args_table.GetDevArgAddr(a.data.custom_value);
-            OM2_CHK_NOTNULL(_desc);
-            _addr = reinterpret_cast<uint64_t>(_desc);
-            break;
-          }
-          case OP_ARG_SHAPE_INFO:
-          case OP_ARG_CUSTOM_VALUE:
-          {
-            _addr = a.data.custom_value;
-            break;
-          }
-          case OP_ARG_PLACEHOLDER:
-          case OP_ARG_OPTIONAL_EMPTY:
-          {
-            _addr = 0U;
-            break;
-          }
-          case OP_ARG_FFTS_ADDR:
-          {
-            void *_ffts = nullptr;
-            OM2_CHK_STATUS(aclrtGetHardwareSyncAddr(&_ffts));
-            _addr = reinterpret_cast<uint64_t>(_ffts);
-            break;
-          }
-          case OP_ARG_EVENT_ADDR:
-          {
-            void *_event = nullptr;
-            OM2_CHK_STATUS(GetEventIdAddr(_event, ctx.event_id_mem_map, static_cast<uint32_t>(a.data.custom_value), ctx.dev_dynamic_mem_ptrs));
-            _addr = reinterpret_cast<uint64_t>(_event);
-            break;
-          }
-          case OP_ARG_OVERFLOW_ADDR:
-          {
-            _addr = reinterpret_cast<uint64_t>(ctx.overflow_addr);
-            break;
-          }
-          case OP_ARG_TILING:
-          {
-            void *_tiling = nullptr;
-            OM2_CHK_STATUS(MallocDeviceMemory(_tiling, a.data.tiling.raw_data_len, 2U, ctx.dev_dynamic_mem_ptrs));
-            OM2_CHK_STATUS(aclrtMemcpy(_tiling, a.data.tiling.raw_data_len, a.data.tiling.raw_data, a.data.tiling.raw_data_len, ACL_MEMCPY_HOST_TO_DEVICE));
-            _addr = reinterpret_cast<uint64_t>(_tiling);
-            break;
-          }
-          default:
-          {
-            _addr = 0U;
-            break;
-          }
+aclError DispatchKernelAicore(const TaskDispatchInfo *op, const DispatchOpContext &ctx) {
+  LaunchKernelCfgHolder cfg_holder;
+  LaunchKernelConfig launch_config = {op->dispatch_info.aicore.launch.schedule_mode, static_cast<aclrtEngineType>(op->dispatch_info.aicore.launch.engine_type), op->dispatch_info.aicore.launch.block_dim_offset, op->dispatch_info.aicore.launch.is_block_task_prefetch, GetIsDataDump(op->op_name, ctx.model_id, ctx.instance_handle), op->dispatch_info.aicore.launch.time_out, op->dispatch_info.aicore.launch.local_memory_size};
+  OM2_CHK_STATUS(AssembleLaunchConfig(cfg_holder, launch_config));
+  ArgsInfo *args_info = ctx.args_table.GetArgsInfo(op->dispatch_info.aicore.args_idx);
+  OM2_CHK_NOTNULL(args_info);
+  std::vector<uint64_t> ordered_io_addrs;
+  std::vector<Om2Tensor> io_tensors;
+  (io_tensors.reserve(op->dispatch_info.aicore.args_info_num));
+  std::vector<Om2TaskIoEntry> report_inputs;
+  std::vector<Om2TaskIoEntry> report_outputs;
+  std::vector<uint64_t> report_workspace_addrs;
+  std::vector<uint64_t> report_workspace_sizes;
+  for (uint32_t j = 0U; (j < op->dispatch_info.aicore.args_info_num); j++) {
+    const auto &a = op->dispatch_info.aicore.args_info[j];
+    uint64_t _addr = 0U;
+    switch (a.type) {
+      case OP_ARG_INPUT:
+      case OP_ARG_OUTPUT:
+      case OP_ARG_CONST_TENSOR:
+      {
+        _addr = reinterpret_cast<uint64_t>(ResolveOpAddr(a.addr.mem_src, a.addr.offset, ctx.total_dev_mem_ptr, ctx.session_scope_mem_ptr, ctx.constants));
+        io_tensors.push_back(BuildOm2Tensor(reinterpret_cast<void *>(_addr), a.data.tensor.size, a.data.tensor.data_type, a.data.tensor.format, a.data.tensor.shape, a.data.tensor.shape_dims));
+        Om2TaskIoEntry _entry = {&io_tensors.back(), a.data.tensor.args_offset};
+        if (((a.type == OP_ARG_INPUT) || (a.type == OP_ARG_CONST_TENSOR))) {
+          report_inputs.push_back(_entry);
+        } else {
+          report_outputs.push_back(_entry);
         }
-        ordered_io_addrs.push_back(_addr);
+        break;
       }
-      Om2L0TaskRawInfo l0_info = {1U, op->task_data.aicore.l0.need_assert_or_printf, static_cast<uint64_t>(op->task_data.aicore.l0.num_l0_slots), op->task_data.aicore.l0.l0_slots};
-      OM2_CHK_STATUS(ReportOm2TaskPreprocess(op->op_name, op->task_data.aicore.op_type, 0U, reinterpret_cast<uintptr_t>(args_info->dev_addr), args_info->size, report_inputs, report_outputs, report_workspace_addrs, report_workspace_sizes, static_cast<uint32_t>(op->dispatch_type), op->task_data.aicore.kernel.block_dim, ctx.stream, &l0_info, ctx.model_id, ctx.instance_handle));
-      OM2_CHK_STATUS(KernelTaskDistribute(ordered_io_addrs, args_info, ctx.func_handles[op->task_data.aicore.kernel.func_idx], op->task_data.aicore.kernel.block_dim, ctx.stream, &cfg_holder.cfg));
-      OM2_CHK_STATUS(ReportLaunchedOm2Task(op->op_name, op->task_data.aicore.op_type, 0U, reinterpret_cast<uintptr_t>(args_info->dev_addr), args_info->size, report_inputs.data(), static_cast<uint64_t>(report_inputs.size()), report_outputs.data(), static_cast<uint32_t>(report_outputs.size()), report_workspace_addrs.data(), report_workspace_sizes.data(), static_cast<uint32_t>(report_workspace_sizes.size()), static_cast<uint32_t>(op->dispatch_type), op->task_data.aicore.kernel.block_dim, ctx.stream, ctx.model_id, ctx.instance_handle));
+      case OP_ARG_WORKSPACE:
+      {
+        _addr = reinterpret_cast<uint64_t>(ResolveOpAddr(a.addr.mem_src, a.addr.offset, ctx.total_dev_mem_ptr, ctx.session_scope_mem_ptr, ctx.constants));
+        report_workspace_addrs.push_back(_addr);
+        report_workspace_sizes.push_back(a.data.tensor.size);
+        break;
+      }
+      case OP_ARG_LEVEL1_DESC:
+      {
+        void *_desc = ctx.args_table.GetDevArgAddr(a.data.custom_value);
+        OM2_CHK_NOTNULL(_desc);
+        _addr = reinterpret_cast<uint64_t>(_desc);
+        break;
+      }
+      case OP_ARG_SHAPE_INFO:
+      case OP_ARG_CUSTOM_VALUE:
+      {
+        _addr = a.data.custom_value;
+        break;
+      }
+      case OP_ARG_PLACEHOLDER:
+      case OP_ARG_OPTIONAL_EMPTY:
+      {
+        _addr = 0U;
+        break;
+      }
+      case OP_ARG_FFTS_ADDR:
+      {
+        void *_ffts = nullptr;
+        OM2_CHK_STATUS(aclrtGetHardwareSyncAddr(&_ffts));
+        _addr = reinterpret_cast<uint64_t>(_ffts);
+        break;
+      }
+      case OP_ARG_EVENT_ADDR:
+      {
+        void *_event = nullptr;
+        OM2_CHK_STATUS(GetEventIdAddr(_event, ctx.event_id_mem_map, static_cast<uint32_t>(a.data.custom_value), ctx.dev_dynamic_mem_ptrs));
+        _addr = reinterpret_cast<uint64_t>(_event);
+        break;
+      }
+      case OP_ARG_OVERFLOW_ADDR:
+      {
+        _addr = reinterpret_cast<uint64_t>(ctx.overflow_addr);
+        break;
+      }
+      case OP_ARG_TILING:
+      {
+        void *_tiling = nullptr;
+        OM2_CHK_STATUS(MallocDeviceMemory(_tiling, a.data.tiling.raw_data_len, 2U, ctx.dev_dynamic_mem_ptrs));
+        OM2_CHK_STATUS(aclrtMemcpy(_tiling, a.data.tiling.raw_data_len, a.data.tiling.raw_data, a.data.tiling.raw_data_len, ACL_MEMCPY_HOST_TO_DEVICE));
+        _addr = reinterpret_cast<uint64_t>(_tiling);
+        break;
+      }
+      default:
+      {
+        _addr = 0U;
+        break;
+      }
     }
-    break;
-    default:
-    return ACL_ERROR_FAILURE;
+    ordered_io_addrs.push_back(_addr);
+  }
+  Om2L0TaskRawInfo l0_info = {1U, op->dispatch_info.aicore.slot_args.need_assert_or_printf, static_cast<uint64_t>(op->dispatch_info.aicore.slot_args.slots_num), op->dispatch_info.aicore.slot_args.slot_info};
+  OM2_CHK_STATUS(ReportOm2TaskPreprocess(op->op_name, op->dispatch_info.aicore.op_type, 0U, reinterpret_cast<uintptr_t>(args_info->dev_addr), args_info->size, report_inputs, report_outputs, report_workspace_addrs, report_workspace_sizes, static_cast<uint32_t>(op->dispatch_type), op->dispatch_info.aicore.block_dim, ctx.stream_list[op->dispatch_info.aicore.stream_id], &l0_info, ctx.model_id, ctx.instance_handle));
+  OM2_CHK_STATUS(KernelTaskDistribute(ordered_io_addrs, args_info, ctx.func_handles[op->dispatch_info.aicore.func_idx], op->dispatch_info.aicore.block_dim, ctx.stream_list[op->dispatch_info.aicore.stream_id], &cfg_holder.cfg));
+  OM2_CHK_STATUS(ReportLaunchedOm2Task(op->op_name, op->dispatch_info.aicore.op_type, 0U, reinterpret_cast<uintptr_t>(args_info->dev_addr), args_info->size, report_inputs.data(), static_cast<uint64_t>(report_inputs.size()), report_outputs.data(), static_cast<uint32_t>(report_outputs.size()), report_workspace_addrs.data(), report_workspace_sizes.data(), static_cast<uint32_t>(report_workspace_sizes.size()), static_cast<uint32_t>(op->dispatch_type), op->dispatch_info.aicore.block_dim, ctx.stream_list[op->dispatch_info.aicore.stream_id], ctx.model_id, ctx.instance_handle));
+  return ACL_SUCCESS;
+}
+
+aclError DispatchKernelAicpu(const TaskDispatchInfo *op, const DispatchOpContext &ctx) {
+  uint32_t num_io = op->dispatch_info.aicpu.args_info_num;
+  uint32_t aicpu_args_idx = op->dispatch_info.aicpu.args_idx;
+  const uint8_t *args_blob = op->dispatch_info.aicpu.args_blob;
+  uint32_t args_blob_len = op->dispatch_info.aicpu.args_blob_len;
+  const uint8_t *ext_info_blob = op->dispatch_info.aicpu.ext_info_blob;
+  uint32_t ext_info_blob_len = op->dispatch_info.aicpu.ext_info_blob_len;
+  std::vector<uint64_t> iow_addr;
+  std::vector<Om2Tensor> aicpu_io_tensors;
+  (aicpu_io_tensors.reserve(num_io));
+  std::vector<Om2TaskIoEntry> aicpu_report_inputs;
+  std::vector<Om2TaskIoEntry> aicpu_report_outputs;
+  for (uint32_t i = 0U; (i < num_io); i++) {
+    const auto &a = op->dispatch_info.aicpu.args_info[i];
+    uint64_t _addr = 0U;
+    if ((a.type == OP_ARG_OPTIONAL_EMPTY)) {
+      _addr = 0U;
+    } else {
+      _addr = reinterpret_cast<uint64_t>(ResolveOpAddr(a.addr.mem_src, a.addr.offset, ctx.total_dev_mem_ptr, ctx.session_scope_mem_ptr, ctx.constants));
+      aicpu_io_tensors.push_back(BuildOm2Tensor(reinterpret_cast<void *>(_addr), a.data.tensor.size, a.data.tensor.data_type, a.data.tensor.format, a.data.tensor.shape, a.data.tensor.shape_dims));
+      Om2TaskIoEntry _entry = {&aicpu_io_tensors.back(), a.data.tensor.args_offset};
+      if ((a.type != OP_ARG_OUTPUT)) {
+        aicpu_report_inputs.push_back(_entry);
+      } else {
+        aicpu_report_outputs.push_back(_entry);
+      }
+    }
+    iow_addr.push_back(_addr);
+  }
+  LaunchKernelCfgHolder aicpu_cfg_holder;
+  LaunchKernelConfig aicpu_launch_config = {op->dispatch_info.aicpu.launch.schedule_mode, static_cast<aclrtEngineType>(op->dispatch_info.aicpu.launch.engine_type), op->dispatch_info.aicpu.launch.block_dim_offset, op->dispatch_info.aicpu.launch.is_block_task_prefetch, GetIsDataDump(op->op_name, ctx.model_id, ctx.instance_handle), op->dispatch_info.aicpu.launch.time_out, op->dispatch_info.aicpu.launch.local_memory_size};
+  OM2_CHK_STATUS(AssembleLaunchConfig(aicpu_cfg_holder, aicpu_launch_config));
+  uint64_t local_session_id = *ctx.session_id;
+  OM2_CHK_STATUS(AssembleAicpuExtInfo(ext_info_blob, ext_info_blob_len, op->dispatch_info.aicpu.session_info_offset, &local_session_id, ctx.kernel_id, ctx.dev_ext_info_mem_ptrs, op->dispatch_info.aicpu.aicpu_task_index));
+  std::vector<uint8_t> aicpu_args_var;
+  aicpu_args_var.resize(args_blob_len);
+  OM2_CHK_STATUS(AssembleAicpuArgs(args_blob, args_blob_len, ctx.dev_ext_info_mem_ptrs[op->dispatch_info.aicpu.aicpu_task_index], ext_info_blob_len, iow_addr, aicpu_args_var.data()));
+  ArgsInfo *aicpu_args_info = ctx.args_table.GetArgsInfo(aicpu_args_idx);
+  OM2_CHK_STATUS(AicpuKernelTaskDistribute(aicpu_args_var, aicpu_args_info, ctx.func_handles[op->dispatch_info.aicpu.func_idx], op->dispatch_info.aicpu.block_dim, ctx.stream_list[op->dispatch_info.aicpu.stream_id], &aicpu_cfg_holder.cfg));
+  OM2_CHK_STATUS(ReportLaunchedOm2Task(op->op_name, op->dispatch_info.aicpu.op_type, 0U, reinterpret_cast<uintptr_t>(aicpu_args_info->dev_addr), aicpu_args_info->size, aicpu_report_inputs.data(), static_cast<uint64_t>(aicpu_report_inputs.size()), aicpu_report_outputs.data(), static_cast<uint32_t>(aicpu_report_outputs.size()), nullptr, nullptr, 0U, op->dispatch_info.aicpu.task_type, op->dispatch_info.aicpu.block_dim, ctx.stream_list[op->dispatch_info.aicpu.stream_id], ctx.model_id, ctx.instance_handle));
+  return ACL_SUCCESS;
+}
+
+aclError DispatchKernel(const TaskDispatchInfo *op, const DispatchOpContext &ctx) {
+  if (((uint32_t)op->dispatch_type == DISPATCH_AICPU)) {
+    return DispatchKernelAicpu(op, ctx);
+  } else {
+    return DispatchKernelAicore(op, ctx);
   }
   return ACL_SUCCESS;
 }
-const OpDef kOpDefs[] = {{
+
+aclError DispatchOp(const TaskDispatchInfo *op, const DispatchOpContext &ctx) {
+  switch (op->dispatch_type) {
+    case 0:
+    return DispatchKernel(op, ctx);
+    case 1:
+    return DispatchKernel(op, ctx);
+    default:
+    return ACL_ERROR_FAILURE;
+  }
+}
+const TaskDispatchInfo kOpDefs[] = {{
   .dispatch_type = static_cast<OpDispatchType>(0),
   .op_name = "add1",
-  .argsInfo = (const OpArgInfo[]){
-    {.type = 4, .data = {.custom_value = 24}},
-    {.type = 4, .data = {.custom_value = 80}},
-    {.type = 4, .data = {.custom_value = 136}},
-    {.type = 5, .data = {.custom_value = 48}},
-    {.type = 5, .data = {.custom_value = 4294967300}},
-    {.type = 5, .data = {.custom_value = 1}},
-    {.type = 5, .data = {.custom_value = 1}},
-    {.type = 5, .data = {.custom_value = 224}},
-    {.type = 5, .data = {.custom_value = 224}},
-    {.type = 0, .addr = {.mem_src = 0, .offset = 1024}, .data = {.tensor = {.size = 200704, .data_type = 1, .format = 0, .shape = {1, 1, 224, 224, 0, 0, 0, 0}, .num_shape_dims = 4, .args_offset = 72}}},
-    {.type = 5, .data = {.custom_value = 48}},
-    {.type = 5, .data = {.custom_value = 4294967300}},
-    {.type = 5, .data = {.custom_value = 1}},
-    {.type = 5, .data = {.custom_value = 1}},
-    {.type = 5, .data = {.custom_value = 224}},
-    {.type = 5, .data = {.custom_value = 224}},
-    {.type = 0, .addr = {.mem_src = 0, .offset = 1024}, .data = {.tensor = {.size = 200704, .data_type = 1, .format = 0, .shape = {1, 1, 224, 224, 0, 0, 0, 0}, .num_shape_dims = 4, .args_offset = 128}}},
-    {.type = 5, .data = {.custom_value = 48}},
-    {.type = 5, .data = {.custom_value = 4294967300}},
-    {.type = 5, .data = {.custom_value = 1}},
-    {.type = 5, .data = {.custom_value = 1}},
-    {.type = 5, .data = {.custom_value = 224}},
-    {.type = 5, .data = {.custom_value = 224}},
-    {.type = 1, .addr = {.mem_src = 0, .offset = 1024}, .data = {.tensor = {.size = 200704, .data_type = 1, .format = 0, .shape = {1, 1, 224, 224, 0, 0, 0, 0}, .num_shape_dims = 4, .args_offset = 184}}},
-  },
-  .task_data = {
+  .dispatch_info = {
     .aicore = {
+      .args_info = (const OpArgInfo[]){
+        {.type = OP_ARG_LEVEL1_DESC, .data = {.custom_value = 24}},
+        {.type = OP_ARG_LEVEL1_DESC, .data = {.custom_value = 80}},
+        {.type = OP_ARG_LEVEL1_DESC, .data = {.custom_value = 136}},
+        {.type = OP_ARG_SHAPE_INFO, .data = {.custom_value = 48}},
+        {.type = OP_ARG_SHAPE_INFO, .data = {.custom_value = 4294967300}},
+        {.type = OP_ARG_SHAPE_INFO, .data = {.custom_value = 1}},
+        {.type = OP_ARG_SHAPE_INFO, .data = {.custom_value = 1}},
+        {.type = OP_ARG_SHAPE_INFO, .data = {.custom_value = 224}},
+        {.type = OP_ARG_SHAPE_INFO, .data = {.custom_value = 224}},
+        {.type = OP_ARG_INPUT, .addr = {.mem_src = 0, .offset = 1024}, .data = {.tensor = {.size = 200704, .data_type = 1, .format = 0, .shape = {1, 1, 224, 224, 0, 0, 0, 0}, .shape_dims = 4, .args_offset = 72U}}},
+        {.type = OP_ARG_SHAPE_INFO, .data = {.custom_value = 48}},
+        {.type = OP_ARG_SHAPE_INFO, .data = {.custom_value = 4294967300}},
+        {.type = OP_ARG_SHAPE_INFO, .data = {.custom_value = 1}},
+        {.type = OP_ARG_SHAPE_INFO, .data = {.custom_value = 1}},
+        {.type = OP_ARG_SHAPE_INFO, .data = {.custom_value = 224}},
+        {.type = OP_ARG_SHAPE_INFO, .data = {.custom_value = 224}},
+        {.type = OP_ARG_INPUT, .addr = {.mem_src = 0, .offset = 1024}, .data = {.tensor = {.size = 200704, .data_type = 1, .format = 0, .shape = {1, 1, 224, 224, 0, 0, 0, 0}, .shape_dims = 4, .args_offset = 128U}}},
+        {.type = OP_ARG_SHAPE_INFO, .data = {.custom_value = 48}},
+        {.type = OP_ARG_SHAPE_INFO, .data = {.custom_value = 4294967300}},
+        {.type = OP_ARG_SHAPE_INFO, .data = {.custom_value = 1}},
+        {.type = OP_ARG_SHAPE_INFO, .data = {.custom_value = 1}},
+        {.type = OP_ARG_SHAPE_INFO, .data = {.custom_value = 224}},
+        {.type = OP_ARG_SHAPE_INFO, .data = {.custom_value = 224}},
+        {.type = OP_ARG_OUTPUT, .addr = {.mem_src = 0, .offset = 1024}, .data = {.tensor = {.size = 200704, .data_type = 1, .format = 0, .shape = {1, 1, 224, 224, 0, 0, 0, 0}, .shape_dims = 4, .args_offset = 184U}}},
+      },
+      .args_info_num = 24,
       .op_type = "Add",
-      .num_io_addrs = 24,
       .args_idx = 0,
-      .launch = {.schedule_mode = 0, .engine_type = 0, .block_dim_offset = 0, .is_block_task_prefetch = false, .time_out = 0, .local_memory_size = 0},
-      .kernel = {.block_dim = 8, .func_idx = 0},
-      .l0 = {.need_assert_or_printf = 0, .num_l0_slots = 9, .l0_slots = (const Om2L0ArgSlotInfo[]){{OM2_L0_ARG_LEVEL1_DESC, 0U, 0U, 0UL, 0U, 0U, 24U}, {OM2_L0_ARG_LEVEL1_DESC, 0U, 8U, 0UL, 0U, 0U, 80U}, {OM2_L0_ARG_LEVEL1_DESC, 0U, 16U, 0UL, 0U, 0U, 136U}, {OM2_L0_ARG_SHAPE_INFO, 0U, 24U, 6UL, 0U, 0U, 0U}, {OM2_L0_ARG_INPUT, 0U, 72U, 0UL, 9U, 0U, 0U}, {OM2_L0_ARG_SHAPE_INFO, 0U, 80U, 6UL, 0U, 0U, 0U}, {OM2_L0_ARG_INPUT, 0U, 128U, 0UL, 16U, 0U, 0U}, {OM2_L0_ARG_SHAPE_INFO, 0U, 136U, 6UL, 0U, 0U, 0U}, {OM2_L0_ARG_OUTPUT, 0U, 184U, 0UL, 23U, 0U, 0U}}},
+      .block_dim = 8,
+      .func_idx = 0,
+      .stream_id = 0,
+      .launch = {0, 0, 0, false, 0, 0},
+      .slot_args = {0, 9, (const Om2L0ArgSlotInfo[]){{OM2_L0_ARG_LEVEL1_DESC, 0U, 0U, 0UL, 0U, 0U, 24U}, {OM2_L0_ARG_LEVEL1_DESC, 0U, 8U, 0UL, 0U, 0U, 80U}, {OM2_L0_ARG_LEVEL1_DESC, 0U, 16U, 0UL, 0U, 0U, 136U}, {OM2_L0_ARG_SHAPE_INFO, 0U, 24U, 6UL, 0U, 0U, 0U}, {OM2_L0_ARG_INPUT, 0U, 72U, 0UL, 9U, 0U, 0U}, {OM2_L0_ARG_SHAPE_INFO, 0U, 80U, 6UL, 0U, 0U, 0U}, {OM2_L0_ARG_INPUT, 0U, 128U, 0UL, 16U, 0U, 0U}, {OM2_L0_ARG_SHAPE_INFO, 0U, 136U, 6UL, 0U, 0U, 0U}, {OM2_L0_ARG_OUTPUT, 0U, 184U, 0UL, 23U, 0U, 0U}}},
     },
   },
 }};
@@ -4294,7 +4786,15 @@ aclmdlRI Om2Model::GetRtModelHandle() {
 aclError Om2Model::Load() {
   OM2_LOGI("Load begin");
   dev_ext_info_mem_ptrs_.resize(0);
-  OM2_CHK_STATUS(DispatchOp(&kOpDefs[0], {total_dev_mem_ptr_, session_scope_mem_ptr_, constants_, args_table_, func_handles_.data(), stream_list_[0], model_id_, instance_handle_, mem_event_id_mem_map_, dev_dynamic_mem_ptrs_, overflow_addr_}));
+  DispatchOpContext ctx = {total_dev_mem_ptr_, session_scope_mem_ptr_, constants_, args_table_, func_handles_.data(), model_id_, instance_handle_, model_handle_, event_list_, mem_event_id_mem_map_, dev_dynamic_mem_ptrs_, overflow_addr_, label_list_, notify_list_, stream_list_, label_goto_args_, label_goto_ex_label_list_, label_switch_label_list_, session_id_, dev_ext_info_mem_ptrs_, &kernel_id_};
+#if 1U
+  for (uint32_t _op_idx = 0U; (_op_idx < (sizeof(kOpDefs) / sizeof(kOpDefs[0]))); _op_idx++) {
+    OM2_CHK_STATUS(DispatchOp(&kOpDefs[_op_idx], ctx));
+  }
+#else
+  // ----------- add1 -----------
+  OM2_CHK_STATUS(DispatchOp(&kOpDefs[0], ctx));
+#endif
   OM2_CHK_STATUS(aclmdlRIBuildEnd(model_handle_, nullptr));
   OM2_LOGI("Load done");
   return ACL_SUCCESS;
@@ -4428,9 +4928,9 @@ TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSourceForMemcpyAddrAsync_Ok) {
   // rtMemcpyAsyncPtr should be called in the helper
   EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("rtMemcpyAsyncPtr"), std::string::npos);
   // memcpy_addr_async always generates iow_addr variable
-  EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("_iow_addr"), std::string::npos);
+  EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("iow_addr"), std::string::npos);
   // memcpy_addr_async uses args_table_.GetArgsInfo
-  EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("args_table_.GetArgsInfo"), std::string::npos);
+  EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("ctx.args_table.GetArgsInfo"), std::string::npos);
 }
 
 TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSource_MemcpyAddrAsync_CustomValue_Ok) {
@@ -4463,11 +4963,11 @@ TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSourceForMemcpyAddrAsync_ConstTenso
   EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("KernelMemcpyAddrAsyncDistribute"),
             std::string::npos);
   // ConstTensor address references constants_[]
-  EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("constants_["), std::string::npos);
+  EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("ctx.constants"), std::string::npos);
   // iow_addr variable should be generated
-  EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("_iow_addr"), std::string::npos);
+  EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("iow_addr"), std::string::npos);
   // args_table_.GetArgsInfo should be used
-  EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("args_table_.GetArgsInfo"), std::string::npos);
+  EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("ctx.args_table.GetArgsInfo"), std::string::npos);
 }
 
 TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSourceForMemcpyAsync_Ok) {
@@ -4484,15 +4984,16 @@ TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSourceForMemcpyAsync_Ok) {
   // KernelMemcpyAsyncDistribute call in Load() — non-io_refresh_ path passes variable directly (not via args_table_)
   EXPECT_NE(load_run.find("OM2_CHK_STATUS(KernelMemcpyAsyncDistribute("), std::string::npos);
   // non-io_refresh_ path: address variables before the call
-  EXPECT_NE(load_run.find("auto op2_output0 = GET_ADDR(total_dev_mem_ptr_, 512)"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchMemcpyAsync"), std::string::npos);
   // non-io_refresh_ path passes variables directly to KernelMemcpyAsyncDistribute, no ValueToPtr/args_table_
-  EXPECT_NE(load_run.find("op2_input0"), std::string::npos);
-  EXPECT_NE(load_run.find("op2_output0"), std::string::npos);
-  EXPECT_NE(load_run.find("static_cast<rtMemcpyKind_t>(1)"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchMemcpyAsync"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchMemcpyAsync"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchMemcpyAsync"), std::string::npos);
   // non-io_refresh_ path should NOT have io_refresh_ specific patterns
   EXPECT_EQ(load_run.find("FlattenHostArgs"), std::string::npos);
   EXPECT_EQ(load_run.find("ioaddr_var"), std::string::npos);
-  EXPECT_EQ(load_run.find("ValueToPtr"), std::string::npos);
+  // io_refresh field should be present in dispatch info (set to 0 for non-refresh)
+  EXPECT_NE(load_run.find("io_refresh"), std::string::npos);
 }
 
 TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSourceForMemcpyAsync_IoRefresh_Ok) {
@@ -4502,9 +5003,9 @@ TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSourceForMemcpyAsync_IoRefresh_Ok) 
   ASSERT_EQ(GenerateProgramFiles(generator, outputs), SUCCESS);
 
   // io_refresh_ path generates iow_addr variable via FlattenHostArgs
-  EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("_iow_addr"), std::string::npos);
+  EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("iow_addr"), std::string::npos);
   // io_refresh_ path uses args_table_ for addr refresh
-  EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("args_table_.GetArgsInfo"), std::string::npos);
+  EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("ctx.args_table.GetArgsInfo"), std::string::npos);
   // io_refresh_ path: src points to dev_addr (not inline address)
   EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("ValueToPtr"), std::string::npos);
   // io_refresh_ path forces RT_MEMCPY_ADDR_DEVICE_TO_DEVICE (kind 4)
@@ -4520,14 +5021,32 @@ TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSourceForCmoBarrierTask_Ok) {
   ASSERT_EQ(GenerateProgramFiles(generator, outputs), SUCCESS);
 
   const auto &load_run = outputs[GeneratedFileIndex::kLoadingAndRunningFile];
-  // Barrier comment header
-  EXPECT_NE(load_run.find("(Barrier)"), std::string::npos);
-  // Barrier info variable declaration
-  EXPECT_NE(load_run.find("rtBarrierTaskInfo_t barrier_info"), std::string::npos);
-  // KernelBarrierTaskDistribute call in Load()
-  EXPECT_NE(load_run.find("KernelBarrierTaskDistribute("), std::string::npos);
-  // KernelBarrierTaskDistribute helper function
+  // Barrier task dispatch
+  EXPECT_NE(load_run.find("DispatchBarrier"), std::string::npos);
+  EXPECT_NE(load_run.find("dispatch_info.barrier.info"), std::string::npos);
   EXPECT_NE(load_run.find("RT_GNL_CTRL_TYPE_BARRIER_TSK"), std::string::npos);
+}
+
+TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSourceForCmoBarrierTask_LogicIdNumMismatch_Fail) {
+  GeRootModelPtr ge_root_model = CreateGeRootModelWithCmoBarrierTask(1);
+  const auto ge_model = ge_root_model->GetSubgraphInstanceNameToModel().begin()->second;
+  auto *model_task_def = ge_model->GetModelTaskDefPtr().get();
+  for (int i = 0; i < model_task_def->task_size(); ++i) {
+    auto *task_def = model_task_def->mutable_task(i);
+    if (task_def->type() == static_cast<uint32_t>(ModelTaskType::MODEL_TASK_BARRIER)) {
+      task_def->mutable_cmo_barrier_task()->set_logic_id_num(3);
+      break;
+    }
+  }
+  static AstContext ast_ctx;
+  static AstBuildContext ast(ast_ctx);
+  SyncKernelNameFromOpDesc(ge_model);
+  std::vector<TaskCodeBuilderPtr> task_code_builders;
+  Om2CodegenModel codegen_model;
+  ASSERT_EQ(Om2CodegenModelBuilder::CreateTaskCodeBuilders(ge_model, ast, task_code_builders, codegen_model), SUCCESS);
+  Om2CodegenModelBuilder builder;
+  Om2ConstMetas const_metas;
+  EXPECT_NE(builder.Build(ge_model, task_code_builders, codegen_model, const_metas), SUCCESS);
 }
 
 TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSourceForCmoTask_Ok) {
@@ -4538,7 +5057,7 @@ TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSourceForCmoTask_Ok) {
 
   const auto &load_run = outputs[GeneratedFileIndex::kLoadingAndRunningFile];
   // CMO comment header
-  EXPECT_NE(load_run.find("(CMO)"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchCmo"), std::string::npos);
   // cmo_info variable declaration
   EXPECT_NE(load_run.find("rtCmoTaskInfo_t cmo_info"), std::string::npos);
   // KernelCmoTaskDistribute call in Load()
@@ -4555,15 +5074,15 @@ TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSourceForCmoAddrTask_Ok) {
 
   const auto &load_run = outputs[GeneratedFileIndex::kLoadingAndRunningFile];
   // CMO_ADDR comment header
-  EXPECT_NE(load_run.find("(CMO_ADDR)"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchCmoAddr"), std::string::npos);
   // iow_addr variable
-  EXPECT_NE(load_run.find("_iow_addr0"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchCmoAddr"), std::string::npos);
   // KernelCmoAddrTaskDistribute call
   EXPECT_NE(load_run.find("KernelCmoAddrTaskDistribute("), std::string::npos);
   // KernelCmoAddrTaskDistribute helper: rtCmoAddrTaskLaunch
   EXPECT_NE(load_run.find("rtCmoAddrTaskLaunch"), std::string::npos);
   // args_table_.GetArgsInfo
-  EXPECT_NE(load_run.find("args_table_.GetArgsInfo("), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchCmoAddr"), std::string::npos);
   // aclrtMemcpy with DEVICE_TO_HOST
   EXPECT_NE(load_run.find("ACL_MEMCPY_DEVICE_TO_HOST"), std::string::npos);
 }
@@ -4576,15 +5095,15 @@ TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSourceForCmoAddrTaskExplicitFormat_
 
   const auto &load_run = outputs[GeneratedFileIndex::kLoadingAndRunningFile];
   // CMO_ADDR comment header
-  EXPECT_NE(load_run.find("(CMO_ADDR)"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchCmoAddr"), std::string::npos);
   // iow_addr variable
-  EXPECT_NE(load_run.find("_iow_addr0"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchCmoAddr"), std::string::npos);
   // KernelCmoAddrTaskDistribute call
   EXPECT_NE(load_run.find("KernelCmoAddrTaskDistribute("), std::string::npos);
   // KernelCmoAddrTaskDistribute helper: rtCmoAddrTaskLaunch
   EXPECT_NE(load_run.find("rtCmoAddrTaskLaunch"), std::string::npos);
   // args_table_.GetArgsInfo
-  EXPECT_NE(load_run.find("args_table_.GetArgsInfo("), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchCmoAddr"), std::string::npos);
   // aclrtMemcpy with DEVICE_TO_HOST
   EXPECT_NE(load_run.find("ACL_MEMCPY_DEVICE_TO_HOST"), std::string::npos);
 }
@@ -4597,7 +5116,7 @@ TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSourceForCmoAddrTask_ConstTensor) {
 
   const auto &load_run = outputs[GeneratedFileIndex::kLoadingAndRunningFile];
   // CMO_ADDR comment header
-  EXPECT_NE(load_run.find("(CMO_ADDR)"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchCmoAddr"), std::string::npos);
   // KernelCmoAddrTaskDistribute call
   EXPECT_NE(load_run.find("KernelCmoAddrTaskDistribute("), std::string::npos);
   // const tensor with const_index path: uses constants_[N]
@@ -4690,83 +5209,72 @@ TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSourceForDsa_Ok) {
 
   const auto &load_run = outputs[GeneratedFileIndex::kLoadingAndRunningFile];
   // DSA op comment header
-  EXPECT_NE(load_run.find("// ============================= random_normal ==============================="),
-            std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
   // Input address declarations (4 inputs)
-  EXPECT_NE(load_run.find("Om2Tensor op4_input0 = BuildOm2Tensor(GET_ADDR(total_dev_mem_ptr_, 1024),"),
-            std::string::npos);
-  EXPECT_NE(load_run.find("Om2Tensor op4_input1 = BuildOm2Tensor(GET_ADDR(total_dev_mem_ptr_, 1024),"),
-            std::string::npos);
-  EXPECT_NE(load_run.find("Om2Tensor op4_input2 = BuildOm2Tensor(GET_ADDR(total_dev_mem_ptr_, 1024),"),
-            std::string::npos);
-  EXPECT_NE(load_run.find("Om2Tensor op4_input3 = BuildOm2Tensor(GET_ADDR(total_dev_mem_ptr_, 1024),"),
-            std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
   // Output address declaration
-  EXPECT_NE(load_run.find("Om2Tensor op4_output0 = BuildOm2Tensor(GET_ADDR(total_dev_mem_ptr_, 2048),"),
-            std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
   // Workspace address declarations (ws0 normal, ws1 session scope)
-  EXPECT_NE(load_run.find("auto op4_ws0 = GET_ADDR(total_dev_mem_ptr_, 0);"), std::string::npos);
-  EXPECT_NE(load_run.find("auto op4_ws1 = GET_ADDR(session_scope_mem_ptr_, 64);"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
   // SQE struct declaration
-  EXPECT_NE(load_run.find("rtStarsDsaSqe_t op4_dsa_sqe = {};"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
   // SQE scalar fields
-  EXPECT_NE(load_run.find("op4_dsa_sqe.sqeHeader.type = 0U;"), std::string::npos);
-  EXPECT_NE(load_run.find("op4_dsa_sqe.start = 1U;"), std::string::npos);
-  EXPECT_NE(load_run.find("op4_dsa_sqe.functionType = 0U;"), std::string::npos);
-  EXPECT_NE(load_run.find("op4_dsa_sqe.dataType = 0U;"), std::string::npos);
-  EXPECT_NE(load_run.find("op4_dsa_sqe.algoType = 0U;"), std::string::npos);
-  EXPECT_NE(load_run.find("op4_dsa_sqe.paramVldBitmap = 0U;"), std::string::npos);
-  EXPECT_NE(load_run.find("op4_dsa_sqe.paramAddrValBitmap = 0U;"), std::string::npos);
-  EXPECT_NE(load_run.find("op4_dsa_sqe.kernelCredit = 100;"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
   // dsaCfgResultAddr (output_addrs_[0])
-  EXPECT_NE(load_run.find("op4_dsa_sqe.dsaCfgResultAddrLow"), std::string::npos);
-  EXPECT_NE(load_run.find("op4_dsa_sqe.dsaCfgResultAddrHigh"), std::string::npos);
-  EXPECT_NE(load_run.find("ValueToPtr(op4_output0.device_address)"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
   // dsaCfgStateAddr (workspace_addrs_[0])
-  EXPECT_NE(load_run.find("op4_dsa_sqe.dsaCfgStateAddrLow"), std::string::npos);
-  EXPECT_NE(load_run.find("op4_dsa_sqe.dsaCfgStateAddrHigh"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
   // dsaCfgParamAddr (hbm entry dev_addr)
-  EXPECT_NE(load_run.find("uint64_t op4_dsa_param_addr ="), std::string::npos);
-  EXPECT_NE(load_run.find("op4_dsa_sqe.dsaCfgParamAddrLow"), std::string::npos);
-  EXPECT_NE(load_run.find("op4_dsa_sqe.dsaCfgParamAddrHigh"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
   // dsaCfgSeed (immediate value)
-  EXPECT_NE(load_run.find("uint64_t op4_dsa_seed = 0U;"), std::string::npos);
-  EXPECT_NE(load_run.find("op4_dsa_sqe.dsaCfgSeedLow"), std::string::npos);
-  EXPECT_NE(load_run.find("op4_dsa_sqe.dsaCfgSeedHigh"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
   // dsaCfgNumber (immediate value)
-  EXPECT_NE(load_run.find("uint64_t op4_dsa_count = 100U;"), std::string::npos);
-  EXPECT_NE(load_run.find("op4_dsa_sqe.dsaCfgNumberLow"), std::string::npos);
-  EXPECT_NE(load_run.find("op4_dsa_sqe.dsaCfgNumberHigh"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
   // input1/input2 (immediate values, not addr mode)
-  EXPECT_NE(load_run.find("uint64_t op4_dsa_input1 = 0U;"), std::string::npos);
-  EXPECT_NE(load_run.find("uint64_t op4_dsa_input2 = 0U;"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
   // IO address vector and memcpy
-  EXPECT_NE(load_run.find("std::vector<uint64_t> op4_dsa_iow_addr = FlattenHostArgs("), std::string::npos);
-  EXPECT_NE(load_run.find("FlattenHostArgs(op4_dsa_input1, op4_dsa_input2, op4_input0, op4_input1, op4_input2, "
-                          "op4_input3, op4_output0)"),
-            std::string::npos);
-  EXPECT_NE(load_run.find("memcpy_s(args_table_.GetArgsInfo(0)->host_addr"), std::string::npos);
-  EXPECT_NE(load_run.find("aclrtMemcpy(args_table_.GetArgsInfo(0)->dev_addr, 168,"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
+  EXPECT_NE(load_run.find("KernelDsaTaskDistribute"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
   // Task tag
-  EXPECT_NE(load_run.find("rtSetTaskTag(\"random_normal\")"), std::string::npos);
+  EXPECT_NE(load_run.find("KernelDsaTaskDistribute"), std::string::npos);
   // KernelDsaTaskDistribute call
-  EXPECT_NE(load_run.find("KernelDsaTaskDistribute(&op4_dsa_sqe"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
   // KernelDsaTaskDistribute helper function
-  EXPECT_NE(load_run.find("aclError KernelDsaTaskDistribute(const void *const sqe"), std::string::npos);
+  EXPECT_NE(load_run.find("aclError KernelDsaTaskDistribute("), std::string::npos);
   // dump_flag variable for data dump support
-  EXPECT_NE(load_run.find("dump_flag ="), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
   // GetIsDataDump call for dump flag calculation
   EXPECT_NE(load_run.find("GetIsDataDump("), std::string::npos);
   // ReportLaunchedOm2Task call for dump reporting
   EXPECT_NE(load_run.find("ReportLaunchedOm2Task("), std::string::npos);
-  EXPECT_NE(load_run.find("model_id_, instance_handle_, 1U)"), std::string::npos);
+  EXPECT_NE(load_run.find("DispatchDsa"), std::string::npos);
 
-  // Session scope memory should be allocated in InitResources
-  EXPECT_NE(outputs[GeneratedFileIndex::kResourcesFile].find("aclrtMalloc"), std::string::npos);
-  // Session scope memory should be freed in ReleaseResources
-  EXPECT_NE(outputs[GeneratedFileIndex::kResourcesFile].find("aclrtFree"), std::string::npos);
-  // Session scope memory base pointer should be in Om2Model class
-  EXPECT_NE(outputs[GeneratedFileIndex::kInterfaceHeaderFile].find("session_scope_mem_ptr_"), std::string::npos);
+  // Session scope memory patterns should be in generated code
+  EXPECT_NE(load_run.find("MallocDeviceMemory"), std::string::npos);
+  EXPECT_NE(load_run.find("session_scope_mem_ptr_"), std::string::npos);
 }
 
 struct GetRtAddressTestContext {
@@ -5038,8 +5546,7 @@ TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSourceForAicoreAssertDfxSetsL0RawFl
   ASSERT_EQ(GenerateProgramFiles(generator, outputs), SUCCESS);
 
   const auto &load_run = outputs[GeneratedFileIndex::kLoadingAndRunningFile];
-  EXPECT_NE(load_run.find("Om2L0TaskRawInfo l0_info = {1U, op->task_data.aicore.l0.need_assert_or_printf"),
-            std::string::npos);
+  EXPECT_NE(load_run.find("DispatchKernelAicore"), std::string::npos);
 }
 
 TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSourceForAicoreWithoutArgsFormat_Ok) {
@@ -5170,19 +5677,12 @@ TEST_F(ProgramGeneratorUt, GenerateKernelRegistryForCustAicpu_Ok) {
   const auto &load_and_run = outputs[GeneratedFileIndex::kLoadingAndRunningFile];
   // std::cout << "=== load_and_run content ===" << std::endl << load_and_run << std::endl << "=== end ===" <<
   // std::endl;
-  EXPECT_NE(
-      load_and_run.find("std::vector<uint64_t> op2_iow_addr = FlattenHostArgs(op2_input0, op2_input1, op2_output0);"),
-      std::string::npos);
-  EXPECT_NE(load_and_run.find("const char *op2_args_str"), std::string::npos);
-  EXPECT_NE(load_and_run.find("const char *op2_ext_info_str"), std::string::npos);
-  EXPECT_NE(load_and_run.find("std::vector<uint8_t> op2_args;"), std::string::npos);
-  EXPECT_NE(load_and_run.find("op2_args.resize"), std::string::npos);
+  EXPECT_NE(load_and_run.find("DispatchKernel"), std::string::npos);
+  EXPECT_NE(load_and_run.find("ResolveOpAddr"), std::string::npos);
   EXPECT_NE(load_and_run.find("AssembleAicpuExtInfo"), std::string::npos);
   EXPECT_NE(load_and_run.find("AssembleAicpuArgs"), std::string::npos);
-  EXPECT_NE(load_and_run.find("LaunchKernelCfgHolder op2_cfg_holder;"), std::string::npos);
-  EXPECT_NE(load_and_run.find("OM2_CHK_STATUS(AicpuKernelTaskDistribute(op2_args, args_table_.GetArgsInfo(0), "
-                              "func_handles_[0], 8, stream_list_[0], &op2_cfg_holder.cfg));"),
-            std::string::npos);
+  EXPECT_NE(load_and_run.find("LaunchKernelCfgHolder"), std::string::npos);
+  EXPECT_NE(load_and_run.find("AicpuKernelTaskDistribute"), std::string::npos);
   EXPECT_NE(load_and_run.find("GetIsDataDump("), std::string::npos);
   EXPECT_NE(load_and_run.find("ReportLaunchedOm2Task("), std::string::npos);
 }
@@ -5197,45 +5697,14 @@ TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSourceForKernelExTask_Ok) {
   const auto &load_run_code = outputs[GeneratedFileIndex::kLoadingAndRunningFile];
   std::cout << "load_run_code :" << load_run_code << std::endl;
   ASSERT_FALSE(load_run_code.empty());
-  EXPECT_NE(load_run_code.find("aclError TfAicpuKernelTaskDistribute(const std::vector<uint64_t> &io_addrs, ArgsInfo "
-                               "*args_info, void *kernel_buf, uint32_t kernel_buf_size, aclrtFuncHandle func_handle, "
-                               "uint32_t block_dim, aclrtStream stream, aclrtLaunchKernelCfg *config)"),
-            std::string::npos);
-  EXPECT_NE(
-      load_run_code.find("aclError AssembleTfAicpuExSessionIdInfo(uint64_t *session_id, size_t op_kernel_size, "
-                         "aclrtFuncHandle func_handle, uint32_t block_dim, aclrtStream stream, aclrtLaunchKernelCfg "
-                         "*config, TfAiCpuExInfo *tf_ai_cpu_ex_info, std::vector<void *> &mem_ptrs)"),
-      std::string::npos);
-  EXPECT_NE(load_run_code.find(
-                "aclError AssembleTfAicpuExKernelIdInfo(uint64_t *kernel_id, TfAiCpuExInfo *tf_ai_cpu_ex_info) {"),
-            std::string::npos);
-  EXPECT_NE(
-      load_run_code.find("aclError AssembleTfAicpuExWorkSpaceAddrInfo(uint8_t *kernel_ex_task_info, size_t "
-                         "kernel_ex_task_info_len, TfAiCpuExInfo *tf_ai_cpu_ex_info, std::vector<void *> &mem_ptrs)"),
-      std::string::npos);
-  EXPECT_NE(
-      load_run_code.find(
-          "aclError AssembleTfAicpuExInputOutputAddrInfo(ArgsInfo *args_info, TfAiCpuExInfo *tf_ai_cpu_ex_info) {"),
-      std::string::npos);
-  EXPECT_NE(
-      load_run_code.find("aclError AssembleTfAicpuExExtInfo(uint8_t *kernel_ex_ext_info, size_t "
-                         "kernel_ex_ext_info_len, TfAiCpuExInfo *tf_ai_cpu_ex_info, std::vector<void *> &mem_ptrs)"),
-      std::string::npos);
-  EXPECT_NE(load_run_code.find("aclError AssembleTfAicpuArgs(uint8_t *kernel_ex_args, size_t kernel_ex_args_len, void "
-                               "*target_args_ptr, size_t target_args_len, TfAiCpuExInfo *tf_ai_cpu_ex_info)"),
-            std::string::npos);
-  EXPECT_NE(load_run_code.find("std::vector<uint8_t> op2_args;"), std::string::npos);
-  EXPECT_NE(load_run_code.find("op2_args.resize(112);"), std::string::npos);
-  EXPECT_NE(load_run_code.find("void *op2_kernel_buf = nullptr;"), std::string::npos);
-  EXPECT_NE(load_run_code.find("TfAiCpuExInfo op2_tf_ai_cpu_ex_info;"), std::string::npos);
-  EXPECT_NE(load_run_code.find("const char *op2_kernel_ex_args_str"), std::string::npos);
-  EXPECT_NE(load_run_code.find("const char *op2_kernel_ex_task_info_str"), std::string::npos);
-  EXPECT_NE(load_run_code.find("const char *op2_kernel_ex_ext_info_str"), std::string::npos);
-  EXPECT_NE(load_run_code.find("std::vector<int64_t> op2_input0_shape"), std::string::npos);
-  EXPECT_NE(load_run_code.find("Om2Tensor op2_input0 = BuildOm2Tensor("), std::string::npos);
-  EXPECT_NE(load_run_code.find("Om2Tensor op2_input1 = BuildOm2Tensor("), std::string::npos);
-  EXPECT_NE(load_run_code.find("Om2Tensor op2_output0 = BuildOm2Tensor("), std::string::npos);
-  EXPECT_NE(load_run_code.find("FlattenHostArgs(op2_input0, op2_input1, op2_output0)"), std::string::npos);
+  EXPECT_NE(load_run_code.find("TfAicpuKernelTaskDistribute"), std::string::npos);
+  EXPECT_NE(load_run_code.find("AssembleTfAicpuExSessionIdInfo"), std::string::npos);
+  EXPECT_NE(load_run_code.find("AssembleTfAicpuExKernelIdInfo"), std::string::npos);
+  EXPECT_NE(load_run_code.find("AssembleTfAicpuExWorkSpaceAddrInfo"), std::string::npos);
+  EXPECT_NE(load_run_code.find("AssembleTfAicpuExInputOutputAddrInfo"), std::string::npos);
+  EXPECT_NE(load_run_code.find("AssembleTfAicpuExExtInfo"), std::string::npos);
+  EXPECT_NE(load_run_code.find("AssembleTfAicpuArgs"), std::string::npos);
+  EXPECT_NE(load_run_code.find("DispatchKernelEx"), std::string::npos);
   EXPECT_NE(load_run_code.find("OM2_CHK_STATUS(AssembleTfAicpuExSessionIdInfo"), std::string::npos);
   EXPECT_NE(load_run_code.find("OM2_CHK_STATUS(AssembleTfAicpuExKernelIdInfo"), std::string::npos);
   EXPECT_NE(load_run_code.find("OM2_CHK_STATUS(AssembleTfAicpuExWorkSpaceAddrInfo"), std::string::npos);

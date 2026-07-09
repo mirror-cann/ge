@@ -9,6 +9,7 @@
  */
 
 #include "notify_wait_task_code_builder.h"
+#include "common/om2/codegen/task_code_builder/task_code_builder_util.h"
 
 #include "common/om2/codegen/task_code_builder_factory.h"
 
@@ -16,39 +17,40 @@ namespace ge {
 Status NotifyWaitTaskCodeBuilder::Contribute(TaskSemanticContributeContext &context) {
   FillTaskSemanticHeader(context, header_);
   GE_ASSERT_NOTNULL(context.runtime);
-  notify_id_ = context.task_def.notify_id();
-  GE_ASSERT_TRUE(notify_id_ < context.runtime->notify_num, "[OM2][Check][Param] notify list size:%u, cur:%u!",
-                 context.runtime->notify_num, notify_id_);
-  return SUCCESS;
-}
-
-Status NotifyWaitTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items) {
-  items.push_back(
-      ast_.Comment("============================= " + header_.op_name + " ==============================="));
-  items.push_back(
-      ChkStatus(ast_.Call("KernelNotifyWaitDistribute", {
-                                                            ast_.Str(header_.op_name),
-                                                            notify_list_[static_cast<int32_t>(notify_id_)],
-                                                            stream_list_[static_cast<int32_t>(header_.stream_id)],
-                                                        })));
+  build_data_.notify_id = context.task_def.notify_id();
+  GE_ASSERT_TRUE(build_data_.notify_id < context.runtime->notify_num,
+                 "[OM2][Check][Param] notify list size:%u, cur:%u!", context.runtime->notify_num,
+                 build_data_.notify_id);
+  build_data_.stream_id = header_.stream_id;
   return SUCCESS;
 }
 
 Status NotifyWaitTaskCodeBuilder::RenderDistHelper(std::vector<DeclNode *> &items) {
-  auto op_name = ast_.Var("const char_t *const", "op_name");
-  auto notify = ast_.Var("aclrtNotify", "notify");
-  auto stream = ast_.Var("aclrtStream", "stream");
-  items.push_back(ast_.DefineFunction("KernelNotifyWaitDistribute", {op_name, notify, stream}, "aclError",
-                                      {
-                                          ChkRt(RtSetTaskTag(op_name)),
-                                          ChkStatus(AclrtWaitAndResetNotify(notify, stream, "UINT32_MAX")),
-                                          ast_.Return("ACL_SUCCESS"),
-                                      }));
+  std::vector<BodyItem> body;
+  auto op = ast_.Var("const TaskDispatchInfo *", "op");
+  auto ctx = ast_.Var("const DispatchOpContext &", "ctx");
+  body.push_back(ChkRt(RtSetTaskTag(op.Arrow("op_name"))));
+  body.push_back(ChkStatus(AclrtWaitAndResetNotify(
+      ctx.Attr("notify_list")[op.Arrow("dispatch_info").Attr("notify").Attr("notify_id")],
+      ctx.Attr("stream_list")[op.Arrow("dispatch_info").Attr("notify").Attr("stream_id")], "UINT32_MAX")));
+  GE_ASSERT_SUCCESS(TaskCodeBuilderUtil::RenderDispatchFunc(ast_, kDispatchFuncName, body, items));
   return SUCCESS;
 }
 
 int64_t NotifyWaitTaskCodeBuilder::ParseOpIndex(const domi::TaskDef &task_def) {
   return static_cast<int64_t>(task_def.id());
+}
+
+std::string NotifyWaitTaskCodeBuilder::GetFuncName() const {
+  return kDispatchFuncName;
+}
+
+Status NotifyWaitTaskCodeBuilder::RenderOpDefTableFields(std::vector<std::pair<std::string, Arg>> &fields) {
+  fields.push_back({"dispatch_type", ast_.StaticCast("OpDispatchType", static_cast<int64_t>(kDispatchType))});
+  fields.push_back({"op_name", Arg::StringLiteral(header_.op_name)});
+  fields.push_back({"dispatch_info",
+                    ast_.DesignatedInit({{"notify", ast_.InitList({build_data_.notify_id, build_data_.stream_id})}})});
+  return SUCCESS;
 }
 
 REGISTER_TASK_CODE_BUILDER(MODEL_TASK_NOTIFY_WAIT, NotifyWaitTaskCodeBuilder);

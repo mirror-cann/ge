@@ -923,6 +923,9 @@ Status CppEmitter::Emit(const BlockStmt &node, std::string &output) {
 }
 
 Status CppEmitter::Emit(const IfStmt &node, std::string &output) {
+  if (node.IsPreprocessor()) {
+    return EmitPreprocessorIf(node, output);
+  }
   AppendIndent(output);
   (void)output.append("if (");
   auto status = node.GetCond()->Accept(*this, output);
@@ -944,6 +947,34 @@ Status CppEmitter::Emit(const IfStmt &node, std::string &output) {
       return status;
     }
   }
+  return SUCCESS;
+}
+
+Status CppEmitter::EmitPreprocessorIf(const IfStmt &node, std::string &output) {
+  (void)output.append("#if ");
+  auto status = node.GetCond()->Accept(*this, output);
+  if (status != SUCCESS) {
+    return status;
+  }
+  (void)output.append("\n");
+  const auto then_stmts = node.GetThenBlock()->GetStatements();
+  for (size_t i = 0U; i < then_stmts.Size(); ++i) {
+    status = then_stmts[i]->Accept(*this, output);
+    if (status != SUCCESS) {
+      return status;
+    }
+  }
+  if (node.GetElseBlock() != nullptr) {
+    (void)output.append("#else\n");
+    const auto else_stmts = node.GetElseBlock()->GetStatements();
+    for (size_t i = 0U; i < else_stmts.Size(); ++i) {
+      status = else_stmts[i]->Accept(*this, output);
+      if (status != SUCCESS) {
+        return status;
+      }
+    }
+  }
+  (void)output.append("#endif\n");
   return SUCCESS;
 }
 

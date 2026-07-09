@@ -14,13 +14,17 @@
 #include "common/om2/codegen/task_code_builder/task_code_builder.h"
 
 namespace ge {
+
 class NpuGetFloatStatusTaskCodeBuilder : public TaskCodeBuilder {
+  static constexpr const char *kDispatchFuncName = "DispatchNpuGetFloatStatus";
+
  public:
   using TaskCodeBuilder::TaskCodeBuilder;
-  Status RenderDistribution(std::vector<BodyItem> &items) override;
+  std::string GetFuncName() const override;
   Status RenderDistHelper(std::vector<DeclNode *> &items) override;
   int64_t ParseOpIndex(const domi::TaskDef &task_def) override;
 };
+
 }  // namespace ge
 
 #endif  // AIR_CXX_BASE_COMMON_OM2_CODEGEN_TASK_CODE_BUILDER_RTS_NPU_GET_FLOAT_STATUS_TASK_CODE_BUILDER_H_

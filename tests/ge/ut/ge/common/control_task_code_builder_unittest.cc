@@ -24,6 +24,7 @@
 #include "ge_runtime_stub/include/faker/ge_model_builder.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/utils/tensor_utils.h"
+#include "rt_external.h"
 
 namespace ge {
 namespace {
@@ -333,14 +334,11 @@ TEST_F(ControlTaskCodeGeneratorUt, GenerateControlTaskFiles_Ok) {
   ASSERT_EQ(ReadGeneratedArtifact(artifacts, GeneratedFileIndex::kLoadingAndRunningFile, load_file), SUCCESS);
   ASSERT_FALSE(load_file.empty());
 
-  EXPECT_NE(load_file.find("KernelLabelSwitchByIndexDistribute"), std::string::npos);
-  EXPECT_NE(load_file.find("OM2_CHK_STATUS(KernelLabelSwitchByIndexDistribute("), std::string::npos);
-  EXPECT_NE(load_file.find("OM2_CHK_STATUS(aclrtSwitchLabelByIndex(ptr, max_value, label_list, stream))"),
-            std::string::npos);
-  EXPECT_NE(load_file.find("OM2_CHK_STATUS(aclrtSwitchLabelByIndex(ptr, maxValue, labelList, stream))"),
-            std::string::npos);
-  EXPECT_NE(load_file.find("KernelLabelGotoExDistribute"), std::string::npos);
-  EXPECT_NE(load_file.find("OM2_CHK_STATUS(KernelLabelGotoExDistribute("), std::string::npos);
+  EXPECT_NE(load_file.find("DispatchLabelSwitchByIndex"), std::string::npos);
+  EXPECT_NE(load_file.find("return DispatchLabelSwitchByIndex(op, ctx)"), std::string::npos);
+  EXPECT_NE(load_file.find("OM2_CHK_STATUS(aclrtSwitchLabelByIndex"), std::string::npos);
+  EXPECT_NE(load_file.find("DispatchLabelGotoEx"), std::string::npos);
+  EXPECT_NE(load_file.find("return DispatchLabelGotoEx(op, ctx)"), std::string::npos);
   EXPECT_NE(load_file.find("MallocDeviceMemory"), std::string::npos);
   EXPECT_NE(load_file.find("if ((mem_type == RT_MEMORY_TS))"), std::string::npos);
   EXPECT_NE(load_file.find("OM2_CHK_STATUS(aclrtMemcpy"), std::string::npos);
@@ -489,6 +487,7 @@ inline void *ResolveOpAddr(uint32_t mem_src, uint64_t offset,
     base_ptr = total_dev_mem_ptr;
   } else {
     base_ptr = constants[mem_src - 1U];
+    return GET_ADDR(base_ptr, 0);
   }
   return GET_ADDR(base_ptr, offset);
 }
@@ -709,9 +708,29 @@ class Om2ArgsTable {
     std::vector<std::vector<void *>> iow_args_addrs_;
 };
 
-// 算子分发类型枚举
 enum OpDispatchType : uint32_t {
-    DISPATCH_AICORE = 0,        // AI Core / AICPU 算子执行
+    DISPATCH_AICORE = 0,
+    DISPATCH_AICPU = 1,
+    DISPATCH_EVENT_RECORD = 2,
+    DISPATCH_EVENT_WAIT = 3,
+    DISPATCH_FUSION_START = 4,
+    DISPATCH_FUSION_END = 5,
+    DISPATCH_END_GRAPH = 6,
+    DISPATCH_LABEL_SET = 7,
+    DISPATCH_NOTIFY_RECORD = 8,
+    DISPATCH_NOTIFY_WAIT = 9,
+    DISPATCH_STREAM_ACTIVE = 10,
+    DISPATCH_STREAM_SWITCH = 11,
+    DISPATCH_LABEL_GOTO_EX = 12,
+    DISPATCH_LABEL_SWITCH_BY_INDEX = 13,
+    DISPATCH_BARRIER = 14,
+    DISPATCH_CMO = 15,
+    DISPATCH_MEMCPY_ASYNC = 16,
+    DISPATCH_MEMCPY_ADDR_ASYNC = 17,
+    DISPATCH_CMO_ADDR = 18,
+    DISPATCH_DSA = 19,
+    DISPATCH_KERNEL_EX = 20,
+    DISPATCH_TYPE_COUNT
 };
 
 // 算子参数类型枚举
@@ -745,7 +764,7 @@ struct OpArgInfo {
       int32_t data_type;             // 数据类型
       int32_t format;                // 数据格式
       int64_t shape[8];              // Shape 维度数组（最多8维）
-      uint32_t num_shape_dims;       // 实际 shape 维度数
+      uint32_t shape_dims;       // 实际 shape 维度数
       uint64_t args_offset;          // args table 内字节偏移
     } tensor;
     uint64_t custom_value;           // 自定义值（LEVEL1_DESC/SHAPE_INFO/CUSTOM_VALUE/EVENT_ADDR）
@@ -756,53 +775,177 @@ struct OpArgInfo {
   } data;
 };
 
-// 算子定义结构体
-struct OpDef {
+// CUSTOM_VALUE 写回条目
+struct CustomValueEntry {
+  uint64_t host_offset;   // args table 内字节偏移
+  uint64_t value;         // 编译期常量值
+  uint32_t size;          // 4 (uint32_t) 或 8 (uint64_t)
+};
+
+// 算子定义结构体（前置声明各 dispatch_info 子结构）
+struct AicoreDispatchInfo {
+  const OpArgInfo *args_info;          // IO 地址解析数组
+  uint32_t args_info_num;      // args_info 数组长度
+  const char *op_type;        // 算子类型名，用于 Report 上报
+  uint32_t args_idx;          // 参数表索引，用于 GetArgsInfo 查找
+  uint32_t block_dim;        // Block 维度
+  uint32_t func_idx;         // 函数句柄索引，用于查找 func_handles
+  uint32_t stream_id;        // 执行流索引
+  struct {                    // Launch 配置，构建 LaunchKernelConfig → AssembleLaunchConfig
+    uint8_t schedule_mode;    // 调度模式
+    uint32_t engine_type;     // 引擎类型
+    uint32_t block_dim_offset;// BlockDim 偏移量
+    bool is_block_task_prefetch; // 是否预取 Block Task
+    uint16_t time_out;        // 超时时间
+    uint32_t local_memory_size;  // 本地内存大小
+  } launch;
+  struct {                    // L0 信息，构建 Om2L0TaskRawInfo
+    uint32_t need_assert_or_printf; // 是否需要 assert/printf
+    uint32_t slots_num;    // L0 slot 数量
+    const Om2L0ArgSlotInfo *slot_info; // L0 slot 信息数组
+  } slot_args;
+};
+
+struct AicpuDispatchInfo {
+  const OpArgInfo *args_info;          // IO 地址解析数组
+  uint32_t args_info_num;
+  const char *op_type;         // 算子类型名，用于 Report 上报
+  uint32_t args_idx;
+  uint32_t func_idx;
+  uint32_t block_dim;
+  uint32_t stream_id;        // 执行流索引
+  const uint8_t *args_blob;  // AICPU 参数 blob 数据
+  uint32_t args_blob_len;    // 参数 blob 长度
+  const uint8_t *ext_info_blob; // AICPU 扩展信息 blob 数据
+  uint32_t ext_info_blob_len;   // 扩展信息 blob 长度
+  struct {                    // Launch 配置
+    uint8_t schedule_mode;    // 调度模式
+    uint32_t engine_type;     // 引擎类型
+    uint32_t block_dim_offset;// BlockDim 偏移量
+    bool is_block_task_prefetch; // 是否预取 Block Task
+    uint16_t time_out;        // 超时时间
+    uint32_t local_memory_size;  // 本地内存大小
+  } launch;
+  int32_t session_info_offset;
+  uint32_t aicpu_task_index;
+  uint32_t task_type;
+};
+
+struct DsaDispatchInfo {
+  const OpArgInfo *args_info;          // IO 地址解析数组
+  const char *op_type;         // 算子类型名，用于 Report 上报
+  uint32_t num_args;             // args 数组长度
+  int64_t op_desc_id;            // 算子描述 ID，用于 Report 上报
+  uint32_t sqe_type; uint32_t stream_id;
+  uint32_t start; uint32_t distribution_type; uint32_t data_type; uint32_t alg_type;
+  uint32_t param_vld_bitmap; uint32_t param_addr_val_bitmap;
+  uint64_t seed_value; uint32_t seed_is_addr;
+  uint64_t random_count_value; uint32_t random_count_is_addr;
+  uint64_t input1_value; uint32_t input1_is_addr;
+  uint64_t input2_value;
+  uint32_t hbm_table_index; uint32_t hbm_args_size;
+  uint32_t idx_output; uint32_t state_addr_idx;
+  uint32_t idx_seed; uint32_t idx_count;
+  uint32_t idx_input1; uint32_t idx_input2;
+  uint32_t num_iov_entries;
+  uint32_t has_input2; uint32_t task_type;
+};
+
+struct KernelExDispatchInfo {
+  const OpArgInfo *args_info;          // IO 地址解析数组
+  uint32_t args_info_num;
+  const char *op_type;         // 算子类型名，用于 Report 上报
+  uint32_t block_dim;
+  uint32_t stream_id;
+  uint32_t func_idx;
+  uint32_t tf_session_func_idx;
+  uint32_t args_table_idx;
+  const uint8_t *args_blob;
+  uint32_t args_blob_len;
+  const uint8_t *task_info_blob;
+  uint32_t task_info_blob_len;
+  const uint8_t *ext_info_blob;
+  uint32_t ext_info_blob_len;
+  struct {                    // Launch 配置
+    uint8_t schedule_mode;    // 调度模式
+    uint32_t block_dim_offset;// BlockDim 偏移量
+    bool is_block_task_prefetch; // 是否预取 Block Task
+    uint16_t time_out;        // 超时时间
+    uint32_t engine_type;     // aclrtEngineType 枚举值
+  } launch;
+  uint32_t task_type;
+};
+
+struct CmoDispatchInfo {
+  const OpArgInfo *args_info;          // src 地址解析
+  rtCmoTaskInfo_t task_info;
+  uint32_t stream_id;
+};
+
+struct MemcpyAsyncDispatchInfo {
+  const OpArgInfo *args_info;          // src/dst 地址解析
+  uint64_t dst_max;
+  uint64_t count;
+  uint32_t kind;
+  uint32_t stream_id;
+  uint32_t args_table_idx;
+  uint8_t io_refresh;
+};
+
+struct MemcpyAddrDispatchInfo {
+  const OpArgInfo *args_info;          // IO 地址解析数组
+  uint32_t args_info_num;              // args_info 数组长度
+  uint64_t dst_max;
+  uint64_t count;
+  uint32_t kind;
+  uint32_t align_offset;
+  uint32_t args_size;
+  uint32_t stream_id;
+  uint32_t args_table_idx;
+  uint32_t aligned_io_offset;
+  uint32_t num_custom_values;
+  const CustomValueEntry *custom_values;
+};
+
+struct CmoAddrDispatchInfo {
+  const OpArgInfo *args_info;          // IO 地址解析数组
+  uint32_t args_info_num;              // args_info 数组长度
+  uint32_t args_size;
+  uint32_t align_offset;
+  uint32_t cmo_op_code;
+  uint32_t stream_id;
+  uint32_t args_table_idx;
+  uint32_t io_offset;
+  uint32_t num_custom_values;
+  const CustomValueEntry *custom_values;
+};
+
+struct TaskDispatchInfo {
   OpDispatchType dispatch_type;   // 分发类型，决定走哪个 case 分支
   const char *op_name;            // 算子名称，用于日志和 Report 上报
-  const OpArgInfo *argsInfo;           // 参数信息数组，地址解析时遍历
-  // 各 task 专属数据下沉到 union（后续适配其他 task 时再增加对应成员）
   union {
-    struct {                      // AICORE 专属 (kernel_type=0)
-      const char *op_type;        // 算子类型名，用于 Report 上报
-      uint32_t num_io_addrs;      // IO 地址数量，控制地址解析循环次数
-      uint32_t args_idx;          // 参数表索引，用于 GetArgsInfo 查找
-      struct {                    // Launch 配置，构建 LaunchKernelConfig → AssembleLaunchConfig
-        uint8_t schedule_mode;    // 调度模式
-        uint32_t engine_type;     // 引擎类型
-        uint32_t block_dim_offset;// BlockDim 偏移量
-        bool is_block_task_prefetch; // 是否预取 Block Task
-        uint16_t time_out;        // 超时时间
-        uint32_t local_memory_size;  // 本地内存大小
-      } launch;
-      struct {                    // Kernel 执行参数，传给 KernelTaskDistribute
-        uint32_t block_dim;       // Block 维度
-        uint32_t func_idx;        // 函数句柄索引，用于查找 func_handles
-      } kernel;
-      struct {                    // L0 信息，构建 Om2L0TaskRawInfo
-        uint32_t need_assert_or_printf; // 是否需要 assert/printf
-        uint32_t num_l0_slots;    // L0 slot 数量
-        const Om2L0ArgSlotInfo *l0_slots; // L0 slot 信息数组
-      } l0;
-    } aicore;
-    struct {  // AICPU 专属（共享 DISPATCH_AICORE, kernel_type=1）
-      uint32_t kernel_type;
-      uint32_t args_idx;
-      uint32_t num_io_addrs;
-      uint32_t func_idx;
-      uint32_t block_dim;
-      uint8_t schedule_mode;
-      uint32_t engine_type;
-      uint32_t block_dim_offset;
-      bool is_block_task_prefetch;
-      uint16_t time_out;
-      uint32_t local_memory_size;
-      uint32_t ext_info_len;
-      int32_t session_info_offset;
-      uint32_t aicpu_task_index;
-      uint32_t task_type;
-    } aicpu;
-  } task_data;
+    AicoreDispatchInfo aicore;
+    AicpuDispatchInfo aicpu;
+    CmoDispatchInfo cmo;
+    MemcpyAsyncDispatchInfo memcpy_async;
+    MemcpyAddrDispatchInfo memcpy_addr;
+    CmoAddrDispatchInfo cmo_addr;
+    DsaDispatchInfo dsa;
+    KernelExDispatchInfo kernel_ex;
+    struct { uint32_t event_id; uint32_t stream_id; } event;
+    struct { uint32_t stream_id; } fusion_start;
+    struct { uint32_t stream_id; } fusion_end;
+    struct { uint32_t stream_id; } end_graph;
+    struct { uint32_t label_index; uint32_t stream_id; } label_set;
+    struct { uint32_t notify_id; uint32_t stream_id; } notify;
+    struct { uint32_t active_stream_id; uint32_t stream_id; } stream_active;
+    struct { const OpArgInfo *args_info;          // input/value 地址解析
+             uint32_t true_stream_id; uint32_t stream_id; int32_t cond; int32_t data_type; } stream_switch;
+    struct { uint64_t op_idx; uint32_t stream_id; uint32_t memory_type; } label_goto;
+    struct { const OpArgInfo *args_info;          // input 地址解析
+             uint64_t op_idx; uint32_t branch_max; uint32_t stream_id; } label_switch;
+    struct { uint32_t stream_id; rtBarrierTaskInfo_t info; } barrier;
+  } dispatch_info;
 };
 
 // 算子分发上下文结构体
@@ -812,12 +955,23 @@ struct DispatchOpContext {
   void **constants;          // 常量数组
   Om2ArgsTable &args_table;  // 参数表
   aclrtFuncHandle *func_handles; // 函数句柄数组
-  aclrtStream stream;        // 执行流
   uint32_t model_id;         // 模型 ID
   void *instance_handle;     // 实例句柄
+  aclmdlRI model_handle;     // 模型句柄
+  const std::vector<aclrtEvent> &event_list; // 事件列表
   std::map<uint32_t, void *> &event_id_mem_map; // 事件 ID 到内存的映射
   std::vector<void *> &dev_dynamic_mem_ptrs; // 设备动态内存指针列表
   void *overflow_addr;       // 溢出地址
+  // --- 新增列表引用 ---
+  std::vector<void *> &label_list; // 标签列表
+  std::vector<void *> &notify_list; // 通知列表
+  std::vector<aclrtStream> &stream_list; // 流列表
+  std::map<uint32_t, std::pair<void *, uint32_t>> &label_goto_args; // 标签跳转参数
+  std::map<uint32_t, aclrtLabelList> &label_goto_ex_label_list; // 标签跳转扩展标签列表
+  std::map<uint32_t, aclrtLabelList> &label_switch_label_list; // 标签切换标签列表
+  uint64_t *session_id;        // Session ID
+  std::vector<void *> &dev_ext_info_mem_ptrs; // AICPU 扩展信息设备内存指针列表
+  uint64_t *kernel_id;        // AICPU Kernel ID 计数器
 };
 
 
@@ -879,8 +1033,7 @@ aclError Om2ModelDestroy(om2::Om2ModelHandle *model_handle);
 
 #ifdef __cplusplus
 }
-#endif
-)";
+#endif)";
   const std::string expected_resources = R"(#line 1 "g1_resources.cpp"
 #include "_interface.h"
 
@@ -1024,10 +1177,9 @@ aclError Om2Model::CreateLabelListForLabelGotoEx(uint32_t op_index, uint32_t lab
   }
   return ACL_SUCCESS;
 }
-} // namespace om2
-)";
-  ASSERT_EQ(header_file, expected_header);
-  ASSERT_EQ(resources_file, expected_resources);
+} // namespace om2)";
+  ASSERT_EQ(header_file, expected_header + "\n");
+  ASSERT_EQ(resources_file, expected_resources + "\n");
 }
 
 TEST_F(ControlTaskCodeGeneratorUt, BuildControlTaskSemantics_LabelSwitchListSizeMismatch_Fail) {

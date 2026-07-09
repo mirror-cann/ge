@@ -9,6 +9,7 @@
  */
 
 #include "event_record_task_code_builder.h"
+#include "common/om2/codegen/task_code_builder/task_code_builder_util.h"
 
 #include "common/om2/codegen/task_code_builder_factory.h"
 
@@ -22,28 +23,15 @@ Status EventRecordTaskCodeBuilder::Contribute(TaskSemanticContributeContext &con
   return SUCCESS;
 }
 
-Status EventRecordTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items) {
-  items.push_back(
-      ast_.Comment("============================= " + header_.op_name + " ==============================="));
-  items.push_back(
-      ChkStatus(ast_.Call("KernelEventRecordDistribute", {
-                                                             ast_.Str(header_.op_name),
-                                                             event_list_[static_cast<int32_t>(event_id_)],
-                                                             stream_list_[static_cast<int32_t>(header_.stream_id)],
-                                                         })));
-  return SUCCESS;
-}
-
 Status EventRecordTaskCodeBuilder::RenderDistHelper(std::vector<DeclNode *> &items) {
-  auto op_name = ast_.Var("const char_t *const", "op_name");
-  auto event = ast_.Var("aclrtEvent", "event");
-  auto stream = ast_.Var("aclrtStream", "stream");
-  items.push_back(ast_.DefineFunction("KernelEventRecordDistribute", {op_name, event, stream}, "aclError",
-                                      {
-                                          ChkRt(RtSetTaskTag(op_name)),
-                                          ChkStatus(AclrtRecordEvent(event, stream)),
-                                          ast_.Return("ACL_SUCCESS"),
-                                      }));
+  std::vector<BodyItem> body;
+  auto op = ast_.Var("const TaskDispatchInfo *", "op");
+  auto ctx = ast_.Var("const DispatchOpContext &", "ctx");
+  body.push_back(ChkRt(RtSetTaskTag(op.Arrow("op_name"))));
+  body.push_back(
+      ChkStatus(AclrtRecordEvent(ctx.Attr("event_list")[op.Arrow("dispatch_info").Attr("event").Attr("event_id")],
+                                 ctx.Attr("stream_list")[op.Arrow("dispatch_info").Attr("event").Attr("stream_id")])));
+  GE_ASSERT_SUCCESS(TaskCodeBuilderUtil::RenderDispatchFunc(ast_, kDispatchFuncName, body, items));
   return SUCCESS;
 }
 
@@ -52,6 +40,17 @@ int64_t EventRecordTaskCodeBuilder::ParseOpIndex(const domi::TaskDef &task_def) 
     return kInvalidOpIndex;
   }
   return static_cast<int64_t>(task_def.event_ex().op_index());
+}
+
+std::string EventRecordTaskCodeBuilder::GetFuncName() const {
+  return kDispatchFuncName;
+}
+
+Status EventRecordTaskCodeBuilder::RenderOpDefTableFields(std::vector<std::pair<std::string, Arg>> &fields) {
+  fields.push_back({"dispatch_type", ast_.StaticCast("OpDispatchType", static_cast<int64_t>(kDispatchType))});
+  fields.push_back({"op_name", Arg::StringLiteral(header_.op_name)});
+  fields.push_back({"dispatch_info", ast_.DesignatedInit({{"event", ast_.InitList({event_id_, header_.stream_id})}})});
+  return SUCCESS;
 }
 
 REGISTER_TASK_CODE_BUILDER(MODEL_TASK_EVENT_RECORD, EventRecordTaskCodeBuilder);

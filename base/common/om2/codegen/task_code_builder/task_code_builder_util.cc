@@ -10,7 +10,21 @@
 
 #include "common/om2/codegen/task_code_builder/task_code_builder_util.h"
 
+#include <iomanip>
+#include <sstream>
+
 namespace ge {
+
+Status TaskCodeBuilderUtil::RenderDispatchFunc(AstBuildContext &ast, const std::string &func_name,
+                                               const std::vector<BodyItem> &body, std::vector<DeclNode *> &items) {
+  std::vector<BodyItem> func_body = body;
+  func_body.push_back(ast.Return("ACL_SUCCESS"));
+  auto op = ast.Var("const TaskDispatchInfo *", "op");
+  auto ctx = ast.Var("const DispatchOpContext &", "ctx");
+  items.push_back(ast.DefineFunction(func_name, {op, ctx}, "aclError", ast.Body(func_body)));
+  return SUCCESS;
+}
+
 namespace {
 const char *ToOm2L0ArgKind(AddrValueKind kind) {
   switch (kind) {
@@ -42,6 +56,43 @@ const char *ToOm2L0ArgKind(AddrValueKind kind) {
       return "OM2_L0_ARG_EMPTY_ADDR";
     default:
       return "OM2_L0_ARG_EMPTY_ADDR";
+  }
+}
+
+const char *OpArgTypeName(int32_t type) {
+  switch (type) {
+    case OP_ARG_INPUT:
+      return "OP_ARG_INPUT";
+    case OP_ARG_OUTPUT:
+      return "OP_ARG_OUTPUT";
+    case OP_ARG_WORKSPACE:
+      return "OP_ARG_WORKSPACE";
+    case OP_ARG_CONST_TENSOR:
+      return "OP_ARG_CONST_TENSOR";
+    case OP_ARG_LEVEL1_DESC:
+      return "OP_ARG_LEVEL1_DESC";
+    case OP_ARG_SHAPE_INFO:
+      return "OP_ARG_SHAPE_INFO";
+    case OP_ARG_CUSTOM_VALUE:
+      return "OP_ARG_CUSTOM_VALUE";
+    case OP_ARG_PLACEHOLDER:
+      return "OP_ARG_PLACEHOLDER";
+    case OP_ARG_OPTIONAL_EMPTY:
+      return "OP_ARG_OPTIONAL_EMPTY";
+    case OP_ARG_FFTS_ADDR:
+      return "OP_ARG_FFTS_ADDR";
+    case OP_ARG_EVENT_ADDR:
+      return "OP_ARG_EVENT_ADDR";
+    case OP_ARG_OVERFLOW_ADDR:
+      return "OP_ARG_OVERFLOW_ADDR";
+    case OP_ARG_TILING:
+      return "OP_ARG_TILING";
+    case OP_ARG_RAW_ADDR:
+      return "OP_ARG_RAW_ADDR";
+    default:
+      REPORT_INNER_ERR_MSG("E19999", "Unknown OpArgType %d, fallback to OP_ARG_INPUT.", type);
+      GELOGE(FAILED, "Unknown OpArgType %d, fallback to OP_ARG_INPUT.", type);
+      return "OP_ARG_INPUT";
   }
 }
 
@@ -227,4 +278,170 @@ ExprRef TaskCodeBuilderUtil::BuildReportTaskPreprocessCall(
   }
   return ast.Call("ReportOm2TaskPreprocess", args);
 }
+Arg TaskCodeBuilderUtil::BuildAddrField(AstBuildContext &ast, const OpArgDesc &a) {
+  return ast.DesignatedInit(
+      std::vector<std::pair<std::string, Arg>>{
+          {"mem_src", a.mem_src},
+          {"offset", static_cast<int64_t>(a.offset)},
+      },
+      true);
+}
+
+Arg TaskCodeBuilderUtil::BuildTensorDataField(AstBuildContext &ast, const OpArgDesc &a) {
+  if (!a.has_tensor_info) {
+    return Arg();
+  }
+  std::vector<int64_t> padded_shape(kShapeMaxDims, 0);
+  for (size_t i = 0; i < a.shape_dims.size() && i < kShapeMaxDims; ++i) {
+    padded_shape[i] = a.shape_dims[i];
+  }
+  return ast.DesignatedInit(
+      std::vector<std::pair<std::string, Arg>>{
+          {"tensor", ast.DesignatedInit(
+                         std::vector<std::pair<std::string, Arg>>{
+                             {"size", static_cast<int64_t>(a.size)},
+                             {"data_type", a.data_type},
+                             {"format", a.format},
+                             {"shape", ast.InitList(std::vector<Arg>(padded_shape.begin(), padded_shape.end()))},
+                             {"shape_dims", static_cast<int64_t>(a.shape_dims.size())},
+                             {"args_offset", ast.UInt(a.args_offset)},
+                         },
+                         true)},
+      },
+      true);
+}
+
+Arg TaskCodeBuilderUtil::BuildWorkspaceDataField(AstBuildContext &ast, const OpArgDesc &a) {
+  return ast.DesignatedInit(
+      std::vector<std::pair<std::string, Arg>>{
+          {"tensor", ast.DesignatedInit(
+                         std::vector<std::pair<std::string, Arg>>{
+                             {"size", static_cast<int64_t>(a.size)},
+                         },
+                         true)},
+      },
+      true);
+}
+
+Arg TaskCodeBuilderUtil::BuildCustomValueDataField(AstBuildContext &ast, const OpArgDesc &a) {
+  return ast.DesignatedInit(
+      std::vector<std::pair<std::string, Arg>>{
+          {"custom_value", static_cast<int64_t>(a.custom_value)},
+      },
+      true);
+}
+
+Arg TaskCodeBuilderUtil::BuildTilingDataField(AstBuildContext &ast, const OpArgDesc &a) {
+  Arg raw_data_arg(nullptr);
+  uint32_t raw_data_len = 0U;
+  if (!a.raw_data.empty()) {
+    std::ostringstream oss;
+    for (const auto byte : a.raw_data) {
+      oss << "\\" << std::oct << std::setw(kWidthPerChar) << std::setfill('0') << static_cast<int>(byte);
+    }
+    raw_data_arg = ast.ReinterpretCast("const uint8_t *", Arg::StringLiteral(oss.str()));
+    raw_data_len = static_cast<uint32_t>(a.raw_data.size());
+  }
+  return ast.DesignatedInit(
+      std::vector<std::pair<std::string, Arg>>{
+          {"tiling", ast.DesignatedInit(
+                         std::vector<std::pair<std::string, Arg>>{
+                             {"raw_data", raw_data_arg},
+                             {"raw_data_len", static_cast<int64_t>(raw_data_len)},
+                         },
+                         true)},
+      },
+      true);
+}
+
+Arg TaskCodeBuilderUtil::RenderOpArgDesc(AstBuildContext &ast, const std::vector<OpArgDesc> &args) {
+  if (args.empty()) {
+    return Arg(nullptr);
+  }
+
+  using DataBuilder = Arg (*)(AstBuildContext &, const OpArgDesc &);
+  static const std::unordered_map<int32_t, DataBuilder> kDataBuilders = {
+      {OP_ARG_INPUT, &TaskCodeBuilderUtil::BuildTensorDataField},
+      {OP_ARG_OUTPUT, &TaskCodeBuilderUtil::BuildTensorDataField},
+      {OP_ARG_WORKSPACE, &TaskCodeBuilderUtil::BuildWorkspaceDataField},
+      {OP_ARG_CONST_TENSOR, &TaskCodeBuilderUtil::BuildTensorDataField},
+      {OP_ARG_LEVEL1_DESC, &TaskCodeBuilderUtil::BuildCustomValueDataField},
+      {OP_ARG_SHAPE_INFO, &TaskCodeBuilderUtil::BuildCustomValueDataField},
+      {OP_ARG_CUSTOM_VALUE, &TaskCodeBuilderUtil::BuildCustomValueDataField},
+      {OP_ARG_EVENT_ADDR, &TaskCodeBuilderUtil::BuildCustomValueDataField},
+      {OP_ARG_TILING, &TaskCodeBuilderUtil::BuildTilingDataField},
+  };
+
+  std::vector<Arg> arg_entries;
+  arg_entries.reserve(args.size());
+  for (const auto &a : args) {
+    std::vector<std::pair<std::string, Arg>> fields;
+    fields.push_back({"type", OpArgTypeName(a.type)});
+
+    const bool needs_addr = (a.type == OP_ARG_INPUT || a.type == OP_ARG_OUTPUT || a.type == OP_ARG_WORKSPACE ||
+                             a.type == OP_ARG_CONST_TENSOR);
+    if (needs_addr) {
+      fields.push_back({"addr", BuildAddrField(ast, a)});
+    }
+
+    const auto it = kDataBuilders.find(a.type);
+    if (it != kDataBuilders.end()) {
+      auto data_arg = it->second(ast, a);
+      if (!data_arg.Empty()) {
+        fields.push_back({"data", std::move(data_arg)});
+      }
+    }
+
+    arg_entries.push_back(ast.DesignatedInit(fields, true));
+  }
+  return ast.CCast("const OpArgInfo[]", ast.InitList(arg_entries, true));
+}
+
+OpArgDesc TaskCodeBuilderUtil::ConvertAddrDesc(const AddrSemantic &addr) {
+  OpArgDesc arg;
+  if (addr.memory_type == (kSessionScopeMemoryMask | RT_MEMORY_HBM)) {
+    arg.mem_src = 0xFFFFFFFFU;
+  } else if (addr.const_index.has_value()) {
+    arg.mem_src = static_cast<uint32_t>(*addr.const_index + 1);
+  }
+  arg.offset = static_cast<uint64_t>(addr.mem_offset);
+
+  static const std::unordered_map<AddrValueKind, OpArgType> kTypeMap = {
+      {AddrValueKind::kInputInstance, OP_ARG_INPUT},
+      {AddrValueKind::kOutputInstance, OP_ARG_OUTPUT},
+      {AddrValueKind::kWorkspace, OP_ARG_WORKSPACE},
+      {AddrValueKind::kConstTensor, OP_ARG_CONST_TENSOR},
+      {AddrValueKind::kLevel1DescPtr, OP_ARG_LEVEL1_DESC},
+      {AddrValueKind::kCustomValue, OP_ARG_CUSTOM_VALUE},
+      {AddrValueKind::kPlaceholder, OP_ARG_PLACEHOLDER},
+      {AddrValueKind::kOptionalEmpty, OP_ARG_OPTIONAL_EMPTY},
+      {AddrValueKind::kEmptyAddr, OP_ARG_OPTIONAL_EMPTY},
+      {AddrValueKind::kFftsAddr, OP_ARG_FFTS_ADDR},
+      {AddrValueKind::kEventAddr, OP_ARG_EVENT_ADDR},
+      {AddrValueKind::kOverflowAddr, OP_ARG_OVERFLOW_ADDR},
+      {AddrValueKind::kTiling, OP_ARG_TILING},
+  };
+  auto it = kTypeMap.find(addr.kind);
+  arg.type = (it != kTypeMap.end()) ? it->second : OP_ARG_RAW_ADDR;
+
+  if (addr.tensor_info.has_value()) {
+    arg.has_tensor_info = true;
+    arg.size = addr.tensor_info->size;
+    arg.data_type = addr.tensor_info->data_type;
+    arg.format = addr.tensor_info->format;
+    arg.shape_dims = addr.tensor_info->shape_dims;
+  } else if (arg.type == OP_ARG_WORKSPACE) {
+    arg.size = addr.byte_size;
+  }
+  // custom_value
+  if (addr.kind == AddrValueKind::kLevel1DescPtr) {
+    arg.custom_value = addr.level1_target_offset.value_or(0U);
+  } else if (addr.kind == AddrValueKind::kCustomValue) {
+    arg.custom_value = addr.custom_value;
+  } else if (addr.kind == AddrValueKind::kEventAddr) {
+    arg.custom_value = addr.event_id;
+  }
+  return arg;
+}
+
 }  // namespace ge

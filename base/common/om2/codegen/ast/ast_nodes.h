@@ -1004,9 +1004,10 @@ class BlockStmt final : public Stmt {
 
 class IfStmt final : public Stmt {
  public:
-  static IfStmt *Create(AstContext &ctx, Expr *cond, BlockStmt *then_block, BlockStmt *else_block = nullptr);
-  IfStmt(Expr *cond, BlockStmt *then_block, BlockStmt *else_block)
-      : Stmt(), cond_(cond), then_block_(then_block), else_block_(else_block) {}
+  static IfStmt *Create(AstContext &ctx, Expr *cond, BlockStmt *then_block, BlockStmt *else_block = nullptr,
+                        bool is_preprocessor = false);
+  IfStmt(Expr *cond, BlockStmt *then_block, BlockStmt *else_block, bool is_preprocessor = false)
+      : Stmt(), cond_(cond), then_block_(then_block), else_block_(else_block), is_preprocessor_(is_preprocessor) {}
   Status Accept(CodeEmitter &emitter, std::string &output) const override final;
 
   Expr *GetCond() const {
@@ -1018,11 +1019,15 @@ class IfStmt final : public Stmt {
   BlockStmt *GetElseBlock() const {
     return else_block_;
   }
+  bool IsPreprocessor() const {
+    return is_preprocessor_;
+  }
 
  private:
   Expr *cond_;
   BlockStmt *then_block_;
   BlockStmt *else_block_;
+  bool is_preprocessor_;
 };
 
 class ForStmt final : public Stmt {

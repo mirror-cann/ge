@@ -84,6 +84,7 @@ class CppEmitter final : public CodeEmitter {
   Status EmitRecordDecl(const char *keyword, StringRef name, const ArrayRef<DeclNode *> &items, std::string &output);
   Status EmitFunctionSignature(StringRef return_type, StringRef name, const ArrayRef<ParamDecl *> &params,
                                std::string &output);
+  Status EmitPreprocessorIf(const IfStmt &node, std::string &output);
 
   std::string indent_unit_{"  "};
   size_t indent_level_{0U};

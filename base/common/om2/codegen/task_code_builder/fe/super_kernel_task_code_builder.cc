@@ -12,9 +12,9 @@
 #include "common/om2/codegen/task_code_builder_factory.h"
 
 namespace ge {
-Status SuperKernelV2TaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items) {
-  (void)items;
-  return SUCCESS;
+
+std::string SuperKernelV2TaskCodeBuilder::GetFuncName() const {
+  return kDispatchFuncName;
 }
 
 Status SuperKernelV2TaskCodeBuilder::RenderDistHelper(std::vector<DeclNode *> &items) {

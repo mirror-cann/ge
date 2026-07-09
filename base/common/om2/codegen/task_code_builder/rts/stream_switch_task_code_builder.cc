@@ -9,6 +9,7 @@
  */
 
 #include "stream_switch_task_code_builder.h"
+#include "common/om2/codegen/task_code_builder/task_code_builder_util.h"
 
 #include "common/om2/codegen/task_code_builder_factory.h"
 #include "common/om2/codegen/om2_model_utils.h"
@@ -26,7 +27,7 @@ Status StreamSwitchTaskCodeBuilder::Contribute(TaskSemanticContributeContext &co
                  context.op_desc->GetName().c_str(), context.op_desc->GetType().c_str(), input_addr_nodes_.size());
 
   // cond
-  GE_ASSERT_TRUE(AttrUtils::GetInt(context.op_desc, ATTR_NAME_STREAM_SWITCH_COND, cond_),
+  GE_ASSERT_TRUE(AttrUtils::GetInt(context.op_desc, ATTR_NAME_STREAM_SWITCH_COND, build_data_.cond),
                  "[Get][Attr] %s in op:%s(%s) fail", ATTR_NAME_STREAM_SWITCH_COND.c_str(),
                  context.op_desc->GetName().c_str(), context.op_desc->GetType().c_str());
 
@@ -36,10 +37,10 @@ Status StreamSwitchTaskCodeBuilder::Contribute(TaskSemanticContributeContext &co
                      active_stream_list.size() == kTrueBranchStreamNum_1,
                  "[Get][Attr] %s in op:%s fail, active_stream_list.size():%zu", ATTR_NAME_ACTIVE_STREAM_LIST.c_str(),
                  context.op_desc->GetName().c_str(), active_stream_list.size());
-  true_stream_id_ = active_stream_list.front();
-  GE_ASSERT_TRUE(true_stream_id_ < context.runtime->stream_num,
+  build_data_.true_stream_id = active_stream_list.front();
+  GE_ASSERT_TRUE(build_data_.true_stream_id < context.runtime->stream_num,
                  "[OM2][Check][Param] active_stream_index:%zu in op:%s(%s) >= stream list size:%u in model",
-                 static_cast<size_t>(true_stream_id_), context.op_desc->GetName().c_str(),
+                 static_cast<size_t>(build_data_.true_stream_id), context.op_desc->GetName().c_str(),
                  context.op_desc->GetType().c_str(), context.runtime->stream_num);
   // stream
   GE_ASSERT_TRUE(header_.stream_id < context.runtime->stream_num, "[OM2][Check][Param] stream list size:%u, cur:%u!",
@@ -47,7 +48,7 @@ Status StreamSwitchTaskCodeBuilder::Contribute(TaskSemanticContributeContext &co
 
   // data_type
   if (context.op_desc->HasAttr(ATTR_NAME_SWITCH_DATA_TYPE) &&
-      !AttrUtils::GetInt(context.op_desc, ATTR_NAME_SWITCH_DATA_TYPE, data_type_)) {
+      !AttrUtils::GetInt(context.op_desc, ATTR_NAME_SWITCH_DATA_TYPE, build_data_.data_type)) {
     REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s in op:%s(%s) fail, attribute value not int",
                          ATTR_NAME_SWITCH_DATA_TYPE.c_str(), context.op_desc->GetName().c_str(),
                          context.op_desc->GetType().c_str());
@@ -55,68 +56,59 @@ Status StreamSwitchTaskCodeBuilder::Contribute(TaskSemanticContributeContext &co
            context.op_desc->GetName().c_str(), context.op_desc->GetType().c_str());
     return FAILED;
   }
-  GELOGI("Stream Switch Task Codegen: op[%s], cond_[%u], true stream id[%" PRIu64 "], stream id[%u], data type[%" PRId64
-         "].",
-         context.op_desc->GetName().c_str(), cond_, static_cast<uint64_t>(true_stream_id_), header_.stream_id,
-         data_type_);
-  return SUCCESS;
-}
-
-Status StreamSwitchTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items) {
-  items.push_back(
-      ast_.Comment("============================= " + header_.op_name + " ==============================="));
-  for (const auto &input_addr_node : input_addr_nodes_) {
-    GE_ASSERT_TRUE(input_addr_node.tensor_info.has_value(), "[OM2] StreamSwitch input tensor info is required for %s.",
-                   input_addr_node.symbol_hint.c_str());
-    const auto &tensor_info = *input_addr_node.tensor_info;
-    const std::string shape_var_name = input_addr_node.symbol_hint + "_shape";
-    items.push_back(
-        ast_.VarDecl("std::vector<int64_t>", shape_var_name, ast_.InitList(ConvertToArgs(tensor_info.shape_dims))));
-    const auto device_addr =
-        (input_addr_node.kind == AddrValueKind::kConstTensor && input_addr_node.const_index.has_value())
-            ? Arg(constants_[static_cast<int64_t>(*input_addr_node.const_index)])
-            : Arg(GetAddr(total_dev_mem_ptr_, input_addr_node.mem_offset));
-    items.push_back(ast_.VarDecl(
-        "Om2Tensor", input_addr_node.symbol_hint,
-        ast_.Call("BuildOm2Tensor", {device_addr, ast_.ULong(tensor_info.size), tensor_info.data_type,
-                                     tensor_info.format, ast_.Var("std::vector<int64_t>", shape_var_name).Data(),
-                                     ast_.Var("std::vector<int64_t>", shape_var_name).Size()})));
+  GELOGI("Stream Switch Task Codegen: op[%s], cond_[%u], true stream id[%lu], stream id[%u], data type[%ld].",
+         context.op_desc->GetName().c_str(), build_data_.cond, static_cast<unsigned long>(build_data_.true_stream_id),
+         header_.stream_id, build_data_.data_type);
+  build_data_.stream_id = header_.stream_id;
+  for (const auto &addr : input_addr_nodes_) {
+    auto arg = TaskCodeBuilderUtil::ConvertAddrDesc(addr);
+    arg.has_tensor_info = false;
+    build_data_.ordered_args.push_back(std::move(arg));
   }
-  items.push_back(ChkStatus(ast_.Call(
-      "KernelStreamSwitchDistribute",
-      {
-          ast_.Str(header_.op_name),
-          ast_.Call("ValueToPtr", {ast_.Var("auto", input_addr_nodes_[0].symbol_hint).Attr("device_address")}),
-          ast_.StaticCast("aclrtCondition", static_cast<int64_t>(cond_)),
-          ast_.Call("ValueToPtr", {ast_.Var("auto", input_addr_nodes_[1].symbol_hint).Attr("device_address")}),
-          stream_list_[static_cast<int32_t>(true_stream_id_)],
-          stream_list_[static_cast<int32_t>(header_.stream_id)],
-          ast_.StaticCast("aclrtCompareDataType", data_type_),
-      })));
   return SUCCESS;
 }
 
 Status StreamSwitchTaskCodeBuilder::RenderDistHelper(std::vector<DeclNode *> &items) {
-  auto op_name = ast_.Var("const char_t *const", "op_name");
-  auto input_ptr = ast_.Var("void *", "input_ptr");
-  auto cond = ast_.Var("aclrtCondition", "cond");
-  auto value_ptr = ast_.Var("void *", "value_ptr");
-  auto true_stream = ast_.Var("aclrtStream", "true_stream");
-  auto stream = ast_.Var("aclrtStream", "stream");
-  auto data_type = ast_.Var("aclrtCompareDataType", "data_type");
-  items.push_back(ast_.DefineFunction(
-      "KernelStreamSwitchDistribute", {op_name, input_ptr, cond, value_ptr, true_stream, stream, data_type}, "aclError",
-      {
-          ChkRt(RtSetTaskTag(op_name)),
-          ChkRt(AclrtSwitchStream(input_ptr, cond, value_ptr, data_type, true_stream, stream)),
-          ast_.Return("ACL_SUCCESS"),
-      }));
+  std::vector<BodyItem> dispatch_body;
+  auto op = ast_.Var("const TaskDispatchInfo *", "op");
+  auto ctx = ast_.Var("const DispatchOpContext &", "ctx");
+  dispatch_body.push_back(ChkRt(RtSetTaskTag(op.Arrow("op_name"))));
+  dispatch_body.push_back(ChkRt(AclrtSwitchStream(
+      ast_.Call("ResolveOpAddr",
+                {op.Arrow("dispatch_info").Attr("stream_switch").Attr("args_info")[0].Attr("addr").Attr("mem_src"),
+                 op.Arrow("dispatch_info").Attr("stream_switch").Attr("args_info")[0].Attr("addr").Attr("offset"),
+                 ctx.Attr("total_dev_mem_ptr"), ctx.Attr("session_scope_mem_ptr"), ctx.Attr("constants")}),
+      ast_.StaticCast("aclrtCondition", op.Arrow("dispatch_info").Attr("stream_switch").Attr("cond")),
+      ast_.Call("ResolveOpAddr",
+                {op.Arrow("dispatch_info").Attr("stream_switch").Attr("args_info")[1].Attr("addr").Attr("mem_src"),
+                 op.Arrow("dispatch_info").Attr("stream_switch").Attr("args_info")[1].Attr("addr").Attr("offset"),
+                 ctx.Attr("total_dev_mem_ptr"), ctx.Attr("session_scope_mem_ptr"), ctx.Attr("constants")}),
+      ast_.StaticCast("aclrtCompareDataType", op.Arrow("dispatch_info").Attr("stream_switch").Attr("data_type")),
+      ctx.Attr("stream_list")[op.Arrow("dispatch_info").Attr("stream_switch").Attr("true_stream_id")],
+      ctx.Attr("stream_list")[op.Arrow("dispatch_info").Attr("stream_switch").Attr("stream_id")])));
+  GE_ASSERT_SUCCESS(TaskCodeBuilderUtil::RenderDispatchFunc(ast_, kDispatchFuncName, dispatch_body, items));
   return SUCCESS;
 }
 
 int64_t StreamSwitchTaskCodeBuilder::ParseOpIndex(const domi::TaskDef &task_def) {
   const auto &stream_switch_def = task_def.stream_switch();
   return static_cast<int64_t>(stream_switch_def.op_index());
+}
+
+std::string StreamSwitchTaskCodeBuilder::GetFuncName() const {
+  return kDispatchFuncName;
+}
+
+Status StreamSwitchTaskCodeBuilder::RenderOpDefTableFields(std::vector<std::pair<std::string, Arg>> &fields) {
+  fields.push_back({"dispatch_type", ast_.StaticCast("OpDispatchType", static_cast<int64_t>(kDispatchType))});
+  fields.push_back({"op_name", Arg::StringLiteral(header_.op_name)});
+  fields.push_back(
+      {"dispatch_info",
+       ast_.DesignatedInit(
+           {{"stream_switch", ast_.InitList({TaskCodeBuilderUtil::RenderOpArgDesc(ast_, build_data_.ordered_args),
+                                             build_data_.true_stream_id, build_data_.stream_id, build_data_.cond,
+                                             build_data_.data_type})}})});
+  return SUCCESS;
 }
 
 REGISTER_TASK_CODE_BUILDER(MODEL_TASK_STREAM_SWITCH, StreamSwitchTaskCodeBuilder);

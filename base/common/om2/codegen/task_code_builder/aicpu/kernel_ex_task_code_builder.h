@@ -15,48 +15,54 @@
 #include "common/om2/codegen/task_code_builder/task_code_builder.h"
 
 namespace ge {
+struct KernelExBuildData {
+  std::vector<OpArgDesc> ordered_args;
+  uint32_t args_info_num{0U};
+  uint32_t deploy_type{0U}, mem_type{0U}, memcpy_kind{0U};
+  uint32_t engine_type_val{0U};  // aclrtEngineType numeric value for table-driven dispatch
+  std::vector<uint8_t> args_blob, task_info_blob, ext_info_blob;
+  uint32_t args_blob_len{0U}, task_info_blob_len{0U}, ext_info_blob_len{0U};
+  KernelTaskSemantic semantic{};
+};
+
 class KernelExTaskCodeBuilder : public TaskCodeBuilder {
+  static constexpr const char *kDispatchFuncName = "DispatchKernelEx";
+  static constexpr OpDispatchType::Value kDispatchType = OpDispatchType::DISPATCH_KERNEL_EX;
+
  public:
   using TaskCodeBuilder::TaskCodeBuilder;
-  Status RenderDistribution(std::vector<BodyItem> &items) override;
+  std::string GetFuncName() const override {
+    return kDispatchFuncName;
+  }
   Status RenderDistHelper(std::vector<DeclNode *> &items) override;
   Status Contribute(TaskSemanticContributeContext &context) override;
   int64_t ParseOpIndex(const domi::TaskDef &task_def) override;
+  Status RenderOpDefTableFields(std::vector<std::pair<std::string, Arg>> &fields) override;
 
  private:
+  KernelExBuildData build_data_;
+  Status RenderDispatchFunc(std::vector<DeclNode *> &items);
+  Status RenderDispatchFuncSetup(std::vector<BodyItem> &body, const VarRef &op, const VarRef &ctx);
+  Status RenderDispatchFuncLaunch(std::vector<BodyItem> &body, const VarRef &op, const VarRef &ctx);
+  Status RenderDispatchFuncLaunchConfig(std::vector<BodyItem> &body, const VarRef &op, const VarRef &ctx);
+  Status RenderDispatchFuncAssembleExInfo(std::vector<BodyItem> &body, const VarRef &op, const VarRef &ctx);
+  Status RenderDispatchFuncLaunchTask(std::vector<BodyItem> &body, const VarRef &op, const VarRef &ctx);
+  Status RenderDispatchFuncReport(std::vector<BodyItem> &body, const VarRef &op, const VarRef &ctx);
   static std::string SerializeBytesToOctalString(const std::vector<uint8_t> &buffer);
   Status InitIowAddrRefreshInfo(uint64_t current_offset);
   Status InitLaunchInfo(const TaskSemanticContributeContext &context);
   Status InitTaskExtInfo(const TaskSemanticContributeContext &context);
   Status InitTaskExInfo(const TaskSemanticContributeContext &context);
   Status InitArgsTableInfo(const TaskSemanticContributeContext &context);
-  Status RenderGetAddrInfo(std::vector<BodyItem> &items, std::vector<Arg> &flatten_args_vars) const;
-  Status AppendOm2TensorAddrInfo(const AddrSemantic &addr, const char *addr_type, std::vector<BodyItem> &items,
-                                 std::vector<Arg> &flatten_args_vars) const;
-  Expr *BuildLaunchConfigExpr(const LaunchConfigSemantic &launch_config, Arg is_data_dump = {}) const;
-  VarRef AppendLaunchConfigSetup(size_t op_index, std::vector<BodyItem> &items, Arg is_data_dump = {}) const;
-  FunctionDef *BuildAssembleTfAicpuArgs() const;
-  FunctionDef *BuildTfAicpuKernelTaskDistribute() const;
-  FunctionDef *BuildAssembleTfAicpuExSessionIdInfo() const;
-  FunctionDef *BuildAssembleTfAicpuExKernelIdInfo() const;
-  FunctionDef *BuildAssembleTfAicpuExWorkSpaceAddrInfo() const;
-  FunctionDef *BuildAssembleTfAicpuExInputOutputAddrInfo() const;
-  FunctionDef *BuildAssembleTfAicpuExExtInfo() const;
-
-  KernelTaskSemantic semantic_;
-  rtMemType_t mem_type_{RT_MEMORY_HBM};
-  int32_t deploy_type_flag_{0};
-  aclrtMemcpyKind memcpy_kind_{ACL_MEMCPY_HOST_TO_DEVICE};
-  std::string task_def_kernel_ex_args_;
-  size_t task_def_kernel_ex_args_size_;
-  std::string task_def_kernel_ex_task_info_;
-  size_t task_def_kernel_ex_task_info_size_;
-  std::string task_def_kernel_ex_ext_info_;
-  size_t task_def_kernel_ex_ext_info_size_;
-  size_t ext_info_len_;
-  uint8_t *ext_info_;
-  std::vector<uint8_t> ext_info_buffer_;
+  FunctionDef *RenderAssembleTfAicpuArgs() const;
+  FunctionDef *RenderTfAicpuKernelTaskDistribute() const;
+  FunctionDef *RenderAssembleTfAicpuExSessionIdInfo() const;
+  FunctionDef *RenderAssembleTfAicpuExKernelIdInfo() const;
+  FunctionDef *RenderAssembleTfAicpuExWorkSpaceAddrInfo() const;
+  FunctionDef *RenderAssembleTfAicpuExInputOutputAddrInfo() const;
+  FunctionDef *RenderAssembleTfAicpuExExtInfo() const;
 };
+
 }  // namespace ge
 
 #endif  // AIR_CXX_BASE_COMMON_OM2_CODEGEN_TASK_CODE_BUILDER_AICPU_KERNEL_EX_TASK_CODE_BUILDER_H_

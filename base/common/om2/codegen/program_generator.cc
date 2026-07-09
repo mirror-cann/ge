@@ -212,6 +212,7 @@ Status ProgramGenerator::GenerateMakeFile(Om2CodePrinter &code_printer) {
   const std::string lib_name = model_name + "_om2";
   std::string cmakelists_content = R"(CANN_ROOT ?= $(ASCEND_HOME_PATH)
 USE_STUB_LIB ?= 1
+MAKEFLAGS += -j$(shell nproc)
 
 ifeq ($(origin CXX),default)
 CXX := c++

@@ -15,17 +15,27 @@
 #include "rt_external.h"
 
 namespace ge {
+struct CmoBuildData {
+  std::vector<OpArgDesc> ordered_args;
+  rtCmoTaskInfo_t task_info{};
+  uint32_t stream_id{0U};
+};
+
 class CmoTaskCodeBuilder : public TaskCodeBuilder {
+  static constexpr const char *kDispatchFuncName = "DispatchCmo";
+  static constexpr OpDispatchType::Value kDispatchType = OpDispatchType::DISPATCH_CMO;
+
  public:
   using TaskCodeBuilder::TaskCodeBuilder;
   Status Contribute(TaskSemanticContributeContext &context) override;
-  Status RenderDistribution(std::vector<BodyItem> &items) override;
   Status RenderDistHelper(std::vector<DeclNode *> &items) override;
+  std::string GetFuncName() const override;
+  Status RenderOpDefTableFields(std::vector<std::pair<std::string, Arg>> &fields) override;
 
  private:
-  rtCmoTaskInfo_t cmo_task_info_{};
-  AddrSemantic source_addr_{};
+  CmoBuildData build_data_;
 };
+
 }  // namespace ge
 
 #endif  // AIR_CXX_BASE_COMMON_OM2_CODEGEN_TASK_CODE_BUILDER_FE_CMO_TASK_CODE_BUILDER_H_
