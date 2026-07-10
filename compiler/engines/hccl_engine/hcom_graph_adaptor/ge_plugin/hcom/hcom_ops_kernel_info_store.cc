@@ -3426,12 +3426,8 @@ HcclResult HcomOpsKernelInfoStore::GetHcclUnfoldStream(const std::string &group,
  	   HCCL_INFO("Get Unfold Stream from group:%s", group.c_str());
  	   HcclComm comm = nullptr;
  	   CHK_RET(HcomGetCommHandleByGroup(group.c_str(), &comm));
- 	   std::string socVersion{};
- 	   if (ge::GetThreadLocalContext().GetOption(ge::SOC_VERSION, socVersion) != ge::GRAPH_SUCCESS) {
- 	     HCCL_ERROR("[HcomOpsKernelInfoStore] GetHcclUnfoldStream get soc version failed");
- 	     return HCCL_E_NOT_FOUND;
- 	   }
- 	   if (socVersion.find("Ascend950") == std::string::npos) {
+ 	   DevType devType = HcomGetDeviceType();
+	   if (devType != DevType::DEV_TYPE_950) {
  	     rtStream_t aicpuStream = nullptr;
  	     CHK_RET(HcomMc2AiCpuStreamAllocAndGet(group.c_str(), streamMode, &aicpuStream));
  	     unfoldStream = aicpuStream;
