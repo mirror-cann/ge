@@ -67,8 +67,8 @@ Status LoadRawCreators(const PullCreatorSymbols &symbols, std::vector<CustomOpTy
 
   const size_t creator_num = symbols.get_creator_num();
   raw_creators.resize(creator_num);
-  const auto ret = symbols.get_creators(raw_creators.empty() ? nullptr : raw_creators.data(), raw_creators.size(),
-                                        sizeof(CustomOpTypeToCreator));
+  auto creator = raw_creators.empty() ? nullptr : raw_creators.data();
+  const auto ret = symbols.get_creators(creator, raw_creators.size(), sizeof(CustomOpTypeToCreator));
   if (ret != 0) {
     GELOGE(FAILED, "[CUSTOM OP] get registered custom op creators failed, ret:%d.", ret);
     return FAILED;

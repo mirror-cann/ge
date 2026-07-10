@@ -9,6 +9,7 @@
  */
 
 #include "label_goto_ex_task_code_builder.h"
+#include "common/om2/codegen/task_code_builder/task_code_builder_util.h"
 #include <cinttypes>
 
 #include "acl/acl_rt.h"
@@ -23,68 +24,71 @@ Status LabelGotoExTaskCodeBuilder::Contribute(TaskSemanticContributeContext &con
   FillTaskSemanticHeader(context, header_);
   GE_ASSERT_NOTNULL(context.runtime);
   GE_ASSERT_NOTNULL(context.op_desc);
-  GE_ASSERT_TRUE(AttrUtils::GetInt(context.op_desc, ATTR_NAME_LABEL_SWITCH_INDEX, label_index_),
+  GE_ASSERT_TRUE(AttrUtils::GetInt(context.op_desc, ATTR_NAME_LABEL_SWITCH_INDEX, build_data_.label_index),
                  "[OM2][Get][Attr] %s in op:%s(%s) fail.", ATTR_NAME_LABEL_SWITCH_INDEX.c_str(),
                  header_.op_name.c_str(), context.op_desc->GetType().c_str());
-  GE_ASSERT_TRUE(label_index_ < context.runtime->label_num,
-                 "[OM2][Check][Param] label list size:%u, cur:%u, op:%s(%s).", context.runtime->label_num, label_index_,
-                 context.op_desc->GetName().c_str(), context.op_desc->GetType().c_str());
+  GE_ASSERT_TRUE(build_data_.label_index < context.runtime->label_num,
+                 "[OM2][Check][Param] label list size:%u, cur:%u, op:%s(%s).", context.runtime->label_num,
+                 build_data_.label_index, context.op_desc->GetName().c_str(), context.op_desc->GetType().c_str());
   // memory type
-  memory_type_ = rtGetTsMemType(MEM_REQUEST_FEATURE_DEFAULT, static_cast<uint32_t>(sizeof(uint64_t)));
+  build_data_.memory_type = rtGetTsMemType(MEM_REQUEST_FEATURE_DEFAULT, static_cast<uint32_t>(sizeof(uint64_t)));
   // stream
   GE_ASSERT_TRUE(header_.stream_id < context.runtime->stream_num, "[OM2][Check][Param] stream list size:%u, cur:%u!",
                  context.runtime->stream_num, header_.stream_id);
+  build_data_.stream_id = header_.stream_id;
 
-  GELOGI("memory_type: %u, stream_id %u, op_index %ld", memory_type_, header_.stream_id, header_.op_index);
+  GELOGI("memory_type: %u, stream_id %u, op_index %ld", build_data_.memory_type, build_data_.stream_id,
+         header_.op_index);
   return SUCCESS;
 }
 
 Status LabelGotoExTaskCodeBuilder::RenderInitResource(std::vector<BodyItem> &items) {
-  items.push_back(
-      ChkStatus(ast_.Call("CreateLabelListForLabelGotoEx", {header_.op_index, static_cast<int64_t>(label_index_)})));
-  return SUCCESS;
-}
-
-Status LabelGotoExTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items) {
-  const std::string op_head = "op" + std::to_string(header_.op_index) + "_";
-  auto index_value = ast_.Var("void *", op_head + "index_value");
-  auto branch_index = ast_.Var("constexpr uint64_t", op_head + "branch_index");
-  auto label_goto_ex_label_list = ast_.Var("auto", "label_goto_ex_label_list_");
-  items.push_back(
-      ast_.Comment("============================= " + header_.op_name + " ==============================="));
-  items.push_back(ast_.VarDecl(index_value, nullptr));
-  items.push_back(
-      ChkStatus(ast_.Call("MallocDeviceMemory", {index_value, ast_.Sizeof("uint64_t"),
-                                                 static_cast<int64_t>(memory_type_), dev_dynamic_mem_ptrs_})));
-  items.push_back(ast_.VarDecl(branch_index, 0));
-  items.push_back(ChkStatus(AclrtMemcpy(index_value, ast_.Sizeof("uint64_t"), branch_index.Addr(),
-                                        ast_.Sizeof("uint64_t"), "ACL_MEMCPY_HOST_TO_DEVICE")));
   items.push_back(ChkStatus(
-      ast_.Call("KernelLabelGotoExDistribute", {
-                                                   index_value,
-                                                   1,
-                                                   label_goto_ex_label_list[static_cast<int32_t>(header_.op_index)],
-                                                   stream_list_[static_cast<int32_t>(header_.stream_id)],
-                                               })));
+      ast_.Call("CreateLabelListForLabelGotoEx", {header_.op_index, static_cast<int64_t>(build_data_.label_index)})));
   return SUCCESS;
 }
 
 Status LabelGotoExTaskCodeBuilder::RenderDistHelper(std::vector<DeclNode *> &items) {
-  auto ptr = ast_.Var("void *", "ptr");
-  auto max_value = ast_.Var("uint32_t", "maxValue");
-  auto label_list = ast_.Var("aclrtLabelList", "labelList");
-  auto stream = ast_.Var("aclrtStream", "stream");
-  items.push_back(ast_.DefineFunction("KernelLabelGotoExDistribute", {ptr, max_value, label_list, stream}, "aclError",
-                                      {
-                                          ChkStatus(AclrtSwitchLabelByIndex(ptr, max_value, label_list, stream)),
-                                          ast_.Return("ACL_SUCCESS"),
-                                      }));
+  std::vector<BodyItem> body;
+  auto op = ast_.Var("const TaskDispatchInfo *", "op");
+  auto ctx = ast_.Var("const DispatchOpContext &", "ctx");
+  body.push_back(ast_.VarDecl(ast_.Var("void *", "index_value"), Arg(nullptr)));
+  body.push_back(ast_.VarDecl(ast_.Var("uint64_t", "branch_index"), Arg(0)));
+  body.push_back(
+      ChkStatus(ast_.Call("MallocDeviceMemory", {
+                                                    ast_.Var("", "index_value"),
+                                                    ast_.Sizeof("uint64_t"),
+                                                    op.Arrow("dispatch_info").Attr("label_goto").Attr("memory_type"),
+                                                    ctx.Attr("dev_dynamic_mem_ptrs"),
+                                                })));
+  body.push_back(
+      ChkStatus(AclrtMemcpy(ast_.Var("", "index_value"), ast_.Sizeof("uint64_t"), ast_.Var("", "branch_index").Addr(),
+                            ast_.Sizeof("uint64_t"), "ACL_MEMCPY_HOST_TO_DEVICE")));
+  body.push_back(ChkStatus(AclrtSwitchLabelByIndex(
+      ast_.Var("", "index_value"), ast_.UInt(1),
+      ctx.Attr("label_goto_ex_label_list")[op.Arrow("dispatch_info").Attr("label_goto").Attr("op_idx")],
+      ctx.Attr("stream_list")[op.Arrow("dispatch_info").Attr("label_goto").Attr("stream_id")])));
+  GE_ASSERT_SUCCESS(TaskCodeBuilderUtil::RenderDispatchFunc(ast_, kDispatchFuncName, body, items));
   return SUCCESS;
 }
 
 int64_t LabelGotoExTaskCodeBuilder::ParseOpIndex(const domi::TaskDef &task_def) {
   const domi::LabelGotoExDef &label_goto = task_def.label_goto_ex();
   return static_cast<int64_t>(label_goto.op_index());
+}
+
+std::string LabelGotoExTaskCodeBuilder::GetFuncName() const {
+  return kDispatchFuncName;
+}
+
+Status LabelGotoExTaskCodeBuilder::RenderOpDefTableFields(std::vector<std::pair<std::string, Arg>> &fields) {
+  fields.push_back({"dispatch_type", ast_.StaticCast("OpDispatchType", static_cast<int64_t>(kDispatchType))});
+  fields.push_back({"op_name", Arg::StringLiteral(header_.op_name)});
+  fields.push_back(
+      {"dispatch_info",
+       ast_.DesignatedInit({{"label_goto", ast_.InitList({static_cast<int64_t>(header_.op_index), build_data_.stream_id,
+                                                          build_data_.memory_type})}})});
+  return SUCCESS;
 }
 
 REGISTER_TASK_CODE_BUILDER(MODEL_TASK_STREAM_LABEL_GOTO, LabelGotoExTaskCodeBuilder);

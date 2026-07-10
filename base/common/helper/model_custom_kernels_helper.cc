@@ -77,7 +77,7 @@ Status CollectCustomOpTypesFromGraph(const ComputeGraphPtr &graph, const CustomO
   for (const auto &node : graph->GetAllNodes()) {
     const std::string op_type = node->GetType();
     if (registry->HasCreator(AscendString(op_type.c_str()))) {
-      used_custom_op_types.insert(op_type);
+      (void)used_custom_op_types.insert(op_type);
     }
   }
   return SUCCESS;
@@ -145,9 +145,9 @@ Status ModelHelper::SerializeCustomOpKernel(PortableOp *serializable_op, const s
   header.bin_len = static_cast<uint32_t>(buffer.size());
 
   const auto *header_ptr = reinterpret_cast<const uint8_t *>(&header);
-  merged_buffers.insert(merged_buffers.end(), header_ptr, header_ptr + sizeof(header));
-  merged_buffers.insert(merged_buffers.end(), op_type_str.begin(), op_type_str.end());
-  merged_buffers.insert(merged_buffers.end(), buffer.begin(), buffer.end());
+  (void)merged_buffers.insert(merged_buffers.end(), header_ptr, header_ptr + sizeof(header));
+  (void)merged_buffers.insert(merged_buffers.end(), op_type_str.begin(), op_type_str.end());
+  (void)merged_buffers.insert(merged_buffers.end(), buffer.begin(), buffer.end());
   GELOGD("[CUSTOM OP] Serialized custom op '%s', bin size:%zu", op_type_str.c_str(), buffer.size());
   return SUCCESS;
 }
@@ -184,7 +184,7 @@ Status ModelHelper::SaveCustomOpsPartition(std::shared_ptr<OmFileSaveHelper> &om
       has_non_serializable_custom_op = true;
     } else {
       has_serializable_custom_op = true;
-      serializable_ops.emplace_back(op_type_str, serializable_op);
+      (void)serializable_ops.emplace_back(op_type_str, serializable_op);
     }
     if (has_serializable_custom_op && has_non_serializable_custom_op) {
       GELOGE(FAILED, "[CUSTOM OP] graph contains both serializable and non-serializable custom ops.");
@@ -295,11 +295,11 @@ Status ModelHelper::LoadOpSoBin(const OmFileLoadHelper &om_load_helper, const Ge
           GELOGD("Added autofuse so_path:%s", so_path.c_str());
         }
       } else if (op_so_bin_ptr->GetSoBinType() == SoBinType::kCustomOp) {
-        custom_op_so_bins.emplace_back(op_so_bin_ptr);
+        (void)custom_op_so_bins.emplace_back(op_so_bin_ptr);
       }
     }
     if (!bin_file_buffer.empty()) {
-      root_graph->SetExtAttr<std::map<std::string, ge::OpSoBinPtr>>("bin_file_buffer", bin_file_buffer);
+      (void)root_graph->SetExtAttr<std::map<std::string, ge::OpSoBinPtr>>("bin_file_buffer", bin_file_buffer);
     }
     GE_ASSERT_SUCCESS(LoadCustomOpSoBins(custom_op_so_bins, loaded_handles));
     SaveOpSoInfo(ge_root_model);

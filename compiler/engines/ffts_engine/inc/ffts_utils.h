@@ -66,18 +66,18 @@ Status UnfoldPartionCallOnlyOneDepth(ge::ComputeGraph &graph, const std::string 
 #define FFTS_TIMECOST_START(stage) int64_t start_usec_##stage = GetMicroSecondTime();
 
 // Print the log of time cost of stage.
-#define FFTS_TIMECOST_END(stage, stage_name)                                                \
-  do {                                                                                      \
-    int64_t end_usec_##stage = GetMicroSecondTime();                                        \
-    FFTS_LOGI("[FFTS_PERFORMANCE]The time cost of %s is [%ld] micro second.", (stage_name), \
-              (end_usec_##stage - start_usec_##stage));                                     \
+#define FFTS_TIMECOST_END(stage, stage_name)                                                 \
+  do {                                                                                       \
+    int64_t end_usec_##stage = GetMicroSecondTime();                                         \
+    FFTS_LOGI("[FFTS_PERFORMANCE]The time cost of %s is [%ld] micro seconds.", (stage_name), \
+              (end_usec_##stage - start_usec_##stage));                                      \
   } while (false)
 
-#define FFTS_TIMECOST_END_LOGI(stage, stage_name)                                           \
-  do {                                                                                      \
-    int64_t end_usec_##stage = GetMicroSecondTime();                                        \
-    FFTS_LOGI("[FFTS_PERFORMANCE]The time cost of %s is [%ld] micro second.", (stage_name), \
-              (end_usec_##stage - start_usec_##stage));                                     \
+#define FFTS_TIMECOST_END_LOGI(stage, stage_name)                                            \
+  do {                                                                                       \
+    int64_t end_usec_##stage = GetMicroSecondTime();                                         \
+    FFTS_LOGI("[FFTS_PERFORMANCE]The time cost of %s is [%ld] micro seconds.", (stage_name), \
+              (end_usec_##stage - start_usec_##stage));                                      \
   } while (false)
 
 template <typename T, typename... Args>

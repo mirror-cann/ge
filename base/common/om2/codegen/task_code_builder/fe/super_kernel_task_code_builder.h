@@ -14,10 +14,13 @@
 #include "common/om2/codegen/task_code_builder/task_code_builder.h"
 
 namespace ge {
+
 class SuperKernelV2TaskCodeBuilder : public TaskCodeBuilder {
+  static constexpr const char *kDispatchFuncName = "DispatchSuperKernel";
+
  public:
   using TaskCodeBuilder::TaskCodeBuilder;
-  Status RenderDistribution(std::vector<BodyItem> &items) override;
+  std::string GetFuncName() const override;
   Status RenderDistHelper(std::vector<DeclNode *> &items) override;
   int64_t ParseOpIndex(const domi::TaskDef &task_def) override;
 };

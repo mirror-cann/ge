@@ -320,7 +320,7 @@ TEST_F(AutofuseNodeST, LoweringDataNodeSetHostTensorPlacement) {
 
   auto data0 = graph->FindNode("data0");
   ASSERT_NE(data0, nullptr);
-  (void)ge::AttrUtils::SetBool(data0->GetOpDesc(), ge::ATTR_NAME_HOST_TENSOR, true);
+  (void)ge::AttrUtils::SetBool(data0->GetOpDesc(), ge::ATTR_NAME_HOST_TENSOR_AS_MODEL_INPUT, true);
   auto data0_ret = LoweringDataNode(data0, data_input);
   ASSERT_TRUE(data0_ret.result.IsSuccess());
   ASSERT_EQ(data0_ret.out_addrs[0]->GetPlacement(), static_cast<int32_t>(kOnHost));

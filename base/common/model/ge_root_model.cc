@@ -34,11 +34,11 @@
 
 namespace ge {
 namespace {
-constexpr uint8_t kElfMachineOffset = 18U;
+constexpr std::streamoff kElfMachineOffset = 18;
 
 std::string ToLowerCopy(std::string value) {
-  std::transform(value.begin(), value.end(), value.begin(),
-                 [](const unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
+  (void)std::transform(value.begin(), value.end(), value.begin(),
+                       [](const uint8_t ch) { return static_cast<char>(std::tolower(ch)); });
   return value;
 }
 
@@ -81,11 +81,11 @@ bool ReadElfMachine(const std::string &so_path, uint16_t &machine, bool &is_elf)
   }
 
   std::array<char, EI_NIDENT> ident{};
-  file.read(ident.data(), static_cast<std::streamsize>(ident.size()));
+  (void)file.read(ident.data(), static_cast<std::streamsize>(ident.size()));
   if (file.gcount() != static_cast<std::streamsize>(ident.size())) {
     return false;
   }
-  const auto to_u8 = [](const char ch) { return static_cast<uint8_t>(static_cast<unsigned char>(ch)); };
+  const auto to_u8 = [](const char ch) { return static_cast<uint8_t>(ch); };
   if ((to_u8(ident[EI_MAG0]) != ELFMAG0) || (to_u8(ident[EI_MAG1]) != ELFMAG1) || (to_u8(ident[EI_MAG2]) != ELFMAG2) ||
       (to_u8(ident[EI_MAG3]) != ELFMAG3)) {
     is_elf = false;
@@ -97,11 +97,11 @@ bool ReadElfMachine(const std::string &so_path, uint16_t &machine, bool &is_elf)
   }
 
   std::array<char, sizeof(uint16_t)> machine_bytes{};
-  file.seekg(kElfMachineOffset, std::ios::beg);
+  (void)file.seekg(kElfMachineOffset, std::ios::beg);
   if (!file.good()) {
     return false;
   }
-  file.read(machine_bytes.data(), static_cast<std::streamsize>(machine_bytes.size()));
+  (void)file.read(machine_bytes.data(), static_cast<std::streamsize>(machine_bytes.size()));
   if (file.gcount() != static_cast<std::streamsize>(machine_bytes.size())) {
     return false;
   }
@@ -498,8 +498,9 @@ Status GeRootModel::CheckAndSetAutofuseSo() {
   const std::string *guard_so_data = AttrUtils::GetStr(root_graph_, "_guard_check_so_data");
   if (!autofuse_so_set_.empty() || ((guard_so_data != nullptr) && !guard_so_data->empty())) {
     OpSoStoreUtils::SetSoBinType(SoBinType::kAutofuse, so_in_om_);
+    const auto guard_so_size = (guard_so_data != nullptr) ? guard_so_data->size() : 0UL;
     GELOGD("Set kAutofuse so_in_om_ bit, autofuse_so_count=%zu, guard_so_size=%zu.", autofuse_so_set_.size(),
-           (guard_so_data != nullptr) ? guard_so_data->size() : 0UL);
+           guard_so_size);
   }
   GELOGI("[AutofuseSo]The num of so is %zu.", autofuse_so_set_.size());
   return SUCCESS;

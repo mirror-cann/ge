@@ -16,38 +16,47 @@
 #include "graph/utils/args_format_desc_utils.h"
 
 namespace ge {
+struct MemcpyAddrBuildData {
+  std::vector<OpArgDesc> ordered_args;       // IO 地址条目（不含 CUSTOM_VALUE）
+  std::vector<OpArgDesc> custom_value_args;  // CUSTOM_VALUE 写回条目
+  uint64_t dst_max{0U}, count{0U};
+  uint32_t kind{0U}, align_offset{0U}, args_size{0U}, stream_id{0U};
+  uint32_t args_table_idx{0U}, aligned_io_offset{0U};
+};
+
 class MemcpyAddrAsyncTaskCodeBuilder : public TaskCodeBuilder {
+  static constexpr const char *kDispatchFuncName = "DispatchMemcpyAddrAsync";
+  static constexpr OpDispatchType::Value kDispatchType = OpDispatchType::DISPATCH_MEMCPY_ADDR_ASYNC;
+
  public:
   using TaskCodeBuilder::TaskCodeBuilder;
+  std::string GetFuncName() const override;
   Status Contribute(TaskSemanticContributeContext &context) override;
-  Status RenderDistribution(std::vector<BodyItem> &items) override;
   Status RenderDistHelper(std::vector<DeclNode *> &items) override;
   int64_t ParseOpIndex(const domi::TaskDef &task_def) override;
+  Status RenderOpDefTableFields(std::vector<std::pair<std::string, Arg>> &fields) override;
 
  private:
+  MemcpyAddrBuildData build_data_;
   void AppendOrderedArgValue(const AddrSemantic &semantic, uint64_t current_host_offset);
   void ResolveInternalIndex(TaskSemanticContributeContext &context);
   Status CalcArgSizes(const TaskSemanticContributeContext &context);
   Status BuildOrderedArgs(TaskSemanticContributeContext &context, const AddrSemantic &src_addr_node,
                           const AddrSemantic &dst_addr_node);
-  Status CollectIoAddrVars(std::vector<BodyItem> &items, std::vector<Arg> &args_vars);
-  void RenderCustomValueWriteback(std::vector<BodyItem> &items);
+  void PopulateBuildData();
+  Status RenderKernelDistributeFunc(std::vector<DeclNode *> &items);
+  Status RenderDispatchFunc(std::vector<DeclNode *> &items);
+  std::vector<BodyItem> RenderIoAddrResolveLoop(const VarRef &ctx, const ExprRef &memcpy_addr);
+  Status RenderCustomValueWriteback(std::vector<BodyItem> &body, const VarRef &op, const VarRef &ctx,
+                                    const ExprRef &args_table_idx);
 
   std::vector<AddrSemantic> ordered_arg_values_;
   std::vector<ArgDesc> arg_descs_;
   std::vector<size_t> arg_sizes_;
-  uint64_t dst_max_{0U};
-  uint64_t count_{0U};
-  uint32_t kind_{0U};
   uint32_t internal_index_{0U};
-  size_t aligned_io_offset_{0U};
 
-  // args_format 相关
   std::string args_format_str_;
-  size_t args_size_{0UL};
-  size_t align_offset_{0UL};  // 64字节对齐偏移
 
-  // args_table（memcpy_addr_async 总是需要）
   ArgsTableEntrySemantic entry_;
 };
 }  // namespace ge

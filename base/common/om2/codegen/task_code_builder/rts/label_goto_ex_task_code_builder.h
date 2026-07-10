@@ -14,20 +14,30 @@
 #include "common/om2/codegen/task_code_builder/task_code_builder.h"
 
 namespace ge {
+struct LabelGotoExBuildData {
+  uint32_t label_index{0U};
+  uint32_t stream_id{0U};
+  uint32_t memory_type{0U};
+};
+
 constexpr uint8_t kGotoBranchMax = 1U;
 class LabelGotoExTaskCodeBuilder : public TaskCodeBuilder {
+  static constexpr const char *kDispatchFuncName = "DispatchLabelGotoEx";
+  static constexpr OpDispatchType::Value kDispatchType = OpDispatchType::DISPATCH_LABEL_GOTO_EX;
+
  public:
   using TaskCodeBuilder::TaskCodeBuilder;
+  std::string GetFuncName() const override;
   Status Contribute(TaskSemanticContributeContext &context) override;
   Status RenderInitResource(std::vector<BodyItem> &items) override;
-  Status RenderDistribution(std::vector<BodyItem> &items) override;
   Status RenderDistHelper(std::vector<DeclNode *> &items) override;
   int64_t ParseOpIndex(const domi::TaskDef &task_def) override;
+  Status RenderOpDefTableFields(std::vector<std::pair<std::string, Arg>> &fields) override;
 
  private:
-  uint32_t label_index_ = 0U;
-  uint32_t memory_type_{0U};
+  LabelGotoExBuildData build_data_;
 };
+
 }  // namespace ge
 
 #endif  // AIR_CXX_BASE_COMMON_OM2_CODEGEN_TASK_CODE_BUILDER_RTS_LABEL_GOTO_EX_TASK_CODE_BUILDER_H_

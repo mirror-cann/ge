@@ -135,7 +135,7 @@ Status DsaTaskBuilder::GenerateTask(const ge::Node &node, const ge::RunContext &
           node.GetType().c_str(), task_def.DebugString().c_str());
 
   int64_t end_timestamps = GetMicroSecondTime();
-  FE_LOGI("[FE_PERFORMANCE]The time cost of DsaTaskBuilder::GenerateTask is [%ld] micro second.",
+  FE_LOGI("[FE_PERFORMANCE]The time cost of DsaTaskBuilder::GenerateTask is [%ld] micro seconds.",
           (end_timestamps - begin_timestamps));
   return SUCCESS;
 }

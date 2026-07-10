@@ -15,38 +15,46 @@
 #include "graph/args_format_desc.h"
 
 namespace ge {
+struct CmoAddrBuildData {
+  std::vector<OpArgDesc> ordered_args;       // IO 地址条目（不含 CUSTOM_VALUE）
+  std::vector<OpArgDesc> custom_value_args;  // CUSTOM_VALUE 写回条目
+  uint32_t args_size{0U}, align_offset{0U}, cmo_op_code{0U};
+  uint32_t stream_id{0U}, args_table_idx{0U};
+  uint32_t io_offset{0U}, args_info_num{0U};
+};
+
 class CmoAddrTaskCodeBuilder : public TaskCodeBuilder {
+  static constexpr const char *kDispatchFuncName = "DispatchCmoAddr";
+  static constexpr OpDispatchType::Value kDispatchType = OpDispatchType::DISPATCH_CMO_ADDR;
+
  public:
   using TaskCodeBuilder::TaskCodeBuilder;
+  std::string GetFuncName() const override;
   Status Contribute(TaskSemanticContributeContext &context) override;
-  Status RenderDistribution(std::vector<BodyItem> &items) override;
   Status RenderDistHelper(std::vector<DeclNode *> &items) override;
   int64_t ParseOpIndex(const domi::TaskDef &task_def) override;
+  Status RenderOpDefTableFields(std::vector<std::pair<std::string, Arg>> &fields) override;
 
  private:
+  CmoAddrBuildData build_data_;
   Status BuildOrderedArgs(TaskSemanticContributeContext &context, const AddrSemantic &src_addr_node);
   void AppendOrderedArgValue(const AddrSemantic &semantic, uint64_t current_host_offset);
-  Status CollectIoAddrVars(std::vector<BodyItem> &items, std::vector<Arg> &args_vars);
-  void RenderCustomValueWriteback(std::vector<BodyItem> &items);
   std::string BuildAutoArgsFormat(const TaskSemanticContributeContext &context) const;
+
+  // RenderDistHelper sub-functions
+  Status RenderKernelDistributeFunc(std::vector<DeclNode *> &items);
+  Status RenderDispatchFunc(std::vector<DeclNode *> &items);
+  Status RenderKernelLaunch(std::vector<BodyItem> &body, const VarRef &op, const VarRef &ctx,
+                            const ExprRef &dev_addr_off, const ExprRef &host_addr_off);
+  Status RenderArgsWriteback(std::vector<BodyItem> &body, const VarRef &op, const VarRef &ctx, const VarRef &iow_addr,
+                             const ExprRef &args_table_idx);
+  void RenderCustomValueWriteback(std::vector<BodyItem> &body, const VarRef &ctx, const ExprRef &args_table_idx);
 
   std::string args_format_str_;
   std::vector<ArgDesc> arg_descs_;
   std::vector<AddrSemantic> ordered_arg_values_;
 
-  // + ------------ + --------- + ------- + --- +
-  // | align_offset | io_offset | src | |64B |
-  // + ------------ + --------- + ------- + --- +
-  //                |<- args_size_    ->|
-  // + ------------ + --------- + ------- + --- +
-  // |<-          total_args_size_         ->|
-
   std::vector<size_t> arg_sizes_;
-  size_t args_size_{0U};
-  size_t align_offset_{0U};
-  size_t io_offset_{0U};
-  size_t total_args_size_{0U};
-  uint32_t cmo_op_code_{0U};
   std::optional<ArgsTableEntrySemantic> entry_;
 };
 }  // namespace ge

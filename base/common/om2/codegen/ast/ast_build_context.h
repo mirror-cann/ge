@@ -213,8 +213,8 @@ class AstBuildContext {
   CCastExpr *CCast(const std::string &target_type, Arg expr) const;
   InitListExpr *InitList(std::initializer_list<Arg> items, bool compact = false) const;
   InitListExpr *InitList(const std::vector<Arg> &items, bool compact = false) const;
-  DesignatedInitListExpr *InitListWithDesignators(const std::vector<std::pair<std::string, Arg>> &members,
-                                                  bool compact = false) const;
+  DesignatedInitListExpr *DesignatedInit(const std::vector<std::pair<std::string, Arg>> &members,
+                                         bool compact = false) const;
   VarRef Var(const std::string &type_name, const std::string &symbol_name) const;
   ExprRef Assign(Arg lhs, Arg rhs) const;
   ExprRef Deref(Arg expr) const;
@@ -237,7 +237,10 @@ class AstBuildContext {
   VarDeclStmt *VarDecl(const VarRef &symbol, Arg init = {}) const;
   BlockStmt *Block(const std::vector<BodyItem> &items) const;
   IfStmt *If(Arg cond, std::initializer_list<BodyItem> then_items) const;
-  IfStmt *If(Arg cond, std::initializer_list<BodyItem> then_items, std::initializer_list<BodyItem> else_items) const;
+  IfStmt *If(Arg cond, std::initializer_list<BodyItem> then_items, std::initializer_list<BodyItem> else_items,
+             bool is_preprocessor = false) const;
+  IfStmt *If(Arg cond, const std::vector<BodyItem> &then_items, const std::vector<BodyItem> &else_items,
+             bool is_preprocessor = false) const;
   ForStmt *For(Stmt *init, Arg cond, Arg step, std::initializer_list<BodyItem> items) const;
   RangeForStmt *RangeFor(const VarRef &loop_var, Arg range, std::initializer_list<BodyItem> items) const;
   RangeForStmt *RangeFor(const std::string &type_spec, const std::string &name, Arg range,

@@ -27,6 +27,7 @@
 #include "common/checker.h"
 #include "framework/common/scope_guard.h"
 #include "graph/ge_context.h"
+#include "graph_metadef/common/ge_common/util.h"
 
 namespace ge {
 namespace {
@@ -536,8 +537,11 @@ Status Om2Utils::CompileGeneratedCppToSo(const Om2CodegenArtifacts &artifacts, c
                          model_name.c_str());
 
   so_artifact.file_name = "lib" + model_name + "_om2.so";
+  const uint64_t compile_start_us = ge::GetCurrentTimestamp();
   GE_ASSERT_SUCCESS(
       CompileWithMemFdMakefile(*makefile_artifact, cpp_files, is_release, so_artifact, so_path, makefile_file));
+  GEEVENT("[OM2] Model %s so compile elapsed: %lu us", model_name.c_str(),
+          ge::GetCurrentTimestamp() - compile_start_us);
   return GRAPH_SUCCESS;
 }
 

@@ -14,16 +14,26 @@
 #include "common/om2/codegen/task_code_builder/task_code_builder.h"
 
 namespace ge {
+
+struct StreamActiveBuildData {
+  uint32_t active_stream_id{0U};
+  uint32_t stream_id{0U};
+};
+
 class StreamActiveTaskCodeBuilder : public TaskCodeBuilder {
+  static constexpr const char *kDispatchFuncName = "DispatchStreamActive";
+  static constexpr OpDispatchType::Value kDispatchType = OpDispatchType::DISPATCH_STREAM_ACTIVE;
+
  public:
   using TaskCodeBuilder::TaskCodeBuilder;
+  std::string GetFuncName() const override;
   Status Contribute(TaskSemanticContributeContext &context) override;
-  Status RenderDistribution(std::vector<BodyItem> &items) override;
   Status RenderDistHelper(std::vector<DeclNode *> &items) override;
   int64_t ParseOpIndex(const domi::TaskDef &task_def) override;
+  Status RenderOpDefTableFields(std::vector<std::pair<std::string, Arg>> &fields) override;
 
  private:
-  uint32_t active_stream_id_{0U};
+  StreamActiveBuildData build_data_;
   std::vector<uint32_t> active_stream_index_list_;
 };
 }  // namespace ge

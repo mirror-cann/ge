@@ -98,7 +98,7 @@ class PendingSoResource {
 std::string CalculateBinHash(const uint8_t *data, const size_t data_len) {
   const size_t hash_val = std::hash<std::string>{}(std::string(reinterpret_cast<const char *>(data), data_len));
   std::ostringstream oss;
-  oss << std::hex << std::setfill('0') << std::setw(sizeof(size_t) * 2) << hash_val;
+  oss << std::hex << std::setfill('0') << std::setw(sizeof(size_t) * 2U) << hash_val;
   return oss.str();
 }
 
@@ -263,7 +263,7 @@ Status CustomOpSoLoader::LoadCustomOpSoBins(const std::vector<OpSoBinPtr> &custo
   for (const auto &so_bin : custom_so_bins) {
     GE_ASSERT_SUCCESS(LoadSingleCustomOpSoBin(so_bin, current_loaded_handles));
   }
-  loaded_handles.insert(loaded_handles.end(), current_loaded_handles.begin(), current_loaded_handles.end());
+  (void)loaded_handles.insert(loaded_handles.end(), current_loaded_handles.begin(), current_loaded_handles.end());
   return SUCCESS;
 }
 
@@ -290,7 +290,7 @@ Status CustomOpSoLoader::LoadSingleCustomOpSoBin(const OpSoBinPtr &so_bin,
     if (loaded_handle != nullptr) {
       GELOGI("[CustomOpSoLoader] custom op so[%s] fingerprint[%s] was published after local load failure, reuse lease.",
              so_bin->GetSoName().c_str(), fingerprint_key.c_str());
-      loaded_handles.emplace_back(loaded_handle);
+      (void)loaded_handles.emplace_back(loaded_handle);
       return SUCCESS;
     }
     return load_status;

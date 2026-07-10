@@ -144,7 +144,7 @@ void MarkHostTensorOnDataNodes(const std::vector<gert::Tensor> &inputs, const Ex
       continue;
     }
     if (inputs[data_index].GetPlacement() == gert::TensorPlacement::kOnHost) {
-      (void)AttrUtils::SetBool(node->GetOpDesc(), ATTR_NAME_HOST_TENSOR, true);
+      (void)AttrUtils::SetBool(node->GetOpDesc(), ATTR_NAME_HOST_TENSOR_AS_MODEL_INPUT, true);
     }
   }
 }
@@ -408,8 +408,8 @@ Status JitExecutor::TryExecuteWithoutProcess(UserGraphExecution &task) {
   }
   GELOGD("Graph id:%u No need Execute with Jit process.", iter->second);
   rtStream_t const stream = (task.stream == nullptr) ? stream_ : task.stream;
-  GE_ASSERT_SUCCESS(graph_manager_.ExecuteGraphWithStreamAsync(iter->second, stream, *(task.external_rt_inputs),
-                                                               *(task.rt_outputs)));
+  GE_ASSERT_SUCCESS(
+      graph_manager_.ExecuteGraphWithStreamAsync(iter->second, stream, *(task.external_rt_inputs), *(task.rt_outputs)));
   return SUCCESS;
 }
 

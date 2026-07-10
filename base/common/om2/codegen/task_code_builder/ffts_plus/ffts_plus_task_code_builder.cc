@@ -12,9 +12,9 @@
 #include "common/om2/codegen/task_code_builder_factory.h"
 
 namespace ge {
-Status FftsPlusTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items) {
-  (void)items;
-  return SUCCESS;
+
+std::string FftsPlusTaskCodeBuilder::GetFuncName() const {
+  return kDispatchFuncName;
 }
 
 Status FftsPlusTaskCodeBuilder::RenderDistHelper(std::vector<DeclNode *> &items) {

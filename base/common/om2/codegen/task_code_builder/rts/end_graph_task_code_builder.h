@@ -14,11 +14,16 @@
 #include "common/om2/codegen/task_code_builder/task_code_builder.h"
 namespace ge {
 class EndGraphTaskCodeBuilder : public TaskCodeBuilder {
+  static constexpr const char *kDispatchFuncName = "DispatchEndGraph";
+  static constexpr OpDispatchType::Value kDispatchType = OpDispatchType::DISPATCH_END_GRAPH;
+
  public:
   using TaskCodeBuilder::TaskCodeBuilder;
   Status Contribute(TaskSemanticContributeContext &context) override;
-  Status RenderDistribution(std::vector<BodyItem> &items) override;
+  std::string GetFuncName() const override;
   Status RenderDistHelper(std::vector<DeclNode *> &items) override;
+  Status RenderOpDefTableFields(std::vector<std::pair<std::string, Arg>> &fields) override;
 };
+
 }  // namespace ge
 #endif  // AIR_CXX_BASE_COMMON_OM2_CODEGEN_TASK_CODE_BUILDER_RTS_END_GRAPH_TASK_CODE_BUILDER_H_

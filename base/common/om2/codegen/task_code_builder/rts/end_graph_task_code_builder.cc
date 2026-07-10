@@ -9,31 +9,36 @@
  */
 
 #include "end_graph_task_code_builder.h"
+#include "common/om2/codegen/task_code_builder/task_code_builder_util.h"
 #include "common/om2/codegen/task_code_builder_factory.h"
 
 namespace ge {
+std::string EndGraphTaskCodeBuilder::GetFuncName() const {
+  return kDispatchFuncName;
+}
+
 Status EndGraphTaskCodeBuilder::Contribute(TaskSemanticContributeContext &context) {
   FillTaskSemanticHeader(context, header_);
   return SUCCESS;
 }
 
-Status EndGraphTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items) {
-  auto model_handle = ast_.Var("aclmdlRI", "model_handle_");
-  auto stream_list = ast_.Var("std::vector<aclrtStream>", "stream_list_");
-  items.push_back(ast_.Comment("EndGraph"));
-  items.push_back(ChkStatus(ast_.Call("EndGraphTaskDistribute", {model_handle, stream_list[header_.stream_id]})));
+Status EndGraphTaskCodeBuilder::RenderDistHelper(std::vector<DeclNode *> &items) {
+  std::vector<BodyItem> body;
+  auto op = ast_.Var("const TaskDispatchInfo *", "op");
+  auto ctx = ast_.Var("const DispatchOpContext &", "ctx");
+  body.push_back(ChkStatus(
+      AclmdlRIEndTask(ctx.Attr("model_handle"),
+                      ctx.Attr("stream_list")[op.Arrow("dispatch_info").Attr("end_graph").Attr("stream_id")])));
+  GE_ASSERT_SUCCESS(TaskCodeBuilderUtil::RenderDispatchFunc(ast_, kDispatchFuncName, body, items));
   return SUCCESS;
 }
 
-Status EndGraphTaskCodeBuilder::RenderDistHelper(std::vector<DeclNode *> &items) {
-  auto mdl = ast_.Var("aclmdlRI", "mdl");
-  auto stream = ast_.Var("aclrtStream", "stream");
-  items.push_back(ast_.DefineFunction("EndGraphTaskDistribute", {mdl, stream}, "aclError",
-                                      {
-                                          ChkStatus(AclmdlRIEndTask(mdl, stream)),
-                                          ast_.Return("ACL_SUCCESS"),
-                                      }));
+Status EndGraphTaskCodeBuilder::RenderOpDefTableFields(std::vector<std::pair<std::string, Arg>> &fields) {
+  fields.push_back({"dispatch_type", ast_.StaticCast("OpDispatchType", static_cast<int64_t>(kDispatchType))});
+  fields.push_back({"op_name", Arg::StringLiteral(header_.op_name)});
+  fields.push_back({"dispatch_info", ast_.DesignatedInit({{"end_graph", ast_.InitList({header_.stream_id})}})});
   return SUCCESS;
 }
+
 REGISTER_TASK_CODE_BUILDER(MODEL_TASK_END_GRAPH, EndGraphTaskCodeBuilder);
 }  // namespace ge

@@ -449,8 +449,8 @@ InitListExpr *AstBuildContext::InitList(const std::vector<Arg> &items, bool comp
   return InitListExpr::Create(ctx_, resolved, compact);
 }
 
-DesignatedInitListExpr *AstBuildContext::InitListWithDesignators(
-    const std::vector<std::pair<std::string, Arg>> &members, bool compact) const {
+DesignatedInitListExpr *AstBuildContext::DesignatedInit(const std::vector<std::pair<std::string, Arg>> &members,
+                                                        bool compact) const {
   std::vector<std::string> names;
   std::vector<Expr *> values;
   names.reserve(members.size());
@@ -557,13 +557,21 @@ BlockStmt *AstBuildContext::Block(const std::vector<BodyItem> &items) const {
 }
 
 IfStmt *AstBuildContext::If(Arg cond, std::initializer_list<BodyItem> then_items) const {
-  return IfStmt::Create(ctx_, ResolveArg(cond, ctx_), BlockStmt::Create(ctx_, Body(then_items)));
+  return If(cond, then_items, {}, false);
 }
 
 IfStmt *AstBuildContext::If(Arg cond, std::initializer_list<BodyItem> then_items,
-                            std::initializer_list<BodyItem> else_items) const {
-  return IfStmt::Create(ctx_, ResolveArg(cond, ctx_), BlockStmt::Create(ctx_, Body(then_items)),
-                        BlockStmt::Create(ctx_, Body(else_items)));
+                            std::initializer_list<BodyItem> else_items, bool is_preprocessor) const {
+  BlockStmt *else_block = else_items.size() > 0U ? BlockStmt::Create(ctx_, Body(else_items)) : nullptr;
+  return IfStmt::Create(ctx_, ResolveArg(cond, ctx_), BlockStmt::Create(ctx_, Body(then_items)), else_block,
+                        is_preprocessor);
+}
+
+IfStmt *AstBuildContext::If(Arg cond, const std::vector<BodyItem> &then_items, const std::vector<BodyItem> &else_items,
+                            bool is_preprocessor) const {
+  BlockStmt *else_block = else_items.size() > 0U ? BlockStmt::Create(ctx_, Body(else_items)) : nullptr;
+  return IfStmt::Create(ctx_, ResolveArg(cond, ctx_), BlockStmt::Create(ctx_, Body(then_items)), else_block,
+                        is_preprocessor);
 }
 
 ForStmt *AstBuildContext::For(Stmt *init, Arg cond, Arg step, std::initializer_list<BodyItem> items) const {

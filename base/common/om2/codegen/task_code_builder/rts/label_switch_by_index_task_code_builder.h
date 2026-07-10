@@ -14,20 +14,31 @@
 #include "common/om2/codegen/task_code_builder/task_code_builder.h"
 
 namespace ge {
+struct LabelSwitchBuildData {
+  uint32_t branch_max{0U};
+  uint32_t stream_id{0U};
+  std::vector<uint32_t> label_indices;
+  std::vector<OpArgDesc> ordered_args;
+};
+
 class LabelSwitchByIndexTaskCodeBuilder : public TaskCodeBuilder {
+  static constexpr const char *kDispatchFuncName = "DispatchLabelSwitchByIndex";
+  static constexpr OpDispatchType::Value kDispatchType = OpDispatchType::DISPATCH_LABEL_SWITCH_BY_INDEX;
+
  public:
   using TaskCodeBuilder::TaskCodeBuilder;
+  std::string GetFuncName() const override;
   Status Contribute(TaskSemanticContributeContext &context) override;
   Status RenderInitResource(std::vector<BodyItem> &items) override;
-  Status RenderDistribution(std::vector<BodyItem> &items) override;
   Status RenderDistHelper(std::vector<DeclNode *> &items) override;
   int64_t ParseOpIndex(const domi::TaskDef &task_def) override;
+  Status RenderOpDefTableFields(std::vector<std::pair<std::string, Arg>> &fields) override;
 
  private:
+  LabelSwitchBuildData build_data_;
   std::vector<AddrSemantic> input_addr_nodes_;
-  uint32_t branch_max_{0U};
-  std::vector<uint32_t> label_idx_list_;
 };
+
 }  // namespace ge
 
 #endif  // AIR_CXX_BASE_COMMON_OM2_CODEGEN_TASK_CODE_BUILDER_RTS_LABEL_SWITCH_BY_INDEX_TASK_CODE_BUILDER_H_

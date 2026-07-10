@@ -14,17 +14,27 @@
 #include "common/om2/codegen/task_code_builder/task_code_builder.h"
 
 namespace ge {
+struct NotifyBuildData {
+  uint32_t notify_id{0U};
+  uint32_t stream_id{0U};
+};
+
 class NotifyRecordTaskCodeBuilder : public TaskCodeBuilder {
+  static constexpr const char *kDispatchFuncName = "DispatchNotifyRecord";
+  static constexpr OpDispatchType::Value kDispatchType = OpDispatchType::DISPATCH_NOTIFY_RECORD;
+
  public:
   using TaskCodeBuilder::TaskCodeBuilder;
+  std::string GetFuncName() const override;
   Status Contribute(TaskSemanticContributeContext &context) override;
-  Status RenderDistribution(std::vector<BodyItem> &items) override;
   Status RenderDistHelper(std::vector<DeclNode *> &items) override;
   int64_t ParseOpIndex(const domi::TaskDef &task_def) override;
+  Status RenderOpDefTableFields(std::vector<std::pair<std::string, Arg>> &fields) override;
 
  private:
-  uint32_t notify_id_{0U};
+  NotifyBuildData build_data_;
 };
+
 }  // namespace ge
 
 #endif  // AIR_CXX_BASE_COMMON_OM2_CODEGEN_TASK_CODE_BUILDER_RTS_NOTIFY_RECORD_TASK_CODE_BUILDER_H_

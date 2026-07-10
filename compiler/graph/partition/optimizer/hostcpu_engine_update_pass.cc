@@ -61,14 +61,21 @@ bool IsConstOp(const OpDescPtr &op_desc) {
   return (strcmp(op_desc->GetTypePtr(), CONSTANT) == 0) || (strcmp(op_desc->GetTypePtr(), CONSTANTOP) == 0);
 }
 
+bool IsHostModelInputType(const OpDescPtr &op_desc) {
+  const auto type = op_desc->GetTypePtr();
+  return (strcmp(type, DATA) == 0);
+}
+
+bool IsHostInputAnchor(const OpDescPtr &op_desc) {
+  bool is_execute_host = false;
+  (void)AttrUtils::GetBool(op_desc, ATTR_NAME_HOST_TENSOR, is_execute_host);
+  return is_execute_host;
+}
+
 bool IsAnchorOp(const OpDescPtr &op_desc) {
-  if ((strcmp(op_desc->GetTypePtr(), DATA) == 0)) {
-    bool is_excute_host = false;
-    (void)AttrUtils::GetBool(op_desc, "_host_tensor", is_excute_host);
-    if (is_excute_host) {
-      GELOGI("[HostcpuEngineUpdatePass]: [%s] has been successfully added as the anchor.", op_desc->GetName().c_str());
-      return true;
-    }
+  if (IsHostModelInputType(op_desc) && IsHostInputAnchor(op_desc)) {
+    GELOGI("[HostcpuEngineUpdatePass]: [%s] has been successfully added as the anchor.", op_desc->GetName().c_str());
+    return true;
   }
   if (op_desc->GetOpKernelLibName() == kHostCpuOpKernelLibName) {
     return true;
@@ -231,6 +238,7 @@ bool HostcpuEngineUpdatePass::CheckAndMarkHostExec(const NodePtr &node, NodeEngi
     host_exe_ops_.insert(node);
     return true;
   }
+
   if (IsSupportHostcpu(op_desc) && IsExecOnDevice(op_desc)) {
     op_desc->SetOpEngineName(kHostCpuEngineName);
     op_desc->SetOpKernelLibName(kHostCpuOpKernelLibName);
@@ -346,10 +354,34 @@ Status HostcpuEngineUpdatePass::FindAndMarkHostCpuNode(std::deque<NodePtr> &q, N
   return SUCCESS;
 }
 
+Status HostcpuEngineUpdatePass::MarkHostTensorAsModelInput(const ComputeGraphPtr &graph) {
+  size_t marked_count = 0U;
+  for (const auto &node : graph->GetDirectNode()) {
+    GE_ASSERT_NOTNULL(node);
+    auto op_desc = node->GetOpDesc();
+    GE_ASSERT_NOTNULL(op_desc);
+
+    if (host_exe_ops_.count(node) == 0U) {
+      continue;
+    }
+
+    if (!IsHostModelInputType(op_desc)) {
+      continue;
+    }
+    (void)AttrUtils::SetBool(op_desc, ATTR_NAME_HOST_TENSOR_AS_MODEL_INPUT, true);
+    ++marked_count;
+    GELOGI("[HostcpuEngineUpdatePass]: Mark input node %s type[%s] as host model input.", op_desc->GetNamePtr(),
+           op_desc->GetTypePtr());
+  }
+  GELOGI("[HostcpuEngineUpdatePass]: graph[%s] mark host model input count[%zu].", graph->GetName().c_str(),
+         marked_count);
+  return SUCCESS;
+}
+
 Status HostcpuEngineUpdatePass::UpdateHostcpuEngine(const ComputeGraphPtr &graph, NodeEngineMap &node_atomic_engine_map,
                                                     NodeEngineMap &node_composite_engine_map, bool is_partition_call) {
   if (ge::GraphUtils::IsSingleOpScene(graph)) {
-    GELOGI("[HostcpuEngineUpdatePass]: does not support single op scene");
+    GELOGI("[HostcpuEngineUpdatePass]: does not support single op scene.");
     return SUCCESS;
   }
   if (!IsDynamicGraph(graph)) {
@@ -376,6 +408,8 @@ Status HostcpuEngineUpdatePass::UpdateHostcpuEngine(const ComputeGraphPtr &graph
     }
   }
   GE_ASSERT_SUCCESS(FindAndMarkHostCpuNode(q, node_atomic_engine_map, node_composite_engine_map));
+  // 将 Host CPU 调度传播结果固化到 Data 节点，供运行时决策输入 Placement。
+  GE_ASSERT_SUCCESS(MarkHostTensorAsModelInput(graph));
   return SUCCESS;
 }
 

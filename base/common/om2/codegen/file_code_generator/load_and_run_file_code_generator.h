@@ -46,7 +46,7 @@ class LoadAndRunFileCodeGenerator : public Om2ModelClassGeneratorBase {
   Status BuildCommonHelperFunctions(std::vector<DeclNode *> &items) const;
   Status BuildAclrtMallocFunction(std::vector<DeclNode *> &items) const;
   Status BuildDispatchOp(std::vector<DeclNode *> &items,
-                         const std::vector<TaskCodeBuilderPtr> &task_code_builders) const;
+                         const std::map<uint32_t, std::string> &type_to_func_name) const;
 };
 }  // namespace ge
 

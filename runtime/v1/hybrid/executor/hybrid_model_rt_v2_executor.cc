@@ -147,6 +147,28 @@ ge::Status DoRtStreamSyncWithTimeout(aclrtStream stream) {
   return ge::SUCCESS;
 }
 
+Status HandleSyncExecuteResult(const Status ret, const aclrtStream stream,
+                               gert::memory::MemSynchronizer *const mem_synchronizer, const std::string &graph_name,
+                               const uint32_t model_id, bool &is_eos) {
+  if (ret == END_OF_SEQUENCE) {
+    is_eos = true;
+    (void)DoRtStreamSyncWithTimeout(stream);
+    if (mem_synchronizer != nullptr) {
+      mem_synchronizer->Recycle();
+    }
+    return ge::SUCCESS;
+  }
+
+  GE_ASSERT_SUCCESS(ret, "Failed to execute rt v2 model for graph %s, model_id %u.", graph_name.c_str(), model_id);
+  GE_ASSERT_SUCCESS(DoRtStreamSyncWithTimeout(stream));
+  GELOGI("Execute sync rt v2 model for graph %s succeed", graph_name.c_str());
+  if (mem_synchronizer != nullptr) {
+    GELOGI("start to recycle memory. graph %s, stream: %p", graph_name.c_str(), stream);
+    mem_synchronizer->Recycle();
+  }
+  return ge::SUCCESS;
+}
+
 bool IsInputPlacementOnDeviceHbm() {
   std::string input_placement;
   (void)ge::GetThreadLocalContext().GetOption("ge.inputPlacement", input_placement);
@@ -715,6 +737,350 @@ Status HybridModelRtV2Executor::CheckInputIsOnDevice() {
   return SUCCESS;
 }
 
+bool HybridModelRtV2Executor::IsHostModelInput(const size_t input_index) const {
+  const bool is_host_input = (input_index < is_host_input_.size()) && is_host_input_[input_index];
+  GELOGD("IsHostModelInput, input_index: %zu, is_host_input: %d", input_index, is_host_input);
+  return is_host_input;
+}
+
+Status HybridModelRtV2Executor::SetInputOnHost(const size_t input_index, const void *const addr, const size_t size,
+                                               gert::Tensor &input) const {
+  GELOGD("Construct RT2 host model input index[%zu], no need to execute H2D copy.", input_index);
+  input.SetData(gert::TensorData(const_cast<void *>(addr), nullptr, size, gert::kOnHost));
+  return SUCCESS;
+}
+
+Status HybridModelRtV2Executor::ValidateHostModelInputs(const std::vector<gert::Tensor> &inputs) const {
+  GE_ASSERT_EQ(inputs.size(), num_inputs_);
+  if (run_ctx_.host_exec_flag_) {
+    return SUCCESS;
+  }
+  for (size_t i = 0U; i < num_inputs_; i++) {
+    if (!IsHostModelInput(i)) {
+      continue;
+    }
+    GELOGD("Input %zu is marked as host model input, but actual input placement is device.", i);
+    GE_ASSERT_TRUE(!gert::TensorPlacementUtils::IsOnDevice(inputs[i].GetPlacement()),
+                   "Input %zu is marked as host model input, but actual input placement is device.", i);
+    if (inputs[i].GetPlacement() == gert::kTensorPlacementEnd) {
+      const_cast<gert::Tensor &>(inputs[i]).SetPlacement(gert::TensorPlacement::kOnHost);
+    }
+  }
+  return SUCCESS;
+}
+
+Status HybridModelRtV2Executor::SetGeTensorRtInputPlacement(const size_t input_index, const GeTensorDesc &tensor_desc,
+                                                            gert::Tensor &rt_input) const {
+  if (!run_ctx_.host_exec_flag_ && IsHostModelInput(input_index)) {
+    GELOGD("[ExecuteWithStreamAsync] Input %zu is marked as host model input, but actual input placement is device.",
+           input_index);
+    GE_ASSERT_TRUE(tensor_desc.GetPlacement() != Placement::kPlacementDevice,
+                   "Input %zu is marked as host model input, but actual input placement is device.", input_index);
+    rt_input.SetPlacement(gert::TensorPlacement::kOnHost);
+  } else if (rt_input.GetPlacement() == gert::kTensorPlacementEnd) {
+    ge::Placement placement = tensor_desc.GetPlacement();
+    gert::TensorPlacement rt_placement =
+        placement == ge::kPlacementHost ? gert::TensorPlacement::kOnHost : gert::TensorPlacement::kOnDeviceHbm;
+    rt_input.SetPlacement(rt_placement);
+  }
+  if (logLevel_ <= DLOG_INFO) {
+    GELOGI("input %zu has placement %s, and executor expect placement %s", input_index,
+           DebugString(tensor_desc.GetPlacement()).c_str(), DebugString(rt_input.GetPlacement()).c_str());
+  }
+  return SUCCESS;
+}
+
+Status HybridModelRtV2Executor::SetGeTensorRtInputData(const size_t input_index, const GeTensor &input,
+                                                       gert::Tensor &rt_input) const {
+  const size_t size = input.GetData().size();
+  auto address = reinterpret_cast<const void *>(input.GetData().data());
+  if (run_ctx_.host_exec_flag_) {
+    rt_input.MutableTensorData().SetPlacement(gert::kOnHost);
+  } else if (IsHostModelInput(input_index)) {
+    GELOGD("[ExecuteWithStreamAsync] Input %zu is marked as host model input, set input placement to host.",
+           input_index);
+    rt_input.MutableTensorData().SetPlacement(gert::kOnHost);
+  } else if (gert::TensorPlacementUtils::IsOnDevice(rt_input.GetPlacement())) {
+    GELOGD(
+        "input[%zu] address = %p, size = %zu, placement = %u, which is on device, no need do alloc memory and "
+        "aclrtmemcpy",
+        input_index, address, size, rt_input.GetPlacement());
+  } else {
+    GE_ASSERT(gert::TensorPlacementUtils::IsOnHostNotFollowing(rt_input.GetPlacement()),
+              "Input %zu has unexpected placement %d", input_index, rt_input.GetPlacement());
+    GE_ASSERT(rt_input.GetOriginShape().GetDimNum() <= 1U, "Input %zu %s on host must be scalar or list-scalar",
+              input_index, DebugString(rt_input).c_str());
+  }
+  GE_ASSERT_GRAPH_SUCCESS(rt_input.MutableTensorData().SetAddr(const_cast<void *>(address), nullptr));
+  rt_input.MutableTensorData().SetSize(size);
+  if (logLevel_ <= DLOG_INFO) {
+    GELOGI("Input %zu %s", input_index, DebugString(rt_input).c_str());
+  }
+  return SUCCESS;
+}
+
+Status HybridModelRtV2Executor::PrepareGeTensorRtInput(const size_t input_index, const GeTensor &input,
+                                                       gert::Tensor &rt_input) const {
+  const auto &tensor_desc = input.GetTensorDesc();
+  if (tensor_desc.IsOriginShapeInitialized()) {
+    SmallVecDimsAsRtShape(tensor_desc.GetOriginShape().GetMutableDims(), rt_input.MutableOriginShape());
+  } else {
+    SmallVecDimsAsRtShape(tensor_desc.GetShape().GetMutableDims(), rt_input.MutableOriginShape());
+  }
+  SmallVecDimsAsRtShape(tensor_desc.GetShape().GetMutableDims(), rt_input.MutableStorageShape());
+  GE_ASSERT_SUCCESS(SetGeTensorRtInputPlacement(input_index, tensor_desc, rt_input));
+  GE_ASSERT_SUCCESS(SetGeTensorRtInputData(input_index, input, rt_input));
+  return SUCCESS;
+}
+
+Status HybridModelRtV2Executor::PrepareGeTensorRtOutputs(std::vector<GeTensor> &outputs) {
+  if (outputs.empty()) {
+    outputs.resize(num_outputs_);
+  }
+  GE_ASSERT_EQ(outputs.size(), rt_outputs_.size());
+  for (size_t i = 0UL; i < num_outputs_; ++i) {
+    if (outputs[i].IsTensorDataValid()) {
+      auto address = ValueToPtr(PtrToValue(outputs[i].GetData().data()));
+      size_t size = outputs[i].GetData().size();
+      if (rt_outputs_[i]->GetPlacement() == gert::TensorPlacement::kTensorPlacementEnd) {
+        const auto placement =
+            (outputs[i].GetTensorDesc().GetPlacement() == kPlacementDevice) ? gert::kOnDeviceHbm : gert::kOnHost;
+        rt_outputs_[i]->SetPlacement(placement);
+      }
+
+      if (logLevel_ <= DLOG_DEBUG) {
+        GELOGD("The user did specify output memory when index = %zu, address = %p, size = %zu, placement = %d", i,
+               address, size, static_cast<int32_t>(rt_outputs_[i]->GetPlacement()));
+      }
+      GE_ASSERT_GRAPH_SUCCESS(rt_outputs_[i]->MutableTensorData().SetAddr(address, nullptr));
+      rt_outputs_[i]->MutableTensorData().SetSize(size);
+    } else {
+      rt_outputs_[i]->SetPlacement(gert::kOnDeviceHbm);
+    }
+  }
+  return SUCCESS;
+}
+
+Status HybridModelRtV2Executor::PrepareRtInputFromInputData(const size_t input_index, const InputData &input_data,
+                                                            ge::Allocator *const allocator, const int32_t cur_device_id,
+                                                            size_t &copy_index,
+                                                            std::vector<MemBlock *> &input_mem_block) {
+  auto &input = rt_inputs_[input_index];
+  const auto &blob = input_data.blobs[input_index];
+  DimsAsShape(input_data.shapes[input_index], input->MutableOriginShape());
+  DimsAsShape(input_data.shapes[input_index], input->MutableStorageShape());
+
+  if (run_ctx_.host_exec_flag_) {
+    input->SetData(gert::TensorData(blob.data, nullptr, blob.length, gert::kOnHost));
+  } else if (IsHostModelInput(input_index)) {
+    GELOGD("[ExecuteWithStreamAsync] Input %zu is marked as host model input, set input placement to host.",
+           input_index);
+    GE_ASSERT_TRUE(blob.placement != static_cast<uint32_t>(Placement::kPlacementDevice),
+                   "Input %zu is marked as host model input, but actual input placement is device.", input_index);
+    GE_ASSERT_SUCCESS(SetInputOnHost(input_index, blob.data, blob.length, *input));
+  } else if (blob.placement == static_cast<uint32_t>(Placement::kPlacementDevice)) {
+    GELOGD("Construct RT2 input index[%u], placement: %u, no need to execute aclrtMemcpy.", input_index,
+           blob.placement);
+    input->SetData(gert::TensorData(blob.data, nullptr, blob.length, gert::kOnDeviceHbm));
+  } else {
+    MemBlock *mem_block_to_keep = nullptr;
+    memcpy_batch_params_.device_id = cur_device_id;
+    if (run_ctx_.enable_input_batch_cpy_) {
+      auto ge_tensor_length = blob.length;
+      size_t data_size = 0U;
+      TensorTransUtils::AllocDeviceMemory(allocator, ge_tensor_length, *input, mem_block_to_keep, data_size);
+      if (ge_tensor_length <= 0) {
+        GELOGD("Skip input[%zu] with length %zu, no need to execute aclrtMemcpy.", input_index, blob.length);
+        input_mem_block.emplace_back(mem_block_to_keep);
+        return SUCCESS;
+      }
+      MemcpyParam memcpy_param{input->GetAddr(), data_size, blob.data, blob.length, copy_index++};
+      TensorTransUtils::AddMemcpyBatchParam(memcpy_param, memcpy_batch_params_);
+    } else {
+      GE_ASSERT_SUCCESS(
+          TensorTransUtils::HostTensorToDeviceGertTensor(allocator, blob.data, blob.length, *input, mem_block_to_keep));
+      GE_ASSERT_NOTNULL(mem_block_to_keep);
+    }
+    input_mem_block.emplace_back(mem_block_to_keep);
+  }
+  GELOGI("Input %zu %s", input_index, DebugString(*input).c_str());
+  return SUCCESS;
+}
+
+Status HybridModelRtV2Executor::CopyGertInputToDevice(const size_t input_index, const gert::Tensor &arg_input,
+                                                      ge::Allocator *const allocator, const int32_t cur_device_id,
+                                                      size_t &copy_index, gert::Tensor &ref_input,
+                                                      std::vector<MemBlock *> &input_mem_block) {
+  MemBlock *mem_block_to_keep = nullptr;
+  memcpy_batch_params_.device_id = cur_device_id;
+  if (run_ctx_.enable_input_batch_cpy_) {
+    const auto src_tensor_length = arg_input.GetSize();
+    size_t data_size = 0U;
+    GE_ASSERT_SUCCESS(
+        TensorTransUtils::AllocDeviceMemory(allocator, src_tensor_length, ref_input, mem_block_to_keep, data_size));
+    if (src_tensor_length == 0) {
+      GELOGD("Skip ref_input[%zu] with length %zu, no need to execute aclrtMemcpy.", input_index, arg_input.GetSize());
+      input_mem_block.emplace_back(mem_block_to_keep);
+      return SUCCESS;
+    }
+    MemcpyParam memcpy_param{ref_input.GetAddr(), data_size, const_cast<void *>(arg_input.GetAddr()), src_tensor_length,
+                             copy_index++};
+    TensorTransUtils::AddMemcpyBatchParam(memcpy_param, memcpy_batch_params_);
+  } else {
+    GE_ASSERT_SUCCESS(TensorTransUtils::HostTensorToDeviceGertTensor(
+        allocator, arg_input.GetAddr(), arg_input.GetSize(), ref_input, mem_block_to_keep));
+    GE_ASSERT_NOTNULL(mem_block_to_keep);
+  }
+  input_mem_block.emplace_back(mem_block_to_keep);
+  return SUCCESS;
+}
+
+Status HybridModelRtV2Executor::PrepareRtInputFromGertTensor(const size_t input_index, const gert::Tensor &arg_input,
+                                                             ge::Allocator *const allocator,
+                                                             const int32_t cur_device_id, size_t &copy_index,
+                                                             std::vector<MemBlock *> &input_mem_block) {
+  auto &ref_input = rt_inputs_.at(input_index);
+  ref_input->MutableOriginShape() = arg_input.GetOriginShape();
+  ref_input->MutableStorageShape() = arg_input.GetStorageShape();
+
+  if (run_ctx_.host_exec_flag_) {
+    GE_ASSERT_TRUE(arg_input.GetPlacement() == gert::TensorPlacement::kOnHost,
+                   "host exec, but ref_input[%zu] is on device", input_index);
+    ref_input->SetData(
+        gert::TensorData(const_cast<void *>(arg_input.GetAddr()), nullptr, arg_input.GetSize(), gert::kOnHost));
+  } else if (IsHostModelInput(input_index)) {
+    GELOGD("[ExecuteWithStreamAsync] Input %zu is marked as host model input, set input placement to host.",
+           input_index);
+    GE_ASSERT_TRUE(!gert::TensorPlacementUtils::IsOnDevice(arg_input.GetPlacement()),
+                   "Input %zu is marked as host model input, but actual input placement is device.", input_index);
+    GE_ASSERT_SUCCESS(SetInputOnHost(input_index, arg_input.GetAddr(), arg_input.GetSize(), *ref_input));
+  } else if (arg_input.GetPlacement() == gert::TensorPlacement::kOnDeviceHbm) {
+    GELOGD("Construct RT2 ref_input index[%u], placement: %u, no need to execute aclrtMemcpy.", input_index,
+           gert::TensorPlacement::kOnDeviceHbm);
+    ref_input->SetData(
+        gert::TensorData(const_cast<void *>(arg_input.GetAddr()), nullptr, arg_input.GetSize(), gert::kOnDeviceHbm));
+  } else {
+    GE_ASSERT_SUCCESS(CopyGertInputToDevice(input_index, arg_input, allocator, cur_device_id, copy_index, *ref_input,
+                                            input_mem_block));
+    if (run_ctx_.enable_input_batch_cpy_ && (arg_input.GetSize() == 0)) {
+      return SUCCESS;
+    }
+  }
+  GELOGI("Input %zu %s", input_index, DebugString(*ref_input).c_str());
+  return SUCCESS;
+}
+
+Status HybridModelRtV2Executor::PrepareInputDataRtInputs(const InputData &input_data, ge::Allocator *const allocator,
+                                                         std::vector<MemBlock *> &input_mem_block) {
+  int32_t cur_device_id = -1;
+  if (run_ctx_.enable_input_batch_cpy_) {
+    ResetMemcpyBatchParams();
+    GE_CHK_ACL_RET(aclrtGetDevice(&cur_device_id));
+  }
+  size_t copy_index = 0U;
+  for (size_t i = 0U; i < num_inputs_; ++i) {
+    GE_ASSERT_SUCCESS(
+        PrepareRtInputFromInputData(i, input_data, allocator, cur_device_id, copy_index, input_mem_block));
+  }
+  return SUCCESS;
+}
+
+Status HybridModelRtV2Executor::PrepareGertRtInputs(const std::vector<gert::Tensor> &inputs,
+                                                    ge::Allocator *const allocator,
+                                                    std::vector<MemBlock *> &input_mem_block) {
+  int32_t cur_device_id = -1;
+  if (run_ctx_.enable_input_batch_cpy_) {
+    ResetMemcpyBatchParams();
+    GE_CHK_ACL_RET(aclrtGetDevice(&cur_device_id));
+  }
+  size_t copy_index = 0U;
+  for (size_t i = 0U; i < num_inputs_; ++i) {
+    GE_ASSERT_SUCCESS(
+        PrepareRtInputFromGertTensor(i, inputs.at(i), allocator, cur_device_id, copy_index, input_mem_block));
+  }
+  return SUCCESS;
+}
+
+Status HybridModelRtV2Executor::SetPreassignedRtOutputs(const std::vector<TensorValue> &outputs) {
+  if (outputs.empty()) {
+    return SUCCESS;
+  }
+  GE_ASSERT_EQ(outputs.size(), rt_outputs_.size());
+  for (size_t i = 0UL; i < num_outputs_; ++i) {
+    const auto placement = (outputs[i].GetMemType() == MemStorageType::HOST_DDR) ? gert::kOnHost : gert::kOnDeviceHbm;
+    rt_outputs_[i]->SetData(gert::TensorData(const_cast<gert::TensorAddress>(outputs[i].GetData()), nullptr,
+                                             outputs[i].GetSize(), placement));
+  }
+  return SUCCESS;
+}
+
+void HybridModelRtV2Executor::BuildOutputArgs(ExecuteArgs &args) const {
+  args.outputs.clear();
+  args.outputs.reserve(num_outputs_);
+  args.output_desc.assign(output_descs_.begin(), output_descs_.end());
+  for (size_t i = 0U; i < num_outputs_; ++i) {
+    auto &output = rt_outputs_[i];
+    GELOGI("  Output %zu %s", i, DebugString(*output).c_str());
+    auto placement =
+        gert::TensorPlacementUtils::IsOnDevice(output->GetPlacement()) ? MemStorageType::HBM : MemStorageType::HOST_DDR;
+    auto &desc = output_descs_[i];
+    size_t buffer_size = (desc->GetDataType() == ge::DT_STRING)
+                             ? output->GetSize()
+                             : GetSizeInBytes(output->GetShapeSize(), desc->GetDataType());
+    GELOGI("Output index %zu data type is %d. Get or calculate buffer size %zu", i,
+           static_cast<int32_t>(desc->GetDataType()), buffer_size);
+
+    args.outputs.emplace_back(output->GetAddr(), buffer_size, placement);
+    RtShapeAsGeShape(output->GetStorageShape(), desc->MutableShape());
+  }
+}
+
+void HybridModelRtV2Executor::InitGertOutputs(std::vector<gert::Tensor> &outputs) {
+  outputs.clear();
+  outputs.resize(outputs_holder_.size());
+  for (size_t i = 0UL; i < outputs_holder_.size(); ++i) {
+    outputs[i].MutableFormat() = outputs_holder_[i].GetFormat();
+    outputs[i].MutableStorageShape() = outputs_holder_[i].GetStorageShape();
+    outputs[i].MutableOriginShape() = outputs_holder_[i].GetOriginShape();
+    outputs[i].SetDataType(outputs_holder_[i].GetDataType());
+    outputs[i].SetPlacement(gert::TensorPlacement::kTensorPlacementEnd);
+    outputs[i].SetData(gert::TensorData(nullptr));
+    rt_outputs_[i] = &outputs[i];
+  }
+}
+
+Status HybridModelRtV2Executor::UpdateAsyncGertOutputSizes() const {
+  for (size_t i = 0U; i < num_outputs_; i++) {
+    auto &desc = output_descs_[i];
+    if (desc->GetDataType() != ge::DT_STRING) {
+      rt_outputs_[i]->SetSize(GetSizeInBytes(rt_outputs_[i]->GetShapeSize(), desc->GetDataType()));
+    }
+    if (logLevel_ <= DLOG_INFO) {
+      GELOGI("  Output %zu %s", i, DebugString(*rt_outputs_[i]).c_str());
+    }
+  }
+  return SUCCESS;
+}
+
+Status HybridModelRtV2Executor::ExecuteRtModel(gert::ModelExecuteArg &model_args, gert::Allocators *const allocators) {
+  ProfilerCollector *profiler_collector = nullptr;
+  model_args.external_allocator = allocators;
+  if (gert::GlobalProfilingWrapper::GetInstance()->GetEnableFlags() > 0UL) {
+    profiler_collector = profiler_collector_.get();
+    profiler_collector->host_cpu_flag_ = run_ctx_.host_exec_flag_;
+  }
+  const auto config = gert::RtV2ExecutorInterface::RunConfig(run_ctx_.iterations_per_loop_, profiler_collector);
+
+  model_args.external_stream_allocator = &(run_ctx_.dev_resource_allocator_.stream_allocator);
+  model_args.external_event_allocator = &(run_ctx_.dev_resource_allocator_.event_allocator);
+  model_args.external_notify_allocator = &(run_ctx_.dev_resource_allocator_.notify_allocator);
+
+  TryUpdateStreamCoreLimits(model_args.stream);
+
+  return executor_->Execute(model_args, rt_inputs_.data(), rt_inputs_.size(), rt_outputs_.data(), rt_outputs_.size(),
+                            config);
+}
+
 void HybridModelRtV2Executor::InitHostInputFlags(const ge::ComputeGraphPtr &root_graph) {
   is_host_input_.resize(num_inputs_, false);
   for (const auto &node : root_graph->GetDirectNode()) {
@@ -727,10 +1093,10 @@ void HybridModelRtV2Executor::InitHostInputFlags(const ge::ComputeGraphPtr &root
       continue;
     }
     bool is_host = false;
-    (void)AttrUtils::GetBool(node->GetOpDesc(), ATTR_NAME_HOST_TENSOR, is_host);
-    is_host_input_[data_index] = is_host;
-    GELOGD("[IS-HOST-INPUT]Input[%d] data node [%s] is_host_tensor=%d", data_index, node->GetName().c_str(),
-           static_cast<int>(is_host));
+    (void)AttrUtils::GetBool(node->GetOpDesc(), ATTR_NAME_HOST_TENSOR_AS_MODEL_INPUT, is_host);
+    is_host_input_[data_index] = is_host_input_[data_index] || is_host;
+    GELOGD("[IS-HOST-INPUT]Input[%d] data node [%s] is_host_tensor_as_model_input=%d", data_index,
+           node->GetName().c_str(), static_cast<int>(is_host));
   }
 }
 
@@ -1105,6 +1471,7 @@ Status HybridModelRtV2Executor::ExecuteWithStreamAsync(const std::vector<gert::T
   auto *allocator =
       allocators->GetAllocator(gert::kOnDeviceHbm, static_cast<size_t>(gert::AllocatorUsage::kAllocNodeOutput));
   GE_ASSERT_NOTNULL(allocator, "Failed get scalable allocator");
+  GE_ASSERT_SUCCESS(ValidateHostModelInputs(inputs));
   GE_ASSERT_SUCCESS(InputTensorValidate(inputs, num_inputs_, run_ctx_.host_exec_flag_, logLevel_));
 
   model_args.external_allocator = allocators;
@@ -1137,16 +1504,7 @@ Status HybridModelRtV2Executor::ExecuteWithStreamAsync(const std::vector<gert::T
 
   GE_ASSERT_SUCCESS(ret, "Failed to execute rt v2 model for graph %s, model_id %u.", name_.c_str(), model_id_);
 
-  for (size_t i = 0U; i < num_outputs_; i++) {
-    auto &desc = output_descs_[i];
-    if (desc->GetDataType() != ge::DT_STRING) {
-      rt_outputs_[i]->SetSize(GetSizeInBytes(rt_outputs_[i]->GetShapeSize(), desc->GetDataType()));
-    }
-    if (logLevel_ <= DLOG_INFO) {
-      GELOGI("  Output %zu %s", i, DebugString(*rt_outputs_[i]).c_str());
-    }
-  }
-
+  GE_ASSERT_SUCCESS(UpdateAsyncGertOutputSizes());
   return ge::SUCCESS;
 }
 
@@ -1165,75 +1523,10 @@ Status HybridModelRtV2Executor::ExecuteWithStreamAsync(const std::vector<GeTenso
   GE_ASSERT_NOTNULL(allocator, "Failed get scalable allocator");
   GE_ASSERT_EQ(inputs.size(), num_inputs_);
   for (size_t i = 0U; i < num_inputs_; ++i) {
-    auto &rt_input = rt_inputs_[i];
-    if (inputs[i].GetTensorDesc().IsOriginShapeInitialized()) {
-      SmallVecDimsAsRtShape(inputs[i].GetTensorDesc().GetOriginShape().GetMutableDims(),
-                            rt_input->MutableOriginShape());
-    } else {
-      SmallVecDimsAsRtShape(inputs[i].GetTensorDesc().GetShape().GetMutableDims(), rt_input->MutableOriginShape());
-    }
-    SmallVecDimsAsRtShape(inputs[i].GetTensorDesc().GetShape().GetMutableDims(), rt_input->MutableStorageShape());
-    // 对于同一个输入而言，当前不允许用户两次RungraphWithStreamAsync时，传递不同的placement
-    // 由于从TensorDesc上获取Placement的代价较高，因此只在第一次时做placement转换处理，并且不做校验,只打印INFO日志
-    if (rt_input->GetPlacement() == gert::kTensorPlacementEnd) {
-      ge::Placement placement = inputs[i].GetTensorDesc().GetPlacement();
-      gert::TensorPlacement rt_placement =
-          placement == ge::kPlacementHost ? gert::TensorPlacement::kOnHost : gert::TensorPlacement::kOnDeviceHbm;
-      rt_input->SetPlacement(rt_placement);
-    }
-    if (logLevel_ <= DLOG_INFO) {
-      GELOGI("input %zu has placement %s, and executor expect placement %s", i,
-             DebugString(inputs[i].GetTensorDesc().GetPlacement()).c_str(),
-             DebugString(rt_input->GetPlacement()).c_str());
-    }
-
-    size_t size = inputs[i].GetData().size();
-    auto address = reinterpret_cast<const void *>(inputs[i].GetData().data());
-
-    if (run_ctx_.host_exec_flag_) {
-      rt_input->MutableTensorData().SetPlacement(gert::kOnHost);
-    } else if (gert::TensorPlacementUtils::IsOnDevice(rt_input->GetPlacement())) {
-      GELOGD(
-          "input[%zu] address = %p, size = %zu, placement = %u, which is on device, no need do alloc memory and "
-          "aclrtmemcpy",
-          i, address, size, rt_input->GetPlacement());
-    } else {
-      GE_ASSERT(gert::TensorPlacementUtils::IsOnHostNotFollowing(rt_input->GetPlacement()),
-                "Input %zu has unexpected placement %d", i, rt_input->GetPlacement());
-      GE_ASSERT(rt_input->GetOriginShape().GetDimNum() <= 1U, "Input %zu %s on host must be scalar or list-scalar", i,
-                DebugString(*rt_input).c_str());
-    }
-    GE_ASSERT_GRAPH_SUCCESS(rt_input->MutableTensorData().SetAddr(const_cast<void *>(address), nullptr));
-    rt_input->MutableTensorData().SetSize(size);
-    if (logLevel_ <= DLOG_INFO) {
-      GELOGI("Input %zu %s", i, DebugString(*rt_input).c_str());
-    }
+    GE_ASSERT_SUCCESS(PrepareGeTensorRtInput(i, inputs[i], *rt_inputs_[i]));
   }
 
-  if (outputs.empty()) {
-    outputs.resize(num_outputs_);
-  }
-  GE_ASSERT_EQ(outputs.size(), rt_outputs_.size());
-  for (size_t i = 0UL; i < num_outputs_; ++i) {
-    if (outputs[i].IsTensorDataValid()) {
-      auto address = ValueToPtr(PtrToValue(outputs[i].GetData().data()));
-      size_t size = outputs[i].GetData().size();
-      if (rt_outputs_[i]->GetPlacement() == gert::TensorPlacement::kTensorPlacementEnd) {
-        const auto placement =
-            (outputs[i].GetTensorDesc().GetPlacement() == kPlacementDevice) ? gert::kOnDeviceHbm : gert::kOnHost;
-        rt_outputs_[i]->SetPlacement(placement);
-      }
-
-      if (logLevel_ <= DLOG_DEBUG) {
-        GELOGD("The user did specify output memory when index = %zu, address = %p, size = %zu, placement = %d", i,
-               address, size, static_cast<int32_t>(rt_outputs_[i]->GetPlacement()));
-      }
-      GE_ASSERT_GRAPH_SUCCESS(rt_outputs_[i]->MutableTensorData().SetAddr(address, nullptr));
-      rt_outputs_[i]->MutableTensorData().SetSize(size);
-    } else {
-      rt_outputs_[i]->SetPlacement(gert::kOnDeviceHbm);
-    }
-  }
+  GE_ASSERT_SUCCESS(PrepareGeTensorRtOutputs(outputs));
 
   model_args.external_allocator = allocators;
   ProfilerCollector *profiler_collector = nullptr;
@@ -1297,120 +1590,24 @@ Status HybridModelRtV2Executor::Execute(const InputData &input_data, ExecuteArgs
   GE_MAKE_GUARD(free_mem, free_mem_block_callback);
   GE_CHECK_LE(num_inputs_, input_data.shapes.size());
 
-  int32_t cur_device_id = -1;
-  if (run_ctx_.enable_input_batch_cpy_) {
-    ResetMemcpyBatchParams();
-    GE_CHK_ACL_RET(aclrtGetDevice(&cur_device_id));
-  }
-  size_t idx = 0;
-  for (size_t i = 0U; i < num_inputs_; ++i) {
-    auto &input = rt_inputs_[i];
-    DimsAsShape(input_data.shapes[i], input->MutableOriginShape());
-    DimsAsShape(input_data.shapes[i], input->MutableStorageShape());
-
-    if (run_ctx_.host_exec_flag_) {
-      input->SetData(gert::TensorData(input_data.blobs[i].data, nullptr, input_data.blobs[i].length, gert::kOnHost));
-    } else if (input_data.blobs[i].placement == static_cast<uint32_t>(Placement::kPlacementDevice)) {
-      GELOGD("Construct RT2 input index[%u], placement: %u, no need to execute aclrtMemcpy.", i,
-             input_data.blobs[i].placement);
-      input->SetData(
-          gert::TensorData(input_data.blobs[i].data, nullptr, input_data.blobs[i].length, gert::kOnDeviceHbm));
-    } else {
-      MemBlock *mem_block_to_keep = nullptr;
-      memcpy_batch_params_.device_id = cur_device_id;
-      if (run_ctx_.enable_input_batch_cpy_) {
-        auto ge_tensor_length = input_data.blobs[i].length;
-        size_t data_size = 0U;
-        TensorTransUtils::AllocDeviceMemory(allocator, ge_tensor_length, *input, mem_block_to_keep, data_size);
-        if (ge_tensor_length <= 0) {
-          GELOGD("Skip input[%zu] with length %zu, no need to execute aclrtMemcpy.", i, input_data.blobs[i].length);
-          input_mem_block.emplace_back(mem_block_to_keep);
-          continue;
-        }
-        MemcpyParam memcpy_param{input->GetAddr(), data_size, input_data.blobs[i].data, input_data.blobs[i].length,
-                                 idx++};
-        TensorTransUtils::AddMemcpyBatchParam(memcpy_param, memcpy_batch_params_);
-      } else {
-        GE_ASSERT_SUCCESS(TensorTransUtils::HostTensorToDeviceGertTensor(
-            allocator, input_data.blobs[i].data, input_data.blobs[i].length, *input, mem_block_to_keep));
-        GE_ASSERT_NOTNULL(mem_block_to_keep);
-      }
-      input_mem_block.emplace_back(mem_block_to_keep);
-    }
-    GELOGI("Input %zu %s", i, DebugString(*input).c_str());
-  }
+  GE_ASSERT_SUCCESS(PrepareInputDataRtInputs(input_data, allocator, input_mem_block));
   GE_ASSERT_SUCCESS(CheckInputIsOnDevice());
 
   if (!memcpy_batch_params_.dsts.empty()) {
     GE_ASSERT_SUCCESS(TensorTransUtils::TryBatchMemcpy(memcpy_batch_params_));
   }
 
-  if (!args.outputs.empty()) {
-    GE_ASSERT_EQ(args.outputs.size(), rt_outputs_.size());
-    for (size_t i = 0UL; i < num_outputs_; ++i) {
-      const auto placement =
-          (args.outputs[i].GetMemType() == MemStorageType::HOST_DDR) ? gert::kOnHost : gert::kOnDeviceHbm;
-      rt_outputs_[i]->SetData(gert::TensorData(const_cast<gert::TensorAddress>(args.outputs[i].GetData()), nullptr,
-                                               args.outputs[i].GetSize(), placement));
-    }
-  }
+  GE_ASSERT_SUCCESS(SetPreassignedRtOutputs(args.outputs));
 
-  ProfilerCollector *profiler_collector = nullptr;
-  model_args.external_allocator = allocators;
-  if (gert::GlobalProfilingWrapper::GetInstance()->GetEnableFlags() > 0UL) {
-    profiler_collector = profiler_collector_.get();
-    profiler_collector->host_cpu_flag_ = run_ctx_.host_exec_flag_;
-  }
-  const auto config = gert::RtV2ExecutorInterface::RunConfig(run_ctx_.iterations_per_loop_, profiler_collector);
-
-  model_args.external_stream_allocator = &(run_ctx_.dev_resource_allocator_.stream_allocator);
-  model_args.external_event_allocator = &(run_ctx_.dev_resource_allocator_.event_allocator);
-  model_args.external_notify_allocator = &(run_ctx_.dev_resource_allocator_.notify_allocator);
-
-  TryUpdateStreamCoreLimits(model_args.stream);
-
-  const auto ret = executor_->Execute(model_args, rt_inputs_.data(), rt_inputs_.size(), rt_outputs_.data(),
-                                      rt_outputs_.size(), config);
+  const auto ret = ExecuteRtModel(model_args, allocators);
   free_mem_block_callback();
-  if (ret == END_OF_SEQUENCE) {
+  bool is_eos = false;
+  GE_ASSERT_SUCCESS(HandleSyncExecuteResult(ret, model_args.stream, mem_synchronizer, name_, model_id_, is_eos));
+  if (is_eos) {
     args.ctrl_args.is_eos = true;
-    (void)DoRtStreamSyncWithTimeout(model_args.stream);
-    if (mem_synchronizer != nullptr) {
-      mem_synchronizer->Recycle();
-    }
     return ge::SUCCESS;
-  } else {
-    GE_ASSERT_SUCCESS(ret, "Failed to execute rt v2 model for graph %s, model_id %u.", name_.c_str(), model_id_);
   }
-  GE_ASSERT_SUCCESS(DoRtStreamSyncWithTimeout(model_args.stream));
-  GELOGI("Execute sync rt v2 model for graph %s succeed", name_.c_str());
-  if (mem_synchronizer != nullptr) {
-    GELOGI("start to recycle memory. graph %s, stream: %p", name_.c_str(), model_args.stream);
-    mem_synchronizer->Recycle();
-  }
-  args.outputs.clear();
-  args.outputs.reserve(num_outputs_);
-  args.output_desc.assign(output_descs_.begin(), output_descs_.end());
-
-  for (size_t i = 0U; i < num_outputs_; ++i) {
-    auto &output = rt_outputs_[i];
-    GELOGI("  Output %zu %s", i, DebugString(*output).c_str());
-    auto placement =
-        gert::TensorPlacementUtils::IsOnDevice(output->GetPlacement()) ? MemStorageType::HBM : MemStorageType::HOST_DDR;
-    auto &desc = output_descs_[i];
-    // output with string datatype will get -1*shapeSize
-    size_t buffer_size = 0UL;
-    if (desc->GetDataType() == ge::DT_STRING) {
-      buffer_size = output->GetSize();
-    } else {
-      buffer_size = GetSizeInBytes(output->GetShapeSize(), desc->GetDataType());
-    }
-    GELOGI("Output index %zu data type is %d. Get or calculate buffer size %zu", i,
-           static_cast<int32_t>(desc->GetDataType()), buffer_size);
-
-    args.outputs.emplace_back(output->GetAddr(), buffer_size, placement);
-    RtShapeAsGeShape(output->GetStorageShape(), desc->MutableShape());
-  }
+  BuildOutputArgs(args);
   return ge::SUCCESS;
 }
 
@@ -1418,6 +1615,7 @@ Status HybridModelRtV2Executor::Execute(const InputData &input_data, ExecuteArgs
  * 输入内存说明：
  * inputs 为输入数据，可能位于host或device, 但是模型执行一般是要求输入位于device，因此有了rt_inputs_，
  * rt_inputs_只是引用内存，不负责释放。
+ *  如果Data被标记为host model input，则rt_inputs_[i]直接引用host内存，供HostCPU节点消费
  *  如果args.inputs[i]为host内存，则新申请device内存，并把数据拷贝过去，内存释放由input_mem_block负责。rt_inputs_[i]引用新申请内存
  *  如果args.inputs[i]为device内存，rt_inputs_[i]引用args.inputs[i]，内存由args.inputs[i]负责释放。
  *
@@ -1444,107 +1642,21 @@ Status HybridModelRtV2Executor::Execute(const std::vector<gert::Tensor> &inputs,
   GE_MAKE_GUARD(free_mem, free_mem_block_callback);
   GE_CHECK_LE(num_inputs_, inputs.size());
 
-  int32_t cur_device_id = -1;
-  if (run_ctx_.enable_input_batch_cpy_) {
-    ResetMemcpyBatchParams();
-    GE_CHK_ACL_RET(aclrtGetDevice(&cur_device_id));
-  }
-  size_t idx = 0;
-  for (size_t i = 0U; i < num_inputs_; ++i) {
-    // 内存所有权仍然在arg_input，ref_input只是引用内存地址，不负责释放内存
-    const auto &arg_input = inputs.at(i);
-    auto &ref_input = rt_inputs_.at(i);
-
-    // update shape
-    ref_input->MutableOriginShape() = arg_input.GetOriginShape();
-    ref_input->MutableStorageShape() = arg_input.GetStorageShape();
-    // ge.exec.placement, not public, tensorflow may set
-    if (run_ctx_.host_exec_flag_) {
-      GE_ASSERT_TRUE(arg_input.GetPlacement() == gert::TensorPlacement::kOnHost,
-                     "host exec, but ref_input[%zu] is on device", i);
-      ref_input->SetData(
-          gert::TensorData(const_cast<void *>(arg_input.GetAddr()), nullptr, arg_input.GetSize(), gert::kOnHost));
-    } else if (arg_input.GetPlacement() == gert::TensorPlacement::kOnDeviceHbm) {
-      GELOGD("Construct RT2 ref_input index[%u], placement: %u, no need to execute aclrtMemcpy.", i,
-             gert::TensorPlacement::kOnDeviceHbm);
-      ref_input->SetData(
-          gert::TensorData(const_cast<void *>(arg_input.GetAddr()), nullptr, arg_input.GetSize(), gert::kOnDeviceHbm));
-    } else {
-      MemBlock *mem_block_to_keep = nullptr;
-      memcpy_batch_params_.device_id = cur_device_id;
-      if (run_ctx_.enable_input_batch_cpy_) {
-        const auto src_tensor_length = arg_input.GetSize();
-        size_t data_size = 0U;
-        GE_ASSERT_SUCCESS(TensorTransUtils::AllocDeviceMemory(allocator, src_tensor_length, *ref_input,
-                                                              mem_block_to_keep, data_size));
-        if (src_tensor_length == 0) {
-          GELOGD("Skip ref_input[%zu] with length %zu, no need to execute aclrtMemcpy.", i, arg_input.GetSize());
-          input_mem_block.emplace_back(mem_block_to_keep);
-          continue;
-        }
-        MemcpyParam memcpy_param{ref_input->GetAddr(), data_size, const_cast<void *>(arg_input.GetAddr()),
-                                 src_tensor_length, idx++};
-        TensorTransUtils::AddMemcpyBatchParam(memcpy_param, memcpy_batch_params_);
-      } else {
-        GE_ASSERT_SUCCESS(TensorTransUtils::HostTensorToDeviceGertTensor(
-            allocator, arg_input.GetAddr(), arg_input.GetSize(), *ref_input, mem_block_to_keep));
-        GE_ASSERT_NOTNULL(mem_block_to_keep);
-      }
-
-      input_mem_block.emplace_back(mem_block_to_keep);
-    }
-    GELOGI("Input %zu %s", i, DebugString(*ref_input).c_str());
-  }
+  GE_ASSERT_SUCCESS(PrepareGertRtInputs(inputs, allocator, input_mem_block));
   GE_ASSERT_SUCCESS(CheckInputIsOnDevice());
 
   if (!memcpy_batch_params_.dsts.empty()) {
     GE_ASSERT_SUCCESS(TensorTransUtils::TryBatchMemcpy(memcpy_batch_params_));
   }
 
-  outputs.clear();
-  outputs.resize(outputs_holder_.size());
-  for (size_t i = 0UL; i < outputs_holder_.size(); ++i) {
-    outputs[i].MutableFormat() = outputs_holder_[i].GetFormat();
-    outputs[i].MutableStorageShape() = outputs_holder_[i].GetStorageShape();
-    outputs[i].MutableOriginShape() = outputs_holder_[i].GetOriginShape();
-    outputs[i].SetDataType(outputs_holder_[i].GetDataType());
-    outputs[i].SetPlacement(gert::TensorPlacement::kTensorPlacementEnd);
-    outputs[i].SetData(gert::TensorData(nullptr));
-    rt_outputs_[i] = &outputs[i];
-  }
+  InitGertOutputs(outputs);
 
-  ProfilerCollector *profiler_collector = nullptr;
-  model_args.external_allocator = allocators;
-  if (gert::GlobalProfilingWrapper::GetInstance()->GetEnableFlags() > 0UL) {
-    profiler_collector = profiler_collector_.get();
-    profiler_collector->host_cpu_flag_ = run_ctx_.host_exec_flag_;
-  }
-  const auto config = gert::RtV2ExecutorInterface::RunConfig(run_ctx_.iterations_per_loop_, profiler_collector);
-
-  model_args.external_stream_allocator = &(run_ctx_.dev_resource_allocator_.stream_allocator);
-  model_args.external_event_allocator = &(run_ctx_.dev_resource_allocator_.event_allocator);
-  model_args.external_notify_allocator = &(run_ctx_.dev_resource_allocator_.notify_allocator);
-
-  TryUpdateStreamCoreLimits(model_args.stream);
-
-  const auto ret = executor_->Execute(model_args, rt_inputs_.data(), rt_inputs_.size(), rt_outputs_.data(),
-                                      rt_outputs_.size(), config);
+  const auto ret = ExecuteRtModel(model_args, allocators);
   free_mem_block_callback();
-  if (ret == END_OF_SEQUENCE) {
+  bool is_eos = false;
+  GE_ASSERT_SUCCESS(HandleSyncExecuteResult(ret, model_args.stream, mem_synchronizer, name_, model_id_, is_eos));
+  if (is_eos) {
     ctrl_args.is_eos = true;
-    (void)DoRtStreamSyncWithTimeout(model_args.stream);
-    if (mem_synchronizer != nullptr) {
-      mem_synchronizer->Recycle();
-    }
-    return ge::SUCCESS;
-  } else {
-    GE_ASSERT_SUCCESS(ret, "Failed to execute rt v2 model for graph %s, model_id %u.", name_.c_str(), model_id_);
-  }
-  GE_ASSERT_SUCCESS(DoRtStreamSyncWithTimeout(model_args.stream));
-  GELOGI("Execute sync rt v2 model for graph %s succeed", name_.c_str());
-  if (mem_synchronizer != nullptr) {
-    GELOGI("start to recycle memory. graph %s, stream: %p", name_.c_str(), model_args.stream);
-    mem_synchronizer->Recycle();
   }
   return ge::SUCCESS;
 }

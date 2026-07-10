@@ -284,8 +284,7 @@ ComputeGraphPtr BuildGraphMapIndex() {
   sub_graph2->FindNode("const")->GetOpDesc()->SetOpKernelLibName(kEngineNameGeLocal);
   sub_graph2->FindNode("mapindex")->GetOpDesc()->SetOpKernelLibName(kEngineNameAiCore);
   sub_graph2->FindNode("netoutput")->GetOpDesc()->SetOpKernelLibName(kEngineNameGeLocal);
-  bool is_execute_host = true;
-  (void)ge::AttrUtils::SetBool(sub_graph2->FindNode("data")->GetOpDesc(), "_host_tensor", is_execute_host);
+  (void)ge::AttrUtils::SetBool(sub_graph2->FindNode("data")->GetOpDesc(), ge::ATTR_NAME_HOST_TENSOR, true);
   return sub_graph2;
 }
 
@@ -411,7 +410,7 @@ TEST_F(UtestHostcpuEngineUpdatePass, IsExecOnHost) {
   HostcpuEngineUpdatePass pass;
   ge::OpDescPtr op_desc = std::make_shared<OpDesc>("data", "Data");
   op_desc->AddInputDesc(GeTensorDesc(GeShape(std::vector<int64_t>{4}), FORMAT_NCHW, DT_INT32));
-  AttrUtils::SetBool(op_desc, "_host_tensor", true);
+  AttrUtils::SetBool(op_desc, ATTR_NAME_HOST_TENSOR, true);
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("default");
   ge::NodePtr node = graph->AddNode(op_desc);
   EXPECT_EQ(pass.IsExecOnHost(node), true);

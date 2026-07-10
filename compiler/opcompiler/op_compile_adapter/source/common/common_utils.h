@@ -25,11 +25,11 @@ const std::string KERNEL_META_TEMP = "/kernel_meta_temp_";
 #define TE_FUSION_TIMECOST_START(stage) int64_t start_usec_##stage = GetMicroSecondTime();
 
 // Print the log of time cost of stage.
-#define TE_FUSION_TIMECOST_END(stage, stage_name)                                          \
-  {                                                                                        \
-    int64_t end_usec_##stage = GetMicroSecondTime();                                       \
-    TE_INFOLOG("[FE_PERFORMANCE]The time cost of %s is [%ld] micro second.", (stage_name), \
-               (end_usec_##stage - start_usec_##stage));                                   \
+#define TE_FUSION_TIMECOST_END(stage, stage_name)                                           \
+  {                                                                                         \
+    int64_t end_usec_##stage = GetMicroSecondTime();                                        \
+    TE_INFOLOG("[FE_PERFORMANCE]The time cost of %s is [%ld] micro seconds.", (stage_name), \
+               (end_usec_##stage - start_usec_##stage));                                    \
   }
 
 template <typename T>

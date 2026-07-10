@@ -15,17 +15,26 @@
 #include "rt_external.h"
 
 namespace ge {
+struct BarrierBuildData {
+  uint32_t stream_id{0U};
+  rtBarrierTaskInfo_t barrier_task_info{};
+};
+
 class BarrierTaskCodeBuilder : public TaskCodeBuilder {
+  static constexpr const char *kDispatchFuncName = "DispatchBarrier";
+  static constexpr OpDispatchType::Value kDispatchType = OpDispatchType::DISPATCH_BARRIER;
+
  public:
   using TaskCodeBuilder::TaskCodeBuilder;
   Status Contribute(TaskSemanticContributeContext &context) override;
-  Status RenderDistribution(std::vector<BodyItem> &items) override;
   Status RenderDistHelper(std::vector<DeclNode *> &items) override;
+  std::string GetFuncName() const override;
+  Status RenderOpDefTableFields(std::vector<std::pair<std::string, Arg>> &fields) override;
 
  private:
-  rtBarrierTaskInfo_t barrier_task_info_{};
-  int32_t barrier_info_count_{0};
+  BarrierBuildData build_data_;
 };
+
 }  // namespace ge
 
 #endif  // AIR_CXX_BASE_COMMON_OM2_CODEGEN_TASK_CODE_BUILDER_FE_BARRIER_TASK_CODE_BUILDER_H_

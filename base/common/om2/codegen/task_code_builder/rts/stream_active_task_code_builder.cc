@@ -9,6 +9,7 @@
  */
 
 #include "stream_active_task_code_builder.h"
+#include "common/om2/codegen/task_code_builder/task_code_builder_util.h"
 
 #include "common/om2/codegen/task_code_builder_factory.h"
 #include "graph/debug/ge_attr_define.h"
@@ -51,37 +52,38 @@ Status StreamActiveTaskCodeBuilder::Contribute(TaskSemanticContributeContext &co
   GELOGI("Stream Active Task Codegen: op[%s], internal index[%u], active stream id[%u], stream id[%u].",
          context.op_desc->GetName().c_str(), internal_index,
          active_stream_index_list_[static_cast<size_t>(internal_index)], stream_id);
-  active_stream_id_ = active_stream_index_list_[static_cast<size_t>(internal_index)];
-  return SUCCESS;
-}
-
-Status StreamActiveTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items) {
-  items.push_back(
-      ast_.Comment("============================= " + header_.op_name + " ==============================="));
-  items.push_back(
-      ChkStatus(ast_.Call("KernelStreamActiveDistribute", {
-                                                              ast_.Str(header_.op_name),
-                                                              stream_list_[static_cast<int32_t>(active_stream_id_)],
-                                                              stream_list_[static_cast<int32_t>(header_.stream_id)],
-                                                          })));
+  build_data_.active_stream_id = active_stream_index_list_[static_cast<size_t>(internal_index)];
+  build_data_.stream_id = header_.stream_id;
   return SUCCESS;
 }
 
 Status StreamActiveTaskCodeBuilder::RenderDistHelper(std::vector<DeclNode *> &items) {
-  auto op_name = ast_.Var("const char_t *const", "op_name");
-  auto active_stream = ast_.Var("aclrtStream", "active_stream");
-  auto stream = ast_.Var("aclrtStream", "stream");
-  items.push_back(ast_.DefineFunction("KernelStreamActiveDistribute", {op_name, active_stream, stream}, "aclError",
-                                      {
-                                          ChkRt(RtSetTaskTag(op_name)),
-                                          ChkStatus(AclrtActiveStream(active_stream, stream)),
-                                          ast_.Return("ACL_SUCCESS"),
-                                      }));
+  std::vector<BodyItem> body;
+  auto op = ast_.Var("const TaskDispatchInfo *", "op");
+  auto ctx = ast_.Var("const DispatchOpContext &", "ctx");
+  body.push_back(ChkRt(RtSetTaskTag(op.Arrow("op_name"))));
+  body.push_back(ChkStatus(AclrtActiveStream(
+      ctx.Attr("stream_list")[op.Arrow("dispatch_info").Attr("stream_active").Attr("active_stream_id")],
+      ctx.Attr("stream_list")[op.Arrow("dispatch_info").Attr("stream_active").Attr("stream_id")])));
+  GE_ASSERT_SUCCESS(TaskCodeBuilderUtil::RenderDispatchFunc(ast_, kDispatchFuncName, body, items));
   return SUCCESS;
 }
 
 int64_t StreamActiveTaskCodeBuilder::ParseOpIndex(const domi::TaskDef &task_def) {
   return static_cast<int64_t>(task_def.stream_active().op_index());
+}
+
+std::string StreamActiveTaskCodeBuilder::GetFuncName() const {
+  return kDispatchFuncName;
+}
+
+Status StreamActiveTaskCodeBuilder::RenderOpDefTableFields(std::vector<std::pair<std::string, Arg>> &fields) {
+  fields.push_back({"dispatch_type", ast_.StaticCast("OpDispatchType", static_cast<int64_t>(kDispatchType))});
+  fields.push_back({"op_name", Arg::StringLiteral(header_.op_name)});
+  fields.push_back(
+      {"dispatch_info",
+       ast_.DesignatedInit({{"stream_active", ast_.InitList({build_data_.active_stream_id, build_data_.stream_id})}})});
+  return SUCCESS;
 }
 
 REGISTER_TASK_CODE_BUILDER(MODEL_TASK_STREAM_ACTIVE, StreamActiveTaskCodeBuilder);

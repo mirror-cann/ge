@@ -16,19 +16,29 @@
 namespace ge {
 constexpr size_t kTrueBranchStreamNum_1 = 1U;
 
+struct StreamSwitchBuildData {
+  std::vector<OpArgDesc> ordered_args;
+  uint32_t true_stream_id{0U};
+  uint32_t stream_id{0U};
+  uint32_t cond{0U};
+  int64_t data_type{0};
+};
+
 class StreamSwitchTaskCodeBuilder : public TaskCodeBuilder {
+  static constexpr const char *kDispatchFuncName = "DispatchStreamSwitch";
+  static constexpr OpDispatchType::Value kDispatchType = OpDispatchType::DISPATCH_STREAM_SWITCH;
+
  public:
   using TaskCodeBuilder::TaskCodeBuilder;
+  std::string GetFuncName() const override;
   Status Contribute(TaskSemanticContributeContext &context) override;
-  Status RenderDistribution(std::vector<BodyItem> &items) override;
   Status RenderDistHelper(std::vector<DeclNode *> &items) override;
   int64_t ParseOpIndex(const domi::TaskDef &task_def) override;
+  Status RenderOpDefTableFields(std::vector<std::pair<std::string, Arg>> &fields) override;
 
  private:
+  StreamSwitchBuildData build_data_;
   std::vector<AddrSemantic> input_addr_nodes_;
-  uint32_t true_stream_id_{0U};
-  uint32_t cond_ = 0U;
-  int64_t data_type_ = 0;
 };
 }  // namespace ge
 

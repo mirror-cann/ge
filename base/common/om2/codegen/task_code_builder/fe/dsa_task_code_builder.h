@@ -15,49 +15,68 @@
 
 namespace ge {
 
-struct DsaSqeSemantic {
-  // SQE scalar fields (filled in Contribute from DSATaskDef, aligns with v1 InitSqe)
-  uint8_t sqe_type{0U};
-  uint8_t start{0U};
-  uint8_t distribution_type{0U};
-  uint8_t data_type{0U};
-  uint8_t alg_type{0U};
-  uint8_t param_vld_bitmap{0U};
-  uint8_t param_addr_val_bitmap{0U};
-
-  // Seed: addr mode uses input_addrs_[1], immediate mode stores seed_value
+struct DsaBuildData {
+  std::vector<OpArgDesc> ordered_args;
+  int64_t op_desc_id{0};
+  uint32_t sqe_type{0U}, sqe_size{0U}, stream_id{0U};
+  uint8_t dump_flag{0U};
+  uint32_t start{0U}, distribution_type{0U}, data_type{0U}, alg_type{0U};
+  uint32_t param_vld_bitmap{0U}, param_addr_val_bitmap{0U};
   uint64_t seed_value{0U};
   bool seed_is_addr{false};
-  // Random count: addr mode uses input_addrs_[0], immediate mode stores random_count_value
   uint64_t random_count_value{0U};
   bool random_count_is_addr{false};
-  // Input1 for HBM workspace: addr mode uses input_addrs_[2], immediate mode stores input1_value
   uint64_t input1_value{0U};
   bool input1_is_addr{false};
-  // Input2 for HBM workspace: addr mode uses input_addrs_[3], immediate mode stores input2_value
   uint64_t input2_value{0U};
   bool input2_is_addr{false};
+  uint32_t hbm_table_index{0U}, hbm_args_size{0U};
+  uint32_t idx_output{0U}, state_addr_idx{0U}, idx_seed{0U}, idx_count{0U};
+  uint32_t idx_input1{0U}, idx_input2{0U};
+  uint32_t num_iov_entries{0U};
+  bool state_from_workspace{false};
+  bool has_input2{true};
+  uint32_t task_type{0U};
+  std::vector<uint8_t> sqe_raw_data;
 };
 
 class DSATaskCodeBuilder : public TaskCodeBuilder {
+  static constexpr const char *kDispatchFuncName = "DispatchDsa";
+  static constexpr OpDispatchType::Value kDispatchType = OpDispatchType::DISPATCH_DSA;
+
  public:
   using TaskCodeBuilder::TaskCodeBuilder;
   Status Contribute(TaskSemanticContributeContext &context) override;
-  Status RenderDistribution(std::vector<BodyItem> &items) override;
   Status RenderDistHelper(std::vector<DeclNode *> &items) override;
   int64_t ParseOpIndex(const domi::TaskDef &task_def) override;
+  std::string GetFuncName() const override;
+  Status RenderOpDefTableFields(std::vector<std::pair<std::string, Arg>> &fields) override;
 
  private:
+  DsaBuildData build_data_;
   Status InitSqe(const domi::DSATaskDef &dsa_task);
   Status InitHbmArgsTable(TaskSemanticContributeContext &context);
-  void RenderSqeAddrFields(const VarRef &sqe_var, std::vector<BodyItem> &items);
-  void RenderSqeVarFields(const VarRef &sqe_var, std::vector<BodyItem> &items);
-  void RenderHbmArgsCopy(const VarRef &sqe_var, std::vector<BodyItem> &items);
-  void BuildIoArgsVars(std::vector<Arg> &io_args_vars, std::vector<BodyItem> &items);
-  void RenderAddrLowHigh(const ExprRef &sqe_attr_low, const ExprRef &sqe_attr_high, const std::string &addr_expr,
-                         std::vector<BodyItem> &items) const;
-
-  DsaSqeSemantic dsa_sqe_;
+  void InitBuildDataFields(uint32_t task_type);
+  FunctionDef *RenderKernelDsaTaskDistribute() const;
+  Status RenderDispatchFunc(std::vector<DeclNode *> &items);
+  Status RenderDispatchFuncSetup(std::vector<BodyItem> &body, const VarRef &ctx, const ExprRef &dsa_data,
+                                 const VarRef &addrs);
+  Status RenderSqeScalars(std::vector<BodyItem> &body, const ExprRef &dsa_data, const VarRef &dsa_sqe);
+  Status RenderSqeAddrFields(std::vector<BodyItem> &body, const ExprRef &dsa_data, const VarRef &ctx,
+                             const VarRef &dsa_sqe, const VarRef &addrs);
+  Status RenderHbmIoArgs(std::vector<BodyItem> &body, const ExprRef &dsa_data, const VarRef &ctx, const VarRef &addrs);
+  Status RenderDispatchFuncLaunch(std::vector<BodyItem> &body, const VarRef &op, const VarRef &ctx,
+                                  const ExprRef &dsa_data, const VarRef &sqe);
+  Status RenderDispatchFuncReport(std::vector<BodyItem> &body, const VarRef &op, const VarRef &ctx,
+                                  const ExprRef &dsa_data, const VarRef &addrs);
+  Status RenderDispatchFuncReportIo(std::vector<BodyItem> &body, const ExprRef &dsa_data, const VarRef &addrs,
+                                    const VarRef &dsa_io_tensors, const VarRef &dsa_report_inputs,
+                                    const VarRef &dsa_report_outputs, const VarRef &dsa_report_ws_addrs,
+                                    const VarRef &dsa_report_ws_sizes);
+  Status RenderDispatchFuncReportSubmit(std::vector<BodyItem> &body, const VarRef &op, const VarRef &ctx,
+                                        const ExprRef &dsa_data, const VarRef &dsa_report_inputs,
+                                        const VarRef &dsa_report_outputs, const VarRef &dsa_report_ws_addrs,
+                                        const VarRef &dsa_report_ws_sizes);
 
   // Address semantics
   std::vector<AddrSemantic> input_addrs_;
@@ -66,7 +85,6 @@ class DSATaskCodeBuilder : public TaskCodeBuilder {
 
   // HBM args table entry (for IO refresh)
   std::optional<ArgsTableEntrySemantic> hbm_entry_;
-  uint64_t hbm_args_len_{0U};
 };
 }  // namespace ge
 

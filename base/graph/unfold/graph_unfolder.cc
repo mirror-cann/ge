@@ -36,7 +36,7 @@ std::vector<ge::NodePtr> GetAllPartitioncallNodes(const ge::ComputeGraphPtr &roo
   std::vector<ge::NodePtr> partiticall_nodes;
   for (const auto &node : root_graph->GetDirectNode()) {
     if (node->GetType() == ge::PARTITIONEDCALL) {
-      partiticall_nodes.emplace_back(node);
+      (void)partiticall_nodes.emplace_back(node);
     }
   }
   return partiticall_nodes;
@@ -252,7 +252,7 @@ ge::Status GraphUnfolder::UnfoldAllPartitioncallInPlace(const ge::ComputeGraphPt
   GELOGD("Start unfloder partitioncall node, graph[%s]", root_graph->GetName().c_str());
   uint32_t depth = 0U;
   GE_ASSERT_SUCCESS(UnfoldPartitioncallInPlace(root_graph, root_graph, depth));
-  root_graph->TopologicalSorting();
+  (void)root_graph->TopologicalSorting();
   return ge::SUCCESS;
 }
 

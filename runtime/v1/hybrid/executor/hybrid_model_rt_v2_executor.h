@@ -28,7 +28,13 @@
 #include "graph/optimize/symbolic/codegen/guard_codegen.h"
 #include "mmpa/mmpa_api.h"
 
+namespace gert {
+class Allocators;
+}
+
 namespace ge {
+class Allocator;
+class MemBlock;
 namespace hybrid {
 struct H2DCopyHelper {
   std::string node_name;
@@ -145,6 +151,31 @@ class HybridModelRtV2Executor : public HybridModelExecutor {
   Status PrepareInputData(InputData &current_data, const HybridModelExecutor::ExecuteArgs &args) const;
   Status PostProcResult(std::vector<GeTensor> &outputs) const;
   Status InitCtx();
+  bool IsHostModelInput(size_t input_index) const;
+  Status SetInputOnHost(size_t input_index, const void *addr, size_t size, gert::Tensor &input) const;
+  Status ValidateHostModelInputs(const std::vector<gert::Tensor> &inputs) const;
+  Status SetGeTensorRtInputPlacement(size_t input_index, const GeTensorDesc &tensor_desc, gert::Tensor &rt_input) const;
+  Status SetGeTensorRtInputData(size_t input_index, const GeTensor &input, gert::Tensor &rt_input) const;
+  Status PrepareGeTensorRtInput(size_t input_index, const GeTensor &input, gert::Tensor &rt_input) const;
+  Status PrepareGeTensorRtOutputs(std::vector<GeTensor> &outputs);
+  Status PrepareRtInputFromInputData(size_t input_index, const InputData &input_data, ge::Allocator *allocator,
+                                     int32_t cur_device_id, size_t &copy_index,
+                                     std::vector<MemBlock *> &input_mem_block);
+  Status CopyGertInputToDevice(size_t input_index, const gert::Tensor &arg_input, ge::Allocator *allocator,
+                               int32_t cur_device_id, size_t &copy_index, gert::Tensor &ref_input,
+                               std::vector<MemBlock *> &input_mem_block);
+  Status PrepareRtInputFromGertTensor(size_t input_index, const gert::Tensor &arg_input, ge::Allocator *allocator,
+                                      int32_t cur_device_id, size_t &copy_index,
+                                      std::vector<MemBlock *> &input_mem_block);
+  Status PrepareInputDataRtInputs(const InputData &input_data, ge::Allocator *allocator,
+                                  std::vector<MemBlock *> &input_mem_block);
+  Status PrepareGertRtInputs(const std::vector<gert::Tensor> &inputs, ge::Allocator *allocator,
+                             std::vector<MemBlock *> &input_mem_block);
+  Status SetPreassignedRtOutputs(const std::vector<TensorValue> &outputs);
+  void BuildOutputArgs(ExecuteArgs &args) const;
+  void InitGertOutputs(std::vector<gert::Tensor> &outputs);
+  Status UpdateAsyncGertOutputSizes() const;
+  Status ExecuteRtModel(gert::ModelExecuteArg &model_args, gert::Allocators *allocators);
   Status CheckInputIsOnDevice();
   void InitHostInputFlags(const ge::ComputeGraphPtr &root_graph);
   Status InitModelIdentity(const std::shared_ptr<ge::GeRootModel> &ge_root_model,
