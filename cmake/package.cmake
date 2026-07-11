@@ -213,7 +213,7 @@ if("ge-executor" IN_LIST BUILD_COMPONENT)
     message(STATUS "************Install ge-executor packages***************")
     install_public_packages(ge-executor)
     if(NOT MDC_COMPILE_RUNTIME)
-        install(TARGETS ge_common ge_executor_shared ge_common_base davinci_executor hybrid_executor gert om2_executor
+        install(TARGETS ge_common ge_executor_shared ge_common_base davinci_executor hybrid_executor gert custom_op_runtime om2_executor
                 register graph lowering register_static graph_base custom_op_registry_static model_deployer
                 npu_sched_model_loader
                 data_flow_base hcom_executor

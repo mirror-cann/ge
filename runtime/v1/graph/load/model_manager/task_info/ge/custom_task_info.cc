@@ -24,6 +24,7 @@
 #include "graph/manager/graph_var_manager.h"
 #include "graph/utils/node_utils.h"
 #include "graph/custom_op.h"
+#include "graph/custom_op/cast.h"
 #include "graph/custom_op_registry.h"
 #include "graph/load/model_manager/sink_only_allocator.h"
 #include "graph/load/model_manager/task_info/ge/sink_op_args_handler.h"
@@ -299,7 +300,7 @@ Status CustomTaskInfo::Distribute() {
   BaseCustomOp *custom_op_ptr = custom_op_registry->CreateOrGetCustomOp(op_type);
   GE_ASSERT_NOTNULL(custom_op_ptr, "[CUSTOM OP] custom op %s is not found in registry.", op_desc_->GetType().c_str());
 
-  args_update_op_ = dynamic_cast<ArgsUpdater *>(custom_op_ptr);
+  args_update_op_ = CustomOpCast<ArgsUpdater>(custom_op_ptr);
   if (args_update_op_ != nullptr) {
     GELOGI("ArgsUpdater operator detected: %s", op_desc_->GetName().c_str());
   }
@@ -308,8 +309,8 @@ Status CustomTaskInfo::Distribute() {
 
   args_handler_ = ge::ComGraphMakeUnique<SinkOpArgsHandler>(this);
   GE_ASSERT_NOTNULL(args_handler_);
-  std::vector<void*> additional_inputs = {sink_only_allocator_.get(), stream_};
-  std::vector<void*> additional_outputs = {&ws_vec_, args_handler_.get()};
+  std::vector<void *> additional_inputs = {sink_only_allocator_.get(), stream_};
+  std::vector<void *> additional_outputs = {&ws_vec_, args_handler_.get()};
 
   eager_context_holder_ = gert::KernelRunContextBuilder()
                               .Inputs(GetHoldersRawPtr(inputs_holder_))
@@ -318,7 +319,7 @@ Status CustomTaskInfo::Distribute() {
                               .Outputs(additional_outputs)
                               .Build(op_desc_);
   auto eager_context = reinterpret_cast<gert::EagerOpExecutionContext *>(eager_context_holder_.context_);
-  auto *eager_execute_op_ptr = dynamic_cast<ge::EagerExecuteOp *>(custom_op_ptr);
+  auto *eager_execute_op_ptr = CustomOpCast<ge::EagerExecuteOp>(custom_op_ptr);
   if (eager_execute_op_ptr == nullptr) {
     GELOGW("%s is custom op but did not implement EagerExecuteOp", eager_context->GetNodeType());
     return ge::GRAPH_FAILED;

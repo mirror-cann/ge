@@ -17,6 +17,7 @@
 
 #include "debug/ge_log.h"
 #include "framework/common/framework_types_internal.h"
+#include "graph/custom_op/cast.h"
 #include "graph/operator_factory_impl.h"
 
 namespace ge {
@@ -75,7 +76,7 @@ graphStatus DeserializeCustomKernelItem(CustomOpRegistry &registry, const Parsed
     return GRAPH_FAILED;
   }
 
-  auto *serializable_op = dynamic_cast<PortableOp *>(op);
+  auto *serializable_op = CustomOpCast<PortableOp>(op);
   if (serializable_op == nullptr) {
     GELOGE(GRAPH_FAILED,
            "[CUSTOM OP] Custom op '%s' is not PortableOp, type mismatch or version inconsistency detected",
@@ -162,7 +163,7 @@ bool CustomOpRegistry::IsAddressRefreshable(const AscendString &op_type) {
   if (custom_op == nullptr) {
     return false;
   }
-  return dynamic_cast<const ArgsUpdater *>(custom_op) != nullptr;
+  return CustomOpCast<ArgsUpdater>(custom_op) != nullptr;
 }
 
 BaseCustomOp *CustomOpRegistry::FindCustomOp(const AscendString &op_type) const {

@@ -13,6 +13,7 @@
 #include "common/checker.h"
 #include "common/plugin/ge_make_unique_util.h"
 #include "graph/custom_op.h"
+#include "graph/custom_op/cast.h"
 #include "graph/custom_op_factory.h"
 #include "graph/custom_op_registry.h"
 #include "kernel/memory/multi_stream_mem_block.h"
@@ -170,7 +171,7 @@ static ge::graphStatus ExecuteCustomOpImpl(KernelContext *context) {
   auto custom_op_ptr =
       context->GetInputValue<ge::BaseCustomOp *>(node_input_num + static_cast<size_t>(CustomOpInput::kFunc));
   GE_ASSERT_NOTNULL(custom_op_ptr);
-  auto *eager_execute_op_ptr = dynamic_cast<ge::EagerExecuteOp *>(custom_op_ptr);
+  auto *eager_execute_op_ptr = ge::CustomOpCast<ge::EagerExecuteOp>(custom_op_ptr);
   if (eager_execute_op_ptr == nullptr) {
     GELOGE(ge::FAILED, "%s is custom op but did not implement EagerExecuteOp", eager_context->GetNodeType());
     return ge::GRAPH_FAILED;

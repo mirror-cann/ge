@@ -11,22 +11,34 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <new>
 #include <string>
 #include <vector>
 
 #include "framework/common/framework_types_internal.h"
 #include "../graph/custom_ops_stub.h"
+#include "graph/custom_op/cast.h"
 #include "graph/custom_op_factory.h"
 #include "graph/custom_op_registry.h"
+#include "runtime/custom_op/python_custom_op_adapter.h"
 #include "ge/ge_api_error_codes.h"
 #include "macro_utils/dt_public_scope.h"
 #include "macro_utils/dt_public_unscope.h"
 #include "securec.h"
 
 using namespace ge;
+using namespace ge::custom_op;
 namespace {
 class RegistryTestOp : public BaseCustomOp {};
 class RegistryDuplicateReplacementOp : public BaseCustomOp {};
+
+class CastEagerOnlyOp : public EagerExecuteOp {
+ public:
+  graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
+    (void)ctx;
+    return GRAPH_SUCCESS;
+  }
+};
 
 class RegistryPortableOp : public PortableOp {
  public:
@@ -56,6 +68,31 @@ class FactoryCallbackPortableOp : public PortableOp {
     return (dependency_op == nullptr) ? GRAPH_FAILED : GRAPH_SUCCESS;
   }
 };
+
+struct MockPythonCustomOpHolder {
+  bool executed{false};
+};
+
+void *CreateMockPythonCustomOpHolder(const PythonCustomOpDescriptor *desc) {
+  if (desc == nullptr) {
+    return nullptr;
+  }
+  return new (std::nothrow) MockPythonCustomOpHolder();
+}
+
+void DestroyMockPythonCustomOpHolder(void *holder) {
+  delete static_cast<MockPythonCustomOpHolder *>(holder);
+}
+
+graphStatus ExecuteMockPythonCustomOp(const void *holder, gert::EagerOpExecutionContext *ctx) {
+  (void)ctx;
+  auto *mock_holder = const_cast<MockPythonCustomOpHolder *>(static_cast<const MockPythonCustomOpHolder *>(holder));
+  if (mock_holder == nullptr) {
+    return GRAPH_FAILED;
+  }
+  mock_holder->executed = true;
+  return GRAPH_SUCCESS;
+}
 
 std::vector<uint8_t> BuildCustomOpPartition(const std::string &name, const std::vector<uint8_t> &bin) {
   ge::CustomKernelItemHeader header{ge::kCustomKernelItemMagic, static_cast<uint32_t>(name.size()),
@@ -140,6 +177,59 @@ TEST(UtestCustomOpRegistry, find_custom_op_returns_created_instance) {
   EXPECT_NE(nullptr, created);
   EXPECT_EQ(created, registry.FindCustomOp("RegistryFindAfterCreate"));
   EXPECT_EQ(true, registry.HasCustomOp("RegistryFindAfterCreate"));
+}
+
+TEST(UtestCustomOpCast, falls_back_to_dynamic_cast_for_cpp_custom_op) {
+  CastEagerOnlyOp op;
+  BaseCustomOp *base = &op;
+
+  EXPECT_EQ(static_cast<EagerExecuteOp *>(&op), CustomOpCast<EagerExecuteOp>(base));
+  EXPECT_EQ(nullptr, CustomOpCast<CompilableOp>(base));
+  EXPECT_EQ(nullptr, CustomOpCast<ShapeInferOp>(base));
+}
+
+TEST(UtestCustomOpCast, filters_python_adapter_by_capability) {
+  PythonCustomOpDescriptor desc;
+  desc.descriptor_key = "python_adapter_eager_only";
+  desc.op_type = "PythonAdapterEagerOnly";
+  AddCustomOpCapability(desc.capabilities, CustomOpCapability::kEagerExecute);
+
+  PythonCustomOpCallbacks callbacks;
+  callbacks.create = CreateMockPythonCustomOpHolder;
+  callbacks.destroy = DestroyMockPythonCustomOpHolder;
+  callbacks.execute = ExecuteMockPythonCustomOp;
+
+  ASSERT_TRUE(PythonCustomOpRuntimeRegistry::Register(desc, callbacks));
+  {
+    PythonCustomOpAdapter adapter(desc);
+    EXPECT_TRUE(adapter.IsValid());
+
+    BaseCustomOp *base = &adapter;
+    EXPECT_NE(nullptr, CustomOpCast<EagerExecuteOp>(base));
+    EXPECT_EQ(nullptr, CustomOpCast<CompilableOp>(base));
+    EXPECT_EQ(nullptr, CustomOpCast<ShapeInferOp>(base));
+    EXPECT_EQ(nullptr, CustomOpCast<PortableOp>(base));
+    EXPECT_EQ(nullptr, CustomOpCast<ArgsUpdater>(base));
+
+    EXPECT_EQ(GRAPH_SUCCESS, CustomOpCast<EagerExecuteOp>(base)->Execute(nullptr));
+    EXPECT_EQ(GRAPH_FAILED, adapter.Compile(nullptr));
+    EXPECT_FALSE(PythonCustomOpRuntimeRegistry::Unregister(desc.descriptor_key));
+    PythonCustomOpRuntimeRegistry::Clear();
+  }
+  EXPECT_FALSE(PythonCustomOpRuntimeRegistry::Unregister(desc.descriptor_key));
+}
+
+TEST(UtestCustomOpCast, rejects_unsupported_python_adapter_capability) {
+  PythonCustomOpDescriptor desc;
+  desc.descriptor_key = "python_adapter_shape_unsupported";
+  desc.op_type = "PythonAdapterShapeUnsupported";
+  AddCustomOpCapability(desc.capabilities, CustomOpCapability::kShapeInfer);
+
+  PythonCustomOpCallbacks callbacks;
+  callbacks.create = CreateMockPythonCustomOpHolder;
+  callbacks.destroy = DestroyMockPythonCustomOpHolder;
+
+  EXPECT_FALSE(PythonCustomOpRuntimeRegistry::Register(desc, callbacks));
 }
 
 TEST(UtestCustomOpRegistry, load_custom_ops_partition_deserializes_registered_portable_op) {

@@ -748,6 +748,7 @@ target_link_libraries(ut_libge_multiparts_utest
     ascend_protobuf
     ge_graph_dsl
     ge_compiler
+    custom_op_runtime
     ascendcl_stub
     -Wl,--whole-archive
     atc_static gert gert_op_impl es_ge_test
