@@ -53,7 +53,7 @@
 bash run.sh
 ```
 
-`run.sh` 在生成 `output/op_graph/lib/<os>/<arch>/libcust_opapi.so` 后会自动将 `output/` 追加到 `ASCEND_CUSTOM_OPP_PATH`。若运行成功，会生成 `output/single_add.air`、`output/single_add.om`，并在终端打印 `Model executed successfully!` 与 `First element of output: 2.000000`。
+`run.sh` 在生成 `output/op_graph/lib/<os>/<arch>/libcust_opapi.so` 后会自动将 `output/` 追加到 `ASCEND_CUSTOM_OPP_PATH`。若运行成功，会生成 `output/single_add.air`、`output/single_add.om`，并在终端打印 `Model executed successfully!` 与 `First element of output: 3.000000`。
 
 ### 分步方式
 
@@ -154,7 +154,7 @@ compilable_add_custom
 - `output/single_add.air` 已生成。
 - `output/single_add.om` 已生成。
 - 终端输出包含 `Model executed successfully!`。
-- 终端输出包含 `First element of output: 2.000000`。
+- 终端输出包含 `First element of output: 3.000000`。
 
 若失败，优先检查：
 
