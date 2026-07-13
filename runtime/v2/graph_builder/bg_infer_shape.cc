@@ -31,6 +31,7 @@
 #include "aicore/converter/autofuse_node_converter.h"
 #include "graph/custom_op_factory.h"
 #include "graph/custom_op.h"
+#include "graph/custom_op/cast.h"
 #include "graph/custom_op_registry.h"
 #include "kernel/common_kernel_impl/infer_shape.h"
 
@@ -41,7 +42,7 @@ ge::ShapeInferOp *FindShapeInferOpInCustomOpRegistry(const ge::AscendString &op_
   ge::BaseCustomOp *custom_op = nullptr;
   const auto &custom_op_registry = global_data.GetCustomOpRegistry();
   custom_op = (custom_op_registry == nullptr) ? nullptr : custom_op_registry->CreateOrGetCustomOp(op_type);
-  return dynamic_cast<ge::ShapeInferOp *>(custom_op);
+  return ge::CustomOpCast<ge::ShapeInferOp>(custom_op);
 }
 
 namespace {

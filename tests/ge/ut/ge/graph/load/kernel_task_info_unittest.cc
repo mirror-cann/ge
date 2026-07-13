@@ -5716,6 +5716,43 @@ void StubExceptionFunc(aclrtExceptionInfo *exception_info, void *reserved) {
   (void)reserved;
 }
 
+TEST_F(UtestKernelTaskInfo, AssembleIoByArgsFormat_CustomValue_Success) {
+  SuperKernelV2TaskInfo sk_task_info;
+  sk_task_info.task_type_ = ModelTaskType::MODEL_TASK_SUPER_KERNEL;
+  sk_task_info.kernel_type_ = ccKernelType::MIX_VECTOR_CORE;
+  sk_task_info.sub_node_op_index_list_.emplace_back(0);
+
+  auto op_desc = CreateOpDesc("relu", RELU);
+  sk_task_info.sub_node_op_desc_list_.emplace_back(op_desc);
+
+  SuperKernelV2TaskInfo::ArgsFormatInfo sub_node_args_format_holder = {};
+  ArgDesc custom_value_desc{};
+  custom_value_desc.addr_type = AddrType::CUSTOM_VALUE;
+  custom_value_desc.ir_idx = static_cast<int32_t>(ArgsFormatWidth::BIT64);
+  custom_value_desc.folded = false;
+  uint64_t payload = 42ULL;
+  (void)memcpy_s(custom_value_desc.reserved, sizeof(custom_value_desc.reserved), &payload, sizeof(uint64_t));
+  sub_node_args_format_holder.arg_descs.push_back(custom_value_desc);
+  sk_task_info.sub_node_args_format_holder_list_.push_back(sub_node_args_format_holder);
+
+  std::vector<uint64_t> fake_addr{1};
+  sk_task_info.sub_node_input_addrs_list_.emplace_back(fake_addr);
+  sk_task_info.sub_node_output_addrs_list_.emplace_back(fake_addr);
+  sk_task_info.sub_node_workspace_addrs_list_.emplace_back(fake_addr);
+  sk_task_info.sub_node_input_mem_types_list_.emplace_back(fake_addr);
+  sk_task_info.sub_node_output_mem_types_list_.emplace_back(fake_addr);
+  sk_task_info.sub_node_workspace_mem_types_list_.emplace_back(fake_addr);
+  sk_task_info.sub_node_tiling_data_addrs_.emplace_back(nullptr);
+  sk_task_info.op_desc_ = CreateOpDesc("sk", "SuperKernel");
+  sk_task_info.args_ = 0x0;
+
+  EXPECT_EQ(sk_task_info.AssembleIoByArgsFormat(), SUCCESS);
+  EXPECT_EQ(sk_task_info.io_addrs_.size(), 1);
+  EXPECT_EQ(sk_task_info.io_addrs_[0], 42ULL);
+  EXPECT_EQ(sk_task_info.l0_dump_list_.size(), 1);
+  EXPECT_EQ(sk_task_info.l0_dump_list_[0], std::numeric_limits<uint64_t>::max());
+}
+
 TEST_F(UtestKernelTaskInfo, SetExceptionCallback_Success) {
   gert::SpaceRegistryFaker::UpdateOpImplToDefaultSpaceRegistry();
   auto space_registry_array = gert::OpImplSpaceRegistryV2Array();
@@ -5819,4 +5856,74 @@ TEST_F(UtestKernelTaskInfo, SetExceptionCallback_Success) {
     EXPECT_EQ(model.DistributeTask(model_task_def), SUCCESS);
   }
 }
+
+TEST_F(UtestKernelTaskInfo, CopySubNodeTilingDataIfNeeded_Success) {
+  DavinciModel model(0, nullptr);
+  model.SetKnownNode(true);
+  model.runtime_param_.mem_size = 2048U;
+  std::vector<uint8_t> memory_holder(model.runtime_param_.mem_size);
+  model.runtime_param_.mem_base = reinterpret_cast<uintptr_t>(memory_holder.data());
+  MemAllocation fm_mem_allocation = {0, 0, UINT64_MAX, ge::MemAllocation::Type::FEATURE_MAP, 0U};
+  model.logical_mem_allocations_.emplace_back(fm_mem_allocation);
+
+  SuperKernelV2TaskInfo sk_task_info;
+  sk_task_info.davinci_model_ = &model;
+
+  auto op_desc_1 = CreateOpDesc("relu1", RELU);
+  auto run_info_1 = std::make_shared<optiling::utils::OpRunInfo>(0, false, 0);
+  run_info_1->AddTilingData("tiling_data_for_node1");
+  op_desc_1->SetExtAttr(ATTR_NAME_OP_RUN_INFO, run_info_1);
+  sk_task_info.sub_node_op_desc_list_.emplace_back(op_desc_1);
+
+  auto op_desc_2 = CreateOpDesc("relu2", RELU);
+  sk_task_info.sub_node_op_desc_list_.emplace_back(op_desc_2);
+
+  auto op_desc_3 = CreateOpDesc("relu3", RELU);
+  auto run_info_3 = std::make_shared<optiling::utils::OpRunInfo>(0, false, 0);
+  run_info_3->AddTilingData("tiling_data_for_node3");
+  op_desc_3->SetExtAttr(ATTR_NAME_OP_RUN_INFO, run_info_3);
+  sk_task_info.sub_node_op_desc_list_.emplace_back(op_desc_3);
+
+  EXPECT_EQ(sk_task_info.CopySubNodeTilingDataIfNeeded(), SUCCESS);
+  EXPECT_EQ(sk_task_info.sub_node_tiling_data_addrs_.size(), 3U);
+  EXPECT_NE(sk_task_info.sub_node_tiling_data_addrs_[0], nullptr);
+  EXPECT_EQ(sk_task_info.sub_node_tiling_data_addrs_[1], nullptr);
+  EXPECT_NE(sk_task_info.sub_node_tiling_data_addrs_[2], nullptr);
+}
+
+TEST_F(UtestKernelTaskInfo, AssembleIoByArgsFormat_Tiling_Success) {
+  SuperKernelV2TaskInfo sk_task_info;
+  sk_task_info.task_type_ = ModelTaskType::MODEL_TASK_SUPER_KERNEL;
+  sk_task_info.kernel_type_ = ccKernelType::MIX_VECTOR_CORE;
+  sk_task_info.sub_node_op_index_list_.emplace_back(0);
+
+  auto op_desc = CreateOpDesc("relu", RELU);
+  sk_task_info.sub_node_op_desc_list_.emplace_back(op_desc);
+
+  SuperKernelV2TaskInfo::ArgsFormatInfo sub_node_args_format_holder = {};
+  ArgDesc tiling_desc{};
+  tiling_desc.addr_type = AddrType::TILING;
+  sub_node_args_format_holder.arg_descs.push_back(tiling_desc);
+  sk_task_info.sub_node_args_format_holder_list_.push_back(sub_node_args_format_holder);
+
+  std::vector<uint64_t> fake_addr{1};
+  sk_task_info.sub_node_input_addrs_list_.emplace_back(fake_addr);
+  sk_task_info.sub_node_output_addrs_list_.emplace_back(fake_addr);
+  sk_task_info.sub_node_workspace_addrs_list_.emplace_back(fake_addr);
+  sk_task_info.sub_node_input_mem_types_list_.emplace_back(fake_addr);
+  sk_task_info.sub_node_output_mem_types_list_.emplace_back(fake_addr);
+  sk_task_info.sub_node_workspace_mem_types_list_.emplace_back(fake_addr);
+  sk_task_info.op_desc_ = CreateOpDesc("sk", "SuperKernel");
+  sk_task_info.args_ = 0x0;
+
+  void *fake_tiling_addr = reinterpret_cast<void *>(0xDEADBEEF);
+  sk_task_info.sub_node_tiling_data_addrs_.push_back(fake_tiling_addr);
+
+  EXPECT_EQ(sk_task_info.AssembleIoByArgsFormat(), SUCCESS);
+  EXPECT_EQ(sk_task_info.io_addrs_.size(), 1U);
+  EXPECT_EQ(sk_task_info.io_addrs_[0], PtrToValue(fake_tiling_addr));
+  EXPECT_EQ(sk_task_info.l0_dump_list_.size(), 1U);
+  EXPECT_EQ(sk_task_info.l0_dump_list_[0], std::numeric_limits<uint64_t>::max());
+}
+
 }  // namespace ge

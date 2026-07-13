@@ -26,6 +26,7 @@
 #include "common/checker.h"
 #include "debug/ge_op_types.h"
 #include "mmpa/mmpa_api.h"
+#include "graph/custom_op/cast.h"
 #include "graph/custom_op_factory.h"
 
 namespace ge {
@@ -115,7 +116,7 @@ graphStatus OpDescUtilsEx::InferCustomOpShape(const OpDescPtr &op_desc, Operator
   GELOGI("[%s][%s] Infer Custom op shape.", op_desc->GetNamePtr(), op_desc->GetTypePtr());
 
   auto custom_op = CustomOpFactory::CreateOrGetCustomOp(AscendString(op_desc->GetType().c_str()));
-  auto shape_infer_op = dynamic_cast<ShapeInferOp *>(custom_op);
+  auto shape_infer_op = CustomOpCast<ShapeInferOp>(custom_op);
   if (shape_infer_op != nullptr) {
     const auto custom_op_infer_datatype_func = OperatorFactoryImpl::GetCustomOpInferDataTypeFunc();
     const auto custom_op_infer_shape_func = OperatorFactoryImpl::GetCustomOpInferShapeFunc();

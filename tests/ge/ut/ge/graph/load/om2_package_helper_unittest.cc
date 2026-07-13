@@ -19,6 +19,7 @@
 #include "framework/common/framework_types_internal.h"
 #include "common/helper/om2/json_file.h"
 #include "common/helper/om2/om2_package_contants.h"
+#include "common/helper/visual_json_converter.h"
 #include "common/model/ge_model.h"
 #include "file_utils.h"
 #include <algorithm>
@@ -32,9 +33,6 @@
 #include "graph/utils/tensor_utils.h"
 #include "graph/utils/file_utils.h"
 #include "graph/utils/graph_utils.h"
-#include <google/protobuf/text_format.h>
-#include "proto/ge_ir.pb.h"
-#include "proto/onnx/ge_onnx.pb.h"
 #include <cstdio>
 #include <sstream>
 #include <system_error>
@@ -255,6 +253,47 @@ GeModelPtr CreateGeModelWithCaseOp() {
   return ge_model;
 }
 
+template <typename Archive>
+std::string FindVisualJsonEntry(const Archive &archive) {
+  for (const auto &file_name : archive.ListFiles()) {
+    if ((file_name.find("debug/ge_visual_") != std::string::npos) && (file_name.find(".json") != std::string::npos)) {
+      return file_name;
+    }
+  }
+  return "";
+}
+
+template <typename Archive>
+void ExpectVisualJsonCanLoad(const Archive &archive, const std::string &expected_graph_name) {
+  const std::string visual_entry = FindVisualJsonEntry(archive);
+  ASSERT_FALSE(visual_entry.empty()) << "ge_visual_*.json not found in OM2";
+
+  size_t visual_size = 0U;
+  const auto visual_buf = archive.ExtractToMem(visual_entry, visual_size);
+  ASSERT_NE(visual_buf, nullptr);
+  ASSERT_GT(visual_size, 0U);
+
+  const JsonFile visual_json(reinterpret_cast<const uint8_t *>(visual_buf.get()), visual_size);
+  ASSERT_TRUE(visual_json.IsValid());
+  EXPECT_EQ(visual_json.Raw().at("format"), JsonFile::json("ge_visual_json"));
+  EXPECT_EQ(visual_json.Raw().at("format_version"), JsonFile::json(1));
+  ASSERT_TRUE(visual_json.Raw().contains("model"));
+  ASSERT_TRUE(visual_json.Raw().at("model").contains("graph"));
+  ASSERT_FALSE(visual_json.Raw().at("model").at("graph").empty());
+  EXPECT_EQ(visual_json.Raw().at("model").at("graph").at(0).at("name"), JsonFile::json(expected_graph_name));
+  ASSERT_TRUE(visual_json.Raw().at("model").at("graph").at(0).contains("op"));
+  EXPECT_FALSE(visual_json.Raw().at("model").at("graph").at(0).at("op").empty());
+
+  nlohmann::json pb_json;
+  const std::string visual_str(reinterpret_cast<const char *>(visual_buf.get()), visual_size);
+  ASSERT_EQ(VisualJsonConverter::LoadFromVisualJson(visual_str, pb_json), SUCCESS);
+  ASSERT_TRUE(pb_json.contains("graph"));
+  ASSERT_FALSE(pb_json["graph"].empty());
+  EXPECT_EQ(pb_json["graph"][0]["name"], expected_graph_name);
+  ASSERT_TRUE(pb_json["graph"][0].contains("op"));
+  EXPECT_FALSE(pb_json["graph"][0]["op"].empty());
+}
+
 }  // namespace
 
 class Om2PackageHelperUt : public testing::Test {
@@ -350,8 +389,7 @@ TEST_F(Om2PackageHelperUt, ConvertOm2Model_Ok_GenOm2WithAicoreNode) {
       "fake_test/data/kernels_npu_arch/add1_faked_kernel.o",
       "fake_test/data/model_0/model_meta.json",
       "fake_test/data/model_0/debug/op_attr.json",
-      "fake_test/data/model_0/debug/ge_onnx_00000000_graph_0_g1.pbtxt",
-      "fake_test/data/model_0/debug/ge_proto_00000000_graph_0_g1.txt",
+      "fake_test/data/model_0/debug/ge_visual_00000000_graph_0.json",
       "fake_test/manifest.json",
   };
   EXPECT_EQ(file_names.size(), expect_files.size());
@@ -541,8 +579,7 @@ TEST_F(Om2PackageHelperUt, SaveToOmModel_SaveModeFalse_ReturnsModelBuffer) {
       "g1/data/kernels_npu_arch/add1_faked_kernel.o",
       "g1/data/model_0/model_meta.json",
       "g1/data/model_0/debug/op_attr.json",
-      "g1/data/model_0/debug/ge_onnx_00000000_graph_0_g1.pbtxt",
-      "g1/data/model_0/debug/ge_proto_00000000_graph_0_g1.txt",
+      "g1/data/model_0/debug/ge_visual_00000000_graph_0.json",
       "g1/manifest.json",
   };
   EXPECT_EQ(file_names.size(), expect_files.size());
@@ -1501,60 +1538,13 @@ TEST_F(Om2PackageHelperUt, SaveGraphDebugFiles_Ok_ValidGraph) {
   RAIIZipArchive archive(reinterpret_cast<const uint8_t *>(model_buf.get()), model_buf_size);
   ASSERT_TRUE(archive.IsGood());
 
-  // Verify ge_proto_*.txt exists and parses as ModelDef
-  const auto file_list = archive.ListFiles();
-  std::string proto_entry;
-  std::string onnx_entry;
-  for (const auto &f : file_list) {
-    if (f.find("debug/ge_proto_") != std::string::npos && f.find(".txt") != std::string::npos) {
-      proto_entry = f;
-    }
-    if (f.find("debug/ge_onnx_") != std::string::npos && f.find(".pbtxt") != std::string::npos) {
-      onnx_entry = f;
-    }
-  }
-  ASSERT_FALSE(proto_entry.empty()) << "ge_proto_*.txt not found in OM2";
-  ASSERT_FALSE(onnx_entry.empty()) << "ge_onnx_*.pbtxt not found in OM2";
-
-  size_t proto_size = 0;
-  const auto proto_buf = archive.ExtractToMem(proto_entry, proto_size);
-  ASSERT_NE(proto_buf, nullptr);
-  ASSERT_GT(proto_size, 0U);
-
-  ge::proto::ModelDef model_def;
-  const std::string proto_str(reinterpret_cast<const char *>(proto_buf.get()), proto_size);
-  ASSERT_TRUE(google::protobuf::TextFormat::ParseFromString(proto_str, &model_def));
-  EXPECT_GE(model_def.graph_size(), 1);
-  EXPECT_GT(model_def.graph(0).op_size(), 0);
-  EXPECT_NE(model_def.attr().find(ATTR_MODEL_ATC_CMDLINE), model_def.attr().end());
-  const auto om_info_iter = model_def.attr().find("om_info_list");
-  ASSERT_NE(om_info_iter, model_def.attr().end());
-  ASSERT_EQ(om_info_iter->second.list().i_size(), 5);
-  for (const auto &graph_def : model_def.graph()) {
-    for (const auto &op_def : graph_def.op()) {
-      if (op_def.type() == "Const" || op_def.type() == "Constant") {
-        EXPECT_EQ(op_def.attr().find(ATTR_NAME_WEIGHTS), op_def.attr().end());
-      }
-    }
-  }
-
-  // Verify ge_onnx_*.pbtxt parses as ONNX ModelProto
-  size_t onnx_size = 0;
-  const auto onnx_buf = archive.ExtractToMem(onnx_entry, onnx_size);
-  ASSERT_NE(onnx_buf, nullptr);
-  ASSERT_GT(onnx_size, 0U);
-
-  ge::onnx::ModelProto onnx_proto;
-  const std::string onnx_str(reinterpret_cast<const char *>(onnx_buf.get()), onnx_size);
-  ASSERT_TRUE(google::protobuf::TextFormat::ParseFromString(onnx_str, &onnx_proto));
-  ASSERT_TRUE(onnx_proto.has_graph());
-  EXPECT_GT(onnx_proto.graph().node_size(), 0);
+  ExpectVisualJsonCanLoad(archive, "g1");
 }
 
 // ============================================================================
-// ExtractGraphProtoTxt tests
+// ExtractVisualJson tests
 // ============================================================================
-TEST_F(Om2PackageHelperUt, ExtractGraphProtoTxt_Ok_FromGeneratedOm2) {
+TEST_F(Om2PackageHelperUt, ExtractVisualJson_Ok_FromGeneratedOm2) {
   Om2PackageHelper om2_packager;
   const auto ge_root_model = CreateGeRootModelWithAicoreOp();
   ASSERT_NE(ge_root_model, nullptr);
@@ -1568,33 +1558,34 @@ TEST_F(Om2PackageHelperUt, ExtractGraphProtoTxt_Ok_FromGeneratedOm2) {
   const auto file_buf = GetBinDataFromFile(output_file, file_size);
   ASSERT_NE(file_buf, nullptr);
 
-  std::string txt_out;
-  ASSERT_EQ(Om2PackageHelper::ExtractGraphProtoTxt(file_buf.get(), file_size, txt_out), SUCCESS);
-  EXPECT_GT(txt_out.size(), 0U);
+  std::string json_out;
+  ASSERT_EQ(Om2PackageHelper::ExtractVisualJson(file_buf.get(), file_size, json_out), SUCCESS);
+  EXPECT_GT(json_out.size(), 0U);
 
-  ge::proto::ModelDef model_def;
-  ASSERT_TRUE(google::protobuf::TextFormat::ParseFromString(txt_out, &model_def));
-  EXPECT_GE(model_def.graph_size(), 1);
+  nlohmann::json pb_json;
+  ASSERT_EQ(VisualJsonConverter::LoadFromVisualJson(json_out, pb_json), SUCCESS);
+  ASSERT_TRUE(pb_json.contains("graph"));
+  EXPECT_GE(pb_json["graph"].size(), 1U);
 }
 
-TEST_F(Om2PackageHelperUt, ExtractGraphProtoTxt_Fail_NullModelData) {
-  std::string txt_out;
-  EXPECT_NE(Om2PackageHelper::ExtractGraphProtoTxt(nullptr, 100U, txt_out), SUCCESS);
+TEST_F(Om2PackageHelperUt, ExtractVisualJson_Fail_NullModelData) {
+  std::string json_out;
+  EXPECT_NE(Om2PackageHelper::ExtractVisualJson(nullptr, 100U, json_out), SUCCESS);
 }
 
-TEST_F(Om2PackageHelperUt, ExtractGraphProtoTxt_Fail_ZeroLen) {
+TEST_F(Om2PackageHelperUt, ExtractVisualJson_Fail_ZeroLen) {
   uint8_t dummy = 0;
-  std::string txt_out;
-  EXPECT_NE(Om2PackageHelper::ExtractGraphProtoTxt(&dummy, 0U, txt_out), SUCCESS);
+  std::string json_out;
+  EXPECT_NE(Om2PackageHelper::ExtractVisualJson(&dummy, 0U, json_out), SUCCESS);
 }
 
-TEST_F(Om2PackageHelperUt, ExtractGraphProtoTxt_Fail_InvalidZip) {
+TEST_F(Om2PackageHelperUt, ExtractVisualJson_Fail_InvalidZip) {
   const uint8_t garbage[] = {0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x01, 0x02, 0x03};
-  std::string txt_out;
-  EXPECT_NE(Om2PackageHelper::ExtractGraphProtoTxt(garbage, sizeof(garbage), txt_out), SUCCESS);
+  std::string json_out;
+  EXPECT_NE(Om2PackageHelper::ExtractVisualJson(garbage, sizeof(garbage), json_out), SUCCESS);
 }
 
-TEST_F(Om2PackageHelperUt, ExtractGraphProtoTxt_Fail_NoProtoTxt) {
+TEST_F(Om2PackageHelperUt, ExtractVisualJson_Fail_NoVisualJson) {
   const std::string zip_path = PathUtils::Join({test_work_dir, "no_proto.om2"});
   {
     ZipArchiveWriter writer(zip_path);
@@ -1609,7 +1600,7 @@ TEST_F(Om2PackageHelperUt, ExtractGraphProtoTxt_Fail_NoProtoTxt) {
   const auto file_buf = GetBinDataFromFile(zip_path, file_size);
   ASSERT_NE(file_buf, nullptr);
 
-  std::string txt_out;
-  EXPECT_NE(Om2PackageHelper::ExtractGraphProtoTxt(file_buf.get(), file_size, txt_out), SUCCESS);
+  std::string json_out;
+  EXPECT_NE(Om2PackageHelper::ExtractVisualJson(file_buf.get(), file_size, json_out), SUCCESS);
 }
 }  // namespace ge

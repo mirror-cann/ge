@@ -1692,13 +1692,11 @@ Status KernelTaskInfo::PreprocessForSkNode() {
   auto &arg_descs = args_format_holder_.arg_descs;
   int32_t sub_node_id = -1;
   for (const auto &arg_format : arg_descs) {
-    ArgDesc tmp_arg_desc = arg_format;
+    ArgDesc tmp_arg_desc{};
+    int32_t tmp_sub_node_id = 0;
+    GE_ASSERT_SUCCESS(ArgsFormatDesc::ConvertArgDescSkToNormal(arg_format, tmp_arg_desc, tmp_sub_node_id));
     if (arg_format.addr_type == AddrType::SUPER_KERNEL_SUB_NODE) {
-      const SkArgDesc *sk_args_desc = reinterpret_cast<const SkArgDesc *>(&arg_format);
-      tmp_arg_desc.addr_type = sk_args_desc->sub_addr_type;
-      tmp_arg_desc.ir_idx = sk_args_desc->sub_idx;
-      tmp_arg_desc.folded = sk_args_desc->folded;
-      sub_node_id = sk_args_desc->ir_idx;
+      sub_node_id = tmp_sub_node_id;
     }
     sub_arg_descs.emplace_back(tmp_arg_desc);
   }

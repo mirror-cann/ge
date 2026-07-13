@@ -9,6 +9,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <cstring>
 #include <memory>
 #include <string>
 
@@ -569,7 +570,8 @@ TEST_F(UtestArgsFormatDesc, SknArgDescTest) {
   EXPECT_NE(sub_graph, nullptr);
   EXPECT_NE(op_desc, nullptr);
   op_desc->SetExtAttr("_sk_sub_graph", sub_graph);
-  SkArgDesc sk_desc = {AddrType::SUPER_KERNEL_SUB_NODE, 1, false, AddrType::INPUT, 0};
+  SkArgDesc sk_desc = {
+      AddrType::SUPER_KERNEL_SUB_NODE, 1, static_cast<int16_t>(AddrType::INPUT), static_cast<int16_t>(0), {0}};
   ArgDesc sub_desc = *reinterpret_cast<ArgDesc *>(&sk_desc);
   std::vector<ArgDesc> args_desc_vec;
   args_desc_vec.emplace_back(sub_desc);
@@ -587,7 +589,6 @@ TEST_F(UtestArgsFormatDesc, SknArgDescTest) {
   EXPECT_EQ(target_sub_desc_vec.size(), 1);
   EXPECT_EQ(target_sub_desc_vec[0].ir_idx, sub_desc.ir_idx);
   EXPECT_EQ(target_sub_desc_vec[0].addr_type, sub_desc.addr_type);
-  EXPECT_EQ(target_sub_desc_vec[0].folded, sub_desc.folded);
 
   EXPECT_EQ(reinterpret_cast<SkArgDesc *>(&target_sub_desc_vec[0])->sub_idx,
             reinterpret_cast<SkArgDesc *>(&sub_desc)->sub_idx);
@@ -607,15 +608,19 @@ TEST_F(UtestArgsFormatDesc, SknArgDescTestHiddenInput) {
   EXPECT_NE(sub_graph, nullptr);
   EXPECT_NE(op_desc, nullptr);
   op_desc->SetExtAttr("_sk_sub_graph", sub_graph);
-  SkArgDescV2 sk_desc = {AddrType::SUPER_KERNEL_SUB_NODE, 1, static_cast<uint32_t>(HiddenInputsType::HCOM),
-                         AddrType::HIDDEN_INPUT, 0};
+  SkArgDesc sk_desc = {
+      AddrType::SUPER_KERNEL_SUB_NODE, 1, static_cast<int16_t>(AddrType::HIDDEN_INPUT), static_cast<int16_t>(0), {0}};
+  uint32_t hcom_type = static_cast<uint32_t>(HiddenInputsType::HCOM);
+  (void)memcpy_s(sk_desc.reserved, sizeof(sk_desc.reserved), &hcom_type, sizeof(uint32_t));
   auto sub_desc = *reinterpret_cast<ArgDesc *>(&sk_desc);
   std::vector<ArgDesc> args_desc_vec;
   args_desc_vec.emplace_back(*reinterpret_cast<ArgDesc *>(&sk_desc));
 
-  sk_desc.reserved = static_cast<uint32_t>(HiddenInputsType::TILEFWK);
+  uint32_t tilefwk_type = static_cast<uint32_t>(HiddenInputsType::TILEFWK);
+  (void)memcpy_s(sk_desc.reserved, sizeof(sk_desc.reserved), &tilefwk_type, sizeof(uint32_t));
   args_desc_vec.emplace_back(*reinterpret_cast<ArgDesc *>(&sk_desc));
-  sk_desc.reserved = static_cast<uint32_t>(HiddenInputsType::HCCLSUPERKERNEL);
+  uint32_t hcclsk_type = static_cast<uint32_t>(HiddenInputsType::HCCLSUPERKERNEL);
+  (void)memcpy_s(sk_desc.reserved, sizeof(sk_desc.reserved), &hcclsk_type, sizeof(uint32_t));
   args_desc_vec.emplace_back(*reinterpret_cast<ArgDesc *>(&sk_desc));
 
   auto str = ArgsFormatDesc::Serialize(args_desc_vec);
@@ -627,24 +632,30 @@ TEST_F(UtestArgsFormatDesc, SknArgDescTestHiddenInput) {
   EXPECT_EQ(target_sub_desc_vec.size(), 3);
   EXPECT_EQ(target_sub_desc_vec[0].ir_idx, sub_desc.ir_idx);
   EXPECT_EQ(target_sub_desc_vec[0].addr_type, sub_desc.addr_type);
-  EXPECT_EQ(target_sub_desc_vec[0].folded, sub_desc.folded);
 
   EXPECT_EQ(reinterpret_cast<SkArgDesc *>(&target_sub_desc_vec[0])->sub_idx,
             reinterpret_cast<SkArgDesc *>(&sub_desc)->sub_idx);
   EXPECT_EQ(reinterpret_cast<SkArgDesc *>(&target_sub_desc_vec[0])->sub_idx, 0);
   EXPECT_EQ(reinterpret_cast<SkArgDesc *>(&target_sub_desc_vec[0])->sub_addr_type,
             reinterpret_cast<SkArgDesc *>(&sub_desc)->sub_addr_type);
-  EXPECT_EQ(reinterpret_cast<SkArgDesc *>(&target_sub_desc_vec[0])->sub_addr_type, AddrType::HIDDEN_INPUT);
-  EXPECT_EQ(reinterpret_cast<SkArgDescV2 *>(&target_sub_desc_vec[0])->reserved,
-            static_cast<uint32_t>(HiddenInputsType::HCOM));
+  EXPECT_EQ(reinterpret_cast<SkArgDesc *>(&target_sub_desc_vec[0])->sub_addr_type,
+            static_cast<int16_t>(AddrType::HIDDEN_INPUT));
+  uint32_t reserved_val = 0;
+  (void)memcpy_s(&reserved_val, sizeof(reserved_val), reinterpret_cast<SkArgDesc *>(&target_sub_desc_vec[0])->reserved,
+                 sizeof(uint32_t));
+  EXPECT_EQ(reserved_val, static_cast<uint32_t>(HiddenInputsType::HCOM));
 
-  EXPECT_EQ(reinterpret_cast<SkArgDesc *>(&target_sub_desc_vec[1])->sub_addr_type, AddrType::HIDDEN_INPUT);
-  EXPECT_EQ(reinterpret_cast<SkArgDescV2 *>(&target_sub_desc_vec[1])->reserved,
-            static_cast<uint32_t>(HiddenInputsType::TILEFWK));
+  EXPECT_EQ(reinterpret_cast<SkArgDesc *>(&target_sub_desc_vec[1])->sub_addr_type,
+            static_cast<int16_t>(AddrType::HIDDEN_INPUT));
+  (void)memcpy_s(&reserved_val, sizeof(reserved_val), reinterpret_cast<SkArgDesc *>(&target_sub_desc_vec[1])->reserved,
+                 sizeof(uint32_t));
+  EXPECT_EQ(reserved_val, static_cast<uint32_t>(HiddenInputsType::TILEFWK));
 
-  EXPECT_EQ(reinterpret_cast<SkArgDesc *>(&target_sub_desc_vec[2])->sub_addr_type, AddrType::HIDDEN_INPUT);
-  EXPECT_EQ(reinterpret_cast<SkArgDescV2 *>(&target_sub_desc_vec[2])->reserved,
-            static_cast<uint32_t>(HiddenInputsType::HCCLSUPERKERNEL));
+  EXPECT_EQ(reinterpret_cast<SkArgDesc *>(&target_sub_desc_vec[2])->sub_addr_type,
+            static_cast<int16_t>(AddrType::HIDDEN_INPUT));
+  (void)memcpy_s(&reserved_val, sizeof(reserved_val), reinterpret_cast<SkArgDesc *>(&target_sub_desc_vec[2])->reserved,
+                 sizeof(uint32_t));
+  EXPECT_EQ(reserved_val, static_cast<uint32_t>(HiddenInputsType::HCCLSUPERKERNEL));
 
   ArgDesc tmp_arg_desc{};
   int32_t sub_op_id = 0;
@@ -670,7 +681,9 @@ TEST_F(UtestArgsFormatDesc, SknArgDesceEventAddr) {
   EXPECT_NE(sub_graph, nullptr);
   EXPECT_NE(op_desc, nullptr);
   op_desc->SetExtAttr("_sk_sub_graph", sub_graph);
-  SkArgDesc sk_desc = {AddrType::SUPER_KERNEL_SUB_NODE, 1, false, AddrType::EVENT_ADDR, 10};
+  SkArgDesc sk_desc = {AddrType::SUPER_KERNEL_SUB_NODE, 1, static_cast<int16_t>(AddrType::EVENT_ADDR), 0, {0}};
+  const int32_t mem_event_id = 10;
+  (void)memcpy_s(sk_desc.reserved, sizeof(sk_desc.reserved), &mem_event_id, sizeof(int32_t));
   ArgDesc sub_desc = *reinterpret_cast<ArgDesc *>(&sk_desc);
   std::vector<ArgDesc> args_desc_vec;
   args_desc_vec.emplace_back(sub_desc);
@@ -682,20 +695,51 @@ TEST_F(UtestArgsFormatDesc, SknArgDesceEventAddr) {
   auto ret = ArgsFormatDesc::Parse(op_desc, str, target_sub_desc_vec, false);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
   EXPECT_EQ(target_sub_desc_vec.size(), 1);
-  EXPECT_EQ(target_sub_desc_vec[0].ir_idx, sub_desc.ir_idx);
   EXPECT_EQ(target_sub_desc_vec[0].addr_type, sub_desc.addr_type);
-  EXPECT_EQ(target_sub_desc_vec[0].folded, sub_desc.folded);
 
-  EXPECT_EQ(reinterpret_cast<SkArgDesc *>(&target_sub_desc_vec[0])->sub_idx,
-            reinterpret_cast<SkArgDesc *>(&sub_desc)->sub_idx);
-  EXPECT_EQ(reinterpret_cast<SkArgDesc *>(&target_sub_desc_vec[0])->sub_idx, 10);
   EXPECT_EQ(reinterpret_cast<SkArgDesc *>(&target_sub_desc_vec[0])->sub_addr_type,
             reinterpret_cast<SkArgDesc *>(&sub_desc)->sub_addr_type);
-  EXPECT_EQ(reinterpret_cast<SkArgDesc *>(&target_sub_desc_vec[0])->sub_addr_type, AddrType::EVENT_ADDR);
+  EXPECT_EQ(reinterpret_cast<SkArgDesc *>(&target_sub_desc_vec[0])->sub_addr_type,
+            static_cast<int16_t>(AddrType::EVENT_ADDR));
+  ArgDesc normal_desc = {};
+  int32_t sub_op_id = 0;
+  EXPECT_EQ(ArgsFormatDesc::ConvertArgDescSkToNormal(target_sub_desc_vec[0], normal_desc, sub_op_id), GRAPH_SUCCESS);
+  EXPECT_EQ(normal_desc.addr_type, AddrType::EVENT_ADDR);
+  EXPECT_EQ(normal_desc.ir_idx, mem_event_id);
+  EXPECT_EQ(sub_op_id, 1);
   size_t arg_size = 0;
   ret = ArgsFormatDesc::GetArgSize(op_desc, sub_desc, arg_size);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
   EXPECT_EQ(arg_size, 8);
+}
+
+TEST_F(UtestArgsFormatDesc, SknArgDescEventAddrOverflow) {
+  auto sub_graph = BuildNormalGraph("test");
+  auto op_desc = std::make_shared<OpDesc>("sk", "SuperKernel");
+  EXPECT_NE(sub_graph, nullptr);
+  EXPECT_NE(op_desc, nullptr);
+  op_desc->SetExtAttr("_sk_sub_graph", sub_graph);
+  SkArgDesc sk_desc = {AddrType::SUPER_KERNEL_SUB_NODE, 1, static_cast<int16_t>(AddrType::EVENT_ADDR), 0, {0}};
+  const int32_t mem_event_id = 200000;  // exceeds int16_t range [-32768, 32767]
+  (void)memcpy_s(sk_desc.reserved, sizeof(sk_desc.reserved), &mem_event_id, sizeof(int32_t));
+  ArgDesc sub_desc = *reinterpret_cast<ArgDesc *>(&sk_desc);
+  std::vector<ArgDesc> args_desc_vec;
+  args_desc_vec.emplace_back(sub_desc);
+  auto str = ArgsFormatDesc::Serialize(args_desc_vec);
+
+  EXPECT_EQ(str, "{skn1event_addr200000*}");
+
+  std::vector<ArgDesc> target_sub_desc_vec;
+  auto ret = ArgsFormatDesc::Parse(op_desc, str, target_sub_desc_vec, false);
+  EXPECT_EQ(ret, GRAPH_SUCCESS);
+  EXPECT_EQ(target_sub_desc_vec.size(), 1);
+
+  ArgDesc normal_desc = {};
+  int32_t sub_op_id = 0;
+  EXPECT_EQ(ArgsFormatDesc::ConvertArgDescSkToNormal(target_sub_desc_vec[0], normal_desc, sub_op_id), GRAPH_SUCCESS);
+  EXPECT_EQ(normal_desc.addr_type, AddrType::EVENT_ADDR);
+  EXPECT_EQ(normal_desc.ir_idx, mem_event_id);
+  EXPECT_EQ(sub_op_id, 1);
 }
 
 TEST_F(UtestArgsFormatDesc, ConvertToSuperKernelArgFormat) {
@@ -718,4 +762,302 @@ TEST_F(UtestArgsFormatDesc, ConvertToSuperKernelArgFormat) {
             ge::GRAPH_SUCCESS);
   EXPECT_EQ(sk_arg_format, "{skn0i0*}");
 }
+TEST_F(UtestArgsFormatDesc, SknArgDescCustomValueBit64) {
+  auto sub_graph = BuildNormalGraph("test");
+  auto op_desc = std::make_shared<OpDesc>("sk", "SuperKernel");
+  EXPECT_NE(sub_graph, nullptr);
+  EXPECT_NE(op_desc, nullptr);
+  op_desc->SetExtAttr("_sk_sub_graph", sub_graph);
+
+  std::string sub_node_arg_format = "{#1234567890}";
+  std::string sk_arg_format;
+  auto sk_node = std::shared_ptr<Node>(new (std::nothrow) Node(op_desc, nullptr));
+  EXPECT_NE(sk_node, nullptr);
+  (void)sk_node->Init();
+
+  NodePtr sub_node;
+  for (const auto &node : sub_graph->GetDirectNode()) {
+    if (node->GetOpDesc()->GetId() == 1) {
+      sub_node = node;
+      break;
+    }
+  }
+  ASSERT_NE(sub_node, nullptr);
+
+  EXPECT_EQ(ArgsFormatDesc::ConvertToSuperKernelArgFormat(sk_node, sub_node, sub_node_arg_format, sk_arg_format),
+            ge::GRAPH_SUCCESS);
+  EXPECT_EQ(sk_arg_format, "{skn1#1234567890}");
+
+  std::vector<ArgDesc> target_sub_desc_vec;
+  auto ret = ArgsFormatDesc::Parse(op_desc, sk_arg_format, target_sub_desc_vec, false);
+  EXPECT_EQ(ret, GRAPH_SUCCESS);
+  EXPECT_EQ(target_sub_desc_vec.size(), 1);
+
+  ArgDesc tmp_arg_desc{};
+  int32_t sub_op_id = 0;
+  EXPECT_EQ(ArgsFormatDesc::ConvertArgDescSkToNormal(target_sub_desc_vec[0], tmp_arg_desc, sub_op_id), GRAPH_SUCCESS);
+  EXPECT_EQ(tmp_arg_desc.addr_type, AddrType::CUSTOM_VALUE);
+  EXPECT_EQ(tmp_arg_desc.ir_idx, static_cast<int32_t>(ArgsFormatWidth::BIT64));
+  EXPECT_EQ(*reinterpret_cast<uint64_t *>(tmp_arg_desc.reserved), 1234567890ULL);
+  EXPECT_EQ(sub_op_id, 1);
+
+  size_t arg_size = 0;
+  ret = ArgsFormatDesc::GetArgSize(op_desc, target_sub_desc_vec[0], arg_size);
+  EXPECT_EQ(ret, GRAPH_SUCCESS);
+  EXPECT_EQ(arg_size, 8);
+}
+
+TEST_F(UtestArgsFormatDesc, SknArgDescCustomValueBit32) {
+  auto sub_graph = BuildNormalGraph("test");
+  auto op_desc = std::make_shared<OpDesc>("sk", "SuperKernel");
+  EXPECT_NE(sub_graph, nullptr);
+  EXPECT_NE(op_desc, nullptr);
+  op_desc->SetExtAttr("_sk_sub_graph", sub_graph);
+
+  std::string sub_node_arg_format = "{#.32b42}";
+  std::string sk_arg_format;
+  auto sk_node = std::shared_ptr<Node>(new (std::nothrow) Node(op_desc, nullptr));
+  EXPECT_NE(sk_node, nullptr);
+  (void)sk_node->Init();
+
+  NodePtr sub_node;
+  for (const auto &node : sub_graph->GetDirectNode()) {
+    if (node->GetOpDesc()->GetId() == 1) {
+      sub_node = node;
+      break;
+    }
+  }
+  ASSERT_NE(sub_node, nullptr);
+
+  EXPECT_EQ(ArgsFormatDesc::ConvertToSuperKernelArgFormat(sk_node, sub_node, sub_node_arg_format, sk_arg_format),
+            ge::GRAPH_SUCCESS);
+  EXPECT_EQ(sk_arg_format, "{skn1#.32b42}");
+
+  std::vector<ArgDesc> target_sub_desc_vec;
+  auto ret = ArgsFormatDesc::Parse(op_desc, sk_arg_format, target_sub_desc_vec, false);
+  EXPECT_EQ(ret, GRAPH_SUCCESS);
+  EXPECT_EQ(target_sub_desc_vec.size(), 1);
+
+  ArgDesc tmp_arg_desc{};
+  int32_t sub_op_id = 0;
+  EXPECT_EQ(ArgsFormatDesc::ConvertArgDescSkToNormal(target_sub_desc_vec[0], tmp_arg_desc, sub_op_id), GRAPH_SUCCESS);
+  EXPECT_EQ(tmp_arg_desc.addr_type, AddrType::CUSTOM_VALUE);
+  EXPECT_EQ(tmp_arg_desc.ir_idx, static_cast<int32_t>(ArgsFormatWidth::BIT32));
+  EXPECT_EQ(*reinterpret_cast<uint64_t *>(tmp_arg_desc.reserved), 42ULL);
+  EXPECT_EQ(sub_op_id, 1);
+
+  size_t arg_size = 0;
+  ret = ArgsFormatDesc::GetArgSize(op_desc, target_sub_desc_vec[0], arg_size);
+  EXPECT_EQ(ret, GRAPH_SUCCESS);
+  EXPECT_EQ(arg_size, 4);
+}
+
+TEST_F(UtestArgsFormatDesc, SknArgDescCustomValueMaxPayload) {
+  auto sub_graph = BuildNormalGraph("test");
+  auto op_desc = std::make_shared<OpDesc>("sk", "SuperKernel");
+  EXPECT_NE(sub_graph, nullptr);
+  EXPECT_NE(op_desc, nullptr);
+  op_desc->SetExtAttr("_sk_sub_graph", sub_graph);
+
+  std::string sub_node_arg_format = "{#18446744073709551615}";
+  std::string sk_arg_format;
+  auto sk_node = std::shared_ptr<Node>(new (std::nothrow) Node(op_desc, nullptr));
+  EXPECT_NE(sk_node, nullptr);
+  (void)sk_node->Init();
+
+  NodePtr sub_node;
+  for (const auto &node : sub_graph->GetDirectNode()) {
+    if (node->GetOpDesc()->GetId() == 1) {
+      sub_node = node;
+      break;
+    }
+  }
+  ASSERT_NE(sub_node, nullptr);
+
+  EXPECT_EQ(ArgsFormatDesc::ConvertToSuperKernelArgFormat(sk_node, sub_node, sub_node_arg_format, sk_arg_format),
+            ge::GRAPH_SUCCESS);
+
+  std::vector<ArgDesc> target_sub_desc_vec;
+  auto ret = ArgsFormatDesc::Parse(op_desc, sk_arg_format, target_sub_desc_vec, false);
+  EXPECT_EQ(ret, GRAPH_SUCCESS);
+  EXPECT_EQ(target_sub_desc_vec.size(), 1);
+
+  ArgDesc tmp_arg_desc{};
+  int32_t sub_op_id = 0;
+  EXPECT_EQ(ArgsFormatDesc::ConvertArgDescSkToNormal(target_sub_desc_vec[0], tmp_arg_desc, sub_op_id), GRAPH_SUCCESS);
+  EXPECT_EQ(tmp_arg_desc.addr_type, AddrType::CUSTOM_VALUE);
+  EXPECT_EQ(tmp_arg_desc.ir_idx, static_cast<int32_t>(ArgsFormatWidth::BIT64));
+  EXPECT_EQ(*reinterpret_cast<uint64_t *>(tmp_arg_desc.reserved), 0xFFFFFFFFFFFFFFFFULL);
+}
+
+TEST_F(UtestArgsFormatDesc, SknArgDescFoldedRoundTrip) {
+  auto sub_graph = BuildNormalGraph("test");
+  auto op_desc = std::make_shared<OpDesc>("sk", "SuperKernel");
+  EXPECT_NE(sub_graph, nullptr);
+  EXPECT_NE(op_desc, nullptr);
+  op_desc->SetExtAttr("_sk_sub_graph", sub_graph);
+
+  std::string sub_node_arg_format = "{i0}{i_desc1}{o_desc0}";
+  std::string sk_arg_format;
+  auto sk_node = std::shared_ptr<Node>(new (std::nothrow) Node(op_desc, nullptr));
+  EXPECT_NE(sk_node, nullptr);
+  (void)sk_node->Init();
+
+  NodePtr sub_node;
+  for (const auto &node : sub_graph->GetDirectNode()) {
+    if (node->GetOpDesc()->GetId() == 1) {
+      sub_node = node;
+      break;
+    }
+  }
+  ASSERT_NE(sub_node, nullptr);
+  sub_node->GetOpDesc()->AppendIrInput("x", kIrInputRequired);
+  sub_node->GetOpDesc()->AppendIrOutput("y", kIrOutputRequired);
+  GeShape shape({1});
+  GeTensorDesc desc(shape);
+  sub_node->GetOpDesc()->AddInputDesc(desc);
+  sub_node->GetOpDesc()->AddOutputDesc(desc);
+
+  EXPECT_EQ(ArgsFormatDesc::ConvertToSuperKernelArgFormat(sk_node, sub_node, sub_node_arg_format, sk_arg_format),
+            ge::GRAPH_SUCCESS);
+
+  std::vector<ArgDesc> target_sub_desc_vec;
+  auto ret = ArgsFormatDesc::Parse(op_desc, sk_arg_format, target_sub_desc_vec, false);
+  EXPECT_EQ(ret, GRAPH_SUCCESS);
+
+  for (const auto &sk_arg : target_sub_desc_vec) {
+    ArgDesc normal_arg{};
+    int32_t sub_op_id = 0;
+    EXPECT_EQ(ArgsFormatDesc::ConvertArgDescSkToNormal(sk_arg, normal_arg, sub_op_id), GRAPH_SUCCESS);
+    EXPECT_EQ(sub_op_id, 1);
+  }
+}
+
+TEST_F(UtestArgsFormatDesc, SknArgDescFoldedTrue) {
+  auto sub_graph = BuildNormalGraph("test");
+  auto op_desc = std::make_shared<OpDesc>("sk", "SuperKernel");
+  EXPECT_NE(sub_graph, nullptr);
+  EXPECT_NE(op_desc, nullptr);
+  op_desc->SetExtAttr("_sk_sub_graph", sub_graph);
+
+  std::string sub_node_arg_format = "{i0*}{o0*}";
+  std::string sk_arg_format;
+  auto sk_node = std::shared_ptr<Node>(new (std::nothrow) Node(op_desc, nullptr));
+  EXPECT_NE(sk_node, nullptr);
+  (void)sk_node->Init();
+
+  NodePtr sub_node;
+  for (const auto &node : sub_graph->GetDirectNode()) {
+    if (node->GetOpDesc()->GetId() == 1) {
+      sub_node = node;
+      break;
+    }
+  }
+  ASSERT_NE(sub_node, nullptr);
+  sub_node->GetOpDesc()->AppendIrInput("x", kIrInputRequired);
+  sub_node->GetOpDesc()->AppendIrOutput("y", kIrOutputRequired);
+  GeShape shape({1});
+  GeTensorDesc desc(shape);
+  sub_node->GetOpDesc()->AddInputDesc(desc);
+  sub_node->GetOpDesc()->AddOutputDesc(desc);
+
+  EXPECT_EQ(ArgsFormatDesc::ConvertToSuperKernelArgFormat(sk_node, sub_node, sub_node_arg_format, sk_arg_format),
+            ge::GRAPH_SUCCESS);
+  EXPECT_EQ(sk_arg_format, "{skn1i0*}{skn1o0*}");
+
+  std::vector<ArgDesc> target_sub_desc_vec;
+  auto ret = ArgsFormatDesc::Parse(op_desc, sk_arg_format, target_sub_desc_vec, false);
+  EXPECT_EQ(ret, GRAPH_SUCCESS);
+  EXPECT_EQ(target_sub_desc_vec.size(), 2);
+
+  ArgDesc normal_arg{};
+  int32_t sub_op_id = 0;
+  EXPECT_EQ(ArgsFormatDesc::ConvertArgDescSkToNormal(target_sub_desc_vec[0], normal_arg, sub_op_id), GRAPH_SUCCESS);
+  EXPECT_EQ(normal_arg.addr_type, AddrType::INPUT);
+  EXPECT_EQ(normal_arg.ir_idx, 0);
+  EXPECT_EQ(normal_arg.folded, false);
+  EXPECT_EQ(sub_op_id, 1);
+
+  EXPECT_EQ(ArgsFormatDesc::ConvertArgDescSkToNormal(target_sub_desc_vec[1], normal_arg, sub_op_id), GRAPH_SUCCESS);
+  EXPECT_EQ(normal_arg.addr_type, AddrType::OUTPUT);
+  EXPECT_EQ(normal_arg.ir_idx, 0);
+  EXPECT_EQ(normal_arg.folded, false);
+  EXPECT_EQ(sub_op_id, 1);
+}
+
+TEST_F(UtestArgsFormatDesc, SknArgDescMixedTypes) {
+  auto sub_graph = BuildNormalGraph("test");
+  auto op_desc = std::make_shared<OpDesc>("sk", "SuperKernel");
+  EXPECT_NE(sub_graph, nullptr);
+  EXPECT_NE(op_desc, nullptr);
+  op_desc->SetExtAttr("_sk_sub_graph", sub_graph);
+
+  std::string sub_node_arg_format = "{i0}{#42}{o0}";
+  std::string sk_arg_format;
+  auto sk_node = std::shared_ptr<Node>(new (std::nothrow) Node(op_desc, nullptr));
+  EXPECT_NE(sk_node, nullptr);
+  (void)sk_node->Init();
+
+  NodePtr sub_node;
+  for (const auto &node : sub_graph->GetDirectNode()) {
+    if (node->GetOpDesc()->GetId() == 1) {
+      sub_node = node;
+      break;
+    }
+  }
+  ASSERT_NE(sub_node, nullptr);
+  sub_node->GetOpDesc()->AppendIrInput("x", kIrInputRequired);
+  sub_node->GetOpDesc()->AppendIrOutput("y", kIrOutputRequired);
+  GeShape shape({1});
+  GeTensorDesc desc(shape);
+  sub_node->GetOpDesc()->AddInputDesc(desc);
+  sub_node->GetOpDesc()->AddOutputDesc(desc);
+
+  EXPECT_EQ(ArgsFormatDesc::ConvertToSuperKernelArgFormat(sk_node, sub_node, sub_node_arg_format, sk_arg_format),
+            ge::GRAPH_SUCCESS);
+  EXPECT_EQ(sk_arg_format, "{skn1i0*}{skn1#42}{skn1o0*}");
+
+  std::vector<ArgDesc> target_sub_desc_vec;
+  auto ret = ArgsFormatDesc::Parse(op_desc, sk_arg_format, target_sub_desc_vec, false);
+  EXPECT_EQ(ret, GRAPH_SUCCESS);
+  EXPECT_EQ(target_sub_desc_vec.size(), 3);
+
+  ArgDesc normal_arg{};
+  int32_t sub_op_id = 0;
+
+  EXPECT_EQ(ArgsFormatDesc::ConvertArgDescSkToNormal(target_sub_desc_vec[0], normal_arg, sub_op_id), GRAPH_SUCCESS);
+  EXPECT_EQ(normal_arg.addr_type, AddrType::INPUT);
+  EXPECT_EQ(normal_arg.ir_idx, 0);
+  EXPECT_EQ(sub_op_id, 1);
+
+  EXPECT_EQ(ArgsFormatDesc::ConvertArgDescSkToNormal(target_sub_desc_vec[1], normal_arg, sub_op_id), GRAPH_SUCCESS);
+  EXPECT_EQ(normal_arg.addr_type, AddrType::CUSTOM_VALUE);
+  EXPECT_EQ(normal_arg.ir_idx, static_cast<int32_t>(ArgsFormatWidth::BIT64));
+  EXPECT_EQ(*reinterpret_cast<uint64_t *>(normal_arg.reserved), 42ULL);
+  EXPECT_EQ(sub_op_id, 1);
+
+  EXPECT_EQ(ArgsFormatDesc::ConvertArgDescSkToNormal(target_sub_desc_vec[2], normal_arg, sub_op_id), GRAPH_SUCCESS);
+  EXPECT_EQ(normal_arg.addr_type, AddrType::OUTPUT);
+  EXPECT_EQ(normal_arg.ir_idx, 0);
+  EXPECT_EQ(sub_op_id, 1);
+}
+
+TEST_F(UtestArgsFormatDesc, ConvertSkToNormalNonSkType) {
+  ArgDesc normal_desc{};
+  normal_desc.addr_type = AddrType::INPUT;
+  normal_desc.ir_idx = 3;
+  normal_desc.folded = true;
+  uint64_t payload = 0xDEADBEEFULL;
+  (void)memcpy_s(normal_desc.reserved, sizeof(normal_desc.reserved), &payload, sizeof(uint64_t));
+
+  ArgDesc result{};
+  int32_t sub_op_id = 0;
+  EXPECT_EQ(ArgsFormatDesc::ConvertArgDescSkToNormal(normal_desc, result, sub_op_id), GRAPH_SUCCESS);
+  EXPECT_EQ(result.addr_type, AddrType::INPUT);
+  EXPECT_EQ(result.ir_idx, 3);
+  EXPECT_EQ(result.folded, true);
+  EXPECT_EQ(*reinterpret_cast<uint64_t *>(result.reserved), 0xDEADBEEFULL);
+  EXPECT_EQ(sub_op_id, INT32_MAX);
+}
+
 }  // namespace ge

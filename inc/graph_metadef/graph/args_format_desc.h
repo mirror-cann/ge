@@ -32,20 +32,12 @@ enum class ArgsFormatWidth : int32_t {
 struct SkArgDesc {
   AddrType addr_type;
   int32_t ir_idx;
-  bool folded;
-  AddrType sub_addr_type;
-  int32_t sub_idx;
+  int16_t sub_addr_type;
+  int16_t sub_idx;
+  uint8_t reserved[8];
 };
 static_assert(std::is_standard_layout<SkArgDesc>::value, "The class SkArgDesc must be a POD");
-
-struct SkArgDescV2 {
-  AddrType addr_type;
-  int32_t ir_idx;
-  uint32_t reserved;
-  AddrType sub_addr_type;
-  int32_t sub_idx;
-};
-static_assert(std::is_standard_layout<SkArgDescV2>::value, "The class SkArgDescV2 must be a POD");
+static_assert(sizeof(SkArgDesc) == sizeof(ArgDesc), "SkArgDesc must be same size as ArgDesc");
 
 class ArgsFormatDesc {
  public:

@@ -10,30 +10,36 @@
 
 add_subdirectory(ge_api_c_wrapper)
 add_subdirectory(ge/passes)
+add_subdirectory(ge/runtime)
+add_subdirectory(ge/custom_op)
 file(GLOB_RECURSE GE_API_C_WRAPPER CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.py")
 
 execute_process(
          COMMAND ${HI_PYTHON} -c "import sys; print(f'cp{sys.version_info.major}{sys.version_info.minor}')"
-         OUTPUT_VARIABLE GE_PYTHON_PASS_PYTHON_TAG
+         OUTPUT_VARIABLE GE_PYTHON_ARTIFACT_PYTHON_TAG
          OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 execute_process(
          COMMAND ${HI_PYTHON} -c "import sys; print(sys.version.split()[0])"
-         OUTPUT_VARIABLE GE_PYTHON_PASS_PYTHON_VERSION
+         OUTPUT_VARIABLE GE_PYTHON_ARTIFACT_PYTHON_VERSION
          OUTPUT_STRIP_TRAILING_WHITESPACE
 )
-string(TOLOWER "${CMAKE_SYSTEM_NAME}" GE_PYTHON_PASS_SYSTEM_NAME)
-set(GE_PYTHON_PASS_PLATFORM_TAG "${GE_PYTHON_PASS_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
-string(REPLACE "-" "_" GE_PYTHON_PASS_WHEEL_PLATFORM "${GE_PYTHON_PASS_PLATFORM_TAG}")
-set(GE_PYTHON_PASS_ARTIFACT_SET_NAME "${GE_PYTHON_PASS_PYTHON_TAG}-${GE_PYTHON_PASS_PLATFORM_TAG}")
+string(TOLOWER "${CMAKE_SYSTEM_NAME}" GE_PYTHON_ARTIFACT_SYSTEM_NAME)
+set(GE_PYTHON_ARTIFACT_PLATFORM_TAG "${GE_PYTHON_ARTIFACT_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
+string(REPLACE "-" "_" GE_PYTHON_PASS_WHEEL_PLATFORM "${GE_PYTHON_ARTIFACT_PLATFORM_TAG}")
+set(GE_PYTHON_ARTIFACT_SET_NAME "${GE_PYTHON_ARTIFACT_PYTHON_TAG}-${GE_PYTHON_ARTIFACT_PLATFORM_TAG}")
 set(GE_PYTHON_MAIN_WHEEL ${CMAKE_CURRENT_BINARY_DIR}/ge_py-0.0.1-py3-none-any.whl)
 set(GE_PYTHON_MAIN_WHEEL_DIR ${CMAKE_CURRENT_BINARY_DIR}/wheel)
 set(GE_PYTHON_PASS_ARTIFACT_DIR
-        ${CMAKE_CURRENT_BINARY_DIR}/native_artifacts/${GE_PYTHON_PASS_ARTIFACT_SET_NAME})
+        ${CMAKE_CURRENT_BINARY_DIR}/native_artifacts/${GE_PYTHON_ARTIFACT_SET_NAME})
 set(GE_PYTHON_PASS_BRIDGE_ABI_VERSION 1)
+set(GE_PYTHON_RUNTIME_NATIVE_ABI_VERSION 1)
+set(GE_PYTHON_CUSTOM_OP_NATIVE_ABI_VERSION 1)
 set(GE_PYTHON_PASS_ARTIFACT_MANIFEST ${CMAKE_CURRENT_BINARY_DIR}/python_pass_artifact_manifest.json)
+set(GE_PYTHON_RUNTIME_ARTIFACT_MANIFEST ${CMAKE_CURRENT_BINARY_DIR}/python_runtime_artifact_manifest.json)
+set(GE_PYTHON_CUSTOM_OP_ARTIFACT_MANIFEST ${CMAKE_CURRENT_BINARY_DIR}/python_custom_op_artifact_manifest.json)
 set(GE_PYTHON_PASS_NATIVE_WHEEL
-        ${CMAKE_CURRENT_BINARY_DIR}/ge_py_pass_bridge-0.0.1-${GE_PYTHON_PASS_PYTHON_TAG}-${GE_PYTHON_PASS_PYTHON_TAG}-${GE_PYTHON_PASS_WHEEL_PLATFORM}.whl)
+        ${CMAKE_CURRENT_BINARY_DIR}/ge_py_pass_bridge-0.0.1-${GE_PYTHON_ARTIFACT_PYTHON_TAG}-${GE_PYTHON_ARTIFACT_PYTHON_TAG}-${GE_PYTHON_PASS_WHEEL_PLATFORM}.whl)
 set(GE_PYTHON_PASS_NATIVE_WHEEL ${GE_PYTHON_PASS_NATIVE_WHEEL} CACHE INTERNAL "GE python pass native artifact wheel")
 set(GE_PYTHON_PASS_NATIVE_MATRIX_DIST_DIR ${CMAKE_CURRENT_BINARY_DIR}/native_wheel_matrix_dist)
 set(GE_PYTHON_PASS_BUILD_METADATA_DIR ${PROJECT_BINARY_DIR})
@@ -44,13 +50,13 @@ if (CMAKE_CXX_COMPILER_LAUNCHER)
 endif()
 file(WRITE ${GE_PYTHON_PASS_ARTIFACT_MANIFEST}
         "{\n"
-        "  \"python_tag\": \"${GE_PYTHON_PASS_PYTHON_TAG}\",\n"
-        "  \"python_version\": \"${GE_PYTHON_PASS_PYTHON_VERSION}\",\n"
-        "  \"platform\": \"${GE_PYTHON_PASS_PLATFORM_TAG}\",\n"
+        "  \"python_tag\": \"${GE_PYTHON_ARTIFACT_PYTHON_TAG}\",\n"
+        "  \"python_version\": \"${GE_PYTHON_ARTIFACT_PYTHON_VERSION}\",\n"
+        "  \"platform\": \"${GE_PYTHON_ARTIFACT_PLATFORM_TAG}\",\n"
         "  \"bridge_abi\": ${GE_PYTHON_PASS_BRIDGE_ABI_VERSION},\n"
         "  \"build_python\": {\n"
         "    \"executable\": \"${HI_PYTHON}\",\n"
-        "    \"version\": \"${GE_PYTHON_PASS_PYTHON_VERSION}\",\n"
+        "    \"version\": \"${GE_PYTHON_ARTIFACT_PYTHON_VERSION}\",\n"
         "    \"include\": \"${HI_PYTHON_INC}\",\n"
         "    \"libpython\": \"${HI_PYTHON_EMBED_LIBRARIES}\",\n"
         "    \"pybind11_include\": \"${pybind11_INCLUDE_DIR}\",\n"
@@ -59,6 +65,44 @@ file(WRITE ${GE_PYTHON_PASS_ARTIFACT_MANIFEST}
         "  \"artifacts\": {\n"
         "    \"bridge\": \"libge_python_pass_bridge.so\",\n"
         "    \"native\": \"_ge_pass_native.so\"\n"
+        "  }\n"
+        "}\n"
+)
+file(WRITE ${GE_PYTHON_RUNTIME_ARTIFACT_MANIFEST}
+        "{\n"
+        "  \"python_tag\": \"${GE_PYTHON_ARTIFACT_PYTHON_TAG}\",\n"
+        "  \"python_version\": \"${GE_PYTHON_ARTIFACT_PYTHON_VERSION}\",\n"
+        "  \"platform\": \"${GE_PYTHON_ARTIFACT_PLATFORM_TAG}\",\n"
+        "  \"native_abi\": ${GE_PYTHON_RUNTIME_NATIVE_ABI_VERSION},\n"
+        "  \"build_python\": {\n"
+        "    \"executable\": \"${HI_PYTHON}\",\n"
+        "    \"version\": \"${GE_PYTHON_ARTIFACT_PYTHON_VERSION}\",\n"
+        "    \"include\": \"${HI_PYTHON_INC}\",\n"
+        "    \"libpython\": \"${HI_PYTHON_EMBED_LIBRARIES}\",\n"
+        "    \"pybind11_include\": \"${pybind11_INCLUDE_DIR}\",\n"
+        "    \"link_python\": true\n"
+        "  },\n"
+        "  \"artifacts\": {\n"
+        "    \"native\": \"_ge_runtime_native.so\"\n"
+        "  }\n"
+        "}\n"
+)
+file(WRITE ${GE_PYTHON_CUSTOM_OP_ARTIFACT_MANIFEST}
+        "{\n"
+        "  \"python_tag\": \"${GE_PYTHON_ARTIFACT_PYTHON_TAG}\",\n"
+        "  \"python_version\": \"${GE_PYTHON_ARTIFACT_PYTHON_VERSION}\",\n"
+        "  \"platform\": \"${GE_PYTHON_ARTIFACT_PLATFORM_TAG}\",\n"
+        "  \"native_abi\": ${GE_PYTHON_CUSTOM_OP_NATIVE_ABI_VERSION},\n"
+        "  \"build_python\": {\n"
+        "    \"executable\": \"${HI_PYTHON}\",\n"
+        "    \"version\": \"${GE_PYTHON_ARTIFACT_PYTHON_VERSION}\",\n"
+        "    \"include\": \"${HI_PYTHON_INC}\",\n"
+        "    \"libpython\": \"${HI_PYTHON_EMBED_LIBRARIES}\",\n"
+        "    \"pybind11_include\": \"${pybind11_INCLUDE_DIR}\",\n"
+        "    \"link_python\": true\n"
+        "  },\n"
+        "  \"artifacts\": {\n"
+        "    \"native\": \"_ge_custom_op_native.so\"\n"
         "  }\n"
         "}\n"
 )
@@ -86,10 +130,10 @@ add_custom_target(ge_python_pass_native_wheel_matrix
             --build-dir ${GE_PYTHON_PASS_BUILD_METADATA_DIR}
             --work-dir ${CMAKE_CURRENT_BINARY_DIR}/native_wheel_matrix_build
             --dist-dir ${GE_PYTHON_PASS_NATIVE_MATRIX_DIST_DIR}
-            --platform-tag ${GE_PYTHON_PASS_PLATFORM_TAG}
+            --platform-tag ${GE_PYTHON_ARTIFACT_PLATFORM_TAG}
             --wheel-platform ${GE_PYTHON_PASS_WHEEL_PLATFORM}
             --bridge-abi ${GE_PYTHON_PASS_BRIDGE_ABI_VERSION}
-            --current-tag ${GE_PYTHON_PASS_PYTHON_TAG}
+            --current-tag ${GE_PYTHON_ARTIFACT_PYTHON_TAG}
             --current-wheel ${GE_PYTHON_PASS_NATIVE_WHEEL}
             ${GE_PYTHON_PASS_MATRIX_COMPILER_ARGS}
          COMMENT "Build GE python pass native wheels for all supported Python versions found in PATH"
@@ -134,6 +178,17 @@ add_custom_command(
          && ${CMAKE_COMMAND} -E remove_directory ${GE_PYTHON_MAIN_WHEEL_DIR}/ge/passes/native_bindings
          && ${CMAKE_COMMAND} -E remove_directory ${GE_PYTHON_MAIN_WHEEL_DIR}/ge/passes/python_pass_artifacts
          && ${CMAKE_COMMAND} -E remove_directory ${GE_PYTHON_MAIN_WHEEL_DIR}/ge/passes/fallback_codegen
+         && ${CMAKE_COMMAND} -E remove ${GE_PYTHON_MAIN_WHEEL_DIR}/ge/runtime/CMakeLists.txt
+         && ${CMAKE_COMMAND} -E remove_directory ${GE_PYTHON_MAIN_WHEEL_DIR}/ge/runtime/native_bindings
+         && ${CMAKE_COMMAND} -E remove_directory ${GE_PYTHON_MAIN_WHEEL_DIR}/ge/runtime/python_runtime_artifacts
+         && ${CMAKE_COMMAND} -E remove ${GE_PYTHON_MAIN_WHEEL_DIR}/ge/custom_op/CMakeLists.txt
+         && ${CMAKE_COMMAND} -E remove_directory ${GE_PYTHON_MAIN_WHEEL_DIR}/ge/custom_op/native_bindings
+         && mkdir -p ${GE_PYTHON_MAIN_WHEEL_DIR}/ge/runtime/python_runtime_artifacts/${GE_PYTHON_ARTIFACT_SET_NAME}
+         && cp ${GE_PYTHON_RUNTIME_ARTIFACT_MANIFEST} ${GE_PYTHON_MAIN_WHEEL_DIR}/ge/runtime/python_runtime_artifacts/${GE_PYTHON_ARTIFACT_SET_NAME}/manifest.json
+         && cp $<TARGET_FILE:_ge_runtime_native> ${GE_PYTHON_MAIN_WHEEL_DIR}/ge/runtime/python_runtime_artifacts/${GE_PYTHON_ARTIFACT_SET_NAME}/_ge_runtime_native.so
+         && mkdir -p ${GE_PYTHON_MAIN_WHEEL_DIR}/ge/custom_op/python_custom_op_artifacts/${GE_PYTHON_ARTIFACT_SET_NAME}
+         && cp ${GE_PYTHON_CUSTOM_OP_ARTIFACT_MANIFEST} ${GE_PYTHON_MAIN_WHEEL_DIR}/ge/custom_op/python_custom_op_artifacts/${GE_PYTHON_ARTIFACT_SET_NAME}/manifest.json
+         && cp $<TARGET_FILE:_ge_custom_op_native> ${GE_PYTHON_MAIN_WHEEL_DIR}/ge/custom_op/python_custom_op_artifacts/${GE_PYTHON_ARTIFACT_SET_NAME}/_ge_custom_op_native.so
          && ${CMAKE_COMMAND} -E copy_directory ${GE_PYTHON_PASS_FALLBACK_CODEGEN_DIR} ${GE_PYTHON_MAIN_WHEEL_DIR}/ge/passes/fallback_codegen
          && find ${GE_PYTHON_MAIN_WHEEL_DIR}/ge -name __pycache__ -type d -exec rm -rf {} +
          && cp $<TARGET_FILE:graph_wrapper> ${GE_PYTHON_MAIN_WHEEL_DIR}/ge/_capi/
@@ -146,13 +201,16 @@ add_custom_command(
          && cp -f dist/ge_py-0.0.1-py3-none-any.whl ${GE_PYTHON_MAIN_WHEEL}
          && echo "Build ge-py wheel package end"
          DEPENDS eager_style_graph_builder_base ge_api_c_wrapper graph_wrapper
+                 _ge_runtime_native _ge_custom_op_native
                  ${GE_API_C_WRAPPER}
+                 ${GE_PYTHON_RUNTIME_ARTIFACT_MANIFEST}
+                 ${GE_PYTHON_CUSTOM_OP_ARTIFACT_MANIFEST}
                  ${GE_PYTHON_PASS_FALLBACK_CODEGEN_CONFIG}
  )
 add_custom_command(
          OUTPUT ${GE_PYTHON_PASS_NATIVE_WHEEL}
          COMMAND echo "Start to build ge-py-pass-bridge native wheel package"
-         && echo "Build ${GE_PYTHON_PASS_PYTHON_TAG} native artifacts with python[${HI_PYTHON}], version[${GE_PYTHON_PASS_PYTHON_VERSION}], include[${HI_PYTHON_INC}], libpython[${HI_PYTHON_EMBED_LIBRARIES}], pybind11[${pybind11_INCLUDE_DIR}], link_python[yes], rpath_python[no]"
+         && echo "Build ${GE_PYTHON_ARTIFACT_PYTHON_TAG} native artifacts with python[${HI_PYTHON}], version[${GE_PYTHON_ARTIFACT_PYTHON_VERSION}], include[${HI_PYTHON_INC}], libpython[${HI_PYTHON_EMBED_LIBRARIES}], pybind11[${pybind11_INCLUDE_DIR}], link_python[yes], rpath_python[no]"
          && rm -rf ${GE_PYTHON_PASS_ARTIFACT_DIR}
          && mkdir -p ${GE_PYTHON_PASS_ARTIFACT_DIR}
          && cp ${GE_PYTHON_PASS_ARTIFACT_MANIFEST} ${GE_PYTHON_PASS_ARTIFACT_DIR}/manifest.json
@@ -160,8 +218,8 @@ add_custom_command(
          && cp $<TARGET_FILE:_ge_pass_native> ${GE_PYTHON_PASS_ARTIFACT_DIR}/_ge_pass_native.so
          && ${HI_PYTHON} ${CMAKE_CURRENT_SOURCE_DIR}/python_pass_native_build/build_python_pass_native_wheel.py
             --artifact-dir ${GE_PYTHON_PASS_ARTIFACT_DIR}
-            --python-tag ${GE_PYTHON_PASS_PYTHON_TAG}
-            --platform-tag ${GE_PYTHON_PASS_PLATFORM_TAG}
+            --python-tag ${GE_PYTHON_ARTIFACT_PYTHON_TAG}
+            --platform-tag ${GE_PYTHON_ARTIFACT_PLATFORM_TAG}
             --wheel-platform ${GE_PYTHON_PASS_WHEEL_PLATFORM}
             --output-dir ${CMAKE_CURRENT_BINARY_DIR}
          && echo "Build ge-py-pass-bridge native wheel package end"

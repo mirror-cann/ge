@@ -8,6 +8,7 @@
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 
+add_subdirectory(custom_op)
 add_subdirectory(v1)
 add_subdirectory(v2)
 add_subdirectory(stub)

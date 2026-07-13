@@ -9,6 +9,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -33,6 +34,7 @@
 #include "ge_running_env/path_utils.h"
 #include "graph/utils/graph_utils_ex.h"
 #include "framework/common/helper/model_helper.h"
+#include "common/helper/visual_json_converter.h"
 #include "framework/common/helper/nano_model_save_helper.h"
 #include "framework/common/helper/pre_model_helper.h"
 #include "framework/common/tlv/nano_dbg_desc.h"
@@ -44,6 +46,7 @@
 #include "common/opskernel/ops_kernel_info_types.h"
 #include "common/env_path.h"
 #include "graph_metadef/common/ge_common/util.h"
+#include "nlohmann/json.hpp"
 
 namespace ge {
 using namespace gert;
@@ -52,6 +55,146 @@ class ModelHelperTest : public testing::Test {
   void SetUp() {}
   void TearDown() {}
 };
+
+static const nlohmann::json *FindJsonMapValue(const nlohmann::json &entries, const std::string &key) {
+  for (const auto &entry : entries) {
+    if (entry.contains("key") && entry["key"] == key && entry.contains("value")) {
+      return &entry["value"];
+    }
+  }
+  return nullptr;
+}
+
+GeModelPtr BuildNameIndexVisualModel() {
+  auto graph = MakeShared<ComputeGraph>("visual_graph");
+  GeTensorDesc tensor_desc(GeShape({1}), FORMAT_ND, DT_FLOAT);
+  auto op_desc = MakeShared<OpDesc>("visual_op", "VisualOp");
+  if ((graph == nullptr) || (op_desc == nullptr)) {
+    return nullptr;
+  }
+  (void)op_desc->AddInputDesc(tensor_desc);
+  (void)op_desc->AddInputDesc(tensor_desc);
+  (void)op_desc->AddOutputDesc(tensor_desc);
+  (void)op_desc->UpdateInputName({{"x", 0U}, {"y", 1U}});
+  (void)op_desc->UpdateOutputName({{"z", 0U}});
+  if (graph->AddNode(op_desc) == nullptr) {
+    return nullptr;
+  }
+  auto ge_model = MakeShared<GeModel>();
+  if (ge_model != nullptr) {
+    ge_model->SetGraph(graph);
+  }
+  return ge_model;
+}
+
+void ExpectVisualNameIndexAttrs(const nlohmann::json &attrs) {
+  ASSERT_TRUE(attrs.contains("_input_name_key"));
+  ASSERT_TRUE(attrs.contains("_input_name_value"));
+  ASSERT_TRUE(attrs.contains("_output_name_key"));
+  ASSERT_TRUE(attrs.contains("_output_name_value"));
+  EXPECT_EQ(attrs["_input_name_key"]["type"], "list_string");
+  EXPECT_EQ(attrs["_input_name_key"]["value"][0], "x");
+  EXPECT_EQ(attrs["_input_name_key"]["value"][1], "y");
+  EXPECT_EQ(attrs["_input_name_value"]["type"], "list_int");
+  EXPECT_EQ(attrs["_input_name_value"]["value"][0], 0);
+  EXPECT_EQ(attrs["_input_name_value"]["value"][1], 1);
+  EXPECT_EQ(attrs["_output_name_key"]["type"], "list_string");
+  EXPECT_EQ(attrs["_output_name_key"]["value"][0], "z");
+  EXPECT_EQ(attrs["_output_name_value"]["type"], "list_int");
+  EXPECT_EQ(attrs["_output_name_value"]["value"][0], 0);
+}
+
+void ExpectPbNameIndexAttrs(const nlohmann::json &pb_attrs) {
+  ASSERT_TRUE(pb_attrs.is_array());
+  const auto *input_name_key = FindJsonMapValue(pb_attrs, "_input_name_key");
+  const auto *input_name_value = FindJsonMapValue(pb_attrs, "_input_name_value");
+  const auto *output_name_key = FindJsonMapValue(pb_attrs, "_output_name_key");
+  const auto *output_name_value = FindJsonMapValue(pb_attrs, "_output_name_value");
+  ASSERT_NE(input_name_key, nullptr);
+  ASSERT_NE(input_name_value, nullptr);
+  ASSERT_NE(output_name_key, nullptr);
+  ASSERT_NE(output_name_value, nullptr);
+  EXPECT_EQ((*input_name_key)["list"]["val_type"], proto::AttrDef_ListValue_ListValueType_VT_LIST_STRING);
+  EXPECT_EQ((*input_name_key)["list"]["s"][0], "x");
+  EXPECT_EQ((*input_name_key)["list"]["s"][1], "y");
+  EXPECT_EQ((*input_name_value)["list"]["val_type"], proto::AttrDef_ListValue_ListValueType_VT_LIST_INT);
+  EXPECT_EQ((*input_name_value)["list"]["i"][0], 0);
+  EXPECT_EQ((*input_name_value)["list"]["i"][1], 1);
+  EXPECT_EQ((*output_name_key)["list"]["val_type"], proto::AttrDef_ListValue_ListValueType_VT_LIST_STRING);
+  EXPECT_EQ((*output_name_key)["list"]["s"][0], "z");
+  EXPECT_EQ((*output_name_value)["list"]["val_type"], proto::AttrDef_ListValue_ListValueType_VT_LIST_INT);
+  EXPECT_EQ((*output_name_value)["list"]["i"][0], 0);
+}
+
+GeModelPtr BuildStructuredSubgraphVisualModel(const std::string &bytes_payload) {
+  auto root_graph = MakeShared<ComputeGraph>("root_graph");
+  auto sub_graph = MakeShared<ComputeGraph>("branch_graph");
+  GeTensorDesc tensor_desc(GeShape({2, 2}), FORMAT_ND, DT_FLOAT);
+  auto data_desc = MakeShared<OpDesc>("data", DATA);
+  auto call_desc = MakeShared<OpDesc>("partition_call", PARTITIONEDCALL);
+  auto output_desc = MakeShared<OpDesc>("net_output", NETOUTPUT);
+  auto sub_data_desc = MakeShared<OpDesc>("sub_data", DATA);
+  auto sub_output_desc = MakeShared<OpDesc>("sub_net_output", NETOUTPUT);
+  if ((root_graph == nullptr) || (sub_graph == nullptr) || (data_desc == nullptr) || (call_desc == nullptr) ||
+      (output_desc == nullptr) || (sub_data_desc == nullptr) || (sub_output_desc == nullptr)) {
+    return nullptr;
+  }
+  (void)data_desc->AddOutputDesc(tensor_desc);
+  (void)call_desc->AddInputDesc(tensor_desc);
+  (void)call_desc->AddOutputDesc(tensor_desc);
+  call_desc->AddSubgraphName(sub_graph->GetName());
+  call_desc->SetSubgraphInstanceName(0U, sub_graph->GetName());
+  (void)AttrUtils::SetBytes(
+      call_desc, "func_def",
+      Buffer::CopyFrom(reinterpret_cast<const uint8_t *>(bytes_payload.data()), bytes_payload.size()));
+  (void)output_desc->AddInputDesc(tensor_desc);
+  (void)sub_data_desc->AddOutputDesc(tensor_desc);
+  (void)sub_output_desc->AddInputDesc(tensor_desc);
+  const auto data = root_graph->AddNode(data_desc);
+  const auto call = root_graph->AddNode(call_desc);
+  const auto output = root_graph->AddNode(output_desc);
+  const auto sub_data = sub_graph->AddNode(sub_data_desc);
+  const auto sub_output = sub_graph->AddNode(sub_output_desc);
+  if ((data == nullptr) || (call == nullptr) || (output == nullptr) || (sub_data == nullptr) ||
+      (sub_output == nullptr)) {
+    return nullptr;
+  }
+  sub_graph->SetParentNode(call);
+  sub_graph->SetParentGraph(root_graph);
+  root_graph->AddSubgraph(sub_graph);
+  auto ge_model = MakeShared<GeModel>();
+  if (ge_model != nullptr) {
+    ge_model->SetGraph(root_graph);
+  }
+  return ge_model;
+}
+
+void ExpectStructuredSubgraphVisualJson(const nlohmann::json &graphs, const std::string &bytes_payload) {
+  const nlohmann::json *root_json = nullptr;
+  const nlohmann::json *sub_json = nullptr;
+  for (const auto &graph_json : graphs) {
+    if (graph_json.contains("name") && graph_json["name"] == "root_graph") {
+      root_json = &graph_json;
+    }
+    if (graph_json.contains("name") && graph_json["name"] == "branch_graph") {
+      sub_json = &graph_json;
+    }
+  }
+  ASSERT_NE(root_json, nullptr);
+  ASSERT_NE(sub_json, nullptr);
+  ASSERT_TRUE(sub_json->contains("op"));
+  ASSERT_EQ((*sub_json)["op"].size(), 2U);
+  const auto &root_ops = (*root_json)["op"];
+  auto call_it = std::find_if(root_ops.begin(), root_ops.end(), [](const nlohmann::json &op_json) {
+    return op_json.contains("name") && op_json["name"] == "partition_call";
+  });
+  ASSERT_NE(call_it, root_ops.end());
+  ASSERT_TRUE(call_it->contains("subgraph_name"));
+  ASSERT_EQ((*call_it)["subgraph_name"][0], "branch_graph");
+  ASSERT_TRUE((*call_it)["attr"].contains("func_def"));
+  EXPECT_EQ((*call_it)["attr"]["func_def"]["type"], "bytes");
+  EXPECT_EQ((*call_it)["attr"]["func_def"]["value"], bytes_payload);
+}
 
 std::vector<char> CreateStubBin() {
   auto ascend_install_path = ge::EnvPath().GetAscendInstallPath();
@@ -105,12 +248,135 @@ static void CheckDbgFileTLv(const std::string &filename) {
   EXPECT_EQ(buff_size, len);
 }
 
-TEST_F(ModelHelperTest, SaveToOmRootModel_For_Nano) {
+void SetNanoLdLibraryPath(char old_env[MMPA_MAX_PATH]) {
   auto ascend_install_path = EnvPath().GetAscendInstallPath();
-  char old_env[MMPA_MAX_PATH] = {'\0'};
   (void)mmGetEnv("LD_LIBRARY_PATH", old_env, MMPA_MAX_PATH);
   setenv("LD_LIBRARY_PATH", (ascend_install_path + "/fwkacllib/lib64").c_str(), 1);
-  auto graph = ShareGraph::AtcNanoGraph();
+}
+
+void RestoreLdLibraryPath(const char old_env[MMPA_MAX_PATH]) {
+  unsetenv("LD_LIBRARY_PATH");
+  mmSetEnv("LD_LIBRARY_PATH", old_env, 1);
+}
+
+std::string GetNanoOutputPrefix() {
+  auto om_path = PathJoin(GetRunPath().c_str(), "temp");
+  Mkdir(om_path.c_str());
+  return PathJoin(om_path.c_str(), "pb_exeom_for_nano");
+}
+
+void ExpectNanoSaveFiles(const std::string &om_path) {
+  EXPECT_EQ(IsFile((om_path + ".exeom").c_str()), true);
+  EXPECT_EQ(IsFile((om_path + ".dbg").c_str()), true);
+}
+
+void SaveNanoRootModelAndCheck(const GeRootModelPtr &ge_root_model, const std::string &om_path) {
+  ModelBufferData model_buff;
+  NanoModelSaveHelper helper;
+  helper.SetSaveMode(true);
+  Status ret = helper.SaveToOmRootModel(ge_root_model, om_path + ".exeom", model_buff, false);
+  EXPECT_EQ(ret, SUCCESS);
+  ExpectNanoSaveFiles(om_path);
+  CheckDbgFileTLv((om_path + ".dbg").c_str());
+}
+
+void SaveNanoRootModelAndExpectFiles(const GeRootModelPtr &ge_root_model, const std::string &om_path) {
+  ModelBufferData model_buff;
+  NanoModelSaveHelper helper;
+  helper.SetSaveMode(true);
+  Status ret = helper.SaveToOmRootModel(ge_root_model, om_path + ".exeom", model_buff, false);
+  EXPECT_EQ(ret, SUCCESS);
+  ExpectNanoSaveFiles(om_path);
+}
+
+void SaveNanoExeModelAndCheck(const GeModelPtr &ge_model, const std::string &om_path) {
+  ModelBufferData model_buff;
+  NanoModelSaveHelper helper;
+  helper.SetSaveMode(true);
+  Status ret = helper.SaveToExeOmModel(ge_model, om_path + ".exeom", model_buff);
+  EXPECT_EQ(ret, SUCCESS);
+  ExpectNanoSaveFiles(om_path);
+  CheckDbgFileTLv((om_path + ".dbg").c_str());
+}
+
+void AddLabelSetTask(const std::shared_ptr<domi::ModelTaskDef> &model_def, const OpDescPtr &op_desc) {
+  domi::TaskDef *task_def = model_def->add_task();
+  task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_LABEL_SET));
+  task_def->set_stream_id(op_desc->GetStreamId());
+  task_def->mutable_label_set()->set_op_index(op_desc->GetId());
+}
+
+void AddStreamActiveTask(const std::shared_ptr<domi::ModelTaskDef> &model_def, const OpDescPtr &op_desc) {
+  domi::TaskDef *task_def = model_def->add_task();
+  task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_STREAM_ACTIVE));
+  task_def->set_stream_id(op_desc->GetStreamId());
+  task_def->mutable_stream_active()->set_op_index(op_desc->GetId());
+}
+
+domi::KernelDef *AddKernelTask(const std::shared_ptr<domi::ModelTaskDef> &model_def, const OpDescPtr &op_desc,
+                               const std::string &kernel_name, ccKernelType kernel_type) {
+  domi::TaskDef *task_def = model_def->add_task();
+  task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_KERNEL));
+  task_def->set_stream_id(op_desc->GetStreamId());
+  domi::KernelDef *kernel_def = task_def->mutable_kernel();
+  kernel_def->set_stub_func("stub_func");
+  kernel_def->set_args_size(64);
+  string args(64, '1');
+  kernel_def->set_args(args.data(), 64);
+  kernel_def->set_kernel_name(kernel_name);
+  domi::KernelContext *context = kernel_def->mutable_context();
+  context->set_kernel_type(static_cast<uint32_t>(kernel_type));
+  context->set_op_index(op_desc->GetId());
+  uint16_t args_offset[9] = {0};
+  context->set_args_offset(args_offset, 9 * sizeof(uint16_t));
+  return kernel_def;
+}
+
+void AddKernelBin(TBEKernelStore &tbe_kernel_store, const GeModelPtr &ge_model, const std::string &kernel_name) {
+  const auto kernel = MakeShared<OpKernelBin>(kernel_name, CreateStubBin());
+  tbe_kernel_store.AddTBEKernel(kernel);
+  ge_model->SetTBEKernelStore(tbe_kernel_store);
+}
+
+void SetSwitchOutput(const OpDescPtr &op_desc) {
+  GeTensorDesc tensor(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
+  TensorUtils::SetSize(tensor, 512);
+  op_desc->AddOutputDesc(tensor);
+  op_desc->SetOutputOffset({1024});
+}
+
+void AddSwitchByIndexTask(const std::shared_ptr<domi::ModelTaskDef> &model_def, const OpDescPtr &op_desc) {
+  SetSwitchOutput(op_desc);
+  domi::TaskDef *task_def = model_def->add_task();
+  task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_STREAM_LABEL_SWITCH_BY_INDEX));
+  task_def->set_stream_id(op_desc->GetStreamId());
+  domi::KernelDef *kernel_def = task_def->mutable_kernel();
+  kernel_def->set_stub_func("stub_func");
+  kernel_def->set_args_size(64);
+  string args(64, '1');
+  kernel_def->set_args(args.data(), 64);
+  kernel_def->set_kernel_name("switch_by_index.o");
+  domi::LabelSwitchByIndexDef *switch_task_def = task_def->mutable_label_switch_by_index();
+  switch_task_def->set_op_index(op_desc->GetId());
+  switch_task_def->set_label_max(2);
+}
+
+void AddLabelGotoTask(const std::shared_ptr<domi::ModelTaskDef> &model_def, const OpDescPtr &op_desc) {
+  SetSwitchOutput(op_desc);
+  domi::TaskDef *task_def = model_def->add_task();
+  task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_STREAM_LABEL_GOTO));
+  task_def->set_stream_id(op_desc->GetStreamId());
+  domi::KernelDef *kernel_def = task_def->mutable_kernel();
+  kernel_def->set_stub_func("stub_func");
+  kernel_def->set_args_size(64);
+  string args(64, '1');
+  kernel_def->set_args(args.data(), 64);
+  kernel_def->set_kernel_name("switch_by_index.o");
+  task_def->mutable_label_goto_ex()->set_op_index(op_desc->GetId());
+}
+
+GeRootModelPtr BuildAtcNanoRootModel(ComputeGraphPtr &graph) {
+  graph = ShareGraph::AtcNanoGraph();
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
   auto ge_root_model =
@@ -121,71 +387,16 @@ TEST_F(ModelHelperTest, SaveToOmRootModel_For_Nano) {
   model_task_def->mutable_task(0)->mutable_kernel()->set_kernel_name("add1_faked_kernel");
   model_task_def->mutable_task(1)->mutable_kernel()->set_kernel_name("add2_faked_kernel");
   model_task_def->mutable_task(2)->mutable_kernel()->set_kernel_name("add3_faked_kernel");
-
   graph->FindNode("add1")->GetOpDesc()->SetInputOffset({0, 2048});
   graph->FindNode("add1")->GetOpDesc()->SetOutputOffset({0});
   graph->FindNode("add2")->GetOpDesc()->SetInputOffset({0, 2048});
   graph->FindNode("add2")->GetOpDesc()->SetOutputOffset({0});
   graph->FindNode("add3")->GetOpDesc()->SetInputOffset({0, 2048});
   graph->FindNode("add3")->GetOpDesc()->SetOutputOffset({0});
-
-  auto om_path = PathJoin(GetRunPath().c_str(), "temp");
-  Mkdir(om_path.c_str());
-  om_path = PathJoin(om_path.c_str(), "pb_exeom_for_nano");
-  std::string output = om_path + ".exeom";
-
-  ModelBufferData model_buff;
-  NanoModelSaveHelper helper;
-  helper.SetSaveMode(true);
-  Status ret = helper.SaveToOmRootModel(ge_root_model, output, model_buff, false);
-  EXPECT_EQ(ret, SUCCESS);
-  EXPECT_EQ(IsFile((om_path + ".exeom").c_str()), true);
-  EXPECT_EQ(IsFile((om_path + ".dbg").c_str()), true);
-
-  CheckDbgFileTLv((om_path + ".dbg").c_str());
-  unsetenv("LD_LIBRARY_PATH");
-  mmSetEnv("LD_LIBRARY_PATH", old_env, 1);
+  return ge_root_model;
 }
 
-TEST_F(ModelHelperTest, SaveToOmRootModel_For_NanoHostFunc) {
-  auto ascend_install_path = EnvPath().GetAscendInstallPath();
-  char old_env[MMPA_MAX_PATH] = {'\0'};
-  (void)mmGetEnv("LD_LIBRARY_PATH", old_env, MMPA_MAX_PATH);
-  setenv("LD_LIBRARY_PATH", (ascend_install_path + "/fwkacllib/lib64").c_str(), 1);
-  auto graph = ShareGraph::AtcNanoGraph();
-  graph->TopologicalSorting();
-  GeModelBuilder builder(graph);
-  auto ge_root_model =
-      builder.AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin1")).FakeTbeBin({"Add"}).BuildGeRootModel();
-
-  auto ge_model_map = ge_root_model->GetSubgraphInstanceNameToModel();
-  auto model = ge_model_map[graph->GetName()];
-  auto model_task_def = model->GetModelTaskDefPtr();
-  model_task_def->mutable_task(0)->mutable_kernel()->set_kernel_name("add1_faked_kernel");
-  model_task_def->mutable_task(1)->mutable_kernel()->set_kernel_name("add2_faked_kernel");
-  model_task_def->mutable_task(2)->mutable_kernel()->set_kernel_name("add3_faked_kernel");
-
-  graph->FindNode("add1")->GetOpDesc()->SetInputOffset({0, 2048});
-  graph->FindNode("add1")->GetOpDesc()->SetOutputOffset({0});
-  graph->FindNode("add2")->GetOpDesc()->SetInputOffset({0, 2048});
-  graph->FindNode("add2")->GetOpDesc()->SetOutputOffset({0});
-  graph->FindNode("add3")->GetOpDesc()->SetInputOffset({0, 2048});
-  graph->FindNode("add3")->GetOpDesc()->SetOutputOffset({0});
-
-  GeModelPtr ge_model = MakeShared<GeModel>();
-  ge_model->SetGraph(graph);
-
-  const auto model_def = MakeShared<domi::ModelTaskDef>();
-  ge_model->SetModelTaskDef(model_def);
-
-  const auto &node = graph->FindNode("add1");
-  const auto &op_desc = node->GetOpDesc();
-
-  op_desc->SetOutputOffset({8});
-  op_desc->SetInputOffset({0, 2048});
-  PreModelPartitionUtils::GetInstance().SetZeroCopyTable(128, 0);
-  PreModelPartitionUtils::GetInstance().SetZeroCopyTable(1024, 8);
-
+void SetHostFuncAttrs(const OpDescPtr &op_desc) {
   op_desc->SetAttr("int_test", GeAttrValue::CreateFrom<int64_t>(100));
   op_desc->SetAttr("str_test", GeAttrValue::CreateFrom<std::string>("Hello!"));
   op_desc->SetAttr("float_test", GeAttrValue::CreateFrom<float>(10.101));
@@ -193,533 +404,219 @@ TEST_F(ModelHelperTest, SaveToOmRootModel_For_NanoHostFunc) {
   op_desc->SetAttr("list_float_test", GeAttrValue::CreateFrom<std::vector<float>>({1.2, 3.4, 4.5}));
   op_desc->SetAttr("list_str_test", GeAttrValue::CreateFrom<std::vector<std::string>>({"Hello!", "ABCD"}));
   op_desc->SetAttr("list_bool_test", GeAttrValue::CreateFrom<std::vector<bool>>({true, false}));
-  std::vector<std::vector<int64_t>> test_listlist_int;
-  std::vector<int64_t> vec1;
-  vec1.push_back(1);
-  vec1.push_back(2);
-  test_listlist_int.push_back(vec1);
-  std::vector<int64_t> vec2;
-  vec2.push_back(3);
-  vec2.push_back(4);
-  test_listlist_int.push_back(vec2);
-  op_desc->SetAttr("list_list_int_test", GeAttrValue::CreateFrom<std::vector<std::vector<int64_t>>>(test_listlist_int));
-  std::vector<std::vector<float>> test_listlist_float;
-  std::vector<float> vec3;
-  vec3.push_back(1.2);
-  vec3.push_back(3.4);
-  test_listlist_float.push_back(vec3);
-  std::vector<float> vec4;
-  vec4.push_back(5.6);
-  vec4.push_back(7.8);
-  test_listlist_float.push_back(vec4);
+  op_desc->SetAttr("list_list_int_test", GeAttrValue::CreateFrom<std::vector<std::vector<int64_t>>>({{1, 2}, {3, 4}}));
   op_desc->SetAttr("list_list_float_test",
-                   GeAttrValue::CreateFrom<std::vector<std::vector<float>>>(test_listlist_float));
+                   GeAttrValue::CreateFrom<std::vector<std::vector<float>>>({{1.2, 3.4}, {5.6, 7.8}}));
+}
+
+void BuildNanoHostFuncModel(const ComputeGraphPtr &graph) {
+  GeModelPtr ge_model = MakeShared<GeModel>();
+  ge_model->SetGraph(graph);
+  const auto model_def = MakeShared<domi::ModelTaskDef>();
+  ge_model->SetModelTaskDef(model_def);
+  const auto &node = graph->FindNode("add1");
+  const auto &op_desc = node->GetOpDesc();
+  op_desc->SetOutputOffset({8});
+  op_desc->SetInputOffset({0, 2048});
+  PreModelPartitionUtils::GetInstance().SetZeroCopyTable(128, 0);
+  PreModelPartitionUtils::GetInstance().SetZeroCopyTable(1024, 8);
+  SetHostFuncAttrs(op_desc);
 
   TBEKernelStore tbe_kernel_store;
   const auto kernel = MakeShared<OpKernelBin>("test", CreateStubBin());
   tbe_kernel_store.AddTBEKernel(kernel);
   ge_model->SetTBEKernelStore(tbe_kernel_store);
+  auto *kernel_def = AddKernelTask(model_def, op_desc, "test", ccKernelType::AI_CPU);
+  kernel_def->mutable_context()->set_op_index(op_desc->GetId());
+}
 
-  // task 0
-  domi::TaskDef *task_def0 = model_def->add_task();
-  task_def0->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_KERNEL));
-  task_def0->set_stream_id(op_desc->GetStreamId());
-  domi::KernelDef *kernel_def0 = task_def0->mutable_kernel();
-  kernel_def0->set_stub_func("stub_func");
-  kernel_def0->set_args_size(64);
-  string args(64, '1');
-  kernel_def0->set_args(args.data(), 64);
-  kernel_def0->set_kernel_name("test");
+GeModelPtr CreateNanoExeGeModel(const ComputeGraphPtr &graph, std::shared_ptr<domi::ModelTaskDef> &model_def,
+                                TBEKernelStore &tbe_kernel_store) {
+  GeModelPtr ge_model = MakeShared<GeModel>();
+  ge_model->SetGraph(graph);
+  model_def = MakeShared<domi::ModelTaskDef>();
+  ge_model->SetModelTaskDef(model_def);
+  tbe_kernel_store = ge_model->GetTBEKernelStore();
+  return ge_model;
+}
 
-  domi::KernelContext *context0 = kernel_def0->mutable_context();
-  context0->set_kernel_type(static_cast<uint32_t>(ccKernelType::AI_CPU));
-  context0->set_op_index(op_desc->GetId());
-  uint16_t args_offset[9] = {0};
-  context0->set_args_offset(args_offset, 9 * sizeof(uint16_t));
+GeModelPtr BuildWhileSwitchGeModel(const ComputeGraphPtr &graph) {
+  std::shared_ptr<domi::ModelTaskDef> model_def;
+  TBEKernelStore tbe_kernel_store;
+  auto ge_model = CreateNanoExeGeModel(graph, model_def, tbe_kernel_store);
+  auto cond_graph = graph->GetSubgraph("cond_instance");
+  auto body_graph = graph->GetSubgraph("body_instance");
+  AddLabelSetTask(model_def, cond_graph->FindNode("LabelSet_0")->GetOpDesc());
+  AddStreamActiveTask(model_def, cond_graph->FindNode("Stream_0")->GetOpDesc());
+  AddKernelBin(tbe_kernel_store, ge_model, "LessThan_5");
+  AddKernelTask(model_def, cond_graph->FindNode("LessThan_5")->GetOpDesc(), "LessThan_5", ccKernelType::TE);
+  AddSwitchByIndexTask(model_def, cond_graph->FindNode("SwitchByIndex")->GetOpDesc());
+  AddLabelSetTask(model_def, body_graph->FindNode("LabelSet_1")->GetOpDesc());
+  AddStreamActiveTask(model_def, body_graph->FindNode("Stream_1")->GetOpDesc());
+  AddKernelBin(tbe_kernel_store, ge_model, "add");
+  AddKernelTask(model_def, body_graph->FindNode("add")->GetOpDesc(), "add", ccKernelType::TE);
+  AddLabelGotoTask(model_def, body_graph->FindNode("LabelGoto")->GetOpDesc());
+  AddLabelSetTask(model_def, body_graph->FindNode("LabelSet_2")->GetOpDesc());
+  AddKernelBin(tbe_kernel_store, ge_model, "NetOutput");
+  AddKernelTask(model_def, graph->FindNode("NetOutput")->GetOpDesc(), "NetOutput", ccKernelType::TE);
+  return ge_model;
+}
 
-  auto om_path = PathJoin(GetRunPath().c_str(), "temp");
-  Mkdir(om_path.c_str());
-  om_path = PathJoin(om_path.c_str(), "pb_exeom_for_nano");
-  std::string output = om_path + ".exeom";
+GeModelPtr BuildIfSwitchGeModel(const ComputeGraphPtr &graph) {
+  std::shared_ptr<domi::ModelTaskDef> model_def;
+  TBEKernelStore tbe_kernel_store;
+  auto ge_model = CreateNanoExeGeModel(graph, model_def, tbe_kernel_store);
+  auto then_graph = graph->GetSubgraph("then");
+  auto else_graph = graph->GetSubgraph("else");
+  AddSwitchByIndexTask(model_def, then_graph->FindNode("SwitchByIndex")->GetOpDesc());
+  AddLabelSetTask(model_def, then_graph->FindNode("LabelSet_0")->GetOpDesc());
+  AddStreamActiveTask(model_def, then_graph->FindNode("Stream_0")->GetOpDesc());
+  AddKernelBin(tbe_kernel_store, ge_model, "shape");
+  AddKernelTask(model_def, then_graph->FindNode("shape")->GetOpDesc(), "shape", ccKernelType::TE);
+  AddLabelGotoTask(model_def, then_graph->FindNode("LabelGoto")->GetOpDesc());
+  AddLabelSetTask(model_def, else_graph->FindNode("LabelSet_1")->GetOpDesc());
+  AddStreamActiveTask(model_def, else_graph->FindNode("Stream_1")->GetOpDesc());
+  AddKernelBin(tbe_kernel_store, ge_model, "shape");
+  AddKernelTask(model_def, else_graph->FindNode("shape")->GetOpDesc(), "shape", ccKernelType::TE);
+  AddLabelSetTask(model_def, else_graph->FindNode("LabelSet_2")->GetOpDesc());
+  AddKernelBin(tbe_kernel_store, ge_model, "NetOutput");
+  AddKernelTask(model_def, graph->FindNode("NetOutput")->GetOpDesc(), "NetOutput", ccKernelType::TE);
+  return ge_model;
+}
 
-  ModelBufferData model_buff;
-  NanoModelSaveHelper helper;
+void PrepareFifoWindowCacheModel(const GeModelPtr &ge_model, const ComputeGraphPtr &graph) {
+  std::vector<uint64_t> weights_value(64, 1024);
+  size_t weight_size = weights_value.size() * sizeof(uint64_t);
+  ge_model->SetGraph(graph);
+  ge_model->SetWeight(Buffer::CopyFrom((uint8_t *)weights_value.data(), weight_size));
+  EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 10240));
+  EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 3));
+  EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_EVENT_NUM, 1));
+  EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_LABEL_NUM, 0));
+  EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_VAR_SIZE, 5120));
+}
+
+void AddFifoWindowCacheTasks(const GeModelPtr &ge_model, const ComputeGraphPtr &graph) {
+  const auto model_def = MakeShared<domi::ModelTaskDef>();
+  ge_model->SetModelTaskDef(model_def);
+  TBEKernelStore tbe_kernel_store = ge_model->GetTBEKernelStore();
+  AddKernelBin(tbe_kernel_store, ge_model, "fillwindowcache");
+  AddKernelTask(model_def, graph->FindNode("fillwindowcache")->GetOpDesc(), "fillwindowcache", ccKernelType::TE);
+
+  const auto &conv_op_desc = graph->FindNode("conv")->GetOpDesc();
+  conv_op_desc->SetInputOffset({0});
+  conv_op_desc->SetOutputOffset({32});
+  ge::AttrUtils::SetListInt(conv_op_desc, ATTR_NAME_INPUT_MEM_TYPE_LIST, {RT_MEMORY_L1});
+  ge::AttrUtils::SetListInt(conv_op_desc, ATTR_NAME_OUTPUT_MEM_TYPE_LIST, {RT_MEMORY_L1});
+  AddKernelBin(tbe_kernel_store, ge_model, "conv");
+  AddKernelTask(model_def, conv_op_desc, "conv", ccKernelType::TE);
+}
+
+ComputeGraphPtr BuildAutofuseGraphWithStub(const std::string &om_path) {
+  auto graph = ShareGraph::AutoFuseNodeGraph();
+  EXPECT_NE(graph, nullptr);
+  auto autofuse_stub = PathJoin(om_path.c_str(), "libautofuse_stub.so");
+  std::ofstream(autofuse_stub) << "autofuse_bin";
+  for (auto n : graph->GetAllNodesPtr()) {
+    (void)ge::AttrUtils::SetStr(n->GetOpDesc(), "bin_file_path", autofuse_stub);
+  }
+  (void)AttrUtils::SetStr(graph, "_guard_check_so_data", "guard_stub_bin_content");
+  return graph;
+}
+
+std::string SaveAutofuseRootModel(const GeRootModelPtr &ge_root_model, const std::string &om_path) {
+  (void)GetThreadLocalContext().SetGlobalOption({{"ge.host_env_os", "linux"}, {"ge.host_env_cpu", "x86_64"}});
+  const std::string output = PathJoin(om_path.c_str(), "autofuse_repack") + "_linux_x86_64.om";
+  ModelBufferData first;
+  ModelHelper helper;
   helper.SetSaveMode(true);
-  Status ret = helper.SaveToOmRootModel(ge_root_model, output, model_buff, false);
-  EXPECT_EQ(ret, SUCCESS);
-  EXPECT_EQ(IsFile((om_path + ".exeom").c_str()), true);
-  EXPECT_EQ(IsFile((om_path + ".dbg").c_str()), true);
+  EXPECT_EQ(helper.SaveToOmRootModel(ge_root_model, output, first, false), SUCCESS);
+  return output;
+}
 
-  CheckDbgFileTLv((om_path + ".dbg").c_str());
-  unsetenv("LD_LIBRARY_PATH");
-  mmSetEnv("LD_LIBRARY_PATH", old_env, 1);
+std::string GetAutofuseActualOutput(const std::string &output) {
+  std::string actual_output = output;
+  const auto dot_pos = actual_output.find(".om");
+  if (dot_pos < actual_output.length()) {
+    actual_output.insert(dot_pos, "_linux_x86_64");
+  } else {
+    actual_output.append("_linux_x86_64");
+  }
+  return actual_output;
+}
+
+void ExpectAutofuseRepackKeepsSo(const std::string &output) {
+  const auto actual_output = GetAutofuseActualOutput(output);
+  std::ifstream ifs(actual_output, std::ios::binary);
+  ASSERT_TRUE(ifs.is_open());
+  std::vector<uint8_t> file_data((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+  ifs.close();
+  ASSERT_FALSE(file_data.empty());
+
+  ModelHelper repack;
+  repack.SetRepackSoFlag(true);
+  ModelData data{file_data.data(), file_data.size()};
+  ASSERT_EQ(repack.LoadRootModel(data), SUCCESS);
+  ModelBufferData repacked;
+  repack.PackSoToModelData(data, actual_output, repacked, false);
+  EXPECT_GT(repack.GetOpStoreDataSize(), 0U);
+
+  auto repack_root = repack.GetGeRootModel();
+  ASSERT_NE(repack_root, nullptr);
+  std::string restored_guard_data;
+  EXPECT_TRUE(AttrUtils::GetStr(repack_root->GetRootGraph(), "_guard_check_so_data", restored_guard_data));
+}
+
+TEST_F(ModelHelperTest, SaveToOmRootModel_For_Nano) {
+  char old_env[MMPA_MAX_PATH] = {'\0'};
+  SetNanoLdLibraryPath(old_env);
+  ComputeGraphPtr graph;
+  auto ge_root_model = BuildAtcNanoRootModel(graph);
+  SaveNanoRootModelAndCheck(ge_root_model, GetNanoOutputPrefix());
+  RestoreLdLibraryPath(old_env);
+}
+
+TEST_F(ModelHelperTest, SaveToOmRootModel_For_NanoHostFunc) {
+  char old_env[MMPA_MAX_PATH] = {'\0'};
+  SetNanoLdLibraryPath(old_env);
+  ComputeGraphPtr graph;
+  auto ge_root_model = BuildAtcNanoRootModel(graph);
+  BuildNanoHostFuncModel(graph);
+  SaveNanoRootModelAndCheck(ge_root_model, GetNanoOutputPrefix());
+  RestoreLdLibraryPath(old_env);
 }
 
 TEST_F(ModelHelperTest, SaveToOmRootModel_For_NanoWHILESwitch) {
-  auto ascend_install_path = EnvPath().GetAscendInstallPath();
   char old_env[MMPA_MAX_PATH] = {'\0'};
-  (void)mmGetEnv("LD_LIBRARY_PATH", old_env, MMPA_MAX_PATH);
-  setenv("LD_LIBRARY_PATH", (ascend_install_path + "/fwkacllib/lib64").c_str(), 1);
+  SetNanoLdLibraryPath(old_env);
   auto graph = ShareGraph::WhileGraph3();
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.BuildGeRootModel();
+  (void)ge_root_model;
+  auto ge_model = BuildWhileSwitchGeModel(graph);
 
-  GeModelPtr ge_model = MakeShared<GeModel>();
-  ge_model->SetGraph(graph);
-
-  const auto model_def = MakeShared<domi::ModelTaskDef>();
-  ge_model->SetModelTaskDef(model_def);
-  TBEKernelStore tbe_kernel_store = ge_model->GetTBEKernelStore();
-
-  auto cond_graph = graph->GetSubgraph("cond_instance");
-  auto body_graph = graph->GetSubgraph("body_instance");
-  {
-    const auto &node = cond_graph->FindNode("LabelSet_0");
-    const auto &op_desc = node->GetOpDesc();
-
-    // task 0 label_set 0
-    domi::TaskDef *task_def = model_def->add_task();
-    task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_LABEL_SET));
-    task_def->set_stream_id(op_desc->GetStreamId());
-
-    domi::LabelSetDef *label_set_task_def = task_def->mutable_label_set();
-    label_set_task_def->set_op_index(op_desc->GetId());
-  }
-
-  {
-    const auto &node = cond_graph->FindNode("Stream_0");
-    const auto &op_desc = node->GetOpDesc();
-
-    // task 1 stream0 active
-    domi::TaskDef *task_def = model_def->add_task();
-    task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_STREAM_ACTIVE));
-    task_def->set_stream_id(op_desc->GetStreamId());
-
-    domi::StreamActiveDef *stream_task_def = task_def->mutable_stream_active();
-    stream_task_def->set_op_index(op_desc->GetId());
-  }
-
-  {
-    const auto &node = cond_graph->FindNode("LessThan_5");
-    const auto &op_desc = node->GetOpDesc();
-
-    const auto kernel = MakeShared<OpKernelBin>("LessThan_5", CreateStubBin());
-    tbe_kernel_store.AddTBEKernel(kernel);
-    ge_model->SetTBEKernelStore(tbe_kernel_store);
-
-    // task 2 LessThan_5
-    domi::TaskDef *task_def = model_def->add_task();
-    task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_KERNEL));
-    task_def->set_stream_id(op_desc->GetStreamId());
-    domi::KernelDef *kernel_def = task_def->mutable_kernel();
-    kernel_def->set_stub_func("stub_func");
-    kernel_def->set_args_size(64);
-    string args(64, '1');
-    kernel_def->set_args(args.data(), 64);
-    kernel_def->set_kernel_name("LessThan_5");
-
-    domi::KernelContext *context = kernel_def->mutable_context();
-    context->set_kernel_type(static_cast<uint32_t>(ccKernelType::TE));
-    context->set_op_index(op_desc->GetId());
-    uint16_t args_offset[9] = {0};
-    context->set_args_offset(args_offset, 9 * sizeof(uint16_t));
-  }
-
-  {
-    const auto &node = cond_graph->FindNode("SwitchByIndex");
-    const auto &op_desc = node->GetOpDesc();
-
-    GeTensorDesc tensor(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
-    TensorUtils::SetSize(tensor, 512);
-    op_desc->AddOutputDesc(tensor);
-    op_desc->SetOutputOffset({1024});
-
-    // task 3 switch_by_index
-    domi::TaskDef *task_def = model_def->add_task();
-    task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_STREAM_LABEL_SWITCH_BY_INDEX));
-    task_def->set_stream_id(op_desc->GetStreamId());
-    domi::KernelDef *kernel_def = task_def->mutable_kernel();
-    kernel_def->set_stub_func("stub_func");
-    kernel_def->set_args_size(64);
-    string args(64, '1');
-    kernel_def->set_args(args.data(), 64);
-    kernel_def->set_kernel_name("switch_by_index.o");
-
-    domi::LabelSwitchByIndexDef *switch_task_def = task_def->mutable_label_switch_by_index();
-    switch_task_def->set_op_index(op_desc->GetId());
-    switch_task_def->set_label_max(2);
-  }
-
-  {
-    const auto &node = body_graph->FindNode("LabelSet_1");
-    const auto &op_desc = node->GetOpDesc();
-
-    // task 4 label_set 1
-    domi::TaskDef *task_def = model_def->add_task();
-    task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_LABEL_SET));
-    task_def->set_stream_id(op_desc->GetStreamId());
-
-    domi::LabelSetDef *label_set_task_def = task_def->mutable_label_set();
-    label_set_task_def->set_op_index(op_desc->GetId());
-  }
-
-  {
-    const auto &node = body_graph->FindNode("Stream_1");
-    const auto &op_desc = node->GetOpDesc();
-
-    // task 5 stream1 active
-    domi::TaskDef *task_def = model_def->add_task();
-    task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_STREAM_ACTIVE));
-    task_def->set_stream_id(op_desc->GetStreamId());
-
-    domi::StreamActiveDef *stream_task_def = task_def->mutable_stream_active();
-    stream_task_def->set_op_index(op_desc->GetId());
-  }
-
-  {
-    const auto &node = body_graph->FindNode("add");
-    const auto &op_desc = node->GetOpDesc();
-
-    const auto kernel = MakeShared<OpKernelBin>("add", CreateStubBin());
-    tbe_kernel_store.AddTBEKernel(kernel);
-    ge_model->SetTBEKernelStore(tbe_kernel_store);
-
-    // task 6 add
-    domi::TaskDef *task_def = model_def->add_task();
-    task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_KERNEL));
-    task_def->set_stream_id(op_desc->GetStreamId());
-    domi::KernelDef *kernel_def = task_def->mutable_kernel();
-    kernel_def->set_stub_func("stub_func");
-    kernel_def->set_args_size(64);
-    string args(64, '1');
-    kernel_def->set_args(args.data(), 64);
-    kernel_def->set_kernel_name("add");
-
-    domi::KernelContext *context = kernel_def->mutable_context();
-    context->set_kernel_type(static_cast<uint32_t>(ccKernelType::TE));
-    context->set_op_index(op_desc->GetId());
-    uint16_t args_offset[9] = {0};
-    context->set_args_offset(args_offset, 9 * sizeof(uint16_t));
-  }
-
-  {
-    const auto &node = body_graph->FindNode("LabelGoto");
-    const auto &op_desc = node->GetOpDesc();
-
-    GeTensorDesc tensor(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
-    TensorUtils::SetSize(tensor, 512);
-    op_desc->AddOutputDesc(tensor);
-    op_desc->SetOutputOffset({1024});
-
-    // task 7 label goto
-    domi::TaskDef *task_def = model_def->add_task();
-    task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_STREAM_LABEL_GOTO));
-    task_def->set_stream_id(op_desc->GetStreamId());
-    domi::KernelDef *kernel_def = task_def->mutable_kernel();
-    kernel_def->set_stub_func("stub_func");
-    kernel_def->set_args_size(64);
-    string args(64, '1');
-    kernel_def->set_args(args.data(), 64);
-    kernel_def->set_kernel_name("switch_by_index.o");
-
-    domi::LabelGotoExDef *label_gotoex_task_def = task_def->mutable_label_goto_ex();
-    label_gotoex_task_def->set_op_index(op_desc->GetId());
-  }
-
-  {
-    const auto &node = body_graph->FindNode("LabelSet_2");
-    const auto &op_desc = node->GetOpDesc();
-
-    // task 8 label_set 2
-    domi::TaskDef *task_def = model_def->add_task();
-    task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_LABEL_SET));
-    task_def->set_stream_id(op_desc->GetStreamId());
-
-    domi::LabelSetDef *label_set_task_def = task_def->mutable_label_set();
-    label_set_task_def->set_op_index(op_desc->GetId());
-  }
-
-  {
-    const auto &node = graph->FindNode("NetOutput");
-    const auto &op_desc = node->GetOpDesc();
-
-    const auto kernel = MakeShared<OpKernelBin>("NetOutput", CreateStubBin());
-    tbe_kernel_store.AddTBEKernel(kernel);
-    ge_model->SetTBEKernelStore(tbe_kernel_store);
-
-    // task 9 NetOutput
-    domi::TaskDef *task_def = model_def->add_task();
-    task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_KERNEL));
-    task_def->set_stream_id(op_desc->GetStreamId());
-    domi::KernelDef *kernel_def = task_def->mutable_kernel();
-    kernel_def->set_stub_func("stub_func");
-    kernel_def->set_args_size(64);
-    string args(64, '1');
-    kernel_def->set_args(args.data(), 64);
-    kernel_def->set_kernel_name("NetOutput");
-
-    domi::KernelContext *context = kernel_def->mutable_context();
-    context->set_kernel_type(static_cast<uint32_t>(ccKernelType::TE));
-    context->set_op_index(op_desc->GetId());
-    uint16_t args_offset[9] = {0};
-    context->set_args_offset(args_offset, 9 * sizeof(uint16_t));
-  }
-
-  auto om_path = PathJoin(GetRunPath().c_str(), "temp");
-  Mkdir(om_path.c_str());
-  om_path = PathJoin(om_path.c_str(), "pb_exeom_for_nano");
-  std::string output = om_path + ".exeom";
-
-  ModelBufferData model_buff;
-  NanoModelSaveHelper helper;
-  helper.SetSaveMode(true);
   dlog_setlevel(-1, 0, 1);
-  Status ret = helper.SaveToExeOmModel(ge_model, output, model_buff);
-
-  EXPECT_EQ(ret, SUCCESS);
-  EXPECT_EQ(IsFile((om_path + ".exeom").c_str()), true);
-  EXPECT_EQ(IsFile((om_path + ".dbg").c_str()), true);
-
-  CheckDbgFileTLv((om_path + ".dbg").c_str());
-  unsetenv("LD_LIBRARY_PATH");
-  mmSetEnv("LD_LIBRARY_PATH", old_env, 1);
+  SaveNanoExeModelAndCheck(ge_model, GetNanoOutputPrefix());
+  RestoreLdLibraryPath(old_env);
 }
 
 TEST_F(ModelHelperTest, SaveToOmRootModel_For_NanoIFSwitch) {
-  auto ascend_install_path = EnvPath().GetAscendInstallPath();
   char old_env[MMPA_MAX_PATH] = {'\0'};
-  (void)mmGetEnv("LD_LIBRARY_PATH", old_env, MMPA_MAX_PATH);
-  setenv("LD_LIBRARY_PATH", (ascend_install_path + "/fwkacllib/lib64").c_str(), 1);
+  SetNanoLdLibraryPath(old_env);
   auto graph = ShareGraph::IfGraphWithSwitch();
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.BuildGeRootModel();
+  (void)ge_root_model;
+  auto ge_model = BuildIfSwitchGeModel(graph);
 
-  GeModelPtr ge_model = MakeShared<GeModel>();
-  ge_model->SetGraph(graph);
-
-  const auto model_def = MakeShared<domi::ModelTaskDef>();
-  ge_model->SetModelTaskDef(model_def);
-  TBEKernelStore tbe_kernel_store = ge_model->GetTBEKernelStore();
-
-  auto then_graph = graph->GetSubgraph("then");
-  auto else_graph = graph->GetSubgraph("else");
-  {
-    const auto &node = then_graph->FindNode("SwitchByIndex");
-    const auto &op_desc = node->GetOpDesc();
-
-    GeTensorDesc tensor(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
-    TensorUtils::SetSize(tensor, 512);
-    op_desc->AddOutputDesc(tensor);
-    op_desc->SetOutputOffset({1024});
-
-    // task 0 SwitchByIndex
-    domi::TaskDef *task_def = model_def->add_task();
-    task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_STREAM_LABEL_SWITCH_BY_INDEX));
-    task_def->set_stream_id(op_desc->GetStreamId());
-    domi::KernelDef *kernel_def = task_def->mutable_kernel();
-    kernel_def->set_stub_func("stub_func");
-    kernel_def->set_args_size(64);
-    string args(64, '1');
-    kernel_def->set_args(args.data(), 64);
-    kernel_def->set_kernel_name("switch_by_index.o");
-
-    domi::LabelSwitchByIndexDef *switch_task_def = task_def->mutable_label_switch_by_index();
-    switch_task_def->set_op_index(op_desc->GetId());
-    switch_task_def->set_label_max(2);
-  }
-
-  {
-    const auto &node = then_graph->FindNode("LabelSet_0");
-    const auto &op_desc = node->GetOpDesc();
-
-    // task 1 label_set 0
-    domi::TaskDef *task_def = model_def->add_task();
-    task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_LABEL_SET));
-    task_def->set_stream_id(op_desc->GetStreamId());
-
-    domi::LabelSetDef *label_set_task_def = task_def->mutable_label_set();
-    label_set_task_def->set_op_index(op_desc->GetId());
-  }
-
-  {
-    const auto &node = then_graph->FindNode("Stream_0");
-    const auto &op_desc = node->GetOpDesc();
-
-    // task 2 stream0 active
-    domi::TaskDef *task_def = model_def->add_task();
-    task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_STREAM_ACTIVE));
-    task_def->set_stream_id(op_desc->GetStreamId());
-
-    domi::StreamActiveDef *stream_task_def = task_def->mutable_stream_active();
-    stream_task_def->set_op_index(op_desc->GetId());
-  }
-
-  {
-    const auto &node = then_graph->FindNode("shape");
-    const auto &op_desc = node->GetOpDesc();
-
-    const auto kernel = MakeShared<OpKernelBin>("shape", CreateStubBin());
-    tbe_kernel_store.AddTBEKernel(kernel);
-    ge_model->SetTBEKernelStore(tbe_kernel_store);
-
-    // task 3 shape
-    domi::TaskDef *task_def = model_def->add_task();
-    task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_KERNEL));
-    task_def->set_stream_id(op_desc->GetStreamId());
-    domi::KernelDef *kernel_def = task_def->mutable_kernel();
-    kernel_def->set_stub_func("stub_func");
-    kernel_def->set_args_size(64);
-    string args(64, '1');
-    kernel_def->set_args(args.data(), 64);
-    kernel_def->set_kernel_name("shape");
-
-    domi::KernelContext *context = kernel_def->mutable_context();
-    context->set_kernel_type(static_cast<uint32_t>(ccKernelType::TE));
-    context->set_op_index(op_desc->GetId());
-    uint16_t args_offset[9] = {0};
-    context->set_args_offset(args_offset, 9 * sizeof(uint16_t));
-  }
-
-  {
-    const auto &node = then_graph->FindNode("LabelGoto");
-    const auto &op_desc = node->GetOpDesc();
-
-    GeTensorDesc tensor(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
-    TensorUtils::SetSize(tensor, 512);
-    op_desc->AddOutputDesc(tensor);
-    op_desc->SetOutputOffset({1024});
-
-    // task 4 label goto
-    domi::TaskDef *task_def = model_def->add_task();
-    task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_STREAM_LABEL_GOTO));
-    task_def->set_stream_id(op_desc->GetStreamId());
-    domi::KernelDef *kernel_def = task_def->mutable_kernel();
-    kernel_def->set_stub_func("stub_func");
-    kernel_def->set_args_size(64);
-    string args(64, '1');
-    kernel_def->set_args(args.data(), 64);
-    kernel_def->set_kernel_name("switch_by_index.o");
-
-    domi::LabelGotoExDef *label_gotoex_task_def = task_def->mutable_label_goto_ex();
-    label_gotoex_task_def->set_op_index(op_desc->GetId());
-  }
-
-  {
-    const auto &node = else_graph->FindNode("LabelSet_1");
-    const auto &op_desc = node->GetOpDesc();
-
-    // task 5 label_set 1
-    domi::TaskDef *task_def = model_def->add_task();
-    task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_LABEL_SET));
-    task_def->set_stream_id(op_desc->GetStreamId());
-
-    domi::LabelSetDef *label_set_task_def = task_def->mutable_label_set();
-    label_set_task_def->set_op_index(op_desc->GetId());
-  }
-
-  {
-    const auto &node = else_graph->FindNode("Stream_1");
-    const auto &op_desc = node->GetOpDesc();
-
-    // task 6 stream1 active
-    domi::TaskDef *task_def = model_def->add_task();
-    task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_STREAM_ACTIVE));
-    task_def->set_stream_id(op_desc->GetStreamId());
-
-    domi::StreamActiveDef *stream_task_def = task_def->mutable_stream_active();
-    stream_task_def->set_op_index(op_desc->GetId());
-  }
-
-  {
-    const auto &node = else_graph->FindNode("shape");
-    const auto &op_desc = node->GetOpDesc();
-
-    const auto kernel = MakeShared<OpKernelBin>("shape", CreateStubBin());
-    tbe_kernel_store.AddTBEKernel(kernel);
-    ge_model->SetTBEKernelStore(tbe_kernel_store);
-
-    // task 7 shape
-    domi::TaskDef *task_def = model_def->add_task();
-    task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_KERNEL));
-    task_def->set_stream_id(op_desc->GetStreamId());
-    domi::KernelDef *kernel_def = task_def->mutable_kernel();
-    kernel_def->set_stub_func("stub_func");
-    kernel_def->set_args_size(64);
-    string args(64, '1');
-    kernel_def->set_args(args.data(), 64);
-    kernel_def->set_kernel_name("shape");
-
-    domi::KernelContext *context = kernel_def->mutable_context();
-    context->set_kernel_type(static_cast<uint32_t>(ccKernelType::TE));
-    context->set_op_index(op_desc->GetId());
-    uint16_t args_offset[9] = {0};
-    context->set_args_offset(args_offset, 9 * sizeof(uint16_t));
-  }
-
-  {
-    const auto &node = else_graph->FindNode("LabelSet_2");
-    const auto &op_desc = node->GetOpDesc();
-
-    // task 8 label_set 2
-    domi::TaskDef *task_def = model_def->add_task();
-    task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_LABEL_SET));
-    task_def->set_stream_id(op_desc->GetStreamId());
-
-    domi::LabelSetDef *label_set_task_def = task_def->mutable_label_set();
-    label_set_task_def->set_op_index(op_desc->GetId());
-  }
-
-  {
-    const auto &node = graph->FindNode("NetOutput");
-    const auto &op_desc = node->GetOpDesc();
-
-    const auto kernel = MakeShared<OpKernelBin>("NetOutput", CreateStubBin());
-    tbe_kernel_store.AddTBEKernel(kernel);
-    ge_model->SetTBEKernelStore(tbe_kernel_store);
-
-    // task 9 NetOutput
-    domi::TaskDef *task_def = model_def->add_task();
-    task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_KERNEL));
-    task_def->set_stream_id(op_desc->GetStreamId());
-    domi::KernelDef *kernel_def = task_def->mutable_kernel();
-    kernel_def->set_stub_func("stub_func");
-    kernel_def->set_args_size(64);
-    string args(64, '1');
-    kernel_def->set_args(args.data(), 64);
-    kernel_def->set_kernel_name("NetOutput");
-
-    domi::KernelContext *context = kernel_def->mutable_context();
-    context->set_kernel_type(static_cast<uint32_t>(ccKernelType::TE));
-    context->set_op_index(op_desc->GetId());
-    uint16_t args_offset[9] = {0};
-    context->set_args_offset(args_offset, 9 * sizeof(uint16_t));
-  }
-
-  auto om_path = PathJoin(GetRunPath().c_str(), "temp");
-  Mkdir(om_path.c_str());
-  om_path = PathJoin(om_path.c_str(), "pb_exeom_for_nano");
-  std::string output = om_path + ".exeom";
-
-  ModelBufferData model_buff;
-  NanoModelSaveHelper helper;
-  helper.SetSaveMode(true);
-  Status ret = helper.SaveToExeOmModel(ge_model, output, model_buff);
-
-  EXPECT_EQ(ret, SUCCESS);
-  EXPECT_EQ(IsFile((om_path + ".exeom").c_str()), true);
-  EXPECT_EQ(IsFile((om_path + ".dbg").c_str()), true);
-
-  CheckDbgFileTLv((om_path + ".dbg").c_str());
-  unsetenv("LD_LIBRARY_PATH");
-  mmSetEnv("LD_LIBRARY_PATH", old_env, 1);
+  SaveNanoExeModelAndCheck(ge_model, GetNanoOutputPrefix());
+  RestoreLdLibraryPath(old_env);
 }
 
 TEST_F(ModelHelperTest, SaveToOmRootModel_For_NanoFIFOtest) {
-  auto ascend_install_path = EnvPath().GetAscendInstallPath();
   char old_env[MMPA_MAX_PATH] = {'\0'};
-  (void)mmGetEnv("LD_LIBRARY_PATH", old_env, MMPA_MAX_PATH);
-  setenv("LD_LIBRARY_PATH", (ascend_install_path + "/fwkacllib/lib64").c_str(), 1);
+  SetNanoLdLibraryPath(old_env);
   auto graph = ShareGraph::GraphWithFifoWindowCache();
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.BuildGeRootModel();
@@ -730,95 +627,12 @@ TEST_F(ModelHelperTest, SaveToOmRootModel_For_NanoFIFOtest) {
 
   PreModelPartitionUtils::GetInstance().SetZeroCopyTable(128, 0);
   PreModelPartitionUtils::GetInstance().SetZeroCopyTable(136, 8);
+  PrepareFifoWindowCacheModel(ge_model, graph);
+  AddFifoWindowCacheTasks(ge_model, graph);
 
-  std::vector<uint64_t> weights_value(64, 1024);
-  size_t weight_size = weights_value.size() * sizeof(uint64_t);
-  ge_model->SetGraph(graph);
-
-  ge_model->SetWeight(Buffer::CopyFrom((uint8_t *)weights_value.data(), weight_size));
-  EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 10240));
-  EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 3));
-  EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_EVENT_NUM, 1));
-  EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_LABEL_NUM, 0));
-  EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_VAR_SIZE, 5120));
-
-  const auto model_def = MakeShared<domi::ModelTaskDef>();
-  ge_model->SetModelTaskDef(model_def);
-  TBEKernelStore tbe_kernel_store = ge_model->GetTBEKernelStore();
-
-  {
-    const auto &node = graph->FindNode("fillwindowcache");
-    const auto &op_desc = node->GetOpDesc();
-
-    const auto kernel = MakeShared<OpKernelBin>("fillwindowcache", CreateStubBin());
-    tbe_kernel_store.AddTBEKernel(kernel);
-    ge_model->SetTBEKernelStore(tbe_kernel_store);
-
-    // task 0 fillwindowcache
-    domi::TaskDef *task_def = model_def->add_task();
-    task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_KERNEL));
-    task_def->set_stream_id(op_desc->GetStreamId());
-    domi::KernelDef *kernel_def = task_def->mutable_kernel();
-    kernel_def->set_stub_func("stub_func");
-    kernel_def->set_args_size(64);
-    string args(64, '1');
-    kernel_def->set_args(args.data(), 64);
-    kernel_def->set_kernel_name("fillwindowcache");
-
-    domi::KernelContext *context = kernel_def->mutable_context();
-    context->set_kernel_type(static_cast<uint32_t>(ccKernelType::TE));
-    context->set_op_index(op_desc->GetId());
-    uint16_t args_offset[9] = {0};
-    context->set_args_offset(args_offset, 9 * sizeof(uint16_t));
-  }
-
-  {
-    const auto &node = graph->FindNode("conv");
-    const auto &op_desc = node->GetOpDesc();
-    op_desc->SetInputOffset({0});
-    op_desc->SetOutputOffset({32});
-    ge::AttrUtils::SetListInt(op_desc, ATTR_NAME_INPUT_MEM_TYPE_LIST, {RT_MEMORY_L1});
-    ge::AttrUtils::SetListInt(op_desc, ATTR_NAME_OUTPUT_MEM_TYPE_LIST, {RT_MEMORY_L1});
-
-    const auto kernel = MakeShared<OpKernelBin>("conv", CreateStubBin());
-    tbe_kernel_store.AddTBEKernel(kernel);
-    ge_model->SetTBEKernelStore(tbe_kernel_store);
-
-    // task 1 add
-    domi::TaskDef *task_def = model_def->add_task();
-    task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_KERNEL));
-    task_def->set_stream_id(op_desc->GetStreamId());
-    domi::KernelDef *kernel_def = task_def->mutable_kernel();
-    kernel_def->set_stub_func("stub_func");
-    kernel_def->set_args_size(64);
-    string args(64, '1');
-    kernel_def->set_args(args.data(), 64);
-    kernel_def->set_kernel_name("conv");
-
-    domi::KernelContext *context = kernel_def->mutable_context();
-    context->set_kernel_type(static_cast<uint32_t>(ccKernelType::TE));
-    context->set_op_index(op_desc->GetId());
-    uint16_t args_offset[9] = {0};
-    context->set_args_offset(args_offset, 9 * sizeof(uint16_t));
-  }
-
-  auto om_path = PathJoin(GetRunPath().c_str(), "temp");
-  Mkdir(om_path.c_str());
-  om_path = PathJoin(om_path.c_str(), "pb_exeom_for_nano");
-  std::string output = om_path + ".exeom";
-
-  ModelBufferData model_buff;
-  NanoModelSaveHelper helper;
-  helper.SetSaveMode(true);
-  Status ret = helper.SaveToOmRootModel(ge_root_model, output, model_buff, false);
+  SaveNanoRootModelAndExpectFiles(ge_root_model, GetNanoOutputPrefix());
   dlog_setlevel(-1, 3, 0);
-  EXPECT_EQ(ret, SUCCESS);
-  EXPECT_EQ(IsFile((om_path + ".exeom").c_str()), true);
-  EXPECT_EQ(IsFile((om_path + ".dbg").c_str()), true);
-  unsetenv("LD_LIBRARY_PATH");
-  mmSetEnv("LD_LIBRARY_PATH", old_env, 1);
-  //  int64_t *a = nullptr;
-  //  EXPECT_EQ(*a, 16);
+  RestoreLdLibraryPath(old_env);
 }
 
 TEST_F(ModelHelperTest, SaveToOm_for_SplitAndUpgraded_Opp) {
@@ -860,64 +674,49 @@ TEST_F(ModelHelperTest, SaveAutofuseSoRepackPathPreservesSoBins) {
   std::vector<std::string> paths;
   CreateBuiltInSplitAndUpgradedSo(paths);
 
-  // 1. 构建Autofuse图并设置bin_file_path
-  auto graph = ShareGraph::AutoFuseNodeGraph();
-  ASSERT_NE(graph, nullptr);
   const auto om_path = PathJoin(GetRunPath().c_str(), "temp");
   Mkdir(om_path.c_str());
-  auto autofuse_stub = PathJoin(om_path.c_str(), "libautofuse_stub.so");
-  std::ofstream(autofuse_stub) << "autofuse_bin";
-  for (auto n : graph->GetAllNodesPtr()) {
-    (void)ge::AttrUtils::SetStr(n->GetOpDesc(), "bin_file_path", autofuse_stub);
-  }
+  auto graph = BuildAutofuseGraphWithStub(om_path);
 
-  // 2. 构建GeRootModel并设置host env，使SaveSpaceRegistrySoBin追加_linux_x86_64后缀
   gert::GeModelBuilder builder(graph);
   auto ge_root_model = builder.BuildGeRootModel();
   EXPECT_EQ(ge_root_model->CheckAndSetNeedSoInOM(), SUCCESS);
-
-  (void)AttrUtils::SetStr(graph, "_guard_check_so_data", "guard_stub_bin_content");
-
-  (void)GetThreadLocalContext().SetGlobalOption({{"ge.host_env_os", "linux"}, {"ge.host_env_cpu", "x86_64"}});
-
-  const std::string output = PathJoin(om_path.c_str(), "autofuse_repack") + "_linux_x86_64.om";
-  ModelBufferData first;
-  ModelHelper helper;
-  helper.SetSaveMode(true);
-  ASSERT_EQ(helper.SaveToOmRootModel(ge_root_model, output, first, false), SUCCESS);
-
-  // 3. 从磁盘读取保存的om文件，加载并repack，验证autofuse SO数据未丢失
-  // SaveSpaceRegistrySoBin已将_linux_x86_64后缀插入到.om之前，需还原实际路径
-  std::string actual_output = output;
-  const auto dot_pos = actual_output.find(".om");
-  if (dot_pos < actual_output.length()) {
-    actual_output.insert(dot_pos, "_linux_x86_64");
-  } else {
-    actual_output.append("_linux_x86_64");
-  }
-  std::ifstream ifs(actual_output, std::ios::binary);
-  ASSERT_TRUE(ifs.is_open());
-  std::vector<uint8_t> file_data((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
-  ifs.close();
-  ASSERT_FALSE(file_data.empty());
-
-  ModelHelper repack;
-  repack.SetRepackSoFlag(true);
-  ModelData data{file_data.data(), file_data.size()};
-  ASSERT_EQ(repack.LoadRootModel(data), SUCCESS);
-  ModelBufferData repacked;
-  repack.PackSoToModelData(data, actual_output, repacked, false);
-  EXPECT_GT(repack.GetOpStoreDataSize(), 0U);
-
-  auto repack_root = repack.GetGeRootModel();
-  ASSERT_NE(repack_root, nullptr);
-  std::string restored_guard_data;
-  EXPECT_TRUE(AttrUtils::GetStr(repack_root->GetRootGraph(), "_guard_check_so_data", restored_guard_data));
+  ExpectAutofuseRepackKeepsSo(SaveAutofuseRootModel(ge_root_model, om_path));
 
   (void)GetThreadLocalContext().SetGlobalOption(options);
   for (const auto &path : paths) {
     ge::PathUtils::RemoveDirectories(path);
   }
+}
+
+TEST_F(ModelHelperTest, VisualJsonFromGeModelKeepsOpNameIndexAttrsWithoutValType) {
+  auto ge_model = BuildNameIndexVisualModel();
+  ASSERT_NE(ge_model, nullptr);
+  std::string json_str;
+  ASSERT_EQ(VisualJsonConverter::SerializeFromGeModel(ge_model, json_str), SUCCESS);
+
+  nlohmann::json j;
+  ASSERT_NO_THROW(j = nlohmann::json::parse(json_str));
+  ExpectVisualNameIndexAttrs(j["model"]["graph"][0]["op"][0]["attr"]);
+
+  nlohmann::json pb_json;
+  ASSERT_EQ(VisualJsonConverter::LoadFromVisualJson(json_str, pb_json), SUCCESS);
+  ExpectPbNameIndexAttrs(pb_json["graph"][0]["op"][0]["attr"]);
+}
+
+TEST_F(ModelHelperTest, VisualJsonFromGeModelKeepsStructuredSubgraphAndBytesAttr) {
+  const std::string bytes_payload = "serialized_function_def";
+  auto ge_model = BuildStructuredSubgraphVisualModel(bytes_payload);
+  ASSERT_NE(ge_model, nullptr);
+  std::string json_str;
+  ASSERT_EQ(VisualJsonConverter::SerializeFromGeModel(ge_model, json_str), SUCCESS);
+
+  nlohmann::json j;
+  ASSERT_NO_THROW(j = nlohmann::json::parse(json_str));
+  const auto &graphs = j["model"]["graph"];
+  ASSERT_TRUE(graphs.is_array());
+  ASSERT_GE(graphs.size(), 2U);
+  ExpectStructuredSubgraphVisualJson(graphs, bytes_payload);
 }
 
 }  // namespace ge

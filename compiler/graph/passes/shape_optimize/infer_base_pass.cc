@@ -353,7 +353,7 @@ void InferBasePass::PrintInOutTensors(const NodePtr &node, const std::string &ph
 
   ge::OpDescPtr op_desc = node->GetOpDesc();
   std::stringstream ss;
-  ss << "{";
+  ss << "[" << phase << "] Node [" << node->GetName() << "]: {";
   int32_t in_idx = 0;
   for (const auto &input_desc : op_desc->GetAllInputsDescPtr()) {
     if (input_desc == nullptr) {
@@ -377,6 +377,13 @@ void InferBasePass::PrintInOutTensors(const NodePtr &node, const std::string &ph
     out_idx++;
   }
   ss << "}";
-  GELOGI("[%s] Node [%s]: %s", phase.c_str(), node->GetName().c_str(), ss.str().c_str());
+  // in case of being truncated out of log limit 1024, set up limit 800
+  const size_t max_log_string_len = 800U;
+  const std::string log_str = ss.str();
+  size_t index = 0U;
+  while (index < log_str.length()) {
+    GELOGI("%s", log_str.substr(index, max_log_string_len).c_str());
+    index += max_log_string_len;
+  }
 }
 }  // namespace ge

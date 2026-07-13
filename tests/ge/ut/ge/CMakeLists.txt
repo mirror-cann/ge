@@ -136,6 +136,7 @@ set(DISTINCT_GRAPH_LOAD_TEST_FILES
     "graph/load/model_helper_misc_unittest.cc"
     "graph/load/om2_package_helper_unittest.cc"
     "graph/load/om_file_helper_unittest.cc"
+    "common/visualization_unittest.cc"
     "hybrid/hybrid_davinci_model_unittest.cc"
     "graph/load/model_utils_unittest.cc"
     "graph/load/profiler_trace_task_info_unittest.cc"
@@ -747,6 +748,7 @@ target_link_libraries(ut_libge_multiparts_utest
     ascend_protobuf
     ge_graph_dsl
     ge_compiler
+    custom_op_runtime
     ascendcl_stub
     -Wl,--whole-archive
     atc_static gert gert_op_impl es_ge_test

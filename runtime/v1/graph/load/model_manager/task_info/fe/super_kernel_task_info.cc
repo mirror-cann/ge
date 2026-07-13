@@ -728,6 +728,31 @@ Status SuperKernelV2TaskInfo::AssembleTilingContextArgs(int32_t node_idx, const 
   return SUCCESS;
 }
 
+Status SuperKernelV2TaskInfo::CopySubNodeTilingDataIfNeeded() {
+  sub_node_tiling_data_addrs_.resize(sub_node_op_desc_list_.size(), nullptr);
+  for (size_t node_idx = 0U; node_idx < sub_node_op_desc_list_.size(); ++node_idx) {
+    const auto &sub_op_desc = sub_node_op_desc_list_[node_idx];
+    std::shared_ptr<optiling::utils::OpRunInfo> default_tiling = nullptr;
+    auto run_info = sub_op_desc->TryGetExtAttr(ge::ATTR_NAME_OP_RUN_INFO, default_tiling);
+    if (run_info == nullptr) {
+      continue;
+    }
+    if (run_info->GetAllTilingData().str().empty()) {
+      GELOGD("Tiling data of sub node[%zu] %s is empty.", node_idx, sub_op_desc->GetNamePtr());
+      continue;
+    }
+    const std::string &tiling_data = run_info->GetAllTilingData().str();
+    const size_t tiling_data_size = tiling_data.size();
+    sub_node_tiling_data_addrs_[node_idx] = davinci_model_->MallocDynamicMemory(tiling_data_size);
+    GE_CHECK_NOTNULL(sub_node_tiling_data_addrs_[node_idx]);
+    GE_CHK_RT_RET(aclrtMemcpy(sub_node_tiling_data_addrs_[node_idx], tiling_data_size, tiling_data.data(),
+                              tiling_data_size, ACL_MEMCPY_HOST_TO_DEVICE));
+    GELOGI("Success to copy tiling data for sub node[%zu] %s, addr: %p, size: %zu.", node_idx,
+           sub_op_desc->GetNamePtr(), sub_node_tiling_data_addrs_[node_idx], tiling_data_size);
+  }
+  return SUCCESS;
+}
+
 Status SuperKernelV2TaskInfo::AssembleIoByArgsFormat() {
   std::vector<std::vector<size_t>> sub_node_level_addr_idx;
   std::vector<std::vector<ArgDesc>> sub_node_dynamic_args_desc;
@@ -743,6 +768,7 @@ Status SuperKernelV2TaskInfo::AssembleIoByArgsFormat() {
   GE_ASSERT_TRUE(node_num == sub_node_input_addrs_list_.size());
   GE_ASSERT_TRUE(node_num == sub_node_output_addrs_list_.size());
   GE_ASSERT_TRUE(node_num == sub_node_workspace_addrs_list_.size());
+  GE_ASSERT_TRUE(node_num == sub_node_tiling_data_addrs_.size());
   for (const auto &args_format_holder : sub_node_args_format_holder_list_) {
     const std::map<size_t, std::pair<size_t, size_t>> &ir_input_2_range = args_format_holder.ir_input_2_range;
     const std::map<size_t, std::pair<size_t, size_t>> &ir_output_2_range = args_format_holder.ir_output_2_range;
@@ -875,10 +901,16 @@ Status SuperKernelV2TaskInfo::AssembleIoByArgsFormat() {
           }
           break;
         }
-        case AddrType::TILING:
         case AddrType::CUSTOM_VALUE: {
-          GELOGE(FAILED, "super kernel no support args format add type %d", arg_format.addr_type);
-          return FAILED;
+          l0_dump_list_.push_back(std::numeric_limits<uint64_t>::max());
+          AppendIoAddr(*reinterpret_cast<const uint64_t *>(arg_format.reserved), kAbsoluteMemType);
+          break;
+        }
+        case AddrType::TILING: {
+          l0_dump_list_.push_back(std::numeric_limits<uint64_t>::max());
+          GE_ASSERT_NOTNULL(sub_node_tiling_data_addrs_[node_idx], "Sub node[%zu] tiling data addr is null.", node_idx);
+          AppendIoAddr(PtrToValue(sub_node_tiling_data_addrs_[node_idx]), kAbsoluteMemType);
+          break;
         }
         default:
           l0_dump_list_.push_back(std::numeric_limits<uint64_t>::max());  // 占位
@@ -984,6 +1016,7 @@ Status SuperKernelV2TaskInfo::InitKernel(const domi::TaskDef &task_def, const Pi
                  "[Check][Param] Op:%s, dev addr is nullptr.", op_desc_->GetName().c_str());
   args_ = ValueToPtr(args[static_cast<size_t>(args_placement_)].dev_addr);
 
+  GE_ASSERT_SUCCESS(CopySubNodeTilingDataIfNeeded(), "Copy sub node tiling data failed.");
   GE_ASSERT_SUCCESS(AssembleIoByArgsFormat(), "[Assemble][Addresses] failed, op = %s.", op_desc_->GetNamePtr());
 
   Status ret = InitTask(kernel_def);

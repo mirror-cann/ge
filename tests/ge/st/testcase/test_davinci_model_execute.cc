@@ -4297,6 +4297,9 @@ TEST_F(DavinciModelTest, super_kernel_graph_load_and_success) {
     op_desc_1->AppendIrOutput("z", IrOutputType::kIrOutputRequired);
 
     op_desc_1->SetId(19);
+    auto run_info_1 = std::make_shared<optiling::utils::OpRunInfo>(0, false, 0);
+    run_info_1->AddTilingData("sk_sub_node_tiling_data");
+    op_desc_1->SetExtAttr(ATTR_NAME_OP_RUN_INFO, run_info_1);
 
     // 初始化subnode2
     auto skt_sub_node_2 = sub_graph->FindNode("node_2");
@@ -4458,11 +4461,12 @@ TEST_F(DavinciModelTest, super_kernel_graph_load_and_success) {
   aicore_context.set_op_id(super_node->GetOpDescBarePtr()->GetId());
   aicore_context.set_op_index(super_node->GetOpDescBarePtr()->GetId());
   aicore_context.set_args_format(
-      "{skn19ffts_addr}{skn19i_desc0}{skn19i_desc1}{skn19o0}{skn19ws0}{skn20ffts_addr}{skn20event_addr123*}"
+      "{skn19ffts_addr}{skn19i_desc0}{skn19i_desc1}{skn19o0}{skn19ws0}{skn19t}{skn19#42}{skn20ffts_addr}{skn20event_"
+      "addr123*}"
       "{skn20i_desc0}{skn20i1}{skn20i_instance3}{skn20o_desc0}{skn20o_instance2}{skn20ws*}{skn20hi.hcom0*}"
-      "{skn20tiling_context}{skn20tiling_context.tiling_data}{skn20*op_type}{skn20tiling_context.tiling_key}{"
-      "skn20tiling_context.block_dim}{ws0}{overflow_addr}");
-  aicore_context.set_args_count(14);
+      "{skn20tiling_context}{skn20tiling_context.tiling_data}{skn20*op_type}{skn20tiling_context.tiling_key}"
+      "{skn20tiling_context.block_dim}{ws0}{overflow_addr}");
+  aicore_context.set_args_count(16);
   uint16_t args_offset = 0;
   aicore_context.set_args_offset(&args_offset, sizeof(uint16_t));
   size_t args_size = 128UL;

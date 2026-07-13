@@ -20,6 +20,7 @@
 #include "common/helper/custom_op_so_loader.h"
 #include "common/model/ge_root_model.h"
 #include "external/graph/custom_op.h"
+#include "graph/custom_op/cast.h"
 #include "graph/custom_op_registry.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/utils/attr_utils.h"
@@ -179,7 +180,7 @@ Status ModelHelper::SaveCustomOpsPartition(std::shared_ptr<OmFileSaveHelper> &om
       GELOGE(FAILED, "[CUSTOM OP] create custom op failed, op_type:%s", op_type_str.c_str());
       return FAILED;
     }
-    auto *serializable_op = dynamic_cast<PortableOp *>(op);
+    auto *serializable_op = CustomOpCast<PortableOp>(op);
     if (serializable_op == nullptr) {
       has_non_serializable_custom_op = true;
     } else {

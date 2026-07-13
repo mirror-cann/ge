@@ -25,13 +25,16 @@ from pathlib import Path
 from types import ModuleType
 from typing import Dict, Iterable, List, Optional, Tuple
 
+from ge._internal.artifact_utils import (
+    PythonArtifact,
+    current_platform_tag,
+    current_python_tag,
+)
+
 from ._artifact_utils import (
     BRIDGE_ABI_VERSION,
     NATIVE_MODULE_NAME,
-    PythonPassArtifact,
     artifacts_root,
-    current_platform_tag,
-    current_python_tag,
     find_prebuilt_artifact,
     iter_artifacts,
     load_artifact_from_dir,
@@ -468,7 +471,7 @@ def _build_manifest_json(python_info: PythonBuildInfo) -> bytes:
     return (json.dumps(manifest, indent=2, sort_keys=True) + "\n").encode("utf-8")
 
 
-def _iter_load_candidates() -> Iterable[PythonPassArtifact]:
+def _iter_load_candidates() -> Iterable[PythonArtifact]:
     prebuilt = find_prebuilt_artifact()
     if prebuilt is not None:
         yield prebuilt
@@ -478,7 +481,7 @@ def _format_missing_artifact_error(load_errors: List[str]) -> str:
     python_tag = current_python_tag()
     platform_tag = current_platform_tag()
     discovered_artifacts = sorted(
-        f"{artifact.python_tag}-{artifact.platform_tag}-abi{artifact.bridge_abi}"
+        f"{artifact.python_tag}-{artifact.platform_tag}-abi{artifact.abi}"
         for artifact in iter_artifacts()
     )
     discovered_text = (
@@ -534,7 +537,7 @@ def ensure_native_module() -> ModuleType:
     return native
 
 
-def run_fallback_codegen() -> PythonPassArtifact:
+def run_fallback_codegen() -> PythonArtifact:
     final_dir = _fallback_artifact_dir()
     final_dir.mkdir(parents=True, exist_ok=True)
     work_dir = _make_unique_work_dir(final_dir)

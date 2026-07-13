@@ -15,9 +15,11 @@
 #include "common/plugin/ge_make_unique_util.h"
 #include "proto/ge_ir.pb.h"
 #include "framework/omg/omg.h"
+#include "common/helper/visual_json_converter.h"
 #include "common/helper/om2/zip_archive_writer.h"
 #include "common/helper/om2/om2_package_contants.h"
 #include <google/protobuf/text_format.h>
+#include "nlohmann/json.hpp"
 #include "ge/ge_api_error_codes.h"
 #include "framework/common/framework_types_internal.h"
 #include "graph/utils//graph_utils.h"
@@ -819,19 +821,20 @@ TEST_F(UtestOmg, CheckInputShapeNodeINVALID) {
 // ConvertOm OM2 branch tests
 // ============================================================================
 namespace {
-std::string CreateMinimalOm2File(const std::string &path, const std::string &proto_content) {
+std::string CreateMinimalOm2File(const std::string &path, const std::string &visual_json) {
   ZipArchiveWriter writer(path);
-  if (!writer.IsMemFileOpened()) { return ""; }
+  if (!writer.IsMemFileOpened()) {
+    return "";
+  }
   const std::string manifest = R"({"om2_version":"0","model_num":1})";
   writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false);
-  writer.WriteBytes("data/model_0/debug/ge_proto_00000000_graph_1_test.txt",
-                   proto_content.data(), proto_content.size(), true);
+  writer.WriteBytes("data/model_0/debug/ge_visual_00000000_graph_0.json", visual_json.data(), visual_json.size(), true);
   ModelBufferData buf;
   writer.SaveModelData(buf, true);
   return path;
 }
 
-std::string BuildValidProtoTxt() {
+std::string BuildValidVisualJson() {
   ge::proto::ModelDef model_def;
   model_def.set_name("test_model");
   auto *graph = model_def.add_graph();
@@ -839,35 +842,158 @@ std::string BuildValidProtoTxt() {
   auto *op = graph->add_op();
   op->set_name("data0");
   op->set_type("Data");
-  return model_def.DebugString();
+  auto *input_desc = op->add_input_desc();
+  input_desc->set_name("input_tensor");
+  input_desc->set_dtype(proto::DT_FLOAT);
+  std::string visual_json;
+  if (VisualJsonConverter::SerializeFromModelDef(model_def, visual_json) != SUCCESS) {
+    return "";
+  }
+  return visual_json;
+}
+
+const nlohmann::json *FindMapValue(const nlohmann::json &entries, const std::string &key) {
+  for (const auto &entry : entries) {
+    if (entry.contains("key") && entry["key"] == key && entry.contains("value")) {
+      return &entry["value"];
+    }
+  }
+  return nullptr;
+}
+
+std::string BuildVisualJsonWithFusionScope() {
+  ge::proto::OpDef fusion_op;
+  (*fusion_op.mutable_attr())["fusion_scope"].set_i(2);
+
+  nlohmann::json visual_json;
+  visual_json["format"] = "ge_visual_json";
+  visual_json["format_version"] = 1;
+  auto &model = visual_json["model"];
+  model["name"] = "group_model";
+  model["attr"]["fm"] = {{"type", "list_bytes"}, {"value", nlohmann::json::array({fusion_op.SerializeAsString()})}};
+  model["graph"] = nlohmann::json::array(
+      {{{"name", "main_graph"},
+        {"op", nlohmann::json::array({{{"name", "group_op"}, {"type", "GroupOp"}, {"stream_id", 7}}})}}});
+  return visual_json.dump();
 }
 }  // namespace
 
 TEST_F(UtestOmg, ConvertOm_Ok_Om2ToJson) {
   const std::string om2_path = "./ut_om2_valid.om2";
   const std::string json_path = "./ut_om2_valid.json";
-  const std::string proto_txt = BuildValidProtoTxt();
-  ASSERT_FALSE(CreateMinimalOm2File(om2_path, proto_txt).empty());
+  const std::string visual_json = BuildValidVisualJson();
+  ASSERT_FALSE(visual_json.empty());
+  ASSERT_FALSE(CreateMinimalOm2File(om2_path, visual_json).empty());
 
   EXPECT_EQ(ConvertOm(om2_path.c_str(), json_path.c_str(), true), SUCCESS);
 
   std::ifstream f(json_path);
-  EXPECT_TRUE(f.good());
+  ASSERT_TRUE(f.good());
+  nlohmann::json json;
+  ASSERT_NO_THROW(f >> json);
+  ASSERT_FALSE(json["graph"].empty());
+  ASSERT_FALSE(json["graph"][0]["op"].empty());
+  ASSERT_FALSE(json["graph"][0]["op"][0]["input_desc"].empty());
+  EXPECT_EQ(json["graph"][0]["op"][0]["input_desc"][0]["dtype"], "DT_FLOAT");
   system("rm -rf ./ut_om2_valid.om2 ./ut_om2_valid.json");
+}
+
+TEST_F(UtestOmg, ConvertOm_Ok_Om2ToJsonWithUnknownAndLooseFields) {
+  const std::string om2_path = "./ut_om2_loose.om2";
+  const std::string json_path = "./ut_om2_loose.json";
+  const std::string visual_json = R"({
+    "format": "ge_visual_json",
+    "format_version": 1,
+    "model": {
+      "name": "loose_model",
+      "unknown_field": 1,
+      "graph": "not_an_array"
+    }
+  })";
+  ASSERT_FALSE(CreateMinimalOm2File(om2_path, visual_json).empty());
+
+  EXPECT_EQ(ConvertOm(om2_path.c_str(), json_path.c_str(), true), SUCCESS);
+
+  std::ifstream f(json_path);
+  ASSERT_TRUE(f.good());
+  nlohmann::json json;
+  ASSERT_NO_THROW(f >> json);
+  EXPECT_EQ(json["unknown_field"], 1);
+  EXPECT_EQ(json["graph"], "not_an_array");
+  system("rm -rf ./ut_om2_loose.om2 ./ut_om2_loose.json");
+}
+
+TEST_F(UtestOmg, ConvertOm_Ok_Om2EnumNumbersConvertedToNames) {
+  const std::string om2_path = "./ut_om2_enum.om2";
+  const std::string json_path = "./ut_om2_enum.json";
+  const std::string visual_json = R"({
+    "format": "ge_visual_json",
+    "format_version": 1,
+    "model": {
+      "name": "enum_model",
+      "graph": [{
+        "name": "main_graph",
+        "op": [{
+          "name": "enum_op",
+          "type": "EnumOp",
+          "attr": {
+            "list_dt": {"type": "list_data_type", "value": [1, 7]},
+            "tensor_attr": {"type": "tensor", "value": {"desc": {"name": "tensor0", "dtype": 1}}}
+          }
+        }]
+      }]
+    }
+  })";
+  ASSERT_FALSE(CreateMinimalOm2File(om2_path, visual_json).empty());
+
+  EXPECT_EQ(ConvertOm(om2_path.c_str(), json_path.c_str(), true), SUCCESS);
+
+  std::ifstream f(json_path);
+  ASSERT_TRUE(f.good());
+  nlohmann::json json;
+  ASSERT_NO_THROW(f >> json);
+  const auto &attrs = json["graph"][0]["op"][0]["attr"];
+  ASSERT_TRUE(attrs.is_array());
+  const auto *list_dt = FindMapValue(attrs, "list_dt");
+  ASSERT_NE(list_dt, nullptr);
+  EXPECT_EQ((*list_dt)["list"]["dt"][0], "DT_FLOAT");
+  EXPECT_EQ((*list_dt)["list"]["dt"][1], "DT_INT32");
+  const auto *tensor_attr = FindMapValue(attrs, "tensor_attr");
+  ASSERT_NE(tensor_attr, nullptr);
+  EXPECT_EQ((*tensor_attr)["t"]["desc"]["dtype"], "DT_FLOAT");
+  system("rm -rf ./ut_om2_enum.om2 ./ut_om2_enum.json");
+}
+
+TEST_F(UtestOmg, ConvertOm_Ok_Om2VisualJsonAddsGroupOpName) {
+  const std::string om2_path = "./ut_om2_group.om2";
+  const std::string json_path = "./ut_om2_group.json";
+  ASSERT_FALSE(CreateMinimalOm2File(om2_path, BuildVisualJsonWithFusionScope()).empty());
+
+  EXPECT_EQ(ConvertOm(om2_path.c_str(), json_path.c_str(), true), SUCCESS);
+
+  std::ifstream f(json_path);
+  ASSERT_TRUE(f.good());
+  nlohmann::json json;
+  ASSERT_NO_THROW(f >> json);
+  const auto *group_op_name = FindMapValue(json["graph"][0]["op"][0]["attr"], "group_op_name");
+  ASSERT_NE(group_op_name, nullptr);
+  EXPECT_EQ((*group_op_name)["s"], "group_op_ub_2_7");
+  system("rm -rf ./ut_om2_group.om2 ./ut_om2_group.json");
 }
 
 TEST_F(UtestOmg, ConvertOm_Fail_Om2NotConvertToJson) {
   const std::string om2_path = "./ut_om2_no_convert.om2";
-  const std::string proto_txt = BuildValidProtoTxt();
-  ASSERT_FALSE(CreateMinimalOm2File(om2_path, proto_txt).empty());
+  const std::string visual_json = BuildValidVisualJson();
+  ASSERT_FALSE(visual_json.empty());
+  ASSERT_FALSE(CreateMinimalOm2File(om2_path, visual_json).empty());
 
   EXPECT_NE(ConvertOm(om2_path.c_str(), nullptr, false), SUCCESS);
   system("rm -rf ./ut_om2_no_convert.om2");
 }
 
-TEST_F(UtestOmg, ConvertOm_Fail_Om2NoProtoTxt) {
-  const std::string om2_path = "./ut_om2_no_proto.om2";
-  const std::string json_path = "./ut_om2_no_proto.json";
+TEST_F(UtestOmg, ConvertOm_Fail_Om2NoVisualJson) {
+  const std::string om2_path = "./ut_om2_no_visual_json.om2";
+  const std::string json_path = "./ut_om2_no_visual_json.json";
   {
     ZipArchiveWriter writer(om2_path);
     ASSERT_TRUE(writer.IsMemFileOpened());
@@ -878,16 +1004,16 @@ TEST_F(UtestOmg, ConvertOm_Fail_Om2NoProtoTxt) {
   }
 
   EXPECT_NE(ConvertOm(om2_path.c_str(), json_path.c_str(), true), SUCCESS);
-  system("rm -rf ./ut_om2_no_proto.om2 ./ut_om2_no_proto.json");
+  system("rm -rf ./ut_om2_no_visual_json.om2 ./ut_om2_no_visual_json.json");
 }
 
-TEST_F(UtestOmg, ConvertOm_Fail_Om2InvalidProtoTxt) {
-  const std::string om2_path = "./ut_om2_bad_proto.om2";
-  const std::string json_path = "./ut_om2_bad_proto.json";
-  const std::string bad_content = "this is not a valid protobuf {{{}}}";
+TEST_F(UtestOmg, ConvertOm_Fail_Om2InvalidVisualJson) {
+  const std::string om2_path = "./ut_om2_bad_visual_json.om2";
+  const std::string json_path = "./ut_om2_bad_visual_json.json";
+  const std::string bad_content = "this is not valid visual json {{{}}}";
   ASSERT_FALSE(CreateMinimalOm2File(om2_path, bad_content).empty());
 
   EXPECT_NE(ConvertOm(om2_path.c_str(), json_path.c_str(), true), SUCCESS);
-  system("rm -rf ./ut_om2_bad_proto.om2 ./ut_om2_bad_proto.json");
+  system("rm -rf ./ut_om2_bad_visual_json.om2 ./ut_om2_bad_visual_json.json");
 }
 }  // namespace ge

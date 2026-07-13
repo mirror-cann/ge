@@ -120,6 +120,7 @@ class SuperKernelV2TaskInfo : public TaskInfo {
   Status AssembleTilingSinkTensors(std::map<int32_t, std::map<size_t, gert::AddrRefreshedTensor>> &index_to_tensor);
   void GetAddrAlignedGertTensorSize(size_t &io_aligned_offset, size_t &double_aliged_tensor_size) const;
   Status AssembleIoByArgsFormat();
+  Status CopySubNodeTilingDataIfNeeded();
   void AppendIoAddr(const uint64_t addr, const uint64_t addr_type);
   Status AppendWorkspaceAddr(size_t node_idx, int32_t ir_idx);
   Status AppendInputOutputAddrByInstanceIndex(size_t node_idx, size_t ins_idx, bool is_input);
@@ -157,6 +158,7 @@ class SuperKernelV2TaskInfo : public TaskInfo {
   std::vector<std::vector<uint64_t>> sub_node_input_mem_types_list_;
   std::vector<std::vector<uint64_t>> sub_node_output_mem_types_list_;
   std::vector<std::vector<uint64_t>> sub_node_workspace_mem_types_list_;
+  std::vector<void *> sub_node_tiling_data_addrs_;
 
   // dump相关
   uint32_t dump_flag_{RT_KERNEL_DEFAULT};

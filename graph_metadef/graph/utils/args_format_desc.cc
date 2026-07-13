@@ -604,17 +604,28 @@ static const std::map<std::string, PatternHandler, PatternCmp> kSkPatternToHandl
 };
 
 static graphStatus ConvertArgDescNormal2Sk(const ArgDesc &normal_arg_desc, int32_t op_id, ArgDesc &sk_arg_desc) {
-  GE_ASSERT_TRUE(normal_arg_desc.addr_type != AddrType::CUSTOM_VALUE);
-  SkArgDescV2 sk_arg_desc_tmp{};
+  SkArgDesc sk_arg_desc_tmp{};
   sk_arg_desc_tmp.addr_type = AddrType::SUPER_KERNEL_SUB_NODE;
   sk_arg_desc_tmp.ir_idx = op_id;
-  if (normal_arg_desc.addr_type != AddrType::HIDDEN_INPUT) {
-    sk_arg_desc_tmp.reserved = normal_arg_desc.folded;
+  sk_arg_desc_tmp.sub_addr_type = static_cast<int16_t>(normal_arg_desc.addr_type);
+  if (normal_arg_desc.addr_type == AddrType::CUSTOM_VALUE) {
+    sk_arg_desc_tmp.sub_idx = (normal_arg_desc.ir_idx == static_cast<int32_t>(ArgsFormatWidth::BIT64))
+                                  ? static_cast<int16_t>(1)
+                                  : static_cast<int16_t>(-1);
+    (void)memcpy_s(sk_arg_desc_tmp.reserved, sizeof(sk_arg_desc_tmp.reserved), normal_arg_desc.reserved,
+                   sizeof(uint64_t));
+  } else if (normal_arg_desc.addr_type == AddrType::HIDDEN_INPUT) {
+    sk_arg_desc_tmp.sub_idx = static_cast<int16_t>(normal_arg_desc.ir_idx);
+    uint32_t hidden_type = *reinterpret_cast<const uint32_t *>(normal_arg_desc.reserved);
+    (void)memcpy_s(sk_arg_desc_tmp.reserved, sizeof(sk_arg_desc_tmp.reserved), &hidden_type, sizeof(uint32_t));
+  } else if (normal_arg_desc.addr_type == AddrType::EVENT_ADDR) {
+    sk_arg_desc_tmp.sub_idx = 0;
+    const int32_t ir_idx = normal_arg_desc.ir_idx;
+    (void)memcpy_s(sk_arg_desc_tmp.reserved, sizeof(sk_arg_desc_tmp.reserved), &ir_idx, sizeof(int32_t));
   } else {
-    sk_arg_desc_tmp.reserved = *reinterpret_cast<const uint32_t *>(normal_arg_desc.reserved);
+    sk_arg_desc_tmp.sub_idx = static_cast<int16_t>(normal_arg_desc.ir_idx);
+    sk_arg_desc_tmp.reserved[0] = normal_arg_desc.folded ? 1 : 0;
   }
-  sk_arg_desc_tmp.sub_addr_type = normal_arg_desc.addr_type;
-  sk_arg_desc_tmp.sub_idx = normal_arg_desc.ir_idx;
   sk_arg_desc = *reinterpret_cast<ArgDesc *>(&sk_arg_desc_tmp);
   return GRAPH_SUCCESS;
 }
@@ -628,16 +639,30 @@ static graphStatus ConvertArgDescSk2Normal(const ArgDesc &sk_arg_desc, ArgDesc &
   ArgDesc tmp_arg_desc{};
   const SkArgDesc *sk_arg_desc_tmp = reinterpret_cast<const SkArgDesc *>(&sk_arg_desc);
   sub_op_id = sk_arg_desc_tmp->ir_idx;
-  if (sk_arg_desc_tmp->sub_addr_type != AddrType::HIDDEN_INPUT) {
-    tmp_arg_desc.addr_type = sk_arg_desc_tmp->sub_addr_type;
-    tmp_arg_desc.ir_idx = sk_arg_desc_tmp->sub_idx;
-    tmp_arg_desc.folded = sk_arg_desc_tmp->folded;
-  } else {
-    const SkArgDescV2 *sk_arg_desc_v2_tmp = reinterpret_cast<const SkArgDescV2 *>(&sk_arg_desc);
-    tmp_arg_desc.addr_type = sk_arg_desc_v2_tmp->sub_addr_type;
-    tmp_arg_desc.ir_idx = sk_arg_desc_v2_tmp->sub_idx;
+  const auto sub_addr_type = static_cast<AddrType>(sk_arg_desc_tmp->sub_addr_type);
+  if (sub_addr_type == AddrType::CUSTOM_VALUE) {
+    tmp_arg_desc.addr_type = AddrType::CUSTOM_VALUE;
+    tmp_arg_desc.ir_idx = (sk_arg_desc_tmp->sub_idx > 0) ? static_cast<int32_t>(ArgsFormatWidth::BIT64)
+                                                         : static_cast<int32_t>(ArgsFormatWidth::BIT32);
     tmp_arg_desc.folded = false;
-    *reinterpret_cast<uint32_t *>(tmp_arg_desc.reserved) = sk_arg_desc_v2_tmp->reserved;
+    (void)memcpy_s(tmp_arg_desc.reserved, sizeof(tmp_arg_desc.reserved), sk_arg_desc_tmp->reserved, sizeof(uint64_t));
+  } else if (sub_addr_type == AddrType::HIDDEN_INPUT) {
+    tmp_arg_desc.addr_type = AddrType::HIDDEN_INPUT;
+    tmp_arg_desc.ir_idx = sk_arg_desc_tmp->sub_idx;
+    tmp_arg_desc.folded = false;
+    uint32_t hidden_type = 0;
+    (void)memcpy_s(&hidden_type, sizeof(hidden_type), sk_arg_desc_tmp->reserved, sizeof(uint32_t));
+    *reinterpret_cast<uint32_t *>(tmp_arg_desc.reserved) = hidden_type;
+  } else if (sub_addr_type == AddrType::EVENT_ADDR) {
+    tmp_arg_desc.addr_type = AddrType::EVENT_ADDR;
+    int32_t ir_idx = 0;
+    (void)memcpy_s(&ir_idx, sizeof(ir_idx), sk_arg_desc_tmp->reserved, sizeof(int32_t));
+    tmp_arg_desc.ir_idx = ir_idx;
+    tmp_arg_desc.folded = false;
+  } else {
+    tmp_arg_desc.addr_type = sub_addr_type;
+    tmp_arg_desc.ir_idx = sk_arg_desc_tmp->sub_idx;
+    tmp_arg_desc.folded = sk_arg_desc_tmp->reserved[0] != 0;
   }
   arg_desc = tmp_arg_desc;
   return GRAPH_SUCCESS;

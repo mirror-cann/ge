@@ -9,6 +9,7 @@
  */
 
 #include "framework/common/helper/om2_package_helper.h"
+#include "common/helper/visual_json_converter.h"
 #include "common/helper/om2/zip_archive_writer.h"
 #include "common/helper/om2/json_file.h"
 #include "framework/omg/omg.h"
@@ -73,6 +74,18 @@ bool IsFileNonEmpty(const std::string &path) {
   }
   input.seekg(0, std::ios::end);
   return input.good() && (input.tellg() > 0);
+}
+
+const JsonFile::json *FindMapValue(const JsonFile::json &entries, const std::string &key) {
+  if (!entries.is_array()) {
+    return nullptr;
+  }
+  for (const auto &entry : entries) {
+    if (entry.is_object() && entry.contains("key") && entry.at("key") == key && entry.contains("value")) {
+      return &entry.at("value");
+    }
+  }
+  return nullptr;
 }
 
 class ScopedEnvVar {
@@ -341,6 +354,89 @@ GeRootModelPtr CreateGeRootModelWithAicoreOp() {
   return ge_root_model;
 }
 
+void SetDefaultModelWeightsAndAttrs(const GeModelPtr &ge_model) {
+  std::vector<uint64_t> weights_value(64, 1024);
+  const size_t weight_size = weights_value.size() * sizeof(uint64_t);
+  ge_model->SetWeight(Buffer::CopyFrom(reinterpret_cast<uint8_t *>(weights_value.data()), weight_size));
+  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 2048);
+  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_WEIGHT_SIZE, weight_size);
+  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 1);
+}
+
+Status SetDefaultStaticOffsets(const ComputeGraphPtr &compute_graph, bool with_workspace) {
+  compute_graph->SetGraphUnknownFlag(false);
+  for (const auto &node : compute_graph->GetDirectNode()) {
+    auto op_desc = node->GetOpDesc();
+    if (op_desc == nullptr) {
+      return FAILED;
+    }
+    if (op_desc->GetType() == DATA) {
+      op_desc->SetOutputOffset({1024});
+    } else if (op_desc->GetType() == NETOUTPUT) {
+      op_desc->SetInputOffset({3072});
+    } else {
+      op_desc->SetInputOffset(std::vector<int64_t>(op_desc->GetInputsSize(), 1024));
+      op_desc->SetOutputOffset(std::vector<int64_t>(op_desc->GetOutputsSize(), 1024));
+      if (with_workspace) {
+        op_desc->SetWorkspaceBytes(std::vector<int64_t>(1, 64));
+        op_desc->SetWorkspace(std::vector<int64_t>(1, 0));
+      }
+    }
+  }
+  return SUCCESS;
+}
+
+void FillAicpuKernelArgs(domi::KernelDef *kernel_def) {
+  auto ext_info = GetFakeExtInfo();
+  AicpuTaskArgs args = {};
+  args.head.length = sizeof(args);
+  args.head.ioAddrNum = 3;
+  kernel_def->set_args(reinterpret_cast<const char *>(&args), args.head.length);
+  kernel_def->set_args_size(args.head.length);
+  kernel_def->set_kernel_ext_info(ext_info.c_str(), ext_info.size());
+  kernel_def->set_kernel_ext_info_size(ext_info.size());
+}
+
+void FillAicpuKernelExArgs(domi::KernelExDef *kernel_ex_def) {
+  auto ext_info = GetFakeExtInfo();
+  AicpuTaskArgs args = {};
+  args.head.length = sizeof(args);
+  args.head.ioAddrNum = 3;
+  kernel_ex_def->set_args(reinterpret_cast<const char *>(&args), args.head.length);
+  kernel_ex_def->set_args_size(args.head.length);
+  kernel_ex_def->set_kernel_ext_info(ext_info.c_str(), ext_info.size());
+  kernel_ex_def->set_kernel_ext_info_size(ext_info.size());
+  kernel_ex_def->set_task_info("kernel_ex_test_task");
+  kernel_ex_def->set_task_info_size(kernel_ex_def->task_info().size());
+}
+
+void FillAicpuTaskArgs(domi::ModelTaskDef *model_task_def, bool set_kernel_type, bool fill_kernel_ex) {
+  if (model_task_def == nullptr) {
+    return;
+  }
+  for (int32_t i = 0; i < model_task_def->task_size(); ++i) {
+    auto *task_def = model_task_def->mutable_task(i);
+    if ((task_def != nullptr) && fill_kernel_ex && task_def->has_kernel_ex()) {
+      FillAicpuKernelExArgs(task_def->mutable_kernel_ex());
+    }
+    if ((task_def != nullptr) && task_def->has_kernel()) {
+      if (set_kernel_type) {
+        task_def->mutable_kernel()->mutable_context()->set_kernel_type(6U);
+      }
+      FillAicpuKernelArgs(task_def->mutable_kernel());
+    }
+  }
+}
+
+GeRootModelPtr BuildAicpuRootModel(gert::AiCpuCCTaskDefFaker faker) {
+  auto graph = gert::ShareGraph::Aicpu4thGraph();
+  graph->TopologicalSorting();
+  gert::GeModelBuilder builder(graph);
+  return builder.AddTaskDef("add1", faker.SetNeedMemcpy(false))
+      .AddTaskDef("add2", faker.SetNeedMemcpy(false))
+      .BuildGeRootModel();
+}
+
 GeRootModelPtr CreateGeRootModelWithAtomicAicoreOp() {
   const std::string args_format = "{i_instance0*}{i_instance1*}{o_instance0*}{ws0*}";
   auto graph = gert::ShareGraph::AicoreStaticGraph();
@@ -353,31 +449,20 @@ GeRootModelPtr CreateGeRootModelWithAtomicAicoreOp() {
           .FakeTbeBin({gert::GeModelBuilder::TbeConfig("Add", true)})
           .BuildGeRootModel();
   auto &compute_graph = ge_root_model->GetRootGraph();
+  if (SetDefaultStaticOffsets(compute_graph, true) != SUCCESS) {
+    return nullptr;
+  }
 
-  compute_graph->SetGraphUnknownFlag(false);
   OpDescPtr add_desc = nullptr;
   for (const auto &node : compute_graph->GetDirectNode()) {
     auto op_desc = node->GetOpDesc();
-    if (op_desc == nullptr) {
-      return nullptr;
-    }
-    if (op_desc->GetType() == DATA) {
-      op_desc->SetOutputOffset({1024});
-    } else if (op_desc->GetType() == NETOUTPUT) {
-      op_desc->SetInputOffset({3072});
-    } else {
-      if (op_desc->GetType() == "Add") {
-        op_desc->AppendIrInput("x1", kIrInputRequired);
-        op_desc->AppendIrInput("x2", kIrInputRequired);
-        op_desc->AppendIrOutput("y", kIrOutputRequired);
-        (void)AttrUtils::SetBool(op_desc, ATTR_NAME_NEED_GENTASK_ATOMIC, true);
-        (void)AttrUtils::SetStr(op_desc, kAtomicPrefix + TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF_AIVEC");
-        add_desc = op_desc;
-      }
-      op_desc->SetInputOffset(std::vector<int64_t>(op_desc->GetInputsSize(), 1024));
-      op_desc->SetOutputOffset(std::vector<int64_t>(op_desc->GetOutputsSize(), 1024));
-      op_desc->SetWorkspaceBytes(std::vector<int64_t>(1, 64));
-      op_desc->SetWorkspace(std::vector<int64_t>(1, 0));
+    if ((op_desc != nullptr) && (op_desc->GetType() == "Add")) {
+      op_desc->AppendIrInput("x1", kIrInputRequired);
+      op_desc->AppendIrInput("x2", kIrInputRequired);
+      op_desc->AppendIrOutput("y", kIrOutputRequired);
+      (void)AttrUtils::SetBool(op_desc, ATTR_NAME_NEED_GENTASK_ATOMIC, true);
+      (void)AttrUtils::SetStr(op_desc, kAtomicPrefix + TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF_AIVEC");
+      add_desc = op_desc;
     }
   }
 
@@ -397,14 +482,7 @@ GeRootModelPtr CreateGeRootModelWithAtomicAicoreOp() {
   model_task_def->mutable_task(0)->mutable_kernel()->mutable_context()->set_args_format(args_format);
   model_task_def->mutable_task(1)->mutable_kernel()->set_kernel_name(*kernel_name_ptr);
   model_task_def->mutable_task(1)->mutable_kernel()->mutable_context()->set_args_format(args_format);
-
-  std::vector<uint64_t> weights_value(64, 1024);
-  const size_t weight_size = weights_value.size() * sizeof(uint64_t);
-  ge_model->SetWeight(Buffer::CopyFrom(reinterpret_cast<uint8_t *>(weights_value.data()), weight_size));
-
-  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 2048);
-  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_WEIGHT_SIZE, weight_size);
-  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 1);
+  SetDefaultModelWeightsAndAttrs(ge_model);
   return ge_root_model;
 }
 
@@ -513,109 +591,29 @@ GeRootModelPtr CreateGeRootModelWithAicoreOp2() {
 }
 
 GeRootModelPtr CreateGeRootModelWithAicpuOp() {
-  auto graph = gert::ShareGraph::Aicpu4thGraph();
-  graph->TopologicalSorting();
-  gert::GeModelBuilder builder(graph);
   gert::AiCpuCCTaskDefFaker aicpu_task_def_faker;
-  auto ge_root_model = builder.AddTaskDef("add1", aicpu_task_def_faker.SetNeedMemcpy(false))
-                           .AddTaskDef("add2", aicpu_task_def_faker.SetNeedMemcpy(false))
-                           .BuildGeRootModel();
+  auto ge_root_model = BuildAicpuRootModel(aicpu_task_def_faker);
   auto &compute_graph = ge_root_model->GetRootGraph();
-
-  compute_graph->SetGraphUnknownFlag(false);
-  for (const auto &node : compute_graph->GetDirectNode()) {
-    auto op_desc = node->GetOpDesc();
-    if (op_desc == nullptr) {
-      return nullptr;
-    }
-    if ((op_desc->GetType() == DATA)) {
-      op_desc->SetOutputOffset({1024});
-    } else if (op_desc->GetType() == NETOUTPUT) {
-      op_desc->SetInputOffset({3072});
-    } else {
-      op_desc->SetInputOffset(std::vector<int64_t>(op_desc->GetInputsSize(), 1024));
-      op_desc->SetOutputOffset(std::vector<int64_t>(op_desc->GetOutputsSize(), 1024));
-    }
+  if (SetDefaultStaticOffsets(compute_graph, false) != SUCCESS) {
+    return nullptr;
   }
-
   const auto ge_model = ge_root_model->GetSubgraphInstanceNameToModel().begin()->second;
-  auto *model_task_def = ge_model->GetModelTaskDefPtr().get();
-  if (model_task_def != nullptr) {
-    for (int32_t i = 0; i < model_task_def->task_size(); ++i) {
-      auto *task_def = model_task_def->mutable_task(i);
-      if ((task_def != nullptr) && task_def->has_kernel()) {
-        task_def->mutable_kernel()->mutable_context()->set_kernel_type(6U);
-        auto ext_info = GetFakeExtInfo();
-        auto kernel_def = task_def->mutable_kernel();
-        AicpuTaskArgs args = {};
-        args.head.length = sizeof(args);
-        args.head.ioAddrNum = 3;
-        kernel_def->set_args(reinterpret_cast<const char *>(&args), args.head.length);
-        kernel_def->set_args_size(args.head.length);
-        kernel_def->set_kernel_ext_info(ext_info.c_str(), ext_info.size());
-        kernel_def->set_kernel_ext_info_size(ext_info.size());
-      }
-    }
-  }
-  std::vector<uint64_t> weights_value(64, 1024);
-  const size_t weight_size = weights_value.size() * sizeof(uint64_t);
-  ge_model->SetWeight(Buffer::CopyFrom(reinterpret_cast<uint8_t *>(weights_value.data()), weight_size));
-
-  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 2048);
-  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_WEIGHT_SIZE, weight_size);
-  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 1);
-
+  FillAicpuTaskArgs(ge_model->GetModelTaskDefPtr().get(), true, false);
+  SetDefaultModelWeightsAndAttrs(ge_model);
   return ge_root_model;
 }
 
 GeRootModelPtr CreateGeRootModelWithCustAicpuOp() {
-  auto graph = gert::ShareGraph::Aicpu4thGraph();
-  graph->TopologicalSorting();
-  gert::GeModelBuilder builder(graph);
   gert::AiCpuCCTaskDefFaker aicpu_task_def_faker;
-  auto ge_root_model = builder.AddTaskDef("add1", aicpu_task_def_faker.SetNeedMemcpy(false))
-                           .AddTaskDef("add2", aicpu_task_def_faker.SetNeedMemcpy(false))
-                           .BuildGeRootModel();
+  auto ge_root_model = BuildAicpuRootModel(aicpu_task_def_faker);
   auto &compute_graph = ge_root_model->GetRootGraph();
-
-  compute_graph->SetGraphUnknownFlag(false);
-  for (const auto &node : compute_graph->GetDirectNode()) {
-    auto op_desc = node->GetOpDesc();
-    if (op_desc == nullptr) {
-      return nullptr;
-    }
-    if ((op_desc->GetType() == DATA)) {
-      op_desc->SetOutputOffset({1024});
-    } else if (op_desc->GetType() == NETOUTPUT) {
-      op_desc->SetInputOffset({3072});
-    } else {
-      op_desc->SetInputOffset(std::vector<int64_t>(op_desc->GetInputsSize(), 1024));
-      op_desc->SetOutputOffset(std::vector<int64_t>(op_desc->GetOutputsSize(), 1024));
-    }
+  if (SetDefaultStaticOffsets(compute_graph, false) != SUCCESS) {
+    return nullptr;
   }
-
   const auto ge_model = ge_root_model->GetSubgraphInstanceNameToModel().begin()->second;
-  auto *model_task_def = ge_model->GetModelTaskDefPtr().get();
-  if (model_task_def != nullptr) {
-    for (int32_t i = 0; i < model_task_def->task_size(); ++i) {
-      auto *task_def = model_task_def->mutable_task(i);
-      if ((task_def != nullptr) && task_def->has_kernel()) {
-        // kernel_type=7 is CUST_AI_CPU, do NOT override to 6 (AI_CPU)
-        auto ext_info = GetFakeExtInfo();
-        auto kernel_def = task_def->mutable_kernel();
-        AicpuTaskArgs args = {};
-        args.head.length = sizeof(args);
-        args.head.ioAddrNum = 3;
-        kernel_def->set_args(reinterpret_cast<const char *>(&args), args.head.length);
-        kernel_def->set_args_size(args.head.length);
-        kernel_def->set_kernel_ext_info(ext_info.c_str(), ext_info.size());
-        kernel_def->set_kernel_ext_info_size(ext_info.size());
-      }
-    }
-  }
+  FillAicpuTaskArgs(ge_model->GetModelTaskDefPtr().get(), false, false);
 
   CustAICPUKernelStore cust_aicpu_kernel_store;
-  // Set CUST_AICPU kernel binary on op_desc extended attributes
   for (const auto &node : compute_graph->GetDirectNode()) {
     auto op_desc = node->GetOpDesc();
     if ((op_desc != nullptr) && (op_desc->GetType() != DATA) && (op_desc->GetType() != NETOUTPUT)) {
@@ -628,15 +626,7 @@ GeRootModelPtr CreateGeRootModelWithCustAicpuOp() {
   }
   (void)cust_aicpu_kernel_store.Build();
   ge_model->SetCustAICPUKernelStore(cust_aicpu_kernel_store);
-
-  std::vector<uint64_t> weights_value(64, 1024);
-  const size_t weight_size = weights_value.size() * sizeof(uint64_t);
-  ge_model->SetWeight(Buffer::CopyFrom(reinterpret_cast<uint8_t *>(weights_value.data()), weight_size));
-
-  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 2048);
-  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_WEIGHT_SIZE, weight_size);
-  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 1);
-
+  SetDefaultModelWeightsAndAttrs(ge_model);
   return ge_root_model;
 }
 
@@ -658,67 +648,16 @@ GeRootModelPtr CreateGeRootModelWithTfAicpuOp() {
                            .AddTaskDef("add2", aicpu_task_def_faker.SetNeedMemcpy(false))
                            .BuildGeRootModel();
   auto &compute_graph = ge_root_model->GetRootGraph();
-
-  compute_graph->SetGraphUnknownFlag(false);
-  for (const auto &node : compute_graph->GetDirectNode()) {
-    auto op_desc = node->GetOpDesc();
-    if (op_desc == nullptr) {
-      return nullptr;
-    }
-    if ((op_desc->GetType() == DATA)) {
-      op_desc->SetOutputOffset({1024});
-    } else if (op_desc->GetType() == NETOUTPUT) {
-      op_desc->SetInputOffset({3072});
-    } else {
-      op_desc->SetInputOffset(std::vector<int64_t>(op_desc->GetInputsSize(), 1024));
-      op_desc->SetOutputOffset(std::vector<int64_t>(op_desc->GetOutputsSize(), 1024));
-    }
+  if (SetDefaultStaticOffsets(compute_graph, false) != SUCCESS) {
+    return nullptr;
   }
-
   const auto ge_model = ge_root_model->GetSubgraphInstanceNameToModel().begin()->second;
-  auto *model_task_def = ge_model->GetModelTaskDefPtr().get();
-  if (model_task_def != nullptr) {
-    for (int32_t i = 0; i < model_task_def->task_size(); ++i) {
-      auto *task_def = model_task_def->mutable_task(i);
-      if ((task_def != nullptr) && task_def->has_kernel_ex()) {
-        auto ext_info = GetFakeExtInfo();
-        auto kernel_ex_def = task_def->mutable_kernel_ex();
-        AicpuTaskArgs args = {};
-        args.head.length = sizeof(args);
-        args.head.ioAddrNum = 3;
-        kernel_ex_def->set_args(reinterpret_cast<const char *>(&args), args.head.length);
-        kernel_ex_def->set_args_size(args.head.length);
-        kernel_ex_def->set_kernel_ext_info(ext_info.c_str(), ext_info.size());
-        kernel_ex_def->set_kernel_ext_info_size(ext_info.size());
-        kernel_ex_def->set_task_info("kernel_ex_test_task");
-        kernel_ex_def->set_task_info_size(kernel_ex_def->task_info().size());
-      }
-      if ((task_def != nullptr) && task_def->has_kernel()) {
-        task_def->mutable_kernel()->mutable_context()->set_kernel_type(6U);
-        auto ext_info = GetFakeExtInfo();
-        auto kernel_def = task_def->mutable_kernel();
-        AicpuTaskArgs args = {};
-        args.head.length = sizeof(args);
-        args.head.ioAddrNum = 3;
-        kernel_def->set_args(reinterpret_cast<const char *>(&args), args.head.length);
-        kernel_def->set_args_size(args.head.length);
-        kernel_def->set_kernel_ext_info(ext_info.c_str(), ext_info.size());
-        kernel_def->set_kernel_ext_info_size(ext_info.size());
-      }
-    }
-  }
-  std::vector<uint64_t> weights_value(64, 1024);
-  const size_t weight_size = weights_value.size() * sizeof(uint64_t);
-  ge_model->SetWeight(Buffer::CopyFrom(reinterpret_cast<uint8_t *>(weights_value.data()), weight_size));
-
-  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 2048);
-  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_WEIGHT_SIZE, weight_size);
-  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 1);
-
+  FillAicpuTaskArgs(ge_model->GetModelTaskDefPtr().get(), true, true);
+  SetDefaultModelWeightsAndAttrs(ge_model);
   return ge_root_model;
 }
 
-GeRootModelPtr CreateGeRootModelWithAicoreOpOfDynamicIo() {
+ComputeGraphPtr BuildDynamicIoAicoreGraph() {
   auto graph = std::make_shared<ComputeGraph>("g1");
   GeTensorDesc tensor_desc(GeShape({1, 1, 224, 224}), FORMAT_NCHW, DT_FLOAT);
   auto data_x_desc = std::make_shared<OpDesc>("data_x", DATA);
@@ -757,38 +696,25 @@ GeRootModelPtr CreateGeRootModelWithAicoreOpOfDynamicIo() {
   netoutput_desc->SetSrcName({"add1"});
   netoutput_desc->SetSrcIndex({0});
   graph->TopologicalSorting();
+  return graph;
+}
+
+GeRootModelPtr CreateGeRootModelWithAicoreOpOfDynamicIo() {
+  auto graph = BuildDynamicIoAicoreGraph();
+  if (graph == nullptr) {
+    return nullptr;
+  }
   gert::GeModelBuilder builder(graph);
   auto ge_root_model =
       builder.AddTaskDef("Add", gert::AiCoreTaskDefFaker("add_stub").ArgsFormat("{i_desc0}{i_desc1}{o_desc0}"))
           .FakeTbeBin({"Add"})
           .BuildGeRootModel();
   auto &compute_graph = ge_root_model->GetRootGraph();
-
-  compute_graph->SetGraphUnknownFlag(false);
-  for (const auto &node : compute_graph->GetDirectNode()) {
-    op_desc = node->GetOpDesc();
-    if (op_desc == nullptr) {
-      return nullptr;
-    }
-    if ((op_desc->GetType() == DATA)) {
-      op_desc->SetOutputOffset({1024});
-    } else if (op_desc->GetType() == NETOUTPUT) {
-      op_desc->SetInputOffset({3072});
-    } else {
-      op_desc->SetInputOffset(std::vector<int64_t>(op_desc->GetInputsSize(), 1024));
-      op_desc->SetOutputOffset(std::vector<int64_t>(op_desc->GetOutputsSize(), 1024));
-    }
+  if (SetDefaultStaticOffsets(compute_graph, false) != SUCCESS) {
+    return nullptr;
   }
-
   const auto ge_model = ge_root_model->GetSubgraphInstanceNameToModel().begin()->second;
-  std::vector<uint64_t> weights_value(64, 1024);
-  const size_t weight_size = weights_value.size() * sizeof(uint64_t);
-  ge_model->SetWeight(Buffer::CopyFrom(reinterpret_cast<uint8_t *>(weights_value.data()), weight_size));
-
-  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 2048);
-  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_WEIGHT_SIZE, weight_size);
-  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 1);
-
+  SetDefaultModelWeightsAndAttrs(ge_model);
   return ge_root_model;
 }
 
@@ -890,7 +816,7 @@ int Om2ModelDestroy(void **model_handle);
 )";
 }
 
-std::string MakeFakeOm2LoadAndRunCpp() {
+std::string MakeFakeOm2LoadAndRunCreateCpp() {
   return R"(#include "g1_interface.h"
 
 #include <new>
@@ -920,7 +846,11 @@ extern "C" int Om2ModelCreate(void **model_handle, void **rt_model_handle, const
 extern "C" int Om2ModelLoad(void **model_handle) {
   return ((model_handle == nullptr) || (*model_handle == nullptr)) ? 1 : 0;
 }
+)";
+}
 
+std::string MakeFakeOm2LoadAndRunExecuteCpp() {
+  return R"(
 extern "C" int Om2ModelRunAsync(void **model_handle, void *, int input_count, void **input_data, int output_count,
                                 void **output_data) {
   if ((model_handle == nullptr) || (*model_handle == nullptr) || (input_data == nullptr) || (output_data == nullptr)) {
@@ -947,6 +877,10 @@ extern "C" int Om2ModelDestroy(void **model_handle) {
   return 0;
 }
 )";
+}
+
+std::string MakeFakeOm2LoadAndRunCpp() {
+  return MakeFakeOm2LoadAndRunCreateCpp() + MakeFakeOm2LoadAndRunExecuteCpp();
 }
 
 std::string MakeFakeOm2EmptyCpp() {
@@ -1055,6 +989,22 @@ void CreateMinimalOm2FileWithoutProto(const std::string &path) {
   ASSERT_EQ(mmAccess2(path.c_str(), M_F_OK), EOK);
 }
 
+std::string BuildVisualJsonWithFusionScope() {
+  ge::proto::OpDef fusion_op;
+  (*fusion_op.mutable_attr())["fusion_scope"].set_i(2);
+
+  JsonFile::json visual_json;
+  visual_json["format"] = "ge_visual_json";
+  visual_json["format_version"] = 1;
+  auto &model = visual_json["model"];
+  model["name"] = "st_group_model";
+  model["attr"]["fm"] = {{"type", "list_bytes"}, {"value", JsonFile::json::array({fusion_op.SerializeAsString()})}};
+  model["graph"] = JsonFile::json::array(
+      {{{"name", "main_graph"},
+        {"op", JsonFile::json::array({{{"name", "group_op"}, {"type", "GroupOp"}, {"stream_id", 7}}})}}});
+  return visual_json.dump();
+}
+
 void ConstructOm2IoTensors(std::vector<gert::Tensor> &input_tensors, std::vector<gert::Tensor> &output_tensors,
                            std::vector<gert::Tensor *> &inputs, std::vector<gert::Tensor *> &outputs) {
   input_tensors.resize(2U);
@@ -1068,23 +1018,27 @@ void ConstructOm2IoTensors(std::vector<gert::Tensor> &input_tensors, std::vector
 
 void ExpectOm2ArchiveFiles(const RAIIZipArchive &archive, const std::set<std::string> &expect_files) {
   const auto file_names = archive.ListFiles();
-  // expect_files contains exact paths; debug files (ge_onnx_*.pbtxt, ge_proto_*.txt) are checked by pattern
+  // expect_files contains exact paths; generated debug files are checked by pattern.
   std::set<std::string> expect_exact = expect_files;
-  int debug_pattern_count = 0;
+  int visual_json_count = 0;
   for (const auto &f : file_names) {
     if (f.find("debug/ge_onnx_") != std::string::npos && f.find(".pbtxt") != std::string::npos) {
-      ++debug_pattern_count;
+      ADD_FAILURE() << "Unexpected legacy ONNX debug file: " << f;
       continue;
     }
     if (f.find("debug/ge_proto_") != std::string::npos && f.find(".txt") != std::string::npos) {
-      ++debug_pattern_count;
+      ADD_FAILURE() << "Unexpected legacy GE proto debug file: " << f;
+      continue;
+    }
+    if (f.find("debug/ge_visual_") != std::string::npos && f.find(".json") != std::string::npos) {
+      ++visual_json_count;
       continue;
     }
     EXPECT_EQ(expect_exact.count(f), 1) << "Unexpected file: " << f;
   }
-  EXPECT_EQ(debug_pattern_count, 2) << "Expected 2 debug files (ge_onnx_*.pbtxt + ge_proto_*.txt)";
-  // expect_files size = exact matches (no debug pattern entries expected in set)
-  const size_t exact_count = file_names.size() - static_cast<size_t>(debug_pattern_count);
+  EXPECT_EQ(visual_json_count, 1) << "Expected debug/ge_visual_*.json";
+  // expect_files size = exact matches (no generated debug pattern entries expected in set)
+  const size_t exact_count = file_names.size() - static_cast<size_t>(visual_json_count);
   EXPECT_EQ(exact_count, expect_exact.size());
 }
 
@@ -1122,23 +1076,157 @@ JsonFile ExtractConstantsConfig(const RAIIZipArchive &archive, const std::string
   return JsonFile(reinterpret_cast<const uint8_t *>(constants_config_buf.get()), constants_config_size);
 }
 
+JsonFile ExtractVisualJson(const RAIIZipArchive &archive, const std::string &zip_base_name,
+                           const uint32_t model_index = 0U) {
+  size_t visual_json_size = 0U;
+  const auto visual_json_buf = archive.ExtractToMem(
+      zip_base_name + "/data/model_" + std::to_string(model_index) + "/debug/ge_visual_00000000_graph_0.json",
+      visual_json_size);
+  EXPECT_NE(visual_json_buf, nullptr);
+  if (visual_json_buf == nullptr) {
+    return JsonFile(nullptr, 0U);
+  }
+  return JsonFile(reinterpret_cast<const uint8_t *>(visual_json_buf.get()), visual_json_size);
+}
+
+void ExpectVisualJsonBasic(const JsonFile &visual_json) {
+  ASSERT_TRUE(visual_json.IsValid());
+  const auto &raw = visual_json.Raw();
+  ASSERT_TRUE(raw.is_object());
+  ASSERT_TRUE(raw.contains("format"));
+  EXPECT_EQ(raw.at("format"), JsonFile::json("ge_visual_json"));
+  ASSERT_TRUE(raw.contains("format_version"));
+  EXPECT_EQ(raw.at("format_version"), JsonFile::json(1));
+  ASSERT_TRUE(raw.contains("model"));
+  ASSERT_TRUE(raw.at("model").contains("graph"));
+  ASSERT_TRUE(raw.at("model").at("graph").is_array());
+  ASSERT_FALSE(raw.at("model").at("graph").empty());
+  ASSERT_TRUE(raw.at("model").at("graph").at(0).contains("op"));
+  ASSERT_TRUE(raw.at("model").at("graph").at(0).at("op").is_array());
+}
+
+void ExpectVisualJsonMatchesGraph(const JsonFile &visual_json, const ComputeGraphPtr &graph) {
+  ASSERT_NE(graph, nullptr);
+  ExpectVisualJsonBasic(visual_json);
+  const auto &visual_graph = visual_json.Raw().at("model").at("graph").at(0);
+  ASSERT_TRUE(visual_graph.contains("name"));
+  EXPECT_EQ(visual_graph.at("name"), JsonFile::json(graph->GetName()));
+
+  const auto &visual_ops = visual_graph.at("op");
+  ASSERT_EQ(visual_ops.size(), graph->GetDirectNodesSize());
+
+  size_t index = 0U;
+  for (const auto &node : graph->GetDirectNode()) {
+    ASSERT_NE(node, nullptr);
+    const auto &op_json = visual_ops.at(index);
+    const auto &op_desc = node->GetOpDesc();
+    ASSERT_NE(op_desc, nullptr);
+    EXPECT_EQ(op_json.at("name"), JsonFile::json(op_desc->GetName()));
+    EXPECT_EQ(op_json.at("type"), JsonFile::json(op_desc->GetType()));
+    const size_t input_desc_size = op_json.contains("input_desc") ? op_json.at("input_desc").size() : 0U;
+    const size_t output_desc_size = op_json.contains("output_desc") ? op_json.at("output_desc").size() : 0U;
+    EXPECT_EQ(input_desc_size, op_desc->GetInputsSize()) << op_desc->GetName();
+    EXPECT_EQ(output_desc_size, op_desc->GetOutputsSize()) << op_desc->GetName();
+    ++index;
+  }
+}
+
+proto::OpDef *AddVisualConverterCoverageOp(proto::ModelDef &model_def) {
+  model_def.set_name("st_visual_model");
+  model_def.set_version(1U);
+  model_def.set_custom_version("1.0.0");
+  (*model_def.mutable_attr())["model_attr"].set_s("model_value");
+  auto *graph = model_def.add_graph();
+  graph->set_name("main_graph");
+  graph->add_input("input:0");
+  graph->add_output("output:0");
+  auto *op = graph->add_op();
+  op->set_name("visual_op");
+  op->set_type("VisualOp");
+  op->add_input("input:0");
+  op->set_id(1);
+  op->set_stream_id(7);
+  op->add_src_name("input");
+  op->add_src_index(0);
+  op->add_dst_name("output");
+  op->add_dst_index(0);
+  op->add_input_i(0);
+  op->add_output_i(0);
+  op->add_workspace_bytes(1024);
+  op->add_is_input_const(false);
+  return op;
+}
+
+void FillVisualConverterComplexAttrs(proto::OpDef *op) {
+  auto *op_attr = op->mutable_attr();
+  (*op_attr)["attr_s"].set_s("string_value");
+  (*op_attr)["attr_i"].set_i(42);
+  (*op_attr)["attr_f"].set_f(2.5f);
+  (*op_attr)["attr_b"].set_b(true);
+  (*op_attr)["attr_dt"].set_dt(DT_FLOAT);
+  (*op_attr)["attr_bt"].set_bt("bytes_data");
+  (*op_attr)["attr_expr"].set_expression("x + y");
+  auto *func = (*op_attr)["attr_func"].mutable_func();
+  func->set_name("fn");
+  (*func->mutable_attr())["inner"].set_s("value");
+  auto *td_attr = (*op_attr)["attr_td"].mutable_td();
+  td_attr->set_name("td_attr");
+  td_attr->set_dtype(proto::DT_FLOAT);
+  auto *tensor_attr = (*op_attr)["attr_t"].mutable_t();
+  tensor_attr->mutable_desc()->set_name("tensor_attr");
+  tensor_attr->mutable_desc()->set_dtype(proto::DT_FLOAT16);
+  tensor_attr->set_data("skip_me");
+  auto *graph_attr = (*op_attr)["attr_g"].mutable_g();
+  graph_attr->set_name("sub_graph");
+}
+
+void FillVisualConverterListAttrs(proto::OpDef *op) {
+  auto *op_attr = op->mutable_attr();
+  auto *list_str = (*op_attr)["list_str"].mutable_list();
+  list_str->set_val_type(proto::AttrDef_ListValue_ListValueType_VT_LIST_STRING);
+  list_str->add_s("a");
+  auto *list_float = (*op_attr)["list_float"].mutable_list();
+  list_float->set_val_type(proto::AttrDef_ListValue_ListValueType_VT_LIST_FLOAT);
+  list_float->add_f(1.25f);
+  auto *list_td = (*op_attr)["list_td"].mutable_list();
+  list_td->set_val_type(proto::AttrDef_ListValue_ListValueType_VT_LIST_TENSOR_DESC);
+  list_td->add_td()->set_name("list_td");
+  (void)(*op_attr)["empty_untyped_list"].mutable_list();
+  auto *list_list_float = (*op_attr)["list_list_float"].mutable_list_list_float();
+  list_list_float->add_list_list_f()->add_list_f(3.5f);
+}
+
+void FillVisualConverterTensorDescs(proto::OpDef *op) {
+  auto *input_desc = op->add_input_desc();
+  input_desc->set_name("input_tensor");
+  input_desc->set_dtype(proto::DT_FLOAT);
+  input_desc->mutable_shape()->add_dim(1);
+  input_desc->set_layout("ND");
+  input_desc->set_has_out_attr(true);
+  auto *output_desc = op->add_output_desc();
+  output_desc->set_name("output_tensor");
+  output_desc->set_dtype(proto::DT_FLOAT);
+  output_desc->mutable_shape()->add_dim(1);
+  output_desc->set_layout("ND");
+}
+
+proto::ModelDef BuildVisualConverterCoverageModelDef() {
+  proto::ModelDef model_def;
+  auto *op = AddVisualConverterCoverageOp(model_def);
+  FillVisualConverterComplexAttrs(op);
+  FillVisualConverterListAttrs(op);
+  FillVisualConverterTensorDescs(op);
+  auto *shape_env = model_def.mutable_attr_groups()->add_attr_group_def()->mutable_shape_env_attr_group();
+  (*shape_env->mutable_symbol_to_value())["st_sym"] = 128;
+  return model_def;
+}
+
 // -----------------------------------------------------------------------
 // Helper: AiCore 模型 + separately-clean atomic task，
 // 用于覆盖 KernelTaskCodeBuilder::BuildLaunchSemantic 中
 // is_separately_clean_task_ 分支 (func_handle_key = ATOMIC_ATTR_TBE_KERNEL_NAME + "_atomic")
 // -----------------------------------------------------------------------
-GeRootModelPtr CreateGeRootModelWithSeparatelyCleanAicoreOp() {
-  auto graph = gert::ShareGraph::AicoreStaticGraph();
-  graph->TopologicalSorting();
-  gert::GeModelBuilder builder(graph);
-  auto ge_root_model = builder
-                           .AddTaskDef("Add", gert::AiCoreTaskDefFaker("add_stub")
-                                                  .AtomicStubNum("add_atomic_stub")
-                                                  .ArgsFormat("{i_instance0*}{i_instance1*}{o_instance0*}{ws0*}"))
-                           .FakeTbeBin({gert::GeModelBuilder::TbeConfig("Add", true)})
-                           .BuildGeRootModel();
-  auto &compute_graph = ge_root_model->GetRootGraph();
-
+void ConfigureSeparatelyCleanGraph(const ComputeGraphPtr &compute_graph) {
   compute_graph->SetGraphUnknownFlag(false);
   for (const auto &node : compute_graph->GetDirectNode()) {
     auto op_desc = node->GetOpDesc();
@@ -1157,7 +1245,6 @@ GeRootModelPtr CreateGeRootModelWithSeparatelyCleanAicoreOp() {
       op_desc->SetOutputOffset(std::vector<int64_t>(op_desc->GetOutputsSize(), 1024));
       op_desc->SetWorkspaceBytes(std::vector<int64_t>(1, 64));
       op_desc->SetWorkspace(std::vector<int64_t>(1, 0));
-      // Enable IsNeedAtomicCleanTask -> true
       (void)AttrUtils::SetBool(op_desc, ATTR_NAME_NEED_GENTASK_ATOMIC, true);
     } else if (op_desc->GetType() == "Reshape") {
       op_desc->AppendIrInput("x", kIrInputRequired);
@@ -1166,54 +1253,61 @@ GeRootModelPtr CreateGeRootModelWithSeparatelyCleanAicoreOp() {
       op_desc->SetOutputOffset(std::vector<int64_t>(op_desc->GetOutputsSize(), 1024));
     }
   }
+}
 
+void SyncSeparatelyCleanAtomicKernelName(const ComputeGraphPtr &graph) {
+  for (const auto &node : graph->GetDirectNode()) {
+    auto op_desc = node->GetOpDesc();
+    if ((op_desc != nullptr) && (op_desc->GetType() == "Add")) {
+      std::string kernel_name;
+      if (AttrUtils::GetStr(op_desc, "_kernelname", kernel_name)) {
+        (void)AttrUtils::SetStr(op_desc, op_desc->GetName() + "_atomic_kernelname", kernel_name);
+      }
+    }
+  }
+}
+
+void SyncSeparatelyCleanAtomicTvmMagic(const ComputeGraphPtr &graph) {
+  for (const auto &node : graph->GetDirectNode()) {
+    auto op_desc = node->GetOpDesc();
+    if ((op_desc != nullptr) && (op_desc->GetType() == "Add")) {
+      (void)AttrUtils::SetStr(op_desc, "_atomictvm_magic", "RT_DEV_BINARY_MAGIC_ELF_AIVEC");
+    }
+  }
+}
+
+GeRootModelPtr CreateGeRootModelWithSeparatelyCleanAicoreOp() {
+  auto graph = gert::ShareGraph::AicoreStaticGraph();
+  graph->TopologicalSorting();
+  gert::GeModelBuilder builder(graph);
+  auto ge_root_model = builder
+                           .AddTaskDef("Add", gert::AiCoreTaskDefFaker("add_stub")
+                                                  .AtomicStubNum("add_atomic_stub")
+                                                  .ArgsFormat("{i_instance0*}{i_instance1*}{o_instance0*}{ws0*}"))
+                           .FakeTbeBin({gert::GeModelBuilder::TbeConfig("Add", true)})
+                           .BuildGeRootModel();
+  auto &compute_graph = ge_root_model->GetRootGraph();
+  ConfigureSeparatelyCleanGraph(compute_graph);
   const auto ge_model = ge_root_model->GetSubgraphInstanceNameToModel().begin()->second;
 
   // Make <op_name>_atomic_kernelname match _kernelname so IsSeparatelyCleanTask returns true.
   // SyncKernelNameFromOpDesc sets all task_defs' kernel_name to _kernelname,
   // so the attribute checked by IsSeparatelyCleanTask must equal _kernelname.
-  auto sync_atomic_kernelname = [](const ComputeGraphPtr &g) {
-    for (const auto &node : g->GetDirectNode()) {
-      auto op_desc = node->GetOpDesc();
-      if ((op_desc != nullptr) && (op_desc->GetType() == "Add")) {
-        std::string kernel_name;
-        if (AttrUtils::GetStr(op_desc, "_kernelname", kernel_name)) {
-          (void)AttrUtils::SetStr(op_desc, op_desc->GetName() + "_atomic_kernelname", kernel_name);
-        }
-      }
-    }
-  };
-  sync_atomic_kernelname(compute_graph);
+  SyncSeparatelyCleanAtomicKernelName(compute_graph);
   const auto model_graph = ge_model->GetGraph();
   if (model_graph != nullptr) {
-    sync_atomic_kernelname(model_graph);
+    SyncSeparatelyCleanAtomicKernelName(model_graph);
   }
 
   // HACK: GetMagic uses kAtomicPrefix + TVM_ATTR_NAME_MAGIC = "_atomictvm_magic"
   // (no underscore) to look up the atomic magic attribute, but FakeTbeBinToNodes
   // sets ATOMIC_ATTR_TVM_MAGIC = "_atomic_tvm_magic" (with underscore).
   // Set both keys so the atomic kernel binary registration succeeds.
-  auto sync_atomic_tvm_magic = [](const ComputeGraphPtr &g) {
-    for (const auto &node : g->GetDirectNode()) {
-      auto op_desc = node->GetOpDesc();
-      if ((op_desc != nullptr) && (op_desc->GetType() == "Add")) {
-        (void)AttrUtils::SetStr(op_desc, "_atomictvm_magic", "RT_DEV_BINARY_MAGIC_ELF_AIVEC");
-      }
-    }
-  };
-  sync_atomic_tvm_magic(compute_graph);
+  SyncSeparatelyCleanAtomicTvmMagic(compute_graph);
   if (model_graph != nullptr) {
-    sync_atomic_tvm_magic(model_graph);
+    SyncSeparatelyCleanAtomicTvmMagic(model_graph);
   }
-
-  std::vector<uint64_t> weights_value(64, 1024);
-  const size_t weight_size = weights_value.size() * sizeof(uint64_t);
-  ge_model->SetWeight(Buffer::CopyFrom(reinterpret_cast<uint8_t *>(weights_value.data()), weight_size));
-
-  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 2048);
-  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_WEIGHT_SIZE, weight_size);
-  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 1);
-
+  SetDefaultModelWeightsAndAttrs(ge_model);
   return ge_root_model;
 }
 
@@ -1362,6 +1456,8 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithAicoreNode) {
   };
   ExpectOm2ArchiveFiles(archive, expect_files);
   ExpectGeneratedMakefileSupportsEnvCompiler(archive, kZipFileBaseName);
+  const JsonFile visual_json = ExtractVisualJson(archive, kZipFileBaseName);
+  ExpectVisualJsonMatchesGraph(visual_json, ge_root_model->GetRootGraph());
 }
 
 TEST_F(Om2St, ConvertOm2Model_Ok_ConvertGeneratedOm2ToJson) {
@@ -1378,6 +1474,285 @@ TEST_F(Om2St, ConvertOm2Model_Ok_ConvertGeneratedOm2ToJson) {
   EXPECT_TRUE(IsFileNonEmpty(json_file));
 }
 
+TEST_F(Om2St, VisualJsonConverter_Ok_SerializeRichModelDef) {
+  std::string visual_json;
+  ASSERT_EQ(VisualJsonConverter::SerializeFromModelDef(BuildVisualConverterCoverageModelDef(), visual_json), SUCCESS);
+  JsonFile parsed(reinterpret_cast<const uint8_t *>(visual_json.data()), visual_json.size());
+  ASSERT_TRUE(parsed.IsValid());
+  const auto &raw = parsed.Raw();
+  EXPECT_EQ(raw.at("format"), JsonFile::json("ge_visual_json"));
+  const auto &shape_env = raw.at("model").at("attr_groups").at("attr_group_def").at(0).at("shape_env_attr_group");
+  EXPECT_EQ(shape_env.at("symbol_to_value").at("st_sym"), JsonFile::json(128));
+  const auto &op_json = raw.at("model").at("graph").at(0).at("op").at(0);
+  EXPECT_FALSE(op_json.contains("src_name"));
+  EXPECT_FALSE(op_json.contains("src_index"));
+  EXPECT_FALSE(op_json.contains("dst_name"));
+  EXPECT_FALSE(op_json.contains("dst_index"));
+  const auto &attrs = op_json.at("attr");
+  EXPECT_FLOAT_EQ(attrs.at("attr_f").get<float>(), 2.5f);
+  EXPECT_EQ(attrs.at("attr_bt").at("type"), JsonFile::json("bytes"));
+  EXPECT_EQ(attrs.at("attr_expr").at("type"), JsonFile::json("expression"));
+  EXPECT_EQ(attrs.at("attr_func").at("type"), JsonFile::json("func"));
+  EXPECT_EQ(attrs.at("attr_td").at("type"), JsonFile::json("tensor_desc"));
+  EXPECT_EQ(attrs.at("attr_t").at("type"), JsonFile::json("tensor"));
+  EXPECT_FALSE(attrs.at("attr_t").at("value").contains("data"));
+  EXPECT_EQ(attrs.at("attr_g").at("type"), JsonFile::json("graph"));
+  EXPECT_EQ(attrs.at("list_float").at("type"), JsonFile::json("list_float"));
+  EXPECT_EQ(attrs.at("list_td").at("type"), JsonFile::json("list_tensor_desc"));
+  EXPECT_TRUE(attrs.at("empty_untyped_list").empty());
+  EXPECT_FLOAT_EQ(attrs.at("list_list_float").at(0).at(0).get<float>(), 3.5f);
+}
+
+std::string BuildFallbackListsVisualJson() {
+  return R"({
+    "format": "ge_visual_json",
+    "format_version": 1,
+    "model": {
+      "name": "fallback_model",
+      "graph": [{
+        "name": "main_graph",
+        "op": [{
+          "name": "fallback_op",
+          "type": "FallbackOp",
+          "attr": {
+            "raw_array_attr": [1, 2],
+            "unknown_typed_attr": {"type": "unknown_type", "value": 10},
+            "plain_list_int": {"type": "list_int", "value": [1, 2]},
+            "wrapped_list_attr": {"type": "list", "value": {"val_type": 2, "i": [8, 9]}},
+            "attr_f": 2.5,
+            "attr_bt": {"type": "bytes", "value": "raw"},
+            "attr_expr": {"type": "expression", "value": "x + y"},
+            "attr_func": {"type": "func", "value": {"name": "fn", "attr": {"inner": "v"}}},
+            "attr_td": {"type": "tensor_desc", "value": {"name": "td0", "dtype": "DT_FLOAT"}},
+            "attr_t": {"type": "tensor", "value": {"desc": {"name": "tensor0", "dtype": "DT_FLOAT"}}},
+            "attr_g": {"type": "graph", "value": {"name": "sub_graph"}},
+            "list_list_float": [[1.25, 2.5]],
+            "fallback_list_string": {"type": "list", "value": ["x", "y"]},
+            "fallback_list_int": {"type": "list", "value": [3, 4]},
+            "fallback_list_float": {"type": "list", "value": [3.5]},
+            "fallback_list_bool": {"type": "list", "value": [true, false]},
+            "fallback_list_empty": {"type": "list", "value": []},
+            "fallback_list_object": {"type": "list", "value": [{"name": "fallback_tensor_desc"}]}
+          }
+        }]
+      }]
+    }
+  })";
+}
+
+void ExpectBasicFallbackAttrs(const JsonFile::json &op_attrs) {
+  ASSERT_NE(FindMapValue(op_attrs, "raw_array_attr"), nullptr);
+  ASSERT_NE(FindMapValue(op_attrs, "unknown_typed_attr"), nullptr);
+  ASSERT_NE(FindMapValue(op_attrs, "plain_list_int"), nullptr);
+  ASSERT_NE(FindMapValue(op_attrs, "wrapped_list_attr"), nullptr);
+  EXPECT_EQ(*FindMapValue(op_attrs, "raw_array_attr"), JsonFile::json::array({1, 2}));
+  EXPECT_EQ((*FindMapValue(op_attrs, "unknown_typed_attr"))["type"], "unknown_type");
+  EXPECT_EQ((*FindMapValue(op_attrs, "unknown_typed_attr"))["value"], 10);
+  EXPECT_EQ((*FindMapValue(op_attrs, "plain_list_int"))["list"]["val_type"], 2);
+  EXPECT_EQ((*FindMapValue(op_attrs, "plain_list_int"))["list"]["i"][1], 2);
+  EXPECT_EQ((*FindMapValue(op_attrs, "wrapped_list_attr"))["list"]["val_type"], 2);
+  EXPECT_EQ((*FindMapValue(op_attrs, "wrapped_list_attr"))["list"]["i"][1], 9);
+}
+
+void ExpectTypedFallbackAttrs(const JsonFile::json &op_attrs) {
+  ASSERT_NE(FindMapValue(op_attrs, "attr_f"), nullptr);
+  ASSERT_NE(FindMapValue(op_attrs, "attr_bt"), nullptr);
+  ASSERT_NE(FindMapValue(op_attrs, "attr_expr"), nullptr);
+  ASSERT_NE(FindMapValue(op_attrs, "attr_func"), nullptr);
+  ASSERT_NE(FindMapValue(op_attrs, "attr_td"), nullptr);
+  ASSERT_NE(FindMapValue(op_attrs, "attr_t"), nullptr);
+  ASSERT_NE(FindMapValue(op_attrs, "attr_g"), nullptr);
+  ASSERT_NE(FindMapValue(op_attrs, "list_list_float"), nullptr);
+  EXPECT_FLOAT_EQ((*FindMapValue(op_attrs, "attr_f"))["f"].get<float>(), 2.5f);
+  EXPECT_EQ((*FindMapValue(op_attrs, "attr_bt"))["bt"], "raw");
+  EXPECT_EQ((*FindMapValue(op_attrs, "attr_expr"))["expression"], "x + y");
+  EXPECT_EQ((*FindMapValue(op_attrs, "attr_func"))["func"]["name"], "fn");
+  EXPECT_EQ((*FindMapValue(op_attrs, "attr_td"))["td"]["name"], "td0");
+  EXPECT_EQ((*FindMapValue(op_attrs, "attr_t"))["t"]["desc"]["name"], "tensor0");
+  EXPECT_EQ((*FindMapValue(op_attrs, "attr_g"))["g"]["name"], "sub_graph");
+  EXPECT_FLOAT_EQ(
+      (*FindMapValue(op_attrs, "list_list_float"))["list_list_float"]["list_list_f"][0]["list_f"][1].get<float>(),
+      2.5f);
+}
+
+void ExpectListFallbackAttrs(const JsonFile::json &op_attrs) {
+  const auto *fallback_list_string = FindMapValue(op_attrs, "fallback_list_string");
+  const auto *fallback_list_int = FindMapValue(op_attrs, "fallback_list_int");
+  const auto *fallback_list_float = FindMapValue(op_attrs, "fallback_list_float");
+  const auto *fallback_list_bool = FindMapValue(op_attrs, "fallback_list_bool");
+  const auto *fallback_list_empty = FindMapValue(op_attrs, "fallback_list_empty");
+  const auto *fallback_list_object = FindMapValue(op_attrs, "fallback_list_object");
+  ASSERT_NE(fallback_list_string, nullptr);
+  ASSERT_NE(fallback_list_int, nullptr);
+  ASSERT_NE(fallback_list_float, nullptr);
+  ASSERT_NE(fallback_list_bool, nullptr);
+  ASSERT_NE(fallback_list_empty, nullptr);
+  ASSERT_NE(fallback_list_object, nullptr);
+  EXPECT_EQ((*fallback_list_string)["list"]["val_type"], 1);
+  EXPECT_EQ((*fallback_list_string)["list"]["s"][1], "y");
+  EXPECT_EQ((*fallback_list_int)["list"]["val_type"], 2);
+  EXPECT_EQ((*fallback_list_int)["list"]["i"][1], 4);
+  EXPECT_EQ((*fallback_list_float)["list"]["val_type"], 3);
+  EXPECT_FLOAT_EQ((*fallback_list_float)["list"]["f"][0].get<float>(), 3.5f);
+  EXPECT_EQ((*fallback_list_bool)["list"]["val_type"], 4);
+  EXPECT_EQ((*fallback_list_bool)["list"]["b"][1], false);
+  EXPECT_TRUE((*fallback_list_empty)["list"].empty());
+  EXPECT_EQ((*fallback_list_object)["list"]["val_type"], 6);
+  EXPECT_EQ((*fallback_list_object)["list"]["td"][0]["name"], "fallback_tensor_desc");
+}
+
+void ExpectMixedGraphFallback() {
+  const std::string mixed_graph_visual_json = R"({
+    "format": "ge_visual_json",
+    "format_version": 1,
+    "model": {
+      "name": "mixed_graph_model",
+      "graph": ["bad_graph", {"name": "main_graph"}]
+    }
+  })";
+  JsonFile::json mixed_pb_json;
+  ASSERT_EQ(VisualJsonConverter::LoadFromVisualJson(mixed_graph_visual_json, mixed_pb_json), SUCCESS);
+  ASSERT_TRUE(mixed_pb_json["graph"].is_array());
+  EXPECT_EQ(mixed_pb_json["graph"][0], "bad_graph");
+  EXPECT_EQ(mixed_pb_json["graph"][1]["name"], "main_graph");
+}
+
+TEST_F(Om2St, VisualJsonConverter_Ok_LoadFallbackLists) {
+  JsonFile::json invalid_json_result;
+  EXPECT_NE(VisualJsonConverter::LoadFromVisualJson("{ invalid json", invalid_json_result), SUCCESS);
+  EXPECT_NE(VisualJsonConverter::LoadFromVisualJson("[]", invalid_json_result), SUCCESS);
+
+  JsonFile::json pb_json;
+  ASSERT_EQ(VisualJsonConverter::LoadFromVisualJson(BuildFallbackListsVisualJson(), pb_json), SUCCESS);
+  const auto &op_attrs = pb_json["graph"][0]["op"][0]["attr"];
+  ASSERT_TRUE(op_attrs.is_array());
+  ExpectBasicFallbackAttrs(op_attrs);
+  ExpectTypedFallbackAttrs(op_attrs);
+  ExpectListFallbackAttrs(op_attrs);
+  ExpectMixedGraphFallback();
+}
+
+TEST_F(Om2St, Om2PackageHelper_Ok_ExtractVisualJsonFromMinimalOm2) {
+  const std::string output_file = PathUtils::Join({test_work_dir, "minimal_visual_extract.om2"});
+  const std::string visual_json = R"({
+    "format": "ge_visual_json",
+    "format_version": 1,
+    "model": {
+      "name": "visual_model",
+      "graph": [{"name": "main_graph", "op": [{"name": "data0", "type": "Data"}]}]
+    }
+  })";
+  ModelBufferData model;
+  {
+    ZipArchiveWriter writer(output_file);
+    ASSERT_TRUE(writer.IsMemFileOpened());
+    const std::string manifest = R"({"om2_version":"0","model_num":1})";
+    ASSERT_TRUE(writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false));
+    ASSERT_TRUE(writer.WriteBytes("data/model_0/debug/ge_visual_00000000_graph_0.json", visual_json.data(),
+                                  visual_json.size(), true));
+    ASSERT_TRUE(writer.SaveModelData(model, false));
+  }
+  ASSERT_NE(model.data, nullptr);
+  ASSERT_GT(model.length, 0U);
+
+  std::string extracted_json;
+  ASSERT_EQ(Om2PackageHelper::ExtractVisualJson(model.data.get(), model.length, extracted_json), SUCCESS);
+  JsonFile extracted(reinterpret_cast<const uint8_t *>(extracted_json.data()), extracted_json.size());
+  ASSERT_TRUE(extracted.IsValid());
+  EXPECT_EQ(extracted.Raw().at("format"), JsonFile::json("ge_visual_json"));
+  EXPECT_EQ(extracted.Raw().at("model").at("name"), JsonFile::json("visual_model"));
+}
+
+TEST_F(Om2St, ConvertOm2Model_Ok_ConvertMinimalVisualOm2ToJson) {
+  const std::string output_file = PathUtils::Join({test_work_dir, "minimal_visual_json.om2"});
+  const std::string json_file = PathUtils::Join({test_work_dir, "minimal_visual_json.json"});
+  const std::string visual_json = R"({
+    "format": "ge_visual_json",
+    "format_version": 1,
+    "model": {
+      "name": "minimal_visual_model",
+      "graph": [{
+        "name": "main_graph",
+        "op": [{
+          "name": "data0",
+          "type": "Data",
+          "input_desc": [{"name": "input_tensor", "dtype": "DT_FLOAT"}]
+        }]
+      }]
+    }
+  })";
+  {
+    ZipArchiveWriter writer(output_file);
+    ASSERT_TRUE(writer.IsMemFileOpened());
+    const std::string manifest = R"({"om2_version":"0","model_num":1})";
+    ASSERT_TRUE(writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false));
+    ASSERT_TRUE(writer.WriteBytes("data/model_0/debug/ge_visual_00000000_graph_0.json", visual_json.data(),
+                                  visual_json.size(), true));
+    ASSERT_TRUE(writer.SaveModelDataToFile());
+  }
+
+  ASSERT_EQ(ConvertOm(output_file.c_str(), json_file.c_str(), true), SUCCESS);
+  JsonFile converted(json_file);
+  ASSERT_TRUE(converted.IsValid());
+  const auto &raw = converted.Raw();
+  ASSERT_FALSE(raw.at("graph").empty());
+  ASSERT_FALSE(raw.at("graph").at(0).at("op").empty());
+  ASSERT_FALSE(raw.at("graph").at(0).at("op").at(0).at("input_desc").empty());
+  EXPECT_EQ(raw.at("graph").at(0).at("op").at(0).at("input_desc").at(0).at("dtype"), JsonFile::json("DT_FLOAT"));
+}
+
+TEST_F(Om2St, ConvertOm2Model_Ok_ConvertVisualOm2AddsGroupOpName) {
+  const std::string output_file = PathUtils::Join({test_work_dir, "group_visual_json.om2"});
+  const std::string json_file = PathUtils::Join({test_work_dir, "group_visual_json.json"});
+  const std::string visual_json = BuildVisualJsonWithFusionScope();
+  {
+    ZipArchiveWriter writer(output_file);
+    ASSERT_TRUE(writer.IsMemFileOpened());
+    const std::string manifest = R"({"om2_version":"0","model_num":1})";
+    ASSERT_TRUE(writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false));
+    ASSERT_TRUE(writer.WriteBytes("data/model_0/debug/ge_visual_00000000_graph_0.json", visual_json.data(),
+                                  visual_json.size(), true));
+    ASSERT_TRUE(writer.SaveModelDataToFile());
+  }
+
+  ASSERT_EQ(ConvertOm(output_file.c_str(), json_file.c_str(), true), SUCCESS);
+  JsonFile converted(json_file);
+  ASSERT_TRUE(converted.IsValid());
+  const auto &attrs = converted.Raw().at("graph").at(0).at("op").at(0).at("attr");
+  const auto *group_op_name = FindMapValue(attrs, "group_op_name");
+  ASSERT_NE(group_op_name, nullptr);
+  EXPECT_EQ(group_op_name->at("s"), JsonFile::json("group_op_ub_2_7"));
+}
+
+TEST_F(Om2St, ConvertOm2Model_Ok_ConvertLooseVisualOm2ToJson) {
+  const std::string output_file = PathUtils::Join({test_work_dir, "loose_visual_json.om2"});
+  const std::string json_file = PathUtils::Join({test_work_dir, "loose_visual_json.json"});
+  const std::string visual_json = R"({
+    "format": "ge_visual_json",
+    "format_version": 1,
+    "model": {
+      "name": "loose_visual_model",
+      "unknown_field": 1,
+      "graph": "not_an_array"
+    }
+  })";
+  {
+    ZipArchiveWriter writer(output_file);
+    ASSERT_TRUE(writer.IsMemFileOpened());
+    const std::string manifest = R"({"om2_version":"0","model_num":1})";
+    ASSERT_TRUE(writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false));
+    ASSERT_TRUE(writer.WriteBytes("data/model_0/debug/ge_visual_00000000_graph_0.json", visual_json.data(),
+                                  visual_json.size(), true));
+    ASSERT_TRUE(writer.SaveModelDataToFile());
+  }
+
+  ASSERT_EQ(ConvertOm(output_file.c_str(), json_file.c_str(), true), SUCCESS);
+  JsonFile converted(json_file);
+  ASSERT_TRUE(converted.IsValid());
+  EXPECT_EQ(converted.Raw().at("unknown_field"), JsonFile::json(1));
+  EXPECT_EQ(converted.Raw().at("graph"), JsonFile::json("not_an_array"));
+}
+
 TEST_F(Om2St, ConvertOm2Model_Fail_DisplayModelInfoNotSupported) {
   const std::string output_file = PathUtils::Join({test_work_dir, "minimal_no_display.om2"});
   CreateMinimalOm2File(output_file, BuildValidOm2ProtoTxt());
@@ -1385,9 +1760,9 @@ TEST_F(Om2St, ConvertOm2Model_Fail_DisplayModelInfoNotSupported) {
   EXPECT_NE(ConvertOm(output_file.c_str(), nullptr, false), SUCCESS);
 }
 
-TEST_F(Om2St, ConvertOm2Model_Fail_ConvertJsonNoProtoTxt) {
-  const std::string output_file = PathUtils::Join({test_work_dir, "minimal_no_proto.om2"});
-  const std::string json_file = PathUtils::Join({test_work_dir, "minimal_no_proto.json"});
+TEST_F(Om2St, ConvertOm2Model_Fail_ConvertJsonNoVisualJson) {
+  const std::string output_file = PathUtils::Join({test_work_dir, "minimal_no_visual.om2"});
+  const std::string json_file = PathUtils::Join({test_work_dir, "minimal_no_visual.json"});
   CreateMinimalOm2FileWithoutProto(output_file);
 
   EXPECT_NE(ConvertOm(output_file.c_str(), json_file.c_str(), true), SUCCESS);
@@ -1558,63 +1933,54 @@ TEST_F(Om2St, SaveOm2Model_Ok_SaveOnlineBufferWithAclgrphSaveModel) {
   EXPECT_NE(std::find(file_names.begin(), file_names.end(), "g1/manifest.json"), file_names.end());
 }
 
-TEST_F(Om2St, SaveOm2Model_Ok_RelocateExternalWeightsWithAclgrphSaveModel) {
-  const std::string tmp_weight_dir = PathUtils::Join({test_work_dir, "tmp_weight"});
-  const std::string weight_file_name = "weight_combined.bin";
-  const std::string old_weight_path = PathUtils::Join({tmp_weight_dir, weight_file_name});
-  const std::string output_file = PathUtils::Join({test_work_dir, "saved_model"});
-  const std::string new_weight_path = PathUtils::Join({test_work_dir, "weight", weight_file_name});
+JsonFile::json BuildRelocateExternalWeightConsts(const std::string &old_weight_path) {
+  auto consts = JsonFile::json::object();
+  consts["not_object"] = "skip";
+  JsonFile internal_const;
+  internal_const.Set("type", "INTERNAL").Set("file_path", old_weight_path);
+  consts["internal_const"] = internal_const.Raw();
+  JsonFile no_path_const;
+  no_path_const.Set("type", "COMBINED").Set("file_name", "no_path.bin");
+  consts["no_path_const"] = no_path_const.Raw();
+  JsonFile empty_path_const;
+  empty_path_const.Set("type", "COMBINED").Set("file_path", "");
+  consts["empty_path_const"] = empty_path_const.Raw();
+  JsonFile file_const;
+  file_const.Set("index", 0U)
+      .Set("type", "COMBINED")
+      .Set("file_name", "")
+      .Set("file_path", old_weight_path)
+      .Set("offset", 0)
+      .Set("size", 5)
+      .Set("op_name", "file_const");
+  consts["file_const"] = file_const.Raw();
+  return consts;
+}
 
-  WriteBinaryFile(old_weight_path, {1U, 2U, 3U, 4U, 5U});
+void BuildRelocateExternalWeightOm2(const std::string &work_dir, const std::string &old_weight_path,
+                                    ModelBufferData &model) {
+  ZipArchiveWriter zip_writer(PathUtils::Join({work_dir, "build_model.om2"}));
+  ASSERT_TRUE(zip_writer.IsMemFileOpened());
+  JsonFile constants_config;
+  constants_config.Set("internal_weight_size", 0U).Set("consts", BuildRelocateExternalWeightConsts(old_weight_path));
+  const std::string constants_config_str = constants_config.Dump();
+  ASSERT_TRUE(zip_writer.WriteBytes("data/constants/model_0_constants_config.json", constants_config_str.data(),
+                                    constants_config_str.size(), false));
+  const std::string no_consts_config = R"({"internal_weight_size":0})";
+  ASSERT_TRUE(zip_writer.WriteBytes("data/constants/model_1_constants_config.json", no_consts_config.data(),
+                                    no_consts_config.size(), false));
+  const std::string skipped_consts_config = R"({"consts":{"internal":{"type":"INTERNAL"}}})";
+  ASSERT_TRUE(zip_writer.WriteBytes("data/constants/model_2_constants_config.json", skipped_consts_config.data(),
+                                    skipped_consts_config.size(), false));
+  const std::string runtime_entry = "runtime";
+  ASSERT_TRUE(
+      zip_writer.WriteBytes("data/model_0/runtime/libfake.so", runtime_entry.data(), runtime_entry.size(), false));
+  const std::string manifest = R"({"archive_version":"1.0","model_num":3})";
+  ASSERT_TRUE(zip_writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false));
+  ASSERT_TRUE(zip_writer.SaveModelData(model, false));
+}
 
-  ModelBufferData model;
-  {
-    ZipArchiveWriter zip_writer(PathUtils::Join({test_work_dir, "build_model.om2"}));
-    ASSERT_TRUE(zip_writer.IsMemFileOpened());
-    auto consts = JsonFile::json::object();
-    consts["not_object"] = "skip";
-    JsonFile internal_const;
-    internal_const.Set("type", "INTERNAL").Set("file_path", old_weight_path);
-    consts["internal_const"] = internal_const.Raw();
-    JsonFile no_path_const;
-    no_path_const.Set("type", "COMBINED").Set("file_name", "no_path.bin");
-    consts["no_path_const"] = no_path_const.Raw();
-    JsonFile empty_path_const;
-    empty_path_const.Set("type", "COMBINED").Set("file_path", "");
-    consts["empty_path_const"] = empty_path_const.Raw();
-    JsonFile file_const;
-    file_const.Set("index", 0U)
-        .Set("type", "COMBINED")
-        .Set("file_name", "")
-        .Set("file_path", old_weight_path)
-        .Set("offset", 0)
-        .Set("size", 5)
-        .Set("op_name", "file_const");
-    consts["file_const"] = file_const.Raw();
-    JsonFile constants_config;
-    constants_config.Set("internal_weight_size", 0U).Set("consts", consts);
-    const std::string constants_config_str = constants_config.Dump();
-    ASSERT_TRUE(zip_writer.WriteBytes("data/constants/model_0_constants_config.json", constants_config_str.data(),
-                                      constants_config_str.size(), false));
-    const std::string no_consts_config = R"({"internal_weight_size":0})";
-    ASSERT_TRUE(zip_writer.WriteBytes("data/constants/model_1_constants_config.json", no_consts_config.data(),
-                                      no_consts_config.size(), false));
-    const std::string skipped_consts_config = R"({"consts":{"internal":{"type":"INTERNAL"}}})";
-    ASSERT_TRUE(zip_writer.WriteBytes("data/constants/model_2_constants_config.json", skipped_consts_config.data(),
-                                      skipped_consts_config.size(), false));
-    const std::string runtime_entry = "runtime";
-    ASSERT_TRUE(
-        zip_writer.WriteBytes("data/model_0/runtime/libfake.so", runtime_entry.data(), runtime_entry.size(), false));
-    const std::string manifest = R"({"archive_version":"1.0","model_num":3})";
-    ASSERT_TRUE(zip_writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false));
-    ASSERT_TRUE(zip_writer.SaveModelData(model, false));
-  }
-
-  EXPECT_EQ(aclgrphSaveModel(output_file, model), SUCCESS);
-  EXPECT_EQ(mmAccess2((output_file + ".om2").c_str(), M_F_OK), EOK);
-  EXPECT_EQ(mmAccess2(new_weight_path.c_str(), M_F_OK), EOK);
-  EXPECT_NE(mmAccess2(old_weight_path.c_str(), M_F_OK), EOK);
-
+void ExpectRelocatedExternalWeightArchive(const std::string &output_file, const std::string &weight_file_name) {
   uint32_t model_buf_size = 0;
   const auto model_buf = GetBinDataFromFile(output_file + ".om2", model_buf_size);
   RAIIZipArchive archive(reinterpret_cast<const uint8_t *>(model_buf.get()), model_buf_size);
@@ -1636,6 +2002,24 @@ TEST_F(Om2St, SaveOm2Model_Ok_RelocateExternalWeightsWithAclgrphSaveModel) {
   const auto &file_const_json = constants_json.Raw().at("consts").at("file_const");
   EXPECT_EQ(file_const_json.at("file_name"), JsonFile::json(weight_file_name));
   EXPECT_FALSE(file_const_json.contains("file_path"));
+}
+
+TEST_F(Om2St, SaveOm2Model_Ok_RelocateExternalWeightsWithAclgrphSaveModel) {
+  const std::string tmp_weight_dir = PathUtils::Join({test_work_dir, "tmp_weight"});
+  const std::string weight_file_name = "weight_combined.bin";
+  const std::string old_weight_path = PathUtils::Join({tmp_weight_dir, weight_file_name});
+  const std::string output_file = PathUtils::Join({test_work_dir, "saved_model"});
+  const std::string new_weight_path = PathUtils::Join({test_work_dir, "weight", weight_file_name});
+
+  WriteBinaryFile(old_weight_path, {1U, 2U, 3U, 4U, 5U});
+  ModelBufferData model;
+  BuildRelocateExternalWeightOm2(test_work_dir, old_weight_path, model);
+
+  EXPECT_EQ(aclgrphSaveModel(output_file, model), SUCCESS);
+  EXPECT_EQ(mmAccess2((output_file + ".om2").c_str(), M_F_OK), EOK);
+  EXPECT_EQ(mmAccess2(new_weight_path.c_str(), M_F_OK), EOK);
+  EXPECT_NE(mmAccess2(old_weight_path.c_str(), M_F_OK), EOK);
+  ExpectRelocatedExternalWeightArchive(output_file, weight_file_name);
 }
 
 TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithAicoreOp2) {
@@ -1749,12 +2133,16 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithCustAicpuOp) {
       "fake_test/data/model_0/debug/op_attr.json",
       "fake_test/manifest.json",
   };
-  int debug_count = 0;
+  int visual_json_count = 0;
   bool found_cust_kernel = false;
   for (const auto &file_name : file_names) {
     if (file_name.find("debug/ge_onnx_") != std::string::npos ||
         file_name.find("debug/ge_proto_") != std::string::npos) {
-      ++debug_count;
+      ADD_FAILURE() << "Unexpected legacy debug file: " << file_name;
+      continue;
+    }
+    if (file_name.find("debug/ge_visual_") != std::string::npos && file_name.find(".json") != std::string::npos) {
+      ++visual_json_count;
       continue;
     }
     if ((file_name.find("fake_test/data/kernels_npu_arch/") != std::string::npos) &&
@@ -1764,7 +2152,7 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithCustAicpuOp) {
     }
     EXPECT_EQ(expect_files_without_cust_kernel.count(file_name), 1);
   }
-  EXPECT_EQ(debug_count, 2);
+  EXPECT_EQ(visual_json_count, 1);
   EXPECT_TRUE(found_cust_kernel);
 }
 
@@ -1799,22 +2187,10 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithTfAicpuOp) {
   ExpectOm2ArchiveFiles(archive, expect_files);
 }
 
-TEST_F(Om2St, LoadGeneratedOm2_Ok_ExecutorMainFlow) {
-  const std::string output_file = PathUtils::Join({test_work_dir, kZipFileBaseName + "_load.om2"});
-  CreateFakeOm2File(test_work_dir, output_file);
-
+void ExpectOm2SupportAndMemSize(const std::string &output_file, const ge::ModelData &model_data) {
   bool is_support = false;
   ASSERT_EQ(gert::IsOm2Model(output_file.c_str(), is_support), SUCCESS);
   ASSERT_TRUE(is_support);
-
-  ge::ModelData model_data;
-  ASSERT_EQ(gert::LoadOm2DataFromFile(output_file, model_data), SUCCESS);
-  std::shared_ptr<void> model_data_guard(model_data.model_data, [](const void *const p) {
-    if (p != nullptr) {
-      delete[] static_cast<const uint8_t *>(p);
-    }
-  });
-
   is_support = false;
   ASSERT_EQ(gert::IsOm2Model(model_data.model_data, model_data.model_len, is_support), SUCCESS);
   ASSERT_TRUE(is_support);
@@ -1830,14 +2206,9 @@ TEST_F(Om2St, LoadGeneratedOm2_Ok_ExecutorMainFlow) {
             SUCCESS);
   EXPECT_EQ(mem_work_size, work_size);
   EXPECT_EQ(mem_weight_size, weight_size);
+}
 
-  gert::Om2ModelLoadArg load_arg;
-  load_arg.device_id = 0;
-  ge::Status error_code = SUCCESS;
-  auto executor = gert::LoadOm2ExecutorFromData(model_data, load_arg, error_code);
-  ASSERT_EQ(error_code, SUCCESS);
-  ASSERT_NE(executor, nullptr);
-
+void ExpectOm2ExecutorMetadata(const std::unique_ptr<gert::Om2ModelExecutor> &executor) {
   const std::vector<ge::Om2TensorDesc> *input_desc = nullptr;
   const std::vector<ge::Om2TensorDesc> *output_desc = nullptr;
   EXPECT_EQ(executor->GetModelDescInfo(input_desc, output_desc), SUCCESS);
@@ -1855,11 +2226,12 @@ TEST_F(Om2St, LoadGeneratedOm2_Ok_ExecutorMainFlow) {
   std::vector<std::string> dynamic_output_shape;
   EXPECT_EQ(executor->GetModelAttrs(dynamic_output_shape), SUCCESS);
   EXPECT_TRUE(dynamic_output_shape.empty());
-
   std::vector<std::string> user_designate_shape_order;
   EXPECT_EQ(executor->GetUserDesignateShapeOrder(user_designate_shape_order), SUCCESS);
   EXPECT_TRUE(user_designate_shape_order.empty());
+}
 
+void ExpectOm2ExecutorRun(const std::unique_ptr<gert::Om2ModelExecutor> &executor) {
   std::vector<gert::Tensor> input_tensors;
   std::vector<gert::Tensor> output_tensors;
   std::vector<gert::Tensor *> inputs;
@@ -1867,6 +2239,29 @@ TEST_F(Om2St, LoadGeneratedOm2_Ok_ExecutorMainFlow) {
   ConstructOm2IoTensors(input_tensors, output_tensors, inputs, outputs);
   EXPECT_EQ(executor->Run(inputs, outputs), SUCCESS);
   EXPECT_EQ(executor->RunAsync(nullptr, inputs, outputs), SUCCESS);
+}
+
+TEST_F(Om2St, LoadGeneratedOm2_Ok_ExecutorMainFlow) {
+  const std::string output_file = PathUtils::Join({test_work_dir, kZipFileBaseName + "_load.om2"});
+  CreateFakeOm2File(test_work_dir, output_file);
+
+  ge::ModelData model_data;
+  ASSERT_EQ(gert::LoadOm2DataFromFile(output_file, model_data), SUCCESS);
+  std::shared_ptr<void> model_data_guard(model_data.model_data, [](const void *const p) {
+    if (p != nullptr) {
+      delete[] static_cast<const uint8_t *>(p);
+    }
+  });
+  ExpectOm2SupportAndMemSize(output_file, model_data);
+
+  gert::Om2ModelLoadArg load_arg;
+  load_arg.device_id = 0;
+  ge::Status error_code = SUCCESS;
+  auto executor = gert::LoadOm2ExecutorFromData(model_data, load_arg, error_code);
+  ASSERT_EQ(error_code, SUCCESS);
+  ASSERT_NE(executor, nullptr);
+  ExpectOm2ExecutorMetadata(executor);
+  ExpectOm2ExecutorRun(executor);
 }
 
 TEST_F(Om2St, LoadGeneratedOm2WithExternalResources_Ok) {

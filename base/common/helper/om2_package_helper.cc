@@ -25,12 +25,7 @@
 #include "graph/utils/tensor_utils.h"
 #include "graph_metadef/graph/utils/file_utils.h"
 #include "graph/model.h"
-#include "proto/ge_ir.pb.h"
-#include "proto/onnx/ge_onnx.pb.h"
-#include "graph/utils/ge_ir_utils.h"
-#include <google/protobuf/text_format.h>
-#include <iomanip>
-#include <sstream>
+#include "common/helper/visual_json_converter.h"
 
 namespace ge {
 namespace {
@@ -368,8 +363,8 @@ Status SetOm2CompatibleOmInfoList(const GeModelPtr &ge_model) {
   om_info.push_back(static_cast<int64_t>(ge_model->GetCustAICPUKernelStore().DataSize()));
   const auto &task_def = ge_model->GetModelTaskDefPtr();
   om_info.push_back(task_def != nullptr ? static_cast<int64_t>(task_def->ByteSizeLong()) : 0);
-  // Keep the OM om_info_list schema for JSON compatibility. OM2 stores resources as ZIP entries and does not
-  // build the legacy SO_STORE partition, so so_store_size is recorded as 0.
+  // 保持 OM om_info_list 的字段结构，便于 JSON 对齐。OM2 资源以 ZIP entry 存储，
+  // 不再构造旧 SO_STORE 分区，因此 so_store_size 记为 0。
   om_info.push_back(0);
   GE_CHK_BOOL_EXEC(ge::AttrUtils::SetListInt(*(ge_model.get()), "om_info_list", om_info),
                    GELOGE(FAILED, "[OM2] SetListInt of om_info_list failed.");
@@ -403,7 +398,7 @@ Status Om2PackageHelper::SaveToOmModel(const GeModelPtr &ge_model, const std::st
   GE_ASSERT_NOTNULL(ge_model, "ge_model is nullptr");
   GE_ASSERT_TRUE(!output_file.empty(), "[OM2] Empty path of the output file is invalid");
 
-  // Set model-level attrs for OM2 JSON compatibility.
+  // 补齐 OM2 JSON 对齐需要的模型级属性。
   const bool set_atc_cmdline =
       ge::AttrUtils::SetStr(*(ge_model.get()), ATTR_MODEL_ATC_CMDLINE, domi::GetContext().atc_cmdline);
   GE_CHK_BOOL_EXEC(set_atc_cmdline, GELOGE(FAILED, "[OM2] SetStr for atc_cmdline failed."); return FAILED);
@@ -434,7 +429,7 @@ Status Om2PackageHelper::SaveToOmModel(const GeModelPtr &ge_model, const std::st
   GE_ASSERT_SUCCESS(SaveModelInfo(zip_writer, ge_model, 0UL));
   // 6. Save operator attributes
   GE_ASSERT_SUCCESS(SaveOpAttrJson(zip_writer, ge_model, 0UL));
-  // 7. Save graph debug files (onnx pbtxt + ge proto txt)
+  // 7. Save graph debug files
   GE_ASSERT_SUCCESS(SaveGraphDebugFiles(zip_writer, ge_model, 0UL));
   // 8. Save archive manifest
   GE_ASSERT_SUCCESS(SaveManifest(zip_writer, ge_root_model));
@@ -472,7 +467,7 @@ Status Om2PackageHelper::RelocateExternalWeights(const std::string &output_file_
   return SUCCESS;
 }
 
-Status Om2PackageHelper::ExtractGraphProtoTxt(const void *model_data, size_t model_len, std::string &txt_out) {
+Status Om2PackageHelper::ExtractVisualJson(const void *model_data, size_t model_len, std::string &json_out) {
   GE_ASSERT_NOTNULL(model_data, "[OM2] model_data is nullptr");
   GE_ASSERT_TRUE(model_len > 0U, "[OM2] model_len is 0");
 
@@ -480,27 +475,24 @@ Status Om2PackageHelper::ExtractGraphProtoTxt(const void *model_data, size_t mod
   SimpleZipArchiveReader reader(data, model_len);
   GE_ASSERT_TRUE(reader.IsGood(), "[OM2] Failed to open OM2 ZIP archive");
 
-  // Find ge_proto_*.txt entry under debug/ directory
-  constexpr const char *kProtoPrefix = "debug/ge_proto_";
-  constexpr const char *kProtoSuffix = ".txt";
   const auto file_list = reader.ListFiles();
   std::string entry_path;
   for (const auto &f : file_list) {
-    if ((f.find(kProtoPrefix) != std::string::npos) && (f.size() >= strlen(kProtoSuffix)) &&
-        (f.compare(f.size() - strlen(kProtoSuffix), strlen(kProtoSuffix), kProtoSuffix) == 0)) {
+    if (((f.find("/debug/ge_visual_") != std::string::npos) && EndsWith(f, ".json")) ||
+        EndsWith(f, "/debug/visual.json") || EndsWith(f, "debug/visual.json")) {
       entry_path = f;
       break;
     }
   }
-  GE_ASSERT_TRUE(!entry_path.empty(), "[OM2] ge_proto_*.txt not found in OM2 archive");
+  GE_ASSERT_TRUE(!entry_path.empty(), "[OM2] visual JSON not found in OM2 archive");
 
-  size_t txt_size = 0U;
-  auto txt_buf = reader.ExtractToMem(entry_path, txt_size);
-  GE_ASSERT_NOTNULL(txt_buf, "[OM2] Failed to extract %s from OM2 archive", entry_path.c_str());
-  GE_ASSERT_TRUE(txt_size > 0U, "[OM2] Extracted proto txt is empty");
+  size_t json_size = 0U;
+  auto json_buf = reader.ExtractToMem(entry_path, json_size);
+  GE_ASSERT_NOTNULL(json_buf, "[OM2] Failed to extract %s from OM2 archive", entry_path.c_str());
+  GE_ASSERT_TRUE(json_size > 0U, "[OM2] Extracted visual JSON is empty");
 
-  txt_out.assign(reinterpret_cast<const char *>(txt_buf.get()), txt_size);
-  GELOGI("[OM2] Extracted ge_proto txt, entry:%s, size:%zu", entry_path.c_str(), txt_out.size());
+  json_out.assign(reinterpret_cast<const char *>(json_buf.get()), json_size);
+  GELOGI("[OM2] Extracted visual JSON, entry:%s, size:%zu", entry_path.c_str(), json_out.size());
   return SUCCESS;
 }
 
@@ -702,95 +694,26 @@ Status Om2PackageHelper::SaveOpAttrJson(std::shared_ptr<ZipArchiveWriter> &zip_w
   return SUCCESS;
 }
 
-namespace {
-constexpr int32_t kDumpIndexWidth = 8;
-
-std::string MakeDebugFileName(const std::string &prefix, const size_t model_index, const uint32_t graph_id,
-                              const std::string &graph_name, const std::string &ext) {
-  std::stringstream ss;
-  ss << prefix << std::setw(kDumpIndexWidth) << std::setfill('0') << model_index << "_graph_" << graph_id << "_"
-     << GetSanitizedName(graph_name) << ext;
-  return ss.str();
-}
-
-void StripConstWeights(ge::proto::ModelDef &ge_proto) {
-  for (int32_t gi = 0; gi < ge_proto.graph_size(); ++gi) {
-    auto *graph_def = ge_proto.mutable_graph(gi);
-    for (int32_t oi = 0; oi < graph_def->op_size(); ++oi) {
-      auto *op_def = graph_def->mutable_op(oi);
-      if ((op_def->type() == "Const") || (op_def->type() == "Constant")) {
-        op_def->mutable_attr()->erase(ATTR_NAME_WEIGHTS);
-      }
-    }
-  }
-}
-}  // namespace
-
-Status Om2PackageHelper::SaveOnnxGraphPbtxt(std::shared_ptr<ZipArchiveWriter> &zip_writer, const ComputeGraphPtr &graph,
-                                            const size_t model_index) {
-  ge::Model model("GE", "");
-  model.SetGraph(graph);
-  ge::onnx::ModelProto onnx_proto;
-  GE_ASSERT_TRUE(OnnxUtils::ConvertGeModelToModelProto(model, onnx_proto, DumpLevel::DUMP_WITH_OUT_DATA),
-                 "[OM2] Failed to convert ComputeGraph to ONNX ModelProto");
-
-  std::string onnx_str;
-  GE_ASSERT_TRUE(google::protobuf::TextFormat::PrintToString(onnx_proto, &onnx_str),
-                 "[OM2] Failed to convert ONNX ModelProto to pbtxt string");
-
-  const std::string debug_dir = FormatOm2Path(OM2_DEBUG_DIR_FORMAT, std::to_string(model_index).c_str());
-  const std::string entry_path =
-      debug_dir + MakeDebugFileName("ge_onnx_", model_index, graph->GetGraphID(), graph->GetName(), ".pbtxt");
-  GE_ASSERT_TRUE(zip_writer->WriteBytes(entry_path, onnx_str.data(), onnx_str.size(), true),
-                 "[OM2] Failed to write ONNX pbtxt to ZIP, entry:%s", entry_path.c_str());
-  GELOGI("[OM2] Saved ONNX pbtxt, size:%zu, entry:%s", onnx_str.size(), entry_path.c_str());
-  return SUCCESS;
-}
-
-Status Om2PackageHelper::SaveGeGraphProtoTxt(std::shared_ptr<ZipArchiveWriter> &zip_writer, const GeModelPtr &ge_model,
-                                             const size_t model_index) {
-  const auto &graph = ge_model->GetGraph();
-  GE_ASSERT_NOTNULL(graph, "[OM2] ComputeGraph is nullptr");
-
-  // Set om_info_list before copying attrs so OM2 JSON keeps the OM-compatible size summary.
+Status Om2PackageHelper::SaveVisualJson(std::shared_ptr<ZipArchiveWriter> &zip_writer, const GeModelPtr &ge_model,
+                                        const size_t model_index) {
+  // 保证 visual JSON 中保留与 OM 兼容的 size 汇总信息。
   GE_ASSERT_SUCCESS(SetOm2CompatibleOmInfoList(ge_model));
 
-  const ModelPtr model_tmp = ge::MakeShared<ge::Model>(ge_model->GetName(), ge_model->GetPlatformVersion());
-  GE_ASSERT_NOTNULL(model_tmp, "[OM2] Failed to create Model");
-  model_tmp->SetGraph(graph);
-  model_tmp->SetVersion(ge_model->GetVersion());
-  model_tmp->SetAttr(ge_model->MutableAttrMap());
+  std::string json;
+  GE_ASSERT_SUCCESS(VisualJsonConverter::SerializeFromGeModel(ge_model, json));
 
-  ge::Buffer model_buffer;
-  GE_ASSERT_SUCCESS(model_tmp->SaveWithoutSeparate(model_buffer, false),
-                    "[OM2] Failed to serialize ComputeGraph to ModelDef buffer");
+  const std::string entry_path = FormatOm2Path(OM2_VISUAL_JSON_PATH_FORMAT, std::to_string(model_index).c_str());
 
-  ge::proto::ModelDef ge_proto;
-  GE_ASSERT_TRUE(ge_proto.ParseFromArray(model_buffer.GetData(), model_buffer.GetSize()),
-                 "[OM2] Failed to parse ModelDef from buffer");
-
-  StripConstWeights(ge_proto);
-
-  std::string proto_str;
-  GE_ASSERT_TRUE(google::protobuf::TextFormat::PrintToString(ge_proto, &proto_str),
-                 "[OM2] Failed to convert ModelDef to proto txt string");
-
-  const std::string debug_dir = FormatOm2Path(OM2_DEBUG_DIR_FORMAT, std::to_string(model_index).c_str());
-  const std::string entry_path =
-      debug_dir + MakeDebugFileName("ge_proto_", model_index, graph->GetGraphID(), graph->GetName(), ".txt");
-  GE_ASSERT_TRUE(zip_writer->WriteBytes(entry_path, proto_str.data(), proto_str.size(), true),
-                 "[OM2] Failed to write GE proto txt to ZIP, entry:%s", entry_path.c_str());
-  GELOGI("[OM2] Saved GE proto txt, size:%zu, entry:%s", proto_str.size(), entry_path.c_str());
+  GE_ASSERT_TRUE(zip_writer->WriteBytes(entry_path, json.data(), json.size(), true),
+                 "[OM2] Failed to write visual json to ZIP, entry:%s", entry_path.c_str());
+  GELOGI("[OM2] Saved visual json, size:%zu, entry:%s", json.size(), entry_path.c_str());
   return SUCCESS;
 }
 
 Status Om2PackageHelper::SaveGraphDebugFiles(std::shared_ptr<ZipArchiveWriter> &zip_writer, const GeModelPtr &ge_model,
                                              const size_t model_index) {
   GELOGI("[OM2] Begin to save graph debug files");
-  const auto &graph = ge_model->GetGraph();
-  GE_ASSERT_NOTNULL(graph, "[OM2] ComputeGraph is nullptr");
-  GE_ASSERT_SUCCESS(SaveOnnxGraphPbtxt(zip_writer, graph, model_index));
-  GE_ASSERT_SUCCESS(SaveGeGraphProtoTxt(zip_writer, ge_model, model_index));
+  GE_ASSERT_SUCCESS(SaveVisualJson(zip_writer, ge_model, model_index));
   return SUCCESS;
 }
 

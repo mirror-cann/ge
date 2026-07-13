@@ -17,6 +17,7 @@ import sys
 import types
 from pathlib import Path
 
+from ge._internal.artifact_utils import current_platform_tag, current_python_tag
 from ge.passes import _artifact_utils as artifact_utils
 from ge.passes import runtime
 
@@ -44,7 +45,18 @@ def _write_fallback_sources(codegen_dir: Path, resources: dict) -> None:
     (codegen_dir / "__init__.py").write_text("", encoding="utf-8")
 
 
-def _write_artifact(artifact_dir: Path, python_tag: str, platform_tag: str, bridge_abi: int) -> None:
+def _fallback_resources() -> dict:
+    return {
+        "src/bridge/bridge.cc": b"int bridge = 0;\n",
+        "include/bridge/bridge.h": b"#pragma once\n",
+        "src/native/native.cc": b"int native = 0;\n",
+        "include/native/native.h": b"#pragma once\n",
+    }
+
+
+def _write_artifact(
+    artifact_dir: Path, python_tag: str, platform_tag: str, bridge_abi: int
+) -> None:
     artifact_dir.mkdir(parents=True)
     (artifact_dir / "libge_python_pass_bridge.so").touch()
     (artifact_dir / "_ge_pass_native.so").touch()
@@ -61,7 +73,7 @@ def _write_artifact(artifact_dir: Path, python_tag: str, platform_tag: str, brid
 
 
 def _current_artifact_dir(artifacts_root: Path) -> Path:
-    return artifacts_root / f"{artifact_utils.current_python_tag()}-{artifact_utils.current_platform_tag()}"
+    return artifacts_root / f"{current_python_tag()}-{current_platform_tag()}"
 
 
 def test_find_prebuilt_artifact_from_artifacts_root(tmp_path, monkeypatch):
@@ -72,8 +84,8 @@ def test_find_prebuilt_artifact_from_artifacts_root(tmp_path, monkeypatch):
     assert artifact_dir.parent == artifacts_dir
     _write_artifact(
         artifact_dir,
-        artifact_utils.current_python_tag(),
-        artifact_utils.current_platform_tag(),
+        current_python_tag(),
+        current_platform_tag(),
         artifact_utils.BRIDGE_ABI_VERSION,
     )
 
@@ -92,7 +104,7 @@ def test_find_prebuilt_artifact_rejects_runtime_mismatch(tmp_path, monkeypatch):
     _write_artifact(
         artifact_dir,
         "cp000",
-        artifact_utils.current_platform_tag(),
+        current_platform_tag(),
         artifact_utils.BRIDGE_ABI_VERSION,
     )
 
@@ -106,8 +118,8 @@ def test_find_prebuilt_artifact_rejects_missing_bridge(tmp_path, monkeypatch):
     artifact_dir = _current_artifact_dir(artifacts_dir)
     _write_artifact(
         artifact_dir,
-        artifact_utils.current_python_tag(),
-        artifact_utils.current_platform_tag(),
+        current_python_tag(),
+        current_platform_tag(),
         artifact_utils.BRIDGE_ABI_VERSION,
     )
     (artifact_dir / "libge_python_pass_bridge.so").unlink()
@@ -134,14 +146,11 @@ def test_resolve_build_inputs_returns_codegen_sources(tmp_path, monkeypatch):
     assert build_inputs.include_dir == codegen_dir / "include"
 
 
-def test_resolve_fallback_build_inputs_materializes_resource_module(tmp_path, monkeypatch):
+def test_resolve_fallback_build_inputs_materializes_resource_module(
+    tmp_path, monkeypatch
+):
     codegen_dir = tmp_path / "codegen"
-    resources = {
-        "src/bridge/bridge.cc": b"int bridge = 0;\n",
-        "include/bridge/bridge.h": b"#pragma once\n",
-        "src/native/native.cc": b"int native = 0;\n",
-        "include/native/native.h": b"#pragma once\n",
-    }
+    resources = _fallback_resources()
     _write_codegen_config(codegen_dir)
     _write_fallback_sources(codegen_dir, resources)
     monkeypatch.setattr(runtime, "_codegen_root", lambda: codegen_dir)
@@ -152,19 +161,18 @@ def test_resolve_fallback_build_inputs_materializes_resource_module(tmp_path, mo
     assert build_inputs.root == tmp_path / "work" / "fallback_sources"
     assert build_inputs.src_dir == build_inputs.root / "src"
     assert build_inputs.include_dir == build_inputs.root / "include"
-    assert (build_inputs.root / "src/bridge/bridge.cc").read_bytes() == resources["src/bridge/bridge.cc"]
+    assert (build_inputs.root / "src/bridge/bridge.cc").read_bytes() == resources[
+        "src/bridge/bridge.cc"
+    ]
     assert not (codegen_dir / "src").exists()
     assert not (codegen_dir / "include").exists()
 
 
-def test_run_fallback_codegen_publishes_artifact_and_cleans_work_dir(tmp_path, monkeypatch):
+def test_run_fallback_codegen_publishes_artifact_and_cleans_work_dir(
+    tmp_path, monkeypatch
+):
     codegen_dir = tmp_path / "codegen"
-    resources = {
-        "src/bridge/bridge.cc": b"int bridge = 0;\n",
-        "include/bridge/bridge.h": b"#pragma once\n",
-        "src/native/native.cc": b"int native = 0;\n",
-        "include/native/native.h": b"#pragma once\n",
-    }
+    resources = _fallback_resources()
     _write_codegen_config(codegen_dir)
     _write_fallback_sources(codegen_dir, resources)
     artifacts_dir = tmp_path / "python_pass_artifacts"
@@ -173,14 +181,16 @@ def test_run_fallback_codegen_publishes_artifact_and_cleans_work_dir(tmp_path, m
 
     def fake_compile_artifact_set(build_inputs, work_dir):
         assert build_inputs.root == work_dir / "fallback_sources"
-        assert (build_inputs.root / "src/bridge/bridge.cc").read_bytes() == resources["src/bridge/bridge.cc"]
+        assert (build_inputs.root / "src/bridge/bridge.cc").read_bytes() == resources[
+            "src/bridge/bridge.cc"
+        ]
         work_dir.mkdir(parents=True, exist_ok=True)
         bridge_path = work_dir / "libge_python_pass_bridge.so"
         native_path = work_dir / "_ge_pass_native.so"
         bridge_path.write_text("bridge", encoding="utf-8")
         native_path.write_text("native", encoding="utf-8")
         python_info = runtime.PythonBuildInfo(
-            tag=artifact_utils.current_python_tag(),
+            tag=current_python_tag(),
             executable=sys.executable,
             version="3.test",
             include_dir=tmp_path,
@@ -202,22 +212,26 @@ def test_run_fallback_codegen_publishes_artifact_and_cleans_work_dir(tmp_path, m
     final_dir = runtime._fallback_artifact_dir()
     assert final_dir.parent == artifacts_dir
     assert artifact.root == final_dir.resolve()
-    assert (final_dir / "libge_python_pass_bridge.so").read_text(encoding="utf-8") == "bridge"
+    assert (final_dir / "libge_python_pass_bridge.so").read_text(
+        encoding="utf-8"
+    ) == "bridge"
     assert (final_dir / "_ge_pass_native.so").read_text(encoding="utf-8") == "native"
     manifest = json.loads((final_dir / "manifest.json").read_text(encoding="utf-8"))
-    assert manifest["python_tag"] == artifact_utils.current_python_tag()
-    assert manifest["platform"] == artifact_utils.current_platform_tag()
+    assert manifest["python_tag"] == current_python_tag()
+    assert manifest["platform"] == current_platform_tag()
     assert manifest["bridge_abi"] == artifact_utils.BRIDGE_ABI_VERSION
     assert not list(final_dir.glob(".work.*"))
 
 
-def test_ensure_native_module_uses_fallback_when_no_artifact_is_loadable(tmp_path, monkeypatch):
+def test_ensure_native_module_uses_fallback_when_no_artifact_is_loadable(
+    tmp_path, monkeypatch
+):
     sys.modules.pop(artifact_utils.NATIVE_MODULE_NAME, None)
     artifact_dir = tmp_path / "generated"
     _write_artifact(
         artifact_dir,
-        artifact_utils.current_python_tag(),
-        artifact_utils.current_platform_tag(),
+        current_python_tag(),
+        current_platform_tag(),
         artifact_utils.BRIDGE_ABI_VERSION,
     )
     artifact = artifact_utils.load_artifact_from_dir(artifact_dir)
@@ -226,6 +240,8 @@ def test_ensure_native_module_uses_fallback_when_no_artifact_is_loadable(tmp_pat
 
     monkeypatch.setattr(runtime, "find_prebuilt_artifact", lambda: None)
     monkeypatch.setattr(runtime, "run_fallback_codegen", lambda: artifact)
-    monkeypatch.setattr(runtime, "load_native_module", lambda native_path: native_module)
+    monkeypatch.setattr(
+        runtime, "load_native_module", lambda native_path: native_module
+    )
 
     assert runtime.ensure_native_module() is native_module

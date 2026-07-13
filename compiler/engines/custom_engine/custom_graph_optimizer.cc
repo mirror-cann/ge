@@ -17,6 +17,7 @@
 #include "custom_op_factory.h"
 #include "common/ge_common/ge_types.h"
 #include "common/checker.h"
+#include "graph/custom_op/cast.h"
 #include "lowering/kernel_run_context_builder.h"
 #include "common/compile_profiling/ge_trace_wrapper.h"
 #include "common/thread_pool/thread_pool.h"
@@ -154,7 +155,7 @@ ge::Status AppendCompileTaskIfNeeded(const ge::NodePtr &node, std::vector<Compil
            op_type.c_str());
     return ge::FAILED;
   }
-  auto *const compilable_op_ptr = dynamic_cast<ge::CompilableOp *>(base_custom_op_ptr);
+  auto *const compilable_op_ptr = ge::CustomOpCast<ge::CompilableOp>(base_custom_op_ptr);
   if (compilable_op_ptr == nullptr) {
     GELOGI("[Compile][CustomOp] custom op did not implement CompilableOp, op_name:%s, op_type:%s",
            node->GetName().c_str(), op_type.c_str());

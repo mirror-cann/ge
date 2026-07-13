@@ -544,7 +544,7 @@ elseif (BUILD_OPEN_PROJECT OR ENABLE_OPEN_SRC)
                     stub_acl_op_compiler)
 
             add_custom_target(ge-executor)
-            add_dependencies(ge-executor ge_common ge_executor_shared ge_common_base davinci_executor hybrid_executor gert om2_executor register
+            add_dependencies(ge-executor ge_common ge_executor_shared ge_common_base davinci_executor hybrid_executor gert custom_op_runtime om2_executor register
                     graph custom_op_registry_static npu_sched_model_loader lowering register_static graph_base model_deployer
                     data_flow_base hcom_executor)
             add_dependencies(ge-executor acl_mdl acl_mdl_impl acl_mdl_impl_om2 acl_op_executor acl_op_executor_impl acl_cblas)
