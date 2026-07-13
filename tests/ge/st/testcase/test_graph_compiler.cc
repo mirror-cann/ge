@@ -8,11 +8,22 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
+#include <algorithm>
+#include <fstream>
 #include <gtest/gtest.h>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <string>
+#include <vector>
+#define private public
+#include "graph/build/graph_builder.h"
+#undef private
 #include "ge/ge_api.h"
 #include "ge/ge_api_v2.h"
 #include "graph/debug/ge_attr_define.h"
 #include "framework/common/framework_types_internal.h"
+#include "common/ge_common/ge_types.h"
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/graph_utils_ex.h"
 #include "graph/utils/tensor_utils.h"
@@ -1828,6 +1839,73 @@ TEST_F(GraphCompilerTest, test_build_append_ws) {
   std::vector<InputTensorInfo> inputs;
   auto ret = session.CompileGraph(1);
   EXPECT_EQ(ret, SUCCESS);
+}
+
+TEST_F(GraphCompilerTest, test_process_append_ws_refreshes_custom_omc_node) {
+  auto graph = std::make_shared<ComputeGraph>("custom_append_ws_graph");
+  auto op_desc = std::make_shared<OpDesc>("custom_append_ws_node", "TestCustomAppendWs");
+  op_desc->SetId(100);
+  op_desc->SetStreamId(2);
+  op_desc->SetOpKernelLibName(kCustomOpKernelLibName);
+  op_desc->SetWorkspace({});
+  op_desc->SetWorkspaceBytes({});
+  ASSERT_TRUE(AttrUtils::SetListInt(op_desc, "_append_ws", std::vector<int64_t>{100}));
+  ASSERT_TRUE(AttrUtils::SetBool(op_desc, "_custom_omc_append_ws", true));
+  auto node = graph->AddNode(op_desc);
+  ASSERT_NE(node, nullptr);
+
+  auto model = std::make_shared<Model>();
+  ASSERT_NE(model, nullptr);
+  ASSERT_TRUE(AttrUtils::SetInt(model, ATTR_MODEL_MEMORY_SIZE, 4096));
+  ASSERT_TRUE(AttrUtils::SetInt(model, ATTR_MODEL_ZERO_COPY_MEMORY_SIZE, 0));
+  std::vector<std::vector<int64_t>> sub_memory_infos = {{0, 0, 4096, 0}};
+  ASSERT_TRUE(AttrUtils::SetListListInt(model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos));
+
+  GraphBuilder graph_builder;
+  std::vector<Node *> refresh_nodes;
+  EXPECT_EQ(graph_builder.ProcessAppendWs(model, graph, refresh_nodes), SUCCESS);
+
+  ASSERT_EQ(op_desc->GetWorkspace().size(), 1U);
+  ASSERT_EQ(op_desc->GetWorkspaceBytes().size(), 1U);
+  EXPECT_EQ(op_desc->GetWorkspace()[0], 4096);
+  EXPECT_EQ(op_desc->GetWorkspaceBytes()[0], 100);
+  int64_t memory_size = 0;
+  ASSERT_TRUE(AttrUtils::GetInt(model, ATTR_MODEL_MEMORY_SIZE, memory_size));
+  EXPECT_EQ(memory_size, 4608);
+  EXPECT_EQ(std::count(refresh_nodes.begin(), refresh_nodes.end(), node.get()), 1);
+}
+
+TEST_F(GraphCompilerTest, test_process_append_ws_refreshes_other_custom_nodes_after_custom_append_ws) {
+  auto graph = std::make_shared<ComputeGraph>("custom_append_ws_refresh_all_graph");
+  auto append_desc = std::make_shared<OpDesc>("custom_append_ws_node", "TestCustomAppendWs");
+  append_desc->SetId(101);
+  append_desc->SetStreamId(1);
+  append_desc->SetOpKernelLibName(kCustomOpKernelLibName);
+  ASSERT_TRUE(AttrUtils::SetListInt(append_desc, "_append_ws", std::vector<int64_t>{100}));
+  ASSERT_TRUE(AttrUtils::SetBool(append_desc, "_custom_omc_append_ws", true));
+  auto append_node = graph->AddNode(append_desc);
+  ASSERT_NE(append_node, nullptr);
+
+  auto other_desc = std::make_shared<OpDesc>("other_custom_node", "TestOtherCustom");
+  other_desc->SetId(102);
+  other_desc->SetStreamId(1);
+  other_desc->SetOpKernelLibName(kCustomOpKernelLibName);
+  auto other_node = graph->AddNode(other_desc);
+  ASSERT_NE(other_node, nullptr);
+
+  auto model = std::make_shared<Model>();
+  ASSERT_NE(model, nullptr);
+  ASSERT_TRUE(AttrUtils::SetInt(model, ATTR_MODEL_MEMORY_SIZE, 4096));
+  ASSERT_TRUE(AttrUtils::SetInt(model, ATTR_MODEL_ZERO_COPY_MEMORY_SIZE, 0));
+  std::vector<std::vector<int64_t>> sub_memory_infos = {{0, 0, 4096, 0}};
+  ASSERT_TRUE(AttrUtils::SetListListInt(model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos));
+
+  GraphBuilder graph_builder;
+  std::vector<Node *> refresh_nodes;
+  EXPECT_EQ(graph_builder.ProcessAppendWs(model, graph, refresh_nodes), SUCCESS);
+
+  EXPECT_EQ(std::count(refresh_nodes.begin(), refresh_nodes.end(), append_node.get()), 1);
+  EXPECT_EQ(std::count(refresh_nodes.begin(), refresh_nodes.end(), other_node.get()), 1);
 }
 
 TEST_F(GraphCompilerTest, test_build_super_kernel_cmo) {

@@ -12,6 +12,7 @@ graph_metadef/graph/normal_graph/graph.cc
 graph_metadef/base/common/plugin/plugin_manager.cc
 compiler/graph/eager_style_graph_builder/es_base_struct/esb_funcs.cc
 graph_metadef/base/utils/type_utils_inner.cc
+graph_metadef/exe_graph/stub/stub_offline_launch_runtime.cc
 compiler/engines/rts_engine/ops_kernel_store/op/cmo_addr_op.cc
 compiler/graph/build/memory/checker/node_checker/continuous_input_node_checker.cc
 dflow/compiler/data_flow_graph/data_flow_attr_utils.cc

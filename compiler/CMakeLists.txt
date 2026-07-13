@@ -469,6 +469,7 @@ target_link_libraries(ge_compiler
         unified_dlog
         runtime_headers
         aihac_symbolizer
+        lowering
         -Wl,--as-needed
         json
         -lrt

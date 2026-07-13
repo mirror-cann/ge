@@ -82,7 +82,8 @@ if("ge-compiler" IN_LIST BUILD_COMPONENT)
                 LIBRARY DESTINATION ${ARCH_LINUX_PATH}/lib64 COMPONENT ge-compiler
                 ARCHIVE DESTINATION ${ARCH_LINUX_PATH}/lib64 COMPONENT ge-compiler
         )
-        install(TARGETS fmk_onnx_parser_stub fmk_parser_stub atc_stub_ge_compiler fwk_stub_ge_runner fwk_stub_ge_runner_v2 stub_acl_op_compiler
+        install(TARGETS fmk_onnx_parser_stub fmk_parser_stub atc_stub_ge_compiler fwk_stub_ge_runner fwk_stub_ge_runner_v2
+                        stub_acl_op_compiler
                 LIBRARY DESTINATION ${ARCH_LINUX_PATH}/devlib/linux/${TARGET_ARCH} COMPONENT ge-compiler
                 ARCHIVE DESTINATION ${ARCH_LINUX_PATH}/devlib/linux/${TARGET_ARCH} COMPONENT ge-compiler
         )
@@ -269,7 +270,8 @@ if("ge-executor" IN_LIST BUILD_COMPONENT)
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/inc/external/acl/ops/acl_cblas.h
             DESTINATION ${ARCH_LINUX_PATH}/include/acl/ops COMPONENT ge-executor
     )
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/inc/graph_metadef/external/exe_graph/runtime/eager_op_execution_context.h
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/inc/graph_metadef/external/exe_graph/runtime/annotated_args_context.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/inc/graph_metadef/external/exe_graph/runtime/eager_op_execution_context.h
             ${CMAKE_CURRENT_SOURCE_DIR}/inc/graph_metadef/external/exe_graph/runtime/op_compile_context.h
             ${CMAKE_CURRENT_SOURCE_DIR}/inc/graph_metadef/external/exe_graph/runtime/update_args_context.h
             ${CMAKE_CURRENT_SOURCE_DIR}/inc/graph_metadef/external/exe_graph/runtime/kernel_args.h

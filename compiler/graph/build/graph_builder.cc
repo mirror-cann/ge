@@ -9,10 +9,12 @@
  */
 
 #include "graph/build/graph_builder.h"
+#include <algorithm>
 #include <cinttypes>
 #include "graph/build/memory/graph_mem_assigner.h"
 #include "common/plugin/ge_make_unique_util.h"
 #include "framework/common/helper/model_helper.h"
+#include "common/ge_common/ge_types.h"
 #include "graph/build/run_context_util.h"
 #include "graph/build/stream_graph_optimizer.h"
 #include "graph/build/memory/var_mem_assign_util.h"
@@ -52,12 +54,37 @@ const uint32_t kSubgraphIndexOfPartitionedCall = 0U;
 constexpr const ge::char_t *kConstLifecycleGraph = "graph";
 constexpr const ge::char_t *kConstLifecycleSession = "session";
 enum class NodeType : uint32_t { kSubgraphData = 0U, kSubgraphNode = 1U, kOthers = 2U };
+constexpr const ge::char_t *kCustomOmcAppendWs = "_custom_omc_append_ws";
 
 bool IsInRange(const int64_t val, const int64_t left, const int64_t right) {
   if ((val >= left) && (val < right)) {
     return true;
   }
   return false;
+}
+
+bool IsCustomOmcAppendWsNode(const ge::NodePtr &node) {
+  if ((node == nullptr) || (node->GetOpDesc() == nullptr)) {
+    return false;
+  }
+  bool custom_omc_append_ws = false;
+  return ge::AttrUtils::GetBool(node->GetOpDesc(), kCustomOmcAppendWs, custom_omc_append_ws) && custom_omc_append_ws;
+}
+
+bool IsCustomKernelNode(const ge::NodePtr &node) {
+  if ((node == nullptr) || (node->GetOpDesc() == nullptr)) {
+    return false;
+  }
+  return node->GetOpDesc()->GetOpKernelLibName() == ge::kCustomOpKernelLibName;
+}
+
+void AddRefreshNodeOnce(ge::Node *node, std::vector<ge::Node *> &refresh_nodes) {
+  if (node == nullptr) {
+    return;
+  }
+  if (std::find(refresh_nodes.begin(), refresh_nodes.end(), node) == refresh_nodes.end()) {
+    refresh_nodes.emplace_back(node);
+  }
 }
 }  // namespace
 namespace ge {
@@ -948,7 +975,7 @@ Status GraphBuilder::RefreshOffsetAfterAppendWs(const ComputeGraphPtr &comp_grap
       GE_ASSERT_SUCCESS(
           RefreshNodeOffsetAfterAppendWs(node, origin_memory_size, zero_copy_size, last_append_ws_size, need_refresh));
       if (need_refresh) {
-        refresh_nodes.emplace_back(node);
+        AddRefreshNodeOnce(node, refresh_nodes);
       }
     } else {
       auto op_desc = node->GetOpDesc();
@@ -965,6 +992,28 @@ Status GraphBuilder::RefreshOffsetAfterAppendWs(const ComputeGraphPtr &comp_grap
     }
   }
   return SUCCESS;
+}
+
+static void AddCustomOmcAppendWsRefreshNodes(const ComputeGraphPtr &comp_graph,
+                                             const std::map<int64_t, std::vector<NodePtr>> &append_ws_stm_nodes,
+                                             std::vector<Node *> &refresh_nodes) {
+  bool has_custom_omc_append_ws = false;
+  for (const auto &stm_nodes : append_ws_stm_nodes) {
+    for (const auto &node : stm_nodes.second) {
+      if (IsCustomOmcAppendWsNode(node)) {
+        has_custom_omc_append_ws = true;
+        AddRefreshNodeOnce(node.get(), refresh_nodes);
+      }
+    }
+  }
+  if (!has_custom_omc_append_ws) {
+    return;
+  }
+  for (const auto &node : comp_graph->GetAllNodes()) {
+    if (IsCustomKernelNode(node)) {
+      AddRefreshNodeOnce(node.get(), refresh_nodes);
+    }
+  }
 }
 
 Status GraphBuilder::ProcessAppendWs(const ModelPtr &model_ptr, const ComputeGraphPtr &comp_graph,
@@ -1005,6 +1054,7 @@ Status GraphBuilder::ProcessAppendWs(const ModelPtr &model_ptr, const ComputeGra
   GE_ASSERT_SUCCESS(UpdateMemAfterAppendWs(model_ptr, append_ws_stm_max, append_ws_stm_nodes, last_append_ws_size));
   GE_ASSERT_SUCCESS(
       RefreshOffsetAfterAppendWs(comp_graph, origin_memory_size, zero_copy_size, last_append_ws_size, refresh_nodes));
+  AddCustomOmcAppendWsRefreshNodes(comp_graph, append_ws_stm_nodes, refresh_nodes);
   return SUCCESS;
 }
 

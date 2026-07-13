@@ -40,6 +40,8 @@ constexpr int64_t kMemtypeHostCompileIndependent = 2;
 class SingleOpProfilingSt : public testing::Test {
  protected:
   void TearDown() override {
+    TearDownForGenerateTask("AiCoreLib");
+    TearDownForGenerateTask("AIcoreEngine");
     profiling::ProfilingContext::GetInstance().Reset();
     profiling::ProfilingContext::GetInstance().SetDisable();
     ProfilingProperties::Instance().ClearProperties();

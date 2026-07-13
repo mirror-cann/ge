@@ -943,6 +943,40 @@ TEST_F(GraphBuilderTest, TestAppendWs_multi_stream) {
   EXPECT_EQ(relu2_g2_node->GetOpDesc()->GetOutputOffset()[0] - 1536, relu2_g1_node->GetOpDesc()->GetOutputOffset()[0]);
 }
 
+TEST_F(GraphBuilderTest, ProcessAppendWsRefreshesCustomOmcAndOtherCustomKernelNodes) {
+  auto graph = std::make_shared<ComputeGraph>("custom_omc_append_ws_graph");
+  auto append_desc = std::make_shared<OpDesc>("append_custom", "AppendCustom");
+  append_desc->SetStreamId(0);
+  append_desc->SetOpKernelLibName(kCustomOpKernelLibName);
+  ASSERT_TRUE(AttrUtils::SetListInt(append_desc, "_append_ws", std::vector<int64_t>{100}));
+  ASSERT_TRUE(AttrUtils::SetBool(append_desc, "_custom_omc_append_ws", true));
+  auto append_node = graph->AddNode(append_desc);
+  ASSERT_NE(append_node, nullptr);
+
+  auto other_desc = std::make_shared<OpDesc>("other_custom", "OtherCustom");
+  other_desc->SetStreamId(0);
+  other_desc->SetOpKernelLibName(kCustomOpKernelLibName);
+  auto other_node = graph->AddNode(other_desc);
+  ASSERT_NE(other_node, nullptr);
+
+  auto model = std::make_shared<Model>();
+  ASSERT_TRUE(AttrUtils::SetInt(model, ATTR_MODEL_MEMORY_SIZE, 4096));
+  ASSERT_TRUE(AttrUtils::SetInt(model, ATTR_MODEL_ZERO_COPY_MEMORY_SIZE, 0));
+  ASSERT_TRUE(
+      AttrUtils::SetListListInt(model, ATTR_MODEL_SUB_MEMORY_INFO, std::vector<std::vector<int64_t>>{{0, 0, 4096, 0}}));
+
+  GraphBuilder graph_builder;
+  std::vector<Node *> refresh_nodes;
+  EXPECT_EQ(graph_builder.ProcessAppendWs(model, graph, refresh_nodes), SUCCESS);
+
+  ASSERT_EQ(append_desc->GetWorkspace().size(), 1U);
+  ASSERT_EQ(append_desc->GetWorkspaceBytes().size(), 1U);
+  EXPECT_EQ(append_desc->GetWorkspace()[0], 4096);
+  EXPECT_EQ(append_desc->GetWorkspaceBytes()[0], 100);
+  EXPECT_EQ(std::count(refresh_nodes.begin(), refresh_nodes.end(), append_node.get()), 1);
+  EXPECT_EQ(std::count(refresh_nodes.begin(), refresh_nodes.end(), other_node.get()), 1);
+}
+
 TEST_F(GraphBuilderTest, TestAppendWs) {
   DEF_GRAPH(g1) {
     CHAIN(NODE("data1", DATA)->NODE("relu1", RELU)->NODE("relu2", RELU)->NODE("netoutput", NETOUTPUT));

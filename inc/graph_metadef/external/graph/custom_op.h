@@ -10,9 +10,11 @@
 
 #ifndef METADEF_CXX_INC_GRAPH_BASE_CUSTOM_OP_H
 #define METADEF_CXX_INC_GRAPH_BASE_CUSTOM_OP_H
+#include "exe_graph/runtime/annotated_args_context.h"
 #include "exe_graph/runtime/eager_op_execution_context.h"
 #include <functional>
 #include <memory>
+#include <vector>
 #include "graph/ge_error_codes.h"
 #include "exe_graph/runtime/infer_datatype_context.h"
 #include "exe_graph/runtime/infer_shape_context.h"
@@ -78,6 +80,25 @@ class EagerExecuteOp : virtual public BaseCustomOp {
    * @return 状态码
    */
   virtual graphStatus Execute(gert::EagerOpExecutionContext *ctx) = 0;
+};
+
+/**
+ * 自定义算子的 kernel launch 参数声明接口。
+ * 用于自定义算子在编译期通过 DeclareLaunchArgs 声明 kernel launch 所需的参数。
+ * 适用于生成端侧离线模型。
+ * @since 9.2.0(2026-07)
+ */
+class AnnotatedArgsOp : virtual public BaseCustomOp {
+ public:
+  ~AnnotatedArgsOp() override = default;
+  /**
+   * 声明 kernel launch 参数，编译期调用。
+   * 当前端侧离线模型的 TaskDef 生成仅支持单次 AddLaunch 和主 stream launch。
+   * @param ctx 声明式参数上下文，可通过 ctx 分配 workspace、获取输入/输出 tensor、添加 launch 任务
+   * @return GRAPH_SUCCESS 表示声明成功，否则返回错误码
+   * @since 9.2.0(2026-07)
+   */
+  virtual graphStatus DeclareLaunchArgs(gert::AnnotatedArgsContext &ctx) = 0;
 };
 
 /**
