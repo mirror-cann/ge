@@ -18,8 +18,10 @@
 #include "framework/common/ge_inner_error_codes.h"
 #include "framework/common/util.h"
 #include "graph/def_types.h"
+#include "graph/utils/attr_utils.h"
 #include "macro_utils/dt_public_unscope.h"
 
+#include "depends/ascendcl/src/ascendcl_stub.h"
 #include "proto/task.pb.h"
 
 using namespace std;
@@ -194,6 +196,55 @@ TEST_F(UtestOmFileHelper, TestInvalidPartitionNumber) {
   std::vector<ModelPartitionType> valid1{MODEL_DEF, WEIGHTS_DATA,       TASK_INFO,  TBE_KERNELS,
                                          SO_BINS,   CUST_AICPU_KERNELS, TILING_DATA};
   EXPECT_EQ(OmFileLoadHelper::CheckPartitionTableNum(valid1.size()), true);
+}
+
+// soc_version 为空时跳过兼容性检查，返回成功
+TEST_F(UtestOmFileHelper, CheckModelCompatibility_EmptySocVersion_ReturnSuccess) {
+  OmFileLoadHelper loader;
+  Model model("test_model", "v1");
+  EXPECT_EQ(loader.CheckModelCompatibility(model), SUCCESS);
+}
+
+// soc_version 非法时(用户传错), aclrtCheckArchCompatibility 返回失败, 应回报参数错误 PARAM_INVALID
+TEST_F(UtestOmFileHelper, CheckModelCompatibility_InvalidSocVersion_ReturnParamInvalid) {
+  class MockAclRuntime : public ge::AclRuntimeStub {
+   public:
+    aclError aclrtCheckArchCompatibility(const char *socVersion, int32_t *canCompatible) override {
+      if (canCompatible != nullptr) {
+        *canCompatible = 0;
+      }
+      return static_cast<aclError>(-1);  // 模拟用户传入的 soc_version 非法
+    }
+  };
+  ge::AclRuntimeStub::SetInstance(std::make_shared<MockAclRuntime>());
+
+  OmFileLoadHelper loader;
+  Model model("test_model", "v1");
+  (void)AttrUtils::SetStr(model, "soc_version", "invalid_soc_version");
+  EXPECT_EQ(loader.CheckModelCompatibility(model), PARAM_INVALID);
+
+  ge::AclRuntimeStub::Reset();
+}
+
+// soc_version 合法但与当前设备不兼容时(canCompatible==0), 应返回失败
+TEST_F(UtestOmFileHelper, CheckModelCompatibility_IncompatibleDevice_ReturnFailed) {
+  class MockAclRuntime : public ge::AclRuntimeStub {
+   public:
+    aclError aclrtCheckArchCompatibility(const char *socVersion, int32_t *canCompatible) override {
+      if (canCompatible != nullptr) {
+        *canCompatible = 0;  // 合法 soc_version, 但当前设备不兼容
+      }
+      return ACL_SUCCESS;
+    }
+  };
+  ge::AclRuntimeStub::SetInstance(std::make_shared<MockAclRuntime>());
+
+  OmFileLoadHelper loader;
+  Model model("test_model", "v1");
+  (void)AttrUtils::SetStr(model, "soc_version", "Ascend910A");
+  EXPECT_NE(loader.CheckModelCompatibility(model), SUCCESS);
+
+  ge::AclRuntimeStub::Reset();
 }
 
 }  // namespace ge

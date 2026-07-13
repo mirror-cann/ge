@@ -264,7 +264,17 @@ Status OmFileLoadHelper::CheckModelCompatibility(const Model &model) const {
     return SUCCESS;
   }
   int32_t compatible = 0;
-  GE_ASSERT_RT_OK(aclrtCheckArchCompatibility(model_soc_version.c_str(), &compatible));
+  const aclError acl_ret = aclrtCheckArchCompatibility(model_soc_version.c_str(), &compatible);
+  if (acl_ret != ACL_ERROR_NONE) {
+    // soc_version 为用户输入参数，校验失败按参数错误(E10001)上报，而非内部错误(E19999)
+    const std::string reason = "aclrtCheckArchCompatibility ret: 0x" + std::to_string(static_cast<uint32_t>(acl_ret));
+    (void)REPORT_PREDEFINED_ERR_MSG(
+        "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
+        std::vector<const char *>({"soc_version", model_soc_version.c_str(), reason.c_str()}));
+    GELOGE(PARAM_INVALID, "Model soc version[%s] is invalid, aclrtCheckArchCompatibility ret: 0x%X",
+           model_soc_version.c_str(), static_cast<uint32_t>(acl_ret));
+    return PARAM_INVALID;
+  }
   GELOGI("The soc version [%s]. Check compatibility is %d.", model_soc_version.c_str(), compatible);
   GE_ASSERT_TRUE(compatible == 1, "Model soc version[%s] is not support in this device",
                  model_soc_version.c_str());  // 1 for compatible, 0 for incompatible
