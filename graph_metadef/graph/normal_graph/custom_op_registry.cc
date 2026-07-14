@@ -158,6 +158,27 @@ BaseCustomOp *CustomOpRegistry::CreateOrGetCustomOp(const AscendString &op_type)
   return nullptr;
 }
 
+void CustomOpRegistry::RemoveCustomOps(const std::vector<AscendString> &op_types) {
+  std::vector<std::shared_ptr<BaseCustomOp>> removed_custom_ops;
+  {
+    const std::lock_guard<std::mutex> lock(mu_);
+    for (const auto &op_type : op_types) {
+      const auto custom_op_iter = custom_ops_.find(op_type);
+      if (custom_op_iter != custom_ops_.cend()) {
+        removed_custom_ops.emplace_back(std::move(custom_op_iter->second));
+        (void)custom_ops_.erase(custom_op_iter);
+      }
+
+      const auto creator_iter = creators_.find(op_type);
+      if (creator_iter != creators_.cend()) {
+        (void)creators_.erase(creator_iter);
+      }
+    }
+  }
+
+  removed_custom_ops.clear();
+}
+
 bool CustomOpRegistry::IsAddressRefreshable(const AscendString &op_type) {
   const auto *custom_op = CreateOrGetCustomOp(op_type);
   if (custom_op == nullptr) {

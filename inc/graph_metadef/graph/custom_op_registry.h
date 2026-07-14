@@ -37,6 +37,7 @@ class CustomOpRegistry {
   void AddSoHandles(const std::vector<CustomOpSoHandlePtr> &so_handles);
 
   BaseCustomOp *CreateOrGetCustomOp(const AscendString &op_type);
+  void RemoveCustomOps(const std::vector<AscendString> &op_types);
   bool IsAddressRefreshable(const AscendString &op_type);
   BaseCustomOp *FindCustomOp(const AscendString &op_type) const;
   bool HasCreator(const AscendString &op_type) const;

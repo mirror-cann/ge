@@ -36,6 +36,10 @@ BaseCustomOp *CustomOpFactory::CreateOrGetCustomOp(const AscendString &op_type) 
   return GetGlobalRegistry().CreateOrGetCustomOp(op_type);
 }
 
+void CustomOpFactory::RemoveCustomOps(const std::vector<AscendString> &op_types) {
+  GetGlobalRegistry().RemoveCustomOps(op_types);
+}
+
 graphStatus CustomOpFactory::GetAllRegisteredOps(std::vector<AscendString> &all_registered_ops) {
   return GetGlobalRegistry().GetAllRegisteredOps(all_registered_ops);
 }

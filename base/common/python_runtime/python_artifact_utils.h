@@ -8,30 +8,30 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#ifndef GE_COMPILER_GRAPH_FUSION_PASS_PYTHON_PASS_ARTIFACT_SELECTOR_H_
-#define GE_COMPILER_GRAPH_FUSION_PASS_PYTHON_PASS_ARTIFACT_SELECTOR_H_
+#ifndef BASE_COMMON_PYTHON_RUNTIME_PYTHON_ARTIFACT_UTILS_H_
+#define BASE_COMMON_PYTHON_RUNTIME_PYTHON_ARTIFACT_UTILS_H_
 
 #include <dirent.h>
+#include <dlfcn.h>
 #include <sys/utsname.h>
 
 #include <cctype>
-#include <cstdint>
-#include <cstdlib>
 #include <fstream>
 #include <iterator>
 #include <string>
 #include <vector>
 
+#include "file_utils.h"
 #include "nlohmann/json.hpp"
 
 namespace ge {
-namespace fusion {
-namespace python_pass_artifact {
+namespace python_artifact {
 
 constexpr const char *kArtifactManifestName = "manifest.json";
 constexpr const char *kGePackageRelativePath = "python/site-packages/ge";
-constexpr const char *kPythonPassArtifactsRelativePath = "passes/python_pass_artifacts";
 constexpr const char *kPythonPathEnvName = "PYTHONPATH";
+constexpr const char *kPyIsInitializedSymbol = "Py_IsInitialized";
+constexpr const char *kPyGetVersionSymbol = "Py_GetVersion";
 
 struct BridgeLibraryCandidate {
   std::string bridge_path;
@@ -39,7 +39,7 @@ struct BridgeLibraryCandidate {
   std::string native_module_path;
 };
 
-struct PythonPassArtifactSet {
+struct PythonArtifactSet {
   std::string root;
   std::string manifest_path;
   std::string python_tag;
@@ -66,6 +66,11 @@ struct PythonRuntimeKey {
            "], version[" + version + "]";
   }
 };
+
+inline bool IsRuntimeKeyCompatible(const PythonRuntimeKey &expected_key, const PythonRuntimeKey &loaded_key) {
+  return expected_key.python_tag.empty() || loaded_key.python_tag.empty() ||
+         (loaded_key.python_tag == expected_key.python_tag);
+}
 
 inline bool ParseLeadingNumber(const char *&cursor, int &value) {
   if ((cursor == nullptr) || (std::isdigit(static_cast<unsigned char>(*cursor)) == 0)) {
@@ -96,6 +101,25 @@ inline std::string ParsePythonTag(const char *version) {
     return "";
   }
   return "cp" + std::to_string(major) + std::to_string(minor);
+}
+
+inline PythonRuntimeKey ResolveLoadedPythonRuntimeKey() {
+  using PyIsInitializedFn = int (*)();
+  using PyGetVersionFn = const char *(*)();
+  auto *py_is_initialized = reinterpret_cast<PyIsInitializedFn>(dlsym(RTLD_DEFAULT, kPyIsInitializedSymbol));
+  auto *py_get_version = reinterpret_cast<PyGetVersionFn>(dlsym(RTLD_DEFAULT, kPyGetVersionSymbol));
+  PythonRuntimeKey runtime_key;
+  runtime_key.has_python_symbols = (py_is_initialized != nullptr) && (py_get_version != nullptr);
+  if (!runtime_key.has_python_symbols) {
+    runtime_key.source = "unresolved(no loaded Py_* symbols)";
+    return runtime_key;
+  }
+  runtime_key.source = "loaded Py_* symbols";
+  runtime_key.is_initialized = (py_is_initialized() != 0);
+  const char *version = py_get_version();
+  runtime_key.version = (version == nullptr) ? "" : version;
+  runtime_key.python_tag = ParsePythonTag(version);
+  return runtime_key;
 }
 
 inline std::string DirName(const std::string &path) {
@@ -135,21 +159,8 @@ inline std::string CurrentPlatformTag() {
   return "linux-" + std::string(uts.machine);
 }
 
-inline std::string ResolveRealPath(const char *path) {
-  if ((path == nullptr) || (path[0] == '\0')) {
-    return "";
-  }
-  char *resolved_path = realpath(path, nullptr);
-  if (resolved_path == nullptr) {
-    return "";
-  }
-  std::string result(resolved_path);
-  free(resolved_path);
-  return result;
-}
-
 inline bool ReadTextFile(const std::string &file_path, std::string &content) {
-  const auto real_path = ResolveRealPath(file_path.c_str());
+  const auto real_path = RealPath(file_path.c_str());
   if (real_path.empty()) {
     return false;
   }
@@ -179,7 +190,7 @@ inline bool GetJsonUint32(const nlohmann::json &json_obj, const char *field_name
   return true;
 }
 
-inline bool LoadArtifactManifest(const std::string &manifest_path, PythonPassArtifactSet &artifact) {
+inline bool LoadArtifactManifest(const std::string &manifest_path, PythonArtifactSet &artifact) {
   std::string manifest_content;
   if (!ReadTextFile(manifest_path, manifest_content)) {
     return false;
@@ -193,8 +204,8 @@ inline bool LoadArtifactManifest(const std::string &manifest_path, PythonPassArt
     return false;
   }
 
-  const auto real_manifest_path = ResolveRealPath(manifest_path.c_str());
-  artifact = PythonPassArtifactSet{};
+  const auto real_manifest_path = RealPath(manifest_path.c_str());
+  artifact = PythonArtifactSet{};
   artifact.manifest_path = real_manifest_path;
   artifact.root = DirName(real_manifest_path);
   std::string bridge_rel_path;
@@ -211,8 +222,8 @@ inline bool LoadArtifactManifest(const std::string &manifest_path, PythonPassArt
     return false;
   }
 
-  artifact.bridge_path = ResolveRealPath(JoinPath(artifact.root, bridge_rel_path).c_str());
-  artifact.native_module_path = ResolveRealPath(JoinPath(artifact.root, native_rel_path).c_str());
+  artifact.bridge_path = RealPath(JoinPath(artifact.root, bridge_rel_path).c_str());
+  artifact.native_module_path = RealPath(JoinPath(artifact.root, native_rel_path).c_str());
   if (artifact.bridge_path.empty() || artifact.native_module_path.empty()) {
     return false;
   }
@@ -220,13 +231,13 @@ inline bool LoadArtifactManifest(const std::string &manifest_path, PythonPassArt
 }
 
 inline void AppendManifestCandidatesFromRoot(const std::string &root_path, std::vector<std::string> &manifest_paths) {
-  const auto real_root = ResolveRealPath(root_path.c_str());
+  const auto real_root = RealPath(root_path.c_str());
   if (real_root.empty()) {
     return;
   }
 
   const auto root_manifest_path = JoinPath(real_root, kArtifactManifestName);
-  if (!ResolveRealPath(root_manifest_path.c_str()).empty()) {
+  if (!RealPath(root_manifest_path.c_str()).empty()) {
     manifest_paths.emplace_back(root_manifest_path);
   }
 
@@ -244,7 +255,7 @@ inline void AppendManifestCandidatesFromRoot(const std::string &root_path, std::
       continue;
     }
     const auto child_manifest_path = JoinPath(JoinPath(real_root, name), kArtifactManifestName);
-    if (!ResolveRealPath(child_manifest_path.c_str()).empty()) {
+    if (!RealPath(child_manifest_path.c_str()).empty()) {
       manifest_paths.emplace_back(child_manifest_path);
     }
   }
@@ -252,7 +263,7 @@ inline void AppendManifestCandidatesFromRoot(const std::string &root_path, std::
 }
 
 inline void AppendUniquePath(const std::string &path, std::vector<std::string> &paths) {
-  const auto real_path = ResolveRealPath(path.c_str());
+  const auto real_path = RealPath(path.c_str());
   if (real_path.empty()) {
     return;
   }
@@ -314,15 +325,19 @@ inline std::vector<std::string> BuildGePackageDirCandidates(const std::string &l
   return ge_package_dirs;
 }
 
-inline std::vector<std::string> BuildArtifactManifestCandidates(const std::string &loader_library_path) {
+inline std::vector<std::string> BuildArtifactManifestCandidates(const std::string &loader_library_path,
+                                                                const std::string &artifact_relative_path) {
   std::vector<std::string> manifest_paths;
+  if (artifact_relative_path.empty()) {
+    return manifest_paths;
+  }
   for (const auto &ge_package_dir : BuildGePackageDirCandidates(loader_library_path)) {
-    AppendManifestCandidatesFromRoot(JoinPath(ge_package_dir, kPythonPassArtifactsRelativePath), manifest_paths);
+    AppendManifestCandidatesFromRoot(JoinPath(ge_package_dir, artifact_relative_path), manifest_paths);
   }
   return manifest_paths;
 }
 
-inline void AppendMatchedArtifactCandidate(const PythonRuntimeKey &runtime_key, const PythonPassArtifactSet &artifact,
+inline void AppendMatchedArtifactCandidate(const PythonRuntimeKey &runtime_key, const PythonArtifactSet &artifact,
                                            const std::string &platform_tag, const uint32_t expected_bridge_abi,
                                            std::vector<BridgeLibraryCandidate> &candidates) {
   if (artifact.python_tag != runtime_key.python_tag) {
@@ -347,7 +362,7 @@ inline BridgeLibraryCandidate LoadBridgeCandidateFromArtifactRoot(const std::str
   if (artifact_root.empty() || runtime_key.python_tag.empty()) {
     return BridgeLibraryCandidate{};
   }
-  PythonPassArtifactSet artifact;
+  PythonArtifactSet artifact;
   if (!LoadArtifactManifest(JoinPath(artifact_root, kArtifactManifestName), artifact)) {
     return BridgeLibraryCandidate{};
   }
@@ -359,27 +374,26 @@ inline BridgeLibraryCandidate LoadBridgeCandidateFromArtifactRoot(const std::str
   return candidates.front();
 }
 
-inline std::vector<BridgeLibraryCandidate> BuildPrebuiltBridgeLibraryCandidates(const PythonRuntimeKey &runtime_key,
-                                                                                const std::string &loader_library_path,
-                                                                                const uint32_t expected_bridge_abi) {
+inline std::vector<BridgeLibraryCandidate> BuildPrebuiltBridgeLibraryCandidates(
+    const PythonRuntimeKey &runtime_key, const std::string &loader_library_path,
+    const std::string &artifact_relative_path, const uint32_t expected_bridge_abi) {
   std::vector<BridgeLibraryCandidate> candidates;
-  if (runtime_key.python_tag.empty()) {
+  if (runtime_key.python_tag.empty() || artifact_relative_path.empty()) {
     return candidates;
   }
 
   const auto platform_tag = CurrentPlatformTag();
-  for (const auto &manifest_path : BuildArtifactManifestCandidates(loader_library_path)) {
-    PythonPassArtifactSet artifact;
-    if (!LoadArtifactManifest(manifest_path, artifact)) {
+  for (const auto &manifest_path : BuildArtifactManifestCandidates(loader_library_path, artifact_relative_path)) {
+    PythonArtifactSet artifact_set;
+    if (!LoadArtifactManifest(manifest_path, artifact_set)) {
       continue;
     }
-    AppendMatchedArtifactCandidate(runtime_key, artifact, platform_tag, expected_bridge_abi, candidates);
+    AppendMatchedArtifactCandidate(runtime_key, artifact_set, platform_tag, expected_bridge_abi, candidates);
   }
   return candidates;
 }
 
-}  // namespace python_pass_artifact
-}  // namespace fusion
+}  // namespace python_artifact
 }  // namespace ge
 
-#endif  // GE_COMPILER_GRAPH_FUSION_PASS_PYTHON_PASS_ARTIFACT_SELECTOR_H_
+#endif  // BASE_COMMON_PYTHON_RUNTIME_PYTHON_ARTIFACT_UTILS_H_

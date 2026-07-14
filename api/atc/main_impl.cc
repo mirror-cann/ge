@@ -52,8 +52,8 @@
 #include "nlohmann/json.hpp"
 #include "graph_metadef/graph/utils/file_utils.h"
 #include "register/optimization_option_registry.h"
-#include "register/op_lib_register_impl.h"
 #include "register/amct_registry.h"
+#include "runtime/custom_op/custom_op_loader.h"
 
 namespace {
 using json = nlohmann::json;
@@ -1465,7 +1465,15 @@ static Status ConvertModelToJson(int32_t fwk_type, const std::string &model_file
     ret = ConvertOm(model_file.c_str(), json_file.c_str(), true);
     return ret;
   }
-  GE_ASSERT_GRAPH_SUCCESS(OpLibRegistry::GetInstance().PreProcessForCustomOp());
+  ret = GePythonRuntimeManager::Instance().EnsureReady();
+  if (ret != SUCCESS) {
+    GELOGW("[Ensure][PythonRuntime] failed before converting model to json, continue initialization, ret[%u].", ret);
+  }
+  GE_MAKE_GUARD(release_python_runtime, []() {
+    (void)ge::custom_op::ShutdownCustomOpsForProcess();
+    (void)GePythonRuntimeManager::Instance().ShutdownProcess();
+  });
+  GE_ASSERT_SUCCESS(ge::custom_op::LoadCustomOps());
   // Need to save caffe.proto path
   SaveCustomCaffeProtoPath();
 
@@ -1783,7 +1791,6 @@ Status BuildSingleOpModels(GeGenerator &generator, std::vector<SingleOpBuildPara
 
 Status GenerateSingleOp(const std::string &json_file_path) {
   GE_ASSERT_SUCCESS(CheckSingleOpOptions());
-  GE_ASSERT_GRAPH_SUCCESS(OpLibRegistry::GetInstance().PreProcessForCustomOp());
   std::map<std::string, std::string> options;
   // need to be changed when ge.ini plan is done
   SetEnvForSingleOp(options);
@@ -1795,6 +1802,7 @@ Status GenerateSingleOp(const std::string &json_file_path) {
     GELOGW("[Ensure][PythonRuntime] failed before generating single op, continue initialization, ret[%u].", ret);
   }
   GE_MAKE_GUARD(release_python_runtime, []() { (void)GePythonRuntimeManager::Instance().ShutdownProcess(); });
+  GE_ASSERT_SUCCESS(ge::custom_op::LoadCustomOps());
   ret = GELib::Initialize(options);
   if (ret != SUCCESS) {
     DOMI_LOGE("GE initialize failed!");
@@ -2018,7 +2026,12 @@ Status PrepareOmGeneration() {
                    "[Check][Flags] failed! Please check whether some atc params that include semicolons[;] use double "
                    "quotation marks (\") to enclose each argument such as out_nodes, input_shape, dynamic_image_size");
 #if !defined(__ANDROID__) && !defined(ANDROID)
-  GE_ASSERT_GRAPH_SUCCESS(OpLibRegistry::GetInstance().PreProcessForCustomOp());
+  const auto python_runtime_ret = GePythonRuntimeManager::Instance().EnsureReady();
+  if (python_runtime_ret != SUCCESS) {
+    GELOGW("[Ensure][PythonRuntime] failed before preparing OM generation, continue initialization, ret[%u].",
+           python_runtime_ret);
+  }
+  GE_ASSERT_SUCCESS(ge::custom_op::LoadCustomOps());
   LoadCustomOpLib(true);
   SaveCustomCaffeProtoPath();
 #endif

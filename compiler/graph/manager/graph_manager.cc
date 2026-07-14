@@ -139,6 +139,7 @@
 #include "graph/passes/standard_optimize/tensor_move_delete_pass.h"
 #include "acl/acl_rt.h"
 #include "graph/preprocess/hccl_offline_option_builder.h"
+#include "runtime/custom_op/custom_op_loader.h"
 
 namespace ge {
 namespace {
@@ -1321,6 +1322,8 @@ Status GraphManager::PreRun(const GraphNodePtr &graph_node, const std::vector<Ge
   auto compute_graph = GraphUtilsEx::GetComputeGraph(*graph_node->GetGraph());
   GE_CHECK_NOTNULL(compute_graph);
 
+  // Idempotently load Python custom ops before refreshing ops kernel info.
+  GE_CHK_STATUS_RET(custom_op::LoadPythonCustomOpsIfNeeded(), "[Load][PythonCustomOps] failed.");
   GE_CHK_STATUS_RET(OpsKernelManager::GetInstance().RefreshOpsKernelInfo(), "[Refresh][OpsKernelInfo] failed.");
 
   compute_graph->SetSessionID(session_id);

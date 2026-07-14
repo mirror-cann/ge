@@ -9,9 +9,15 @@
  */
 
 #include <gtest/gtest.h>
+#include <cstdio>
+#include <cstdlib>
+#include <dlfcn.h>
+#include <fstream>
 #include <memory>
+#include <mutex>
 #include <numeric>
 #include <string>
+#include <unistd.h>
 #include "common/share_graph.h"
 #include "faker/global_data_faker.h"
 #include "faker/fake_value.h"
@@ -46,6 +52,8 @@
 #include "engines/custom_engine/custom_graph_optimizer.h"
 #include "graph/custom_op_factory.h"
 #include "graph/custom_op.h"
+#include "common/python_runtime/ge_python_runtime_manager.h"
+#include "runtime/custom_op/python_custom_op_bridge_loader.h"
 
 namespace ge {
 using namespace gert;
@@ -139,6 +147,207 @@ void MockGenerateTask() {
 }
 void *output_addr = nullptr;
 void **args_table = nullptr;
+constexpr const char *kPythonCustomOpTypeForSt = "StPythonPybindRemoveCoverageCustomOp";
+constexpr const char *kEnvPythonCustomOpPath = "ASCEND_CUSTOM_OPP_PATH";
+constexpr const char *kEnvPythonPath = "PYTHONPATH";
+
+class ScopedTempDirForCustomOpSt {
+ public:
+  ScopedTempDirForCustomOpSt() {
+    char dir_template[] = "/tmp/ge_python_custom_op_st_XXXXXX";
+    const auto *created_dir = mkdtemp(dir_template);
+    dir_path_ = (created_dir == nullptr) ? std::string() : std::string(created_dir);
+  }
+
+  ~ScopedTempDirForCustomOpSt() {
+    if (dir_path_.empty()) {
+      return;
+    }
+    for (const auto &file_path : created_files_) {
+      (void)remove(file_path.c_str());
+    }
+    (void)rmdir(dir_path_.c_str());
+  }
+
+  std::string FilePath(const std::string &file_name) const {
+    return dir_path_ + "/" + file_name;
+  }
+
+  std::string CreateFilePath(const std::string &file_name) {
+    const auto file_path = FilePath(file_name);
+    created_files_.push_back(file_path);
+    return file_path;
+  }
+
+ private:
+  std::string dir_path_;
+  std::vector<std::string> created_files_;
+};
+
+class ScopedEnvVarForCustomOpSt {
+ public:
+  ScopedEnvVarForCustomOpSt(const char *name, const std::string &value) : name_(name) {
+    const char *old_value = getenv(name);
+    if (old_value != nullptr) {
+      old_value_ = old_value;
+      has_old_value_ = true;
+    }
+    (void)setenv(name, value.c_str(), 1);
+  }
+
+  ~ScopedEnvVarForCustomOpSt() {
+    if (has_old_value_) {
+      (void)setenv(name_.c_str(), old_value_.c_str(), 1);
+      return;
+    }
+    (void)unsetenv(name_.c_str());
+  }
+
+ private:
+  std::string name_;
+  std::string old_value_;
+  bool has_old_value_{false};
+};
+
+void WriteTextFileForCustomOpSt(const std::string &file_path, const std::string &content) {
+  std::ofstream file(file_path, std::ios::out | std::ios::trunc);
+  ASSERT_TRUE(file.is_open());
+  file << content;
+}
+
+std::string ReadTextFileForCustomOpSt(const std::string &file_path) {
+  std::ifstream file(file_path);
+  std::string content;
+  std::getline(file, content);
+  return content;
+}
+
+const std::string &GetSharedPybindCustomOpFilePathForSt() {
+  static ScopedTempDirForCustomOpSt dir;
+  static const std::string path = dir.CreateFilePath("pybind_custom_ops.py");
+  return path;
+}
+
+const std::string &GetSharedPybindCustomOpMarkerFilePathForSt() {
+  static ScopedTempDirForCustomOpSt dir;
+  static const std::string path = dir.CreateFilePath("pybind_custom_op_marker.txt");
+  return path;
+}
+
+void EnsureSharedPybindCustomOpFileForSt() {
+  static std::once_flag once;
+  std::call_once(once, []() {
+    WriteTextFileForCustomOpSt(GetSharedPybindCustomOpFilePathForSt(),
+                               "from pathlib import Path\n"
+                               "from ge.custom_op import EagerExecuteOp, register_op_impl\n\n"
+                               "MARKER_FILE = r'" +
+                                   GetSharedPybindCustomOpMarkerFilePathForSt() +
+                                   "'\n\n"
+                                   "@register_op_impl(op_type='" +
+                                   std::string(kPythonCustomOpTypeForSt) +
+                                   "')\n"
+                                   "class StPythonPybindRemoveCoverageCustomOp(EagerExecuteOp):\n"
+                                   "    def execute(self, ctx):\n"
+                                   "        Path(MARKER_FILE).write_text('executed', encoding='utf-8')\n");
+  });
+}
+
+class ScopedLoadedPythonCustomOpsForSt {
+ public:
+  ~ScopedLoadedPythonCustomOpsForSt() {
+    if (active_) {
+      custom_op::UnloadPythonCustomOps();
+    }
+  }
+
+  void Dismiss() {
+    active_ = false;
+  }
+
+ private:
+  bool active_{true};
+};
+
+void RemovePythonPathForCustomOpSt(const std::string &path) {
+  using PyIsInitializedFn = int (*)();
+  using PyGILStateEnsureFn = int (*)();
+  using PyGILStateReleaseFn = void (*)(int);
+  using PySysGetObjectFn = void *(*)(const char *);
+  using PyUnicodeFromStringFn = void *(*)(const char *);
+  using PySequenceIndexFn = ssize_t (*)(void *, void *);
+  using PySequenceDelItemFn = int (*)(void *, ssize_t);
+  using PyErrClearFn = void (*)();
+  using PyDecRefFn = void (*)(void *);
+  auto *py_is_initialized = reinterpret_cast<PyIsInitializedFn>(dlsym(RTLD_DEFAULT, "Py_IsInitialized"));
+  if ((py_is_initialized == nullptr) || (py_is_initialized() == 0)) {
+    return;
+  }
+  auto *gil_ensure = reinterpret_cast<PyGILStateEnsureFn>(dlsym(RTLD_DEFAULT, "PyGILState_Ensure"));
+  auto *gil_release = reinterpret_cast<PyGILStateReleaseFn>(dlsym(RTLD_DEFAULT, "PyGILState_Release"));
+  auto *py_sys_get_object = reinterpret_cast<PySysGetObjectFn>(dlsym(RTLD_DEFAULT, "PySys_GetObject"));
+  auto *py_unicode_from_string = reinterpret_cast<PyUnicodeFromStringFn>(dlsym(RTLD_DEFAULT, "PyUnicode_FromString"));
+  auto *py_sequence_index = reinterpret_cast<PySequenceIndexFn>(dlsym(RTLD_DEFAULT, "PySequence_Index"));
+  auto *py_sequence_del_item = reinterpret_cast<PySequenceDelItemFn>(dlsym(RTLD_DEFAULT, "PySequence_DelItem"));
+  auto *py_err_clear = reinterpret_cast<PyErrClearFn>(dlsym(RTLD_DEFAULT, "PyErr_Clear"));
+  auto *py_dec_ref = reinterpret_cast<PyDecRefFn>(dlsym(RTLD_DEFAULT, "Py_DecRef"));
+  if ((gil_ensure == nullptr) || (gil_release == nullptr) || (py_sys_get_object == nullptr) ||
+      (py_unicode_from_string == nullptr) || (py_sequence_index == nullptr) || (py_sequence_del_item == nullptr) ||
+      (py_err_clear == nullptr) || (py_dec_ref == nullptr)) {
+    return;
+  }
+  const auto state = gil_ensure();
+  void *sys_path = py_sys_get_object("path");
+  void *py_path = py_unicode_from_string(path.c_str());
+  if ((sys_path != nullptr) && (py_path != nullptr)) {
+    while (true) {
+      const ssize_t index = py_sequence_index(sys_path, py_path);
+      if (index < 0) {
+        py_err_clear();
+        break;
+      }
+      (void)py_sequence_del_item(sys_path, index);
+    }
+  }
+  if (py_path != nullptr) {
+    py_dec_ref(py_path);
+  }
+  gil_release(state);
+}
+
+void PrependPythonPathForCustomOpSt(const std::string &path) {
+  using PyIsInitializedFn = int (*)();
+  using PyGILStateEnsureFn = int (*)();
+  using PyGILStateReleaseFn = void (*)(int);
+  using PySysGetObjectFn = void *(*)(const char *);
+  using PyUnicodeFromStringFn = void *(*)(const char *);
+  using PyListInsertFn = int (*)(void *, ssize_t, void *);
+  using PyDecRefFn = void (*)(void *);
+  auto *py_is_initialized = reinterpret_cast<PyIsInitializedFn>(dlsym(RTLD_DEFAULT, "Py_IsInitialized"));
+  if ((py_is_initialized == nullptr) || (py_is_initialized() == 0)) {
+    return;
+  }
+  RemovePythonPathForCustomOpSt(path);
+  auto *gil_ensure = reinterpret_cast<PyGILStateEnsureFn>(dlsym(RTLD_DEFAULT, "PyGILState_Ensure"));
+  auto *gil_release = reinterpret_cast<PyGILStateReleaseFn>(dlsym(RTLD_DEFAULT, "PyGILState_Release"));
+  auto *py_sys_get_object = reinterpret_cast<PySysGetObjectFn>(dlsym(RTLD_DEFAULT, "PySys_GetObject"));
+  auto *py_unicode_from_string = reinterpret_cast<PyUnicodeFromStringFn>(dlsym(RTLD_DEFAULT, "PyUnicode_FromString"));
+  auto *py_list_insert = reinterpret_cast<PyListInsertFn>(dlsym(RTLD_DEFAULT, "PyList_Insert"));
+  auto *py_dec_ref = reinterpret_cast<PyDecRefFn>(dlsym(RTLD_DEFAULT, "Py_DecRef"));
+  if ((gil_ensure == nullptr) || (gil_release == nullptr) || (py_sys_get_object == nullptr) ||
+      (py_unicode_from_string == nullptr) || (py_list_insert == nullptr) || (py_dec_ref == nullptr)) {
+    return;
+  }
+  const auto state = gil_ensure();
+  void *sys_path = py_sys_get_object("path");
+  void *py_path = py_unicode_from_string(path.c_str());
+  if ((sys_path != nullptr) && (py_path != nullptr)) {
+    (void)py_list_insert(sys_path, 0, py_path);
+  }
+  if (py_path != nullptr) {
+    py_dec_ref(py_path);
+  }
+  gil_release(state);
+}
 }  // namespace
 
 class CustomOpRefreshTest : public testing::Test {
@@ -151,6 +360,55 @@ class CustomOpRefreshTest : public testing::Test {
     OpsKernelBuilderRegistry::GetInstance().Unregister("AiCoreLib");
     OpsKernelBuilderRegistry::GetInstance().Unregister("RTSLib");
   }
+};
+
+class CustomOpFactoryStTest : public testing::Test {
+ protected:
+  void SetUp() override {
+    PreparePythonPathForSt();
+    (void)unsetenv(kEnvPythonCustomOpPath);
+  }
+
+  void TearDown() override {
+    custom_op::UnloadPythonCustomOps();
+    (void)unsetenv(kEnvPythonCustomOpPath);
+    RestorePythonPathForSt();
+  }
+
+ private:
+  void PreparePythonPathForSt() {
+#ifdef ST_FUSION_PASS_PY_INSTALL_DIR
+    const char *old_python_path = getenv(kEnvPythonPath);
+    if (old_python_path != nullptr) {
+      has_python_path_bak_ = true;
+      python_path_bak_ = old_python_path;
+      if (python_path_bak_.find(ST_FUSION_PASS_PY_INSTALL_DIR) == std::string::npos) {
+        const std::string new_python_path = std::string(ST_FUSION_PASS_PY_INSTALL_DIR) + ":" + python_path_bak_;
+        (void)setenv(kEnvPythonPath, new_python_path.c_str(), 1);
+      }
+      PrependPythonPathForCustomOpSt(ST_FUSION_PASS_PY_INSTALL_DIR);
+      return;
+    }
+    (void)setenv(kEnvPythonPath, ST_FUSION_PASS_PY_INSTALL_DIR, 1);
+    PrependPythonPathForCustomOpSt(ST_FUSION_PASS_PY_INSTALL_DIR);
+#endif
+  }
+
+  void RestorePythonPathForSt() {
+#ifdef ST_FUSION_PASS_PY_INSTALL_DIR
+    RemovePythonPathForCustomOpSt(ST_FUSION_PASS_PY_INSTALL_DIR);
+    if (has_python_path_bak_) {
+      (void)setenv(kEnvPythonPath, python_path_bak_.c_str(), 1);
+    } else {
+      (void)unsetenv(kEnvPythonPath);
+    }
+    python_path_bak_.clear();
+    has_python_path_bak_ = false;
+#endif
+  }
+
+  std::string python_path_bak_;
+  bool has_python_path_bak_{false};
 };
 
 class TestBaseCustomOp : public EagerExecuteOp {
@@ -1279,6 +1537,47 @@ TEST_F(CustomOpRefreshTest, eager_only_op_with_malloc_read_only_dev_args) {
   runtime_stub.Clear();
   mmSetEnv(kEnvValue, "", 1);
   ReInitGe();
+}
+
+/**
+ * 用例描述：测试Python自定义算子通过loader注册、执行后，可以按类型移除注册信息和已创建实例。
+ * 预置条件：
+ * 1. 构造Python自定义算子实现文件，并配置到ASCEND_CUSTOM_OPP_PATH。
+ * 测试步骤：
+ * 1. 通过LoadPythonCustomOps加载Python实现并注册到CustomOpFactory。
+ * 2. 通过CustomOpFactory创建Python自定义算子实例并执行。
+ * 3. 校验Python execute写入的标记文件。
+ * 4. 调用UnloadPythonCustomOps移除该算子并清理runtime descriptor。
+ * 预期结果：
+ * 1. Python自定义算子execute被成功调用。
+ * 2. creator被移除，后续查询不存在，再次创建返回空指针，runtime descriptor可成功注销。
+ */
+TEST_F(CustomOpFactoryStTest, remove_python_custom_ops_clears_creator_and_created_instance) {
+  EnsureSharedPybindCustomOpFileForSt();
+  const auto &marker_file = GetSharedPybindCustomOpMarkerFilePathForSt();
+  (void)remove(marker_file.c_str());
+  ScopedEnvVarForCustomOpSt scoped_custom_opp_path(kEnvPythonCustomOpPath, GetSharedPybindCustomOpFilePathForSt());
+
+  ASSERT_EQ(GePythonRuntimeManager::Instance().EnsureReady(), SUCCESS);
+  ASSERT_EQ(custom_op::LoadPythonCustomOps(), SUCCESS);
+  ScopedLoadedPythonCustomOpsForSt loaded_python_custom_ops;
+
+  const AscendString op_type(kPythonCustomOpTypeForSt);
+  ASSERT_TRUE(CustomOpFactory::IsExistOp(op_type));
+  auto *op = CustomOpFactory::CreateOrGetCustomOp(op_type);
+  ASSERT_NE(op, nullptr);
+  auto *eager_op = dynamic_cast<EagerExecuteOp *>(op);
+  ASSERT_NE(eager_op, nullptr);
+  int32_t dummy_context = 0;
+  auto *ctx = reinterpret_cast<gert::EagerOpExecutionContext *>(&dummy_context);
+  EXPECT_EQ(eager_op->Execute(ctx), SUCCESS);
+  EXPECT_EQ(ReadTextFileForCustomOpSt(marker_file), "executed");
+
+  custom_op::UnloadPythonCustomOps();
+  loaded_python_custom_ops.Dismiss();
+
+  EXPECT_FALSE(CustomOpFactory::IsExistOp(op_type));
+  EXPECT_EQ(CustomOpFactory::CreateOrGetCustomOp(op_type), nullptr);
 }
 
 }  // namespace ge

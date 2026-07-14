@@ -133,7 +133,7 @@ Status KernelExTaskCodeBuilder::InitTaskExtInfo(const TaskSemanticContributeCont
   om2::Om2AicpuExtInfoHandler ext_handle(context.op_desc->GetName(), num_inputs, num_outputs, unknown_type);
   GE_CHK_STATUS_RET(ext_handle.Parse(ext_info), "[OM2][Parse][KernelExtInfo] failed, ext_info_size: %zu",
                     ext_info.size());
-  GE_CHK_STATUS_RET(ext_handle.UpdateExecuteMode(false), "[OM2][Update][ExecuteMode] failed.");
+  GE_CHK_STATUS_RET(ext_handle.UpdateExecuteMode(true), "[OM2][Update][ExecuteMode] failed.");
   build_data_.deploy_type = static_cast<uint32_t>(ext_handle.GetDeployTypeFlag());
   build_data_.mem_type = static_cast<uint32_t>(ext_handle.GetMemType());
   build_data_.memcpy_kind = static_cast<uint32_t>(ext_handle.GetMemcpyKind());

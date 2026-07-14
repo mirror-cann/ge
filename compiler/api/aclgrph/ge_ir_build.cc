@@ -36,7 +36,6 @@
 #include "graph/ge_tensor.h"
 #include "graph/opsproto_manager.h"
 #include "base/registry/opp_package_utils.h"
-#include "register/op_lib_register_impl.h"
 #include "graph/passes/control_flow_and_stream/data_pass.h"
 #include "graph/passes/feature/net_output_pass.h"
 #include "graph/shape_refiner.h"
@@ -61,6 +60,7 @@
 #include "graph/utils/type_utils.h"
 #include "graph/fusion/pass/pass_plugin_loader.h"
 #include "common/python_runtime/ge_python_runtime_manager.h"
+#include "runtime/custom_op/custom_op_loader.h"
 #include "graph/operator_factory_impl.h"
 #include "base/err_msg.h"
 #include "base/err_mgr.h"
@@ -430,13 +430,13 @@ static graphStatus aclgrphBuildInitializeImpl(std::map<std::string, std::string>
   GE_ASSERT_GRAPH_SUCCESS(CheckAutoTuneMode(global_options));
   // print global option map
   ge::PrintOptionMap(global_options, "global option");
-  GE_ASSERT_GRAPH_SUCCESS(OpLibRegistry::GetInstance().PreProcessForCustomOp());
-  LoadOpsProto();
   auto python_runtime_ret = GePythonRuntimeManager::Instance().EnsureReady();
   if (python_runtime_ret != SUCCESS) {
     GELOGW("[Ensure][PythonRuntime] failed, continue initialization, ret[%u].", python_runtime_ret);
   }
   GE_DISMISSABLE_GUARD(release_python_runtime, []() { (void)GePythonRuntimeManager::Instance().ShutdownProcess(); });
+  GE_ASSERT_SUCCESS(ge::custom_op::LoadCustomOps());
+  LoadOpsProto();
   GE_ASSERT_SUCCESS(fusion::LoadPassPlugins());
 
   std::shared_ptr<ge::GELib> instance_ptr = ge::GELib::GetInstance();
@@ -479,6 +479,7 @@ graphStatus aclgrphBuildInitialize(std::map<AscendString, AscendString> &global_
 void aclgrphBuildFinalize() {
   // ge_ir_build 生命周期结束时显式关闭 Python bridge so，避免进程退出前长期悬挂。
   (void)fusion::ShutdownPassPluginsForProcess();
+  (void)custom_op::ShutdownCustomOpsForProcess();
   if (ge::GELib::GetInstance() != nullptr && ge::GELib::GetInstance()->InitFlag()) {
     (void)ge::GELib::GetInstance()->Finalize();
   } else {

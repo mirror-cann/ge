@@ -426,8 +426,8 @@ if ((CMAKE_BUILD_TYPE MATCHES GCOV) OR ENABLE_GE_DT)
     elseif(ENABLE_GE_C_LLT)
         add_dependencies(select_targets ut_ge_executor_c_utest ut_ge_executor_c_liteos_utest ut_dbg_liteos_static_utest ut_ascendcl_c_utest)
     endif ()
-    if (ENABLE_GE_UT AND TARGET ut_python_pass_artifact_selector_utest)
-        add_dependencies(select_targets ut_python_pass_artifact_selector_utest)
+    if (ENABLE_GE_UT AND TARGET ut_python_runtime_artifact_utils_utest)
+        add_dependencies(select_targets ut_python_runtime_artifact_utils_utest)
     endif ()
 else ()
     # build air run package
@@ -531,7 +531,8 @@ elseif (BUILD_OPEN_PROJECT OR ENABLE_OPEN_SRC)
             add_dependencies(ge-compiler parser_common aicore_utils fusion_pass op_compile_adapter aicpu_engine_common fmk_parser ge_compiler
                     fmk_onnx_parser opskernel ge_runner slice aicpu_const_folding llm_engine jit_exe _caffe_parser flow_graph aihac_autofusion
                     dflow_runner eager_style_graph_builder_base eager_style_graph_builder_base_static gen_esb
-                    aihac_symbolizer ge_python llm_datadist_python_v1 dataflow_python ge_python_pass_bridge func2graph)
+                    aihac_symbolizer ge_python llm_datadist_python_v1 dataflow_python ge_python_pass_bridge
+                    ge_python_custom_op_bridge func2graph)
             add_dependencies(ge-compiler hcom_gradient_split_tune hcom_graph_adaptor hcom_opskernel_builder hcom_gradtune_opskernel_builder)
             add_dependencies(ge-compiler aicpu_ascend_engine aicpu_tf_engine dvpp_engine fe ffts ge_local_engine ge_local_opskernel_builder
                     host_cpu_opskernel_builder host_cpu_engine engine)

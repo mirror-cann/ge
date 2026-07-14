@@ -110,7 +110,9 @@ add_executable(graph_engine_test
     "${AIR_CODE_DIR}/tests/ge/st/testcase/graph/ir/named_io_node_builder_test.cc"
 )
 
-add_dependencies(graph_engine_test mdat fmk_parser engine optimizer_priority_pbtxt)
+add_dependencies(graph_engine_test
+    mdat fmk_parser engine optimizer_priority_pbtxt
+)
 
 target_compile_definitions(graph_engine_test PRIVATE
     google=ascend_private
@@ -152,6 +154,7 @@ target_link_libraries(graph_engine_test
     ge_runner_v2
     om2_executor
     ge_common_base
+    custom_op_runtime
     gert
     cpu_compiler
     aihacb_autofusion_stub
@@ -164,7 +167,8 @@ target_link_libraries(graph_engine_test
     ge_running_env
     ge_runtime_stub
     custom_op_registry_static
-    -Wl,--no-whole-archive gert_op_impl
+    -Wl,--no-whole-archive
+    gert_op_impl
     es_ge_test ge_graph_dsl st_stubs GTestShared::gtest GTestShared::gmock GTestShared::gmock_main
     -ldl
 )
@@ -182,6 +186,7 @@ add_executable(ge_common_atc
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_ctrl_flow_compile.cc"
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_single_op.cc"
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_ge_ir_build.cc"
+    "${AIR_CODE_DIR}/tests/ge/st/testcase/test_ge_ir_build_offline_launch.cc"
     "${AIR_CODE_DIR}/tests/graph_metadef/depends/checker/tensor_check_utils.cc"
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_model_helper.cc"
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_single_op_profiling.cc"
@@ -373,6 +378,14 @@ add_custom_command(
 
 add_custom_target(install_ge_py_for_st_compile_test DEPENDS
     ${ST_FUSION_PASS_PY_INSTALL_DIR}/.installed)
+
+add_dependencies(graph_engine_test
+        install_ge_py_for_st_compile_test
+)
+
+target_compile_definitions(graph_engine_test PRIVATE
+        ST_FUSION_PASS_PY_INSTALL_DIR=\"${ST_FUSION_PASS_PY_INSTALL_DIR}\"
+        )
 
 add_dependencies(graph_engine_compile_test
         ge_python_pass_bridge

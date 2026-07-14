@@ -53,7 +53,7 @@ Execute in `examples/custom_op/compilable_add_custom` directory:
 bash run.sh
 ```
 
-`run.sh` will automatically append `output/` to `ASCEND_CUSTOM_OPP_PATH` after generating `output/op_graph/lib/<os>/<arch>/libcust_opapi.so`. If successful, `output/single_add.air`, `output/single_add.om` will be generated, and terminal will print `Model executed successfully!` and `First element of output: 2.000000`.
+`run.sh` will automatically append `output/` to `ASCEND_CUSTOM_OPP_PATH` after generating `output/op_graph/lib/<os>/<arch>/libcust_opapi.so`. If successful, `output/single_add.air`, `output/single_add.om` will be generated, and terminal will print `Model executed successfully!` and `First element of output: 3.000000`.
 
 ### Step-by-step Method
 
@@ -154,7 +154,7 @@ When successful, you can observe:
 - `output/single_add.air` has been generated.
 - `output/single_add.om` has been generated.
 - Terminal output contains `Model executed successfully!`.
-- Terminal output contains `First element of output: 2.000000`.
+- Terminal output contains `First element of output: 3.000000`.
 
 If failed, priority checks:
 

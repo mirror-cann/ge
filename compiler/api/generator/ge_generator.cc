@@ -41,7 +41,6 @@
 #include "graph/operator_factory_impl.h"
 #include "graph/opsproto_manager.h"
 #include "base/registry/opp_package_utils.h"
-#include "register/op_lib_register_impl.h"
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/graph_utils_ex.h"
 #include "graph/utils/type_utils.h"
@@ -54,6 +53,7 @@
 #include "graph/utils/op_type_utils.h"
 #include "graph/fusion/pass/pass_plugin_loader.h"
 #include "common/python_runtime/ge_python_runtime_manager.h"
+#include "runtime/custom_op/custom_op_loader.h"
 
 namespace {
 
@@ -456,11 +456,16 @@ Status GeGenerator::Initialize(const std::map<std::string, std::string> &options
     GELOGE(MEMALLOC_FAILED, "[Create][Impl] Make shared failed");
     return MEMALLOC_FAILED;
   }
-  GE_ASSERT_GRAPH_SUCCESS(OpLibRegistry::GetInstance().PreProcessForCustomOp());
+  Status ret = GePythonRuntimeManager::Instance().EnsureReady();
+  if (ret != SUCCESS) {
+    GELOGW("[Ensure][PythonRuntime] failed, continue initialization, ret[%u].", ret);
+  }
+  GE_DISMISSABLE_GUARD(release_python_runtime, ([]() { (void)GePythonRuntimeManager::Instance().ShutdownProcess(); }));
+  GE_ASSERT_SUCCESS(ge::custom_op::LoadCustomOps());
   // 加载顺序遵循3.0目录结构，按op_graph->op_impl->op_proto->framework顺序加载，详细规则见PluginManager::GetOpsProtoPath注释
   gert::OppPackageUtils::LoadAllOppPackage();
   std::string opsproto_path;
-  Status ret = PluginManager::GetOpsProtoPath(opsproto_path);
+  ret = PluginManager::GetOpsProtoPath(opsproto_path);
   if (ret != SUCCESS) {
     GELOGW("Failed to get ops proto path!");
   }
@@ -470,11 +475,6 @@ Status GeGenerator::Initialize(const std::map<std::string, std::string> &options
   std::map<std::string, std::string> option_tmp;
   option_tmp.emplace(std::pair<std::string, std::string>(string("ge.opsProtoLibPath"), opsproto_path));
   (void)manager->Initialize(option_tmp);
-  ret = GePythonRuntimeManager::Instance().EnsureReady();
-  if (ret != SUCCESS) {
-    GELOGW("[Ensure][PythonRuntime] failed, continue initialization, ret[%u].", ret);
-  }
-  GE_DISMISSABLE_GUARD(release_python_runtime, ([]() { (void)GePythonRuntimeManager::Instance().ShutdownProcess(); }));
   GE_ASSERT_SUCCESS(fusion::LoadPassPlugins());
 
   ret = impl_->graph_manager_.Initialize(options);
@@ -504,6 +504,7 @@ Status GeGenerator::Finalize() {
   }
   // GeGenerator::Finalize 对应本轮构建流程结束，这里走进程级 shutdown。
   (void)fusion::ShutdownPassPluginsForProcess();
+  (void)custom_op::ShutdownCustomOpsForProcess();
   Status ret = impl_->graph_manager_.Finalize();
   if (ret != SUCCESS) {
     GELOGE(GE_GENERATOR_GRAPH_MANAGER_FINALIZE_FAILED, "[Call][Finalize] Graph manager finalize failed.");

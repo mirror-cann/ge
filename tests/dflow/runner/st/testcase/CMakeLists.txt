@@ -87,6 +87,7 @@ target_link_libraries(helper_runtime_test
     udf_compiler
     cpu_compiler
     ge_executor
+    custom_op_runtime
     hybrid_executor
     davinci_executor
     mmpa_stub

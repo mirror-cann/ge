@@ -111,6 +111,7 @@ target_link_libraries(atc_static PRIVATE
         ge_common_base
         davinci_executor
         gert
+        custom_op_runtime
         exe_graph
         lowering
         register

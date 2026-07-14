@@ -25,7 +25,10 @@ set(LOWERING_SRCS
     lowering/lowering_global_data.cc
     lowering/value_holder.cc
     lowering/value_holder_utils.cc
+    runtime/annotated_kernel_args.cc
     runtime/eager_op_execution_context.cc
+    runtime/annotated_args_context.cc
+    runtime/annotated_args_handler.cc
     runtime/update_args_context.cc
     runtime/op_compile_context.cc
 )
@@ -117,6 +120,11 @@ add_custom_target(lowering_stub DEPENDS ${STUB_SRC_LIST_LOWERING})
 add_library(stub_lowering SHARED ${STUB_SRC_LIST_LOWERING})
 
 add_dependencies(stub_lowering lowering_stub)
+
+target_sources(stub_lowering PRIVATE
+    stub/stub_offline_launch_runtime.cc
+    runtime/annotated_args_handler.cc
+)
 
 target_include_directories(stub_lowering PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}

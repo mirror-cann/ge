@@ -17,12 +17,13 @@
 #include <string>
 #include <vector>
 
+#include "common/python_runtime/python_artifact_utils.h"
+#include "common/python_runtime/python_bridge_loader_utils.h"
 #include "ge/ge_api_types.h"
 #include "framework/common/debug/ge_log.h"
 #include "graph_metadef/graph/utils/file_utils.h"
 #include "pass_registry.h"
 #include "python_pass_adapter.h"
-#include "python_pass_artifact_selector.h"
 #include "python_pass_bridge_loader_helper.h"
 #include "python_pass_bridge_c_api.h"
 #include "python_pass_fallback_codegen_helper.h"
@@ -30,35 +31,14 @@
 namespace ge {
 namespace fusion {
 namespace {
-constexpr const char *kPyIsInitializedSymbol = "Py_IsInitialized";
-constexpr const char *kPyGetVersionSymbol = "Py_GetVersion";
+constexpr const char *kPythonPassArtifactsRelativePath = "passes/python_pass_artifacts";
 constexpr const char *kPythonRuntimeProbeScript =
     " -c \"import sys; print('cp%d%d' % sys.version_info[:2]); print(sys.version.split()[0])\" 2>/dev/null";
 
-using python_pass_artifact::BuildPrebuiltBridgeLibraryCandidates;
-using python_pass_artifact::ParsePythonTag;
-using python_pass_artifact::PythonRuntimeKey;
+namespace artifact = ::ge::python_artifact;
+namespace bridge_loader = ::ge::python_bridge_loader;
 namespace loader_helper = python_pass_bridge_loader;
 namespace fallback_codegen = python_pass_fallback_codegen;
-
-PythonRuntimeKey ResolveLoadedPythonRuntimeKey() {
-  using PyIsInitializedFn = int (*)();
-  using PyGetVersionFn = const char *(*)();
-  auto *py_is_initialized = reinterpret_cast<PyIsInitializedFn>(dlsym(RTLD_DEFAULT, kPyIsInitializedSymbol));
-  auto *py_get_version = reinterpret_cast<PyGetVersionFn>(dlsym(RTLD_DEFAULT, kPyGetVersionSymbol));
-  PythonRuntimeKey runtime_key;
-  runtime_key.has_python_symbols = (py_is_initialized != nullptr) && (py_get_version != nullptr);
-  if (!runtime_key.has_python_symbols) {
-    runtime_key.source = "unresolved(no loaded Py_* symbols)";
-    return runtime_key;
-  }
-  runtime_key.source = "loaded Py_* symbols";
-  runtime_key.is_initialized = (py_is_initialized() != 0);
-  const char *version = py_get_version();
-  runtime_key.version = (version == nullptr) ? "" : version;
-  runtime_key.python_tag = ParsePythonTag(version);
-  return runtime_key;
-}
 
 bool ReadCommandOutput(const std::string &command, std::string &output) {
   FILE *fp = popen(command.c_str(), "r");
@@ -73,7 +53,7 @@ bool ReadCommandOutput(const std::string &command, std::string &output) {
   return (ret == 0) && (!output.empty());
 }
 
-bool ProbePythonRuntimeFromCommand(const char *python_command, PythonRuntimeKey &runtime_key) {
+bool ProbePythonRuntimeFromCommand(const char *python_command, artifact::PythonRuntimeKey &runtime_key) {
   std::string output;
   if (!ReadCommandOutput(std::string(python_command) + kPythonRuntimeProbeScript, output)) {
     return false;
@@ -82,7 +62,7 @@ bool ProbePythonRuntimeFromCommand(const char *python_command, PythonRuntimeKey 
   if (python_tag.empty()) {
     return false;
   }
-  runtime_key = PythonRuntimeKey{};
+  runtime_key = artifact::PythonRuntimeKey{};
   runtime_key.python_tag = python_tag;
   runtime_key.version = loader_helper::SecondLine(output);
   runtime_key.python_command = python_command;
@@ -97,12 +77,12 @@ fallback_codegen::FallbackCodegenDependencies BuildFallbackCodegenDependencies()
   };
 }
 
-PythonRuntimeKey ResolveTargetPythonRuntimeKey() {
-  auto runtime_key = ResolveLoadedPythonRuntimeKey();
+artifact::PythonRuntimeKey ResolveTargetPythonRuntimeKey() {
+  auto runtime_key = artifact::ResolveLoadedPythonRuntimeKey();
   if (!runtime_key.python_tag.empty()) {
     return runtime_key;
   }
-  PythonRuntimeKey probed_key;
+  artifact::PythonRuntimeKey probed_key;
   if (ProbePythonRuntimeFromCommand("python3", probed_key) || ProbePythonRuntimeFromCommand("python", probed_key)) {
     return probed_key;
   }
@@ -119,13 +99,13 @@ std::string GetLoaderLibraryPath() {
   return real_path.empty() ? std::string(dl_info.dli_fname) : real_path;
 }
 
-loader_helper::BridgeLoadDependencies BuildBridgeLoadDependencies() {
-  return loader_helper::BridgeLoadDependencies{
+bridge_loader::BridgeLoadDependencies BuildBridgeLoadDependencies() {
+  return bridge_loader::BridgeLoadDependencies{
       &RealPath,
       &dlopen,
       &dlclose,
       &dlsym,
-      &ResolveLoadedPythonRuntimeKey,
+      &artifact::ResolveLoadedPythonRuntimeKey,
       kPythonFusionPassBridgeGetApiSymbol,
       kPythonFusionPassBridgeAbiVersion,
       RTLD_NOW | RTLD_GLOBAL,
@@ -207,17 +187,19 @@ class PythonFusionPassBridgeLoader {
     return FAILED;
   }
 
-  bool TryLoadBridgeCandidates(const PythonRuntimeKey &runtime_key,
-                               const std::vector<python_pass_artifact::BridgeLibraryCandidate> &candidates,
-                               const loader_helper::BridgeLoadDependencies &deps) {
+  bool TryLoadBridgeCandidates(const artifact::PythonRuntimeKey &runtime_key,
+                               const std::vector<artifact::BridgeLibraryCandidate> &candidates,
+                               const bridge_loader::BridgeLoadDependencies &deps) {
     for (const auto &candidate : candidates) {
-      loader_helper::LoadedBridgeCandidate loaded_bridge;
-      const auto status = loader_helper::TryLoadBridgeCandidate(runtime_key, candidate, deps, loaded_bridge);
-      if (status != loader_helper::BridgeLoadStatus::kSuccess) {
-        const auto error_suffix = loader_helper::BuildBridgeLoadErrorSuffix(status, dlerror());
+      bridge_loader::LoadedBridgeCandidate<PythonFusionPassBridgeApi> loaded_bridge;
+      const auto status =
+          bridge_loader::TryLoadBridgeCandidate<PythonFusionPassBridgeApi, PythonFusionPassBridgeArtifactConfig>(
+              runtime_key, candidate, deps, &loader_helper::IsBridgeApiValid, loaded_bridge);
+      if (status != bridge_loader::BridgeLoadStatus::kSuccess) {
+        const auto error_suffix = bridge_loader::BuildBridgeLoadErrorSuffix(status, dlerror());
         GELOGW("Skip python pass bridge candidate[%s], artifact_root[%s], native_module[%s], status[%s]%s.",
                candidate.bridge_path.c_str(), candidate.artifact_root.c_str(), candidate.native_module_path.c_str(),
-               loader_helper::BridgeLoadStatusToString(status), error_suffix.c_str());
+               bridge_loader::BridgeLoadStatusToString(status), error_suffix.c_str());
         continue;
       }
       handle_ = loaded_bridge.handle;
@@ -229,20 +211,21 @@ class PythonFusionPassBridgeLoader {
     return false;
   }
 
-  bool TryLoadPrebuiltBridge(const PythonRuntimeKey &runtime_key, const std::string &loader_library_path,
-                             const loader_helper::BridgeLoadDependencies &deps) {
-    const auto candidates =
-        BuildPrebuiltBridgeLibraryCandidates(runtime_key, loader_library_path, kPythonFusionPassBridgeAbiVersion);
+  bool TryLoadPrebuiltBridge(const artifact::PythonRuntimeKey &runtime_key, const std::string &loader_library_path,
+                             const bridge_loader::BridgeLoadDependencies &deps) {
+    const auto candidates = artifact::BuildPrebuiltBridgeLibraryCandidates(
+        runtime_key, loader_library_path, kPythonPassArtifactsRelativePath, kPythonFusionPassBridgeAbiVersion);
     return TryLoadBridgeCandidates(runtime_key, candidates, deps);
   }
 
-  bool TryLoadFallbackBridge(const PythonRuntimeKey &runtime_key, const loader_helper::BridgeLoadDependencies &deps) {
+  bool TryLoadFallbackBridge(const artifact::PythonRuntimeKey &runtime_key,
+                             const bridge_loader::BridgeLoadDependencies &deps) {
     std::string gen_artifact_root;
     if (!fallback_codegen::RunFallbackCodegen(runtime_key, BuildFallbackCodegenDependencies(), gen_artifact_root)) {
       return false;
     }
-    const auto candidate = python_pass_artifact::LoadBridgeCandidateFromArtifactRoot(gen_artifact_root, runtime_key,
-                                                                                     kPythonFusionPassBridgeAbiVersion);
+    const auto candidate = artifact::LoadBridgeCandidateFromArtifactRoot(gen_artifact_root, runtime_key,
+                                                                         kPythonFusionPassBridgeAbiVersion);
     return TryLoadBridgeCandidates(runtime_key, {candidate}, deps);
   }
 

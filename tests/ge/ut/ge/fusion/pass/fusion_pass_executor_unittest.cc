@@ -21,6 +21,8 @@
 #include <unistd.h>
 #include <vector>
 #include "common/share_graph.h"
+#include "common/python_runtime/python_artifact_utils.h"
+#include "common/python_runtime/python_bridge_loader_utils.h"
 #include "es_ge_test_ops.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/utils/graph_utils_ex.h"
@@ -43,7 +45,6 @@
 #include "ge/fusion/pass/decompose_pass.h"
 #undef private
 #include "compiler/graph/fusion/pass/python_pass_adapter.h"
-#include "compiler/graph/fusion/pass/python_pass_artifact_selector.h"
 #include "compiler/graph/fusion/pass/python_pass_bridge_c_api.h"
 #include "compiler/graph/fusion/pass/python_pass_bridge_loader_helper.h"
 #include "compiler/graph/fusion/pass/python_pass_pybind_bridge.h"
@@ -58,6 +59,7 @@ std::string GetCodeDir() {
 }
 
 constexpr const char *kEnvPythonPassPath = "ASCEND_GE_PY_PASS_PATH";
+constexpr const char *kPythonPassArtifactsRelativePath = "passes/python_pass_artifacts";
 
 class PythonPassProcessShutdownEnvironment final : public ::testing::Environment {
  public:
@@ -465,16 +467,16 @@ void *LookupSymbolUnusedForUt(void *handle, const char *symbol) {
   return nullptr;
 }
 
-python_pass_artifact::PythonRuntimeKey ResolveRuntimeKeyForBridgeLoaderUt() {
-  python_pass_artifact::PythonRuntimeKey runtime_key;
+python_artifact::PythonRuntimeKey ResolveRuntimeKeyForBridgeLoaderUt() {
+  python_artifact::PythonRuntimeKey runtime_key;
   runtime_key.source = "ut";
   runtime_key.python_tag = "cp399";
   return runtime_key;
 }
 
-python_pass_bridge_loader::BridgeLoadDependencies BuildFailingBridgeLoadDepsForUt() {
-  python_pass_bridge_loader::BridgeLoadDependencies deps;
-  deps.real_path = &python_pass_artifact::ResolveRealPath;
+python_bridge_loader::BridgeLoadDependencies BuildFailingBridgeLoadDepsForUt() {
+  python_bridge_loader::BridgeLoadDependencies deps;
+  deps.real_path = &RealPath;
   deps.open_library = &OpenLibraryFailedForUt;
   deps.close_library = &CloseLibraryNoopForUt;
   deps.lookup_symbol = &LookupSymbolUnusedForUt;
@@ -1477,7 +1479,7 @@ TEST_F(UtestFusionPassExecutor, PythonPassBridgeLoader_ProbesPathPythonRuntime) 
 TEST_F(UtestFusionPassExecutor, PythonPassBridgeLoader_SkipsBrokenPrebuiltCandidate) {
   ScopedTempDir temp_dir;
   constexpr const char *kPythonTag = "cp399";
-  const auto platform_tag = python_pass_artifact::CurrentPlatformTag();
+  const auto platform_tag = python_artifact::CurrentPlatformTag();
   const auto artifact_dir =
       std::string("site-packages/ge/passes/python_pass_artifacts/") + kPythonTag + "-" + platform_tag;
   temp_dir.MakeDir(artifact_dir);
@@ -1502,25 +1504,26 @@ TEST_F(UtestFusionPassExecutor, PythonPassBridgeLoader_SkipsBrokenPrebuiltCandid
 
   ScopedEnvVar scoped_python_path("PYTHONPATH", temp_dir.FilePath("site-packages"));
   auto runtime_key = ResolveRuntimeKeyForBridgeLoaderUt();
-  const auto candidates =
-      python_pass_artifact::BuildPrebuiltBridgeLibraryCandidates(runtime_key, "", kPythonFusionPassBridgeAbiVersion);
+  const auto candidates = python_artifact::BuildPrebuiltBridgeLibraryCandidates(
+      runtime_key, "", kPythonPassArtifactsRelativePath, kPythonFusionPassBridgeAbiVersion);
   ASSERT_EQ(candidates.size(), 1U);
-  EXPECT_EQ(candidates.front().bridge_path, python_pass_artifact::ResolveRealPath(broken_bridge_path.c_str()));
-  EXPECT_EQ(candidates.front().artifact_root,
-            python_pass_artifact::ResolveRealPath(temp_dir.FilePath(artifact_dir).c_str()));
-  EXPECT_EQ(candidates.front().native_module_path, python_pass_artifact::ResolveRealPath(native_module_path.c_str()));
+  EXPECT_EQ(candidates.front().bridge_path, RealPath(broken_bridge_path.c_str()));
+  EXPECT_EQ(candidates.front().artifact_root, RealPath(temp_dir.FilePath(artifact_dir).c_str()));
+  EXPECT_EQ(candidates.front().native_module_path, RealPath(native_module_path.c_str()));
 
-  python_pass_bridge_loader::LoadedBridgeCandidate loaded_bridge;
-  const auto status = python_pass_bridge_loader::TryLoadBridgeCandidate(
-      runtime_key, candidates.front(), BuildFailingBridgeLoadDepsForUt(), loaded_bridge);
-  EXPECT_EQ(status, python_pass_bridge_loader::BridgeLoadStatus::kOpenFailed);
-  EXPECT_EQ(std::string(python_pass_bridge_loader::BridgeLoadStatusToString(status)), "open failed");
-  EXPECT_EQ(python_pass_bridge_loader::BuildBridgeLoadErrorSuffix(status, "broken shared object"),
+  python_bridge_loader::LoadedBridgeCandidate<PythonFusionPassBridgeApi> loaded_bridge;
+  const auto status =
+      python_bridge_loader::TryLoadBridgeCandidate<PythonFusionPassBridgeApi, PythonFusionPassBridgeArtifactConfig>(
+          runtime_key, candidates.front(), BuildFailingBridgeLoadDepsForUt(),
+          &python_pass_bridge_loader::IsBridgeApiValid, loaded_bridge);
+  EXPECT_EQ(status, python_bridge_loader::BridgeLoadStatus::kOpenFailed);
+  EXPECT_EQ(std::string(python_bridge_loader::BridgeLoadStatusToString(status)), "open failed");
+  EXPECT_EQ(python_bridge_loader::BuildBridgeLoadErrorSuffix(status, "broken shared object"),
             ", dlerror[broken shared object]");
-  EXPECT_TRUE(python_pass_bridge_loader::BuildBridgeLoadErrorSuffix(status, nullptr).empty());
-  EXPECT_TRUE(python_pass_bridge_loader::BuildBridgeLoadErrorSuffix(
-                  python_pass_bridge_loader::BridgeLoadStatus::kInvalidPath, "ignored")
-                  .empty());
+  EXPECT_TRUE(python_bridge_loader::BuildBridgeLoadErrorSuffix(status, nullptr).empty());
+  EXPECT_TRUE(
+      python_bridge_loader::BuildBridgeLoadErrorSuffix(python_bridge_loader::BridgeLoadStatus::kInvalidPath, "ignored")
+          .empty());
   EXPECT_EQ(loaded_bridge.handle, nullptr);
 }
 

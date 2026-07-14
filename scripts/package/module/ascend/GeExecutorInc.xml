@@ -17,6 +17,7 @@
         <path value="$(TARGET_ENV)/pkg_inc/register" install_mod="555"/>
     </dir_info>
     <file_info value="include" copy_type="source" src_path="include/external/exe_graph/runtime" dst_path="include/exe_graph/runtime" install_path="$(TARGET_ENV)/include/exe_graph/runtime" install_type="devel" install_mod="440">
+        <file value="annotated_args_context.h"/>
         <file value="eager_op_execution_context.h"/>
         <file value="op_compile_context.h"/>
         <file value="update_args_context.h"/>

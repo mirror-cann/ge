@@ -31,6 +31,18 @@ using namespace ge::custom_op;
 namespace {
 class RegistryTestOp : public BaseCustomOp {};
 class RegistryDuplicateReplacementOp : public BaseCustomOp {};
+class RegistryDestructCountOp : public BaseCustomOp {
+ public:
+  explicit RegistryDestructCountOp(size_t *destruct_count) : destruct_count_(destruct_count) {}
+  ~RegistryDestructCountOp() override {
+    if (destruct_count_ != nullptr) {
+      ++(*destruct_count_);
+    }
+  }
+
+ private:
+  size_t *destruct_count_;
+};
 
 class CastEagerOnlyOp : public EagerExecuteOp {
  public:
@@ -177,6 +189,25 @@ TEST(UtestCustomOpRegistry, find_custom_op_returns_created_instance) {
   EXPECT_NE(nullptr, created);
   EXPECT_EQ(created, registry.FindCustomOp("RegistryFindAfterCreate"));
   EXPECT_EQ(true, registry.HasCustomOp("RegistryFindAfterCreate"));
+}
+
+TEST(UtestCustomOpRegistry, remove_custom_ops_erases_creator_and_created_instance) {
+  size_t destruct_count = 0U;
+  CustomOpRegistry registry;
+  EXPECT_EQ(ge::GRAPH_SUCCESS,
+            registry.RegisterCreator("RegistryRemoveCustomOp", [&destruct_count]() -> std::unique_ptr<BaseCustomOp> {
+              return std::make_unique<RegistryDestructCountOp>(&destruct_count);
+            }));
+
+  EXPECT_EQ(true, registry.HasCreator("RegistryRemoveCustomOp"));
+  EXPECT_NE(nullptr, registry.CreateOrGetCustomOp("RegistryRemoveCustomOp"));
+  EXPECT_EQ(true, registry.HasCustomOp("RegistryRemoveCustomOp"));
+
+  registry.RemoveCustomOps({AscendString("RegistryRemoveCustomOp")});
+  EXPECT_EQ(1U, destruct_count);
+  EXPECT_EQ(false, registry.HasCreator("RegistryRemoveCustomOp"));
+  EXPECT_EQ(false, registry.HasCustomOp("RegistryRemoveCustomOp"));
+  EXPECT_EQ(nullptr, registry.CreateOrGetCustomOp("RegistryRemoveCustomOp"));
 }
 
 TEST(UtestCustomOpCast, falls_back_to_dynamic_cast_for_cpp_custom_op) {

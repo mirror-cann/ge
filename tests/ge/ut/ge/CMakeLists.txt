@@ -960,30 +960,30 @@ target_link_libraries(ut_libge_others_utest
 add_test(NAME ut_libge_others_utest COMMAND ut_libge_others_utest --gtest_output=xml:${CMAKE_INSTALL_PREFIX}/report/ut/ut_libge_others_utest.xml)
 set_tests_properties(ut_libge_others_utest PROPERTIES LABELS "ut;ge_common;ut_libge_others_utest")
 
-# ut_python_pass_artifact_selector_utest
-add_executable(ut_python_pass_artifact_selector_utest
-    "fusion/pass/python_pass_artifact_selector_unittest.cc"
+# ut_python_runtime_artifact_utils_utest
+add_executable(ut_python_runtime_artifact_utils_utest
+    "common/python_runtime_artifact_utils_unittest.cc"
 )
 
-target_compile_options(ut_python_pass_artifact_selector_utest PRIVATE ${AIR_COMMON_COMPILE_OPTION}
+target_compile_options(ut_python_runtime_artifact_utils_utest PRIVATE ${AIR_COMMON_COMPILE_OPTION}
     -Werror=format
     -Wno-deprecated-declarations
     -Wall -Wfloat-equal -Werror
     -Wno-subobject-linkage
 )
 
-target_include_directories(ut_python_pass_artifact_selector_utest PRIVATE
+target_include_directories(ut_python_runtime_artifact_utils_utest PRIVATE
     ${AIR_CODE_DIR}
     ${ASCEND_INSTALL_PATH}/include
     ${ASCGEN_DIR}/inc
 )
 
-target_compile_definitions(ut_python_pass_artifact_selector_utest PRIVATE
+target_compile_definitions(ut_python_runtime_artifact_utils_utest PRIVATE
     google=ascend_private
     _GLIBCXX_USE_CXX11_ABI=0
 )
 
-target_link_libraries(ut_python_pass_artifact_selector_utest
+target_link_libraries(ut_python_runtime_artifact_utils_utest
     intf_llt_pub
     json
     GTestShared::gtest
@@ -991,20 +991,21 @@ target_link_libraries(ut_python_pass_artifact_selector_utest
     ge_common_base
     opp_registry
     register
+    graph_base
     unified_dlog
 )
 
-target_link_options(ut_python_pass_artifact_selector_utest PRIVATE
+target_link_options(ut_python_runtime_artifact_utils_utest PRIVATE
     -Wl,--disable-new-dtags
     -Wl,-rpath,${CMAKE_CURRENT_LIST_DIR}
     -Wl,-rpath,${CMAKE_BINARY_DIR}/compiler
 )
 
-add_test(NAME ut_python_pass_artifact_selector_utest
-    COMMAND ut_python_pass_artifact_selector_utest
-            --gtest_output=xml:${CMAKE_INSTALL_PREFIX}/report/ut/ut_python_pass_artifact_selector_utest.xml)
-set_tests_properties(ut_python_pass_artifact_selector_utest PROPERTIES
-    LABELS "ut;ge_common;ut_python_pass_artifact_selector_utest"
+add_test(NAME ut_python_runtime_artifact_utils_utest
+    COMMAND ut_python_runtime_artifact_utils_utest
+            --gtest_output=xml:${CMAKE_INSTALL_PREFIX}/report/ut/ut_python_runtime_artifact_utils_utest.xml)
+set_tests_properties(ut_python_runtime_artifact_utils_utest PROPERTIES
+    LABELS "ut;ge_common;ut_python_runtime_artifact_utils_utest"
 )
 
 # ut_fusion_pass_executor_utest

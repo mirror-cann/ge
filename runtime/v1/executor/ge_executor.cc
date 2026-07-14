@@ -28,7 +28,7 @@
 #include "graph_metadef/common/plugin/plugin_manager.h"
 #include "graph/opsproto_manager.h"
 #include "base/registry/opp_package_utils.h"
-#include "register/op_lib_register_impl.h"
+#include "runtime/custom_op/custom_op_loader.h"
 #include "host_cpu_engine/host_cpu_engine.h"
 #include "rt_external_base.h"
 #include "common/profiling/command_handle.h"
@@ -44,6 +44,8 @@
 #include "common/dump/dump_callback.h"
 #include "graph/operator_factory_impl.h"
 #include "common/helper/custom_op_so_loader.h"
+#include "common/python_runtime/ge_python_runtime_manager.h"
+#include "framework/common/scope_guard.h"
 
 namespace {
 constexpr size_t kDynamicBatchSizeVecSize = 1U;
@@ -274,7 +276,12 @@ Status GeExecutor::Initialize(const std::map<std::string, std::string> &options)
   OperatorFactoryImpl::BackupAndClearRegInfoOnce();
 
   GELOGI("Init GeExecutor begin.");
-  GE_ASSERT_GRAPH_SUCCESS(OpLibRegistry::GetInstance().PreProcessForCustomOp());
+  Status python_runtime_ret = GePythonRuntimeManager::Instance().EnsureReady();
+  if (python_runtime_ret != SUCCESS) {
+    GELOGW("[Ensure][PythonRuntime] failed, continue initialization, ret[%u].", python_runtime_ret);
+  }
+  GE_DISMISSABLE_GUARD(release_python_runtime, ([]() { (void)GePythonRuntimeManager::Instance().ShutdownProcess(); }));
+  GE_ASSERT_SUCCESS(ge::custom_op::LoadCustomOps());
 
   const std::string path_base = GetModelPath();
 
@@ -324,6 +331,7 @@ Status GeExecutor::Initialize(const std::map<std::string, std::string> &options)
   OperatorFactoryImpl::MergeBackupCreatorsOnce();
   is_inited_.store(true);
   GELOGI("Init GeExecutor over.");
+  GE_DISMISS_GUARD(release_python_runtime);
   return SUCCESS;
 }
 
@@ -370,7 +378,10 @@ Status GeExecutor::Initialize() {
 }
 
 Status GeExecutor::Finalize() {
-  return GeExecutor::FinalizeEx();
+  const Status ret = GeExecutor::FinalizeEx();
+  (void)custom_op::ShutdownCustomOpsForProcess();
+  (void)GePythonRuntimeManager::Instance().ShutdownProcess();
+  return ret;
 }
 
 Status GeExecutor::SetDynamicBatchSize(const uint32_t model_id, void *const dynamic_input_addr, const uint64_t length,

@@ -22,11 +22,11 @@ from ge._internal.artifact_utils import (
     PythonArtifact,
     find_compatible_artifact,
     iter_artifacts as iter_artifacts_from_root,
-    load_native_artifact_manifest,
+    load_bridge_artifact_manifest,
     load_module_from_path,
 )
 
-NATIVE_ABI_VERSION = 1
+BRIDGE_ABI_VERSION = 1
 NATIVE_MODULE_NAME = "ge.custom_op._ge_custom_op_native"
 
 
@@ -36,12 +36,12 @@ def artifacts_root() -> Path:
 
 def iter_artifacts(root: Optional[Path] = None) -> Iterable[PythonArtifact]:
     return iter_artifacts_from_root(
-        root or artifacts_root(), load_native_artifact_manifest
+        root or artifacts_root(), load_bridge_artifact_manifest
     )
 
 
 def find_prebuilt_artifact() -> Optional[PythonArtifact]:
-    return find_compatible_artifact(iter_artifacts(), NATIVE_ABI_VERSION)
+    return find_compatible_artifact(iter_artifacts(), BRIDGE_ABI_VERSION)
 
 
 def load_native_module(native_path: Path) -> ModuleType:

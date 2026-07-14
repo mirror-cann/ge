@@ -34,7 +34,7 @@ set(GE_PYTHON_PASS_ARTIFACT_DIR
         ${CMAKE_CURRENT_BINARY_DIR}/native_artifacts/${GE_PYTHON_ARTIFACT_SET_NAME})
 set(GE_PYTHON_PASS_BRIDGE_ABI_VERSION 1)
 set(GE_PYTHON_RUNTIME_NATIVE_ABI_VERSION 1)
-set(GE_PYTHON_CUSTOM_OP_NATIVE_ABI_VERSION 1)
+set(GE_PYTHON_CUSTOM_OP_BRIDGE_ABI_VERSION 1)
 set(GE_PYTHON_PASS_ARTIFACT_MANIFEST ${CMAKE_CURRENT_BINARY_DIR}/python_pass_artifact_manifest.json)
 set(GE_PYTHON_RUNTIME_ARTIFACT_MANIFEST ${CMAKE_CURRENT_BINARY_DIR}/python_runtime_artifact_manifest.json)
 set(GE_PYTHON_CUSTOM_OP_ARTIFACT_MANIFEST ${CMAKE_CURRENT_BINARY_DIR}/python_custom_op_artifact_manifest.json)
@@ -92,7 +92,7 @@ file(WRITE ${GE_PYTHON_CUSTOM_OP_ARTIFACT_MANIFEST}
         "  \"python_tag\": \"${GE_PYTHON_ARTIFACT_PYTHON_TAG}\",\n"
         "  \"python_version\": \"${GE_PYTHON_ARTIFACT_PYTHON_VERSION}\",\n"
         "  \"platform\": \"${GE_PYTHON_ARTIFACT_PLATFORM_TAG}\",\n"
-        "  \"native_abi\": ${GE_PYTHON_CUSTOM_OP_NATIVE_ABI_VERSION},\n"
+        "  \"bridge_abi\": ${GE_PYTHON_CUSTOM_OP_BRIDGE_ABI_VERSION},\n"
         "  \"build_python\": {\n"
         "    \"executable\": \"${HI_PYTHON}\",\n"
         "    \"version\": \"${GE_PYTHON_ARTIFACT_PYTHON_VERSION}\",\n"
@@ -102,6 +102,7 @@ file(WRITE ${GE_PYTHON_CUSTOM_OP_ARTIFACT_MANIFEST}
         "    \"link_python\": true\n"
         "  },\n"
         "  \"artifacts\": {\n"
+        "    \"bridge\": \"libge_python_custom_op_bridge.so\",\n"
         "    \"native\": \"_ge_custom_op_native.so\"\n"
         "  }\n"
         "}\n"
@@ -188,6 +189,7 @@ add_custom_command(
          && cp $<TARGET_FILE:_ge_runtime_native> ${GE_PYTHON_MAIN_WHEEL_DIR}/ge/runtime/python_runtime_artifacts/${GE_PYTHON_ARTIFACT_SET_NAME}/_ge_runtime_native.so
          && mkdir -p ${GE_PYTHON_MAIN_WHEEL_DIR}/ge/custom_op/python_custom_op_artifacts/${GE_PYTHON_ARTIFACT_SET_NAME}
          && cp ${GE_PYTHON_CUSTOM_OP_ARTIFACT_MANIFEST} ${GE_PYTHON_MAIN_WHEEL_DIR}/ge/custom_op/python_custom_op_artifacts/${GE_PYTHON_ARTIFACT_SET_NAME}/manifest.json
+         && cp $<TARGET_FILE:ge_python_custom_op_bridge> ${GE_PYTHON_MAIN_WHEEL_DIR}/ge/custom_op/python_custom_op_artifacts/${GE_PYTHON_ARTIFACT_SET_NAME}/libge_python_custom_op_bridge.so
          && cp $<TARGET_FILE:_ge_custom_op_native> ${GE_PYTHON_MAIN_WHEEL_DIR}/ge/custom_op/python_custom_op_artifacts/${GE_PYTHON_ARTIFACT_SET_NAME}/_ge_custom_op_native.so
          && ${CMAKE_COMMAND} -E copy_directory ${GE_PYTHON_PASS_FALLBACK_CODEGEN_DIR} ${GE_PYTHON_MAIN_WHEEL_DIR}/ge/passes/fallback_codegen
          && find ${GE_PYTHON_MAIN_WHEEL_DIR}/ge -name __pycache__ -type d -exec rm -rf {} +
@@ -201,7 +203,7 @@ add_custom_command(
          && cp -f dist/ge_py-0.0.1-py3-none-any.whl ${GE_PYTHON_MAIN_WHEEL}
          && echo "Build ge-py wheel package end"
          DEPENDS eager_style_graph_builder_base ge_api_c_wrapper graph_wrapper
-                 _ge_runtime_native _ge_custom_op_native
+                 _ge_runtime_native _ge_custom_op_native ge_python_custom_op_bridge
                  ${GE_API_C_WRAPPER}
                  ${GE_PYTHON_RUNTIME_ARTIFACT_MANIFEST}
                  ${GE_PYTHON_CUSTOM_OP_ARTIFACT_MANIFEST}

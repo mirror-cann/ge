@@ -37,13 +37,13 @@
 #include "graph/model_serialize.h"
 #include "graph/opsproto_manager.h"
 #include "base/registry/opp_package_utils.h"
-#include "register/op_lib_register_impl.h"
 #include "graph/utils/type_utils.h"
 #include "api/gelib/gelib.h"
 #include "api/aclgrph/option_utils.h"
 #include "graph/fusion/pass/pass_plugin_loader.h"
 #include "proto/ge_api.pb.h"
 #include "register/op_registry.h"
+#include "runtime/custom_op/custom_op_loader.h"
 #include "runtime/v2/core/debug/kernel_tracing.h"
 #include "session/session_manager.h"
 #include "session/ge_session_impl.h"
@@ -258,8 +258,14 @@ static Status GEInitializeImpl(const std::map<std::string, std::string> &options
   GE_ASSERT_SUCCESS(CheckOptionsValid(options));
   GE_TIMESTAMP_EVENT_END(CheckOptionsValid, "GEInitialize::CheckOptionsValid");
 
+  ret = GePythonRuntimeManager::Instance().EnsureReady();
+  if (ret != SUCCESS) {
+    GELOGW("[Ensure][PythonRuntime] failed, continue initialization, ret[%u].", ret);
+  }
+  GE_DISMISSABLE_GUARD(release_python_runtime, ([]() { (void)GePythonRuntimeManager::Instance().ShutdownProcess(); }));
+
   // 4. init OpsProto lib plugin
-  GE_ASSERT_GRAPH_SUCCESS(OpLibRegistry::GetInstance().PreProcessForCustomOp());
+  GE_ASSERT_SUCCESS(ge::custom_op::LoadCustomOps());
 
   // 加载顺序遵循3.0目录结构，按op_graph->op_impl->op_proto->framework顺序加载，详细规则见PluginManager::GetOpsProtoPath注释
   gert::OppPackageUtils::LoadAllOppPackage();
@@ -282,11 +288,6 @@ static Status GEInitializeImpl(const std::map<std::string, std::string> &options
         std::vector<const char *>({opsproto_path.c_str(), "failed to load the OpsProto lib plugin"}));
     return FAILED;
   }
-  ret = GePythonRuntimeManager::Instance().EnsureReady();
-  if (ret != SUCCESS) {
-    GELOGW("[Ensure][PythonRuntime] failed, continue initialization, ret[%u].", ret);
-  }
-  GE_DISMISSABLE_GUARD(release_python_runtime, ([]() { (void)GePythonRuntimeManager::Instance().ShutdownProcess(); }));
   GE_ASSERT_SUCCESS(fusion::LoadPassPlugins());
 
   ge::GetContext().Init();
@@ -397,6 +398,7 @@ Status GEFinalizeV2() {
 
   // 这里是 GE 的进程级 finalization，额外负责显式关闭 Python bridge so。
   (void)fusion::ShutdownPassPluginsForProcess();
+  (void)custom_op::ShutdownCustomOpsForProcess();
   // call Finalize
   (void)GeExecutor::FinalizeEx();
   Status ret = SUCCESS;

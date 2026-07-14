@@ -66,6 +66,7 @@ target_link_libraries(ge_runner_v2
         hybrid_executor
         -Wl,--no-as-needed
         gert
+        custom_op_runtime
         -Wl,--as-needed
         graph
         graph_base

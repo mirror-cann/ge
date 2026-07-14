@@ -15,14 +15,14 @@
 
 #include <string>
 
+#include "common/python_runtime/python_artifact_utils.h"
 #include "framework/common/debug/ge_log.h"
-#include "python_pass_artifact_selector.h"
 
 namespace ge {
 namespace fusion {
 namespace python_pass_fallback_codegen {
 
-using ProbePythonRuntimeFn = bool (*)(const char *python_command, python_pass_artifact::PythonRuntimeKey &runtime_key);
+using ProbePythonRuntimeFn = bool (*)(const char *python_command, ::ge::python_artifact::PythonRuntimeKey &runtime_key);
 
 constexpr const char *kPyGILStateEnsureSymbol = "PyGILState_Ensure";
 constexpr const char *kPyGILStateReleaseSymbol = "PyGILState_Release";
@@ -161,23 +161,17 @@ inline std::string FetchLineByPrefix(const std::string &content, const std::stri
   return "";
 }
 
-inline bool IsRuntimeKeyCompatible(const python_pass_artifact::PythonRuntimeKey &expected_key,
-                                   const python_pass_artifact::PythonRuntimeKey &loaded_key) {
-  return expected_key.python_tag.empty() || loaded_key.python_tag.empty() ||
-         (loaded_key.python_tag == expected_key.python_tag);
-}
-
-inline std::string ResolveCompatiblePythonCommand(const python_pass_artifact::PythonRuntimeKey &expected_key,
+inline std::string ResolveCompatiblePythonCommand(const ::ge::python_artifact::PythonRuntimeKey &expected_key,
                                                   ProbePythonRuntimeFn probe) {
   if (probe == nullptr) {
     return "";
   }
   for (const char *candidate : {"python3", "python"}) {
-    python_pass_artifact::PythonRuntimeKey probed_key;
+    ::ge::python_artifact::PythonRuntimeKey probed_key;
     if (!probe(candidate, probed_key)) {
       continue;
     }
-    if (!IsRuntimeKeyCompatible(expected_key, probed_key)) {
+    if (!::ge::python_artifact::IsRuntimeKeyCompatible(expected_key, probed_key)) {
       continue;
     }
     return probed_key.python_command;
@@ -222,7 +216,7 @@ inline bool RunEvalExpressionInProcess(const char *expression, std::string &resu
   return true;
 }
 
-inline bool RunFallbackCodegenViaSubprocess(const python_pass_artifact::PythonRuntimeKey &runtime_key,
+inline bool RunFallbackCodegenViaSubprocess(const ::ge::python_artifact::PythonRuntimeKey &runtime_key,
                                             const FallbackCodegenDependencies &deps, std::string &gen_artifact_root) {
   if ((deps.read_command_output == nullptr) || (deps.probe_runtime == nullptr)) {
     return false;
@@ -263,7 +257,7 @@ inline bool RunFallbackCodegenInProcess(std::string &gen_artifact_root) {
   return true;
 }
 
-inline bool RunFallbackCodegen(const python_pass_artifact::PythonRuntimeKey &runtime_key,
+inline bool RunFallbackCodegen(const ::ge::python_artifact::PythonRuntimeKey &runtime_key,
                                const FallbackCodegenDependencies &deps, std::string &gen_artifact_root) {
   gen_artifact_root.clear();
   if (runtime_key.python_tag.empty() || !IsFallbackCodegenDependenciesValid(deps)) {

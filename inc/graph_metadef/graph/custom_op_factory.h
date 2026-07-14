@@ -27,6 +27,8 @@ class CustomOpFactory {
 
   static BaseCustomOp *CreateOrGetCustomOp(const AscendString &op_type);
 
+  static void RemoveCustomOps(const std::vector<AscendString> &op_types);
+
   static CustomOpRegistryPtr GetGlobalRegistryPtr();
 
   static graphStatus GetAllRegisteredOps(std::vector<AscendString> &all_registered_ops);

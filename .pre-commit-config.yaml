@@ -71,7 +71,7 @@ repos:
         name: OAT Compliance Check
         entry: bash scripts/oat_check.sh
         language: system
-        pass_filenames: false
+        pass_filenames: true
         types: [file]
         stages: [pre-commit]
         verbose: true

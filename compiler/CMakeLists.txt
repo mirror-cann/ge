@@ -454,6 +454,7 @@ target_link_libraries(ge_compiler
         static_mmpa
         ge_proto_common
         -Wl,--no-as-needed
+        custom_op_runtime
         graph
         graph_base
         flow_graph
@@ -468,6 +469,7 @@ target_link_libraries(ge_compiler
         unified_dlog
         runtime_headers
         aihac_symbolizer
+        lowering
         -Wl,--as-needed
         json
         -lrt

@@ -314,6 +314,7 @@ target_link_libraries(ge_executor_shared
         hccl_headers
         $<$<TARGET_EXISTS:datagw_headers>:datagw_headers>
         -Wl,--no-as-needed
+        custom_op_runtime
         graph
         ge_common
         ge_common_base

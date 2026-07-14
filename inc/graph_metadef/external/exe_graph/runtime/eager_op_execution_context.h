@@ -122,17 +122,9 @@ class EagerOpExecutionContext : public ExtendedKernelContext {
    */
   const KernelArgs *MallocReadOnlyDevArgs(void *host_args, size_t args_size) const;
 
-  enum class AdditionalInputIndex : uint32_t {
-    kDeviceAllocator = 0,
-    kStream,
-    kNum
-  };
+  enum class AdditionalInputIndex : uint32_t { kDeviceAllocator = 0, kStream, kNum };
 
-  enum class AdditionalOutputIndex : uint32_t {
-    kWorkSpace = 0,
-    kArgsHandler,
-    kNum
-  };
+  enum class AdditionalOutputIndex : uint32_t { kWorkSpace = 0, kArgsHandler, kNum };
 
  protected:
   int64_t GetAdditionalInputStartIndex() const {

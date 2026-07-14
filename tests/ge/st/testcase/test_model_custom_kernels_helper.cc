@@ -29,6 +29,7 @@
 #include "common/model/ge_root_model.h"
 #undef private
 #include "depends/mmpa/src/mmpa_stub.h"
+#include "faker/space_registry_faker.h"
 #include "common/plugin/plugin_manager.h"
 #include "framework/common/helper/model_helper.h"
 #include "framework/common/helper/om_file_helper.h"
@@ -479,17 +480,66 @@ static bool WriteTextFileForSt(const std::string &path, const std::string &conte
   return file.good();
 }
 
+class ScopedSceneInfoForSt {
+ public:
+  ScopedSceneInfoForSt(const std::string &host_env_os, const std::string &host_env_cpu) {
+    scene_info_path_ = gert::GetTempOppBasePath() + "opp/scene.info";
+    (void)system(("mkdir -p " + gert::GetTempOppBasePath() + "opp/").c_str());
+    std::ifstream old_file(scene_info_path_);
+    if (old_file.good()) {
+      old_content_.assign(std::istreambuf_iterator<char>(old_file), std::istreambuf_iterator<char>());
+      has_old_content_ = true;
+    }
+    (void)WriteTextFileForSt(scene_info_path_, "os=" + host_env_os + "\narch=" + host_env_cpu + "\n");
+  }
+
+  ~ScopedSceneInfoForSt() {
+    if (scene_info_path_.empty()) {
+      return;
+    }
+    if (has_old_content_) {
+      (void)WriteTextFileForSt(scene_info_path_, old_content_);
+      return;
+    }
+    (void)system(("rm -f " + scene_info_path_).c_str());
+  }
+
+ private:
+  std::string scene_info_path_;
+  std::string old_content_;
+  bool has_old_content_ = false;
+};
+
+static std::string GetCompileTimeCpuForSt() {
+#if defined(__aarch64__) || defined(__arm64__)
+  return "aarch64";
+#elif defined(__x86_64__) || defined(__amd64__)
+  return "x86_64";
+#elif defined(__arm__)
+  return "arm";
+#else
+  return "";
+#endif
+}
+
+static std::string NormalizeCpuForSt(const std::string &cpu) {
+  if (cpu == "amd64") {
+    return "x86_64";
+  }
+  if (cpu == "arm64") {
+    return "aarch64";
+  }
+  return cpu;
+}
+
 static void GetCurrentEnvWithFallbackForSt(std::string &current_env_os, std::string &current_env_cpu) {
   PluginManager::GetCurEnvPackageOsAndCpuType(current_env_os, current_env_cpu);
   if (current_env_os.empty()) {
     current_env_os = "linux";
   }
-  if (current_env_cpu.empty()) {
-#if defined(__aarch64__) || defined(__arm64__)
-    current_env_cpu = "aarch64";
-#elif defined(__x86_64__) || defined(__amd64__)
-    current_env_cpu = "x86_64";
-#endif
+  const std::string compile_time_cpu = GetCompileTimeCpuForSt();
+  if (current_env_cpu.empty() || (NormalizeCpuForSt(current_env_cpu) != compile_time_cpu)) {
+    current_env_cpu = compile_time_cpu;
   }
 }
 
@@ -832,6 +882,7 @@ TEST_F(TestModelCustomOpsHelper, ge_root_model_resolve_portable_op_so_path_same_
   ASSERT_FALSE(current_env_cpu.empty());
 
   ScopedHostEnvOptionForSt host_env_guard(current_env_os, current_env_cpu);
+  ScopedSceneInfoForSt scene_info_guard(current_env_os, current_env_cpu);
   GeRootModel ge_root_model;
   PortableOpForSerializeSuccess portable_op;
   std::string so_path;
@@ -890,6 +941,7 @@ TEST_F(TestModelCustomOpsHelper, ge_root_model_target_host_env_and_cross_compile
   ASSERT_FALSE(current_env_cpu.empty());
 
   ScopedHostEnvOptionForSt host_env_guard("linux", "x86_64");
+  ScopedSceneInfoForSt scene_info_guard(current_env_os, current_env_cpu);
   GeRootModel ge_root_model;
   std::string target_os;
   std::string target_cpu;
