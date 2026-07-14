@@ -342,7 +342,8 @@ TEST_F(UtestMain, MainImplTest_global_options) {
                   "--input_format=NCHW",
                   "--host_env_os=linux",
                   "--host_env_cpu=x86_64",
-                  const_cast<char *>(build_config_arg.c_str())};
+                  const_cast<char *>(build_config_arg.c_str()),
+                  "--h2d_overlapped_with_compute=1"};
   int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   auto &options = GetMutableGlobalOptions();
   auto it = options.find(ge::DETERMINISTIC);
@@ -359,6 +360,12 @@ TEST_F(UtestMain, MainImplTest_global_options) {
   EXPECT_NE(it, options.end());
   if (it != options.end()) {
     EXPECT_EQ(it->second, "make -s CXX=c++");
+  }
+  // H2D overlap option flows from CLI -> SetAtcJitOptions -> GELib::Initialize -> global options
+  it = options.find(ge::OPTION_H2D_OVERLAPPED_WITH_COMPUTE);
+  EXPECT_NE(it, options.end());
+  if (it != options.end()) {
+    EXPECT_EQ(it->second, "1");
   }
   EXPECT_NE(ret, 0);
   AtcFileFactory::RemoveFile(AtcFileFactory::Generatefile1("", "tmp.om").c_str());
@@ -1624,10 +1631,8 @@ bool IsLegacySoFile(const std::string &file_path);
 class UtestLegacySoPartition : public testing::Test {};
 
 TEST_F(UtestLegacySoPartition, MixedFiles_LegacyMovedToEnd) {
-  std::vector<std::string> fileList = {
-      "/path/to/libop1.so", "/path/to/libop2_legacy.so",
-      "/path/to/libop3.so", "/path/to/libop4_legacy.so",
-      "/path/to/libop5.so"};
+  std::vector<std::string> fileList = {"/path/to/libop1.so", "/path/to/libop2_legacy.so", "/path/to/libop3.so",
+                                       "/path/to/libop4_legacy.so", "/path/to/libop5.so"};
   std::stable_partition(fileList.begin(), fileList.end(), ge::IsLegacySoFile);
   ASSERT_EQ(fileList.size(), 5u);
   EXPECT_EQ(fileList[0], "/path/to/libop1.so");
@@ -1667,10 +1672,8 @@ TEST_F(UtestLegacySoPartition, ShortFileName_TreatedAsNonLegacy) {
 }
 
 TEST_F(UtestLegacySoPartition, StabilityPreserved_RelativeOrderMaintained) {
-  std::vector<std::string> fileList = {
-      "/path/first.so", "/path/alpha_legacy.so",
-      "/path/second.so", "/path/beta_legacy.so",
-      "/path/third.so"};
+  std::vector<std::string> fileList = {"/path/first.so", "/path/alpha_legacy.so", "/path/second.so",
+                                       "/path/beta_legacy.so", "/path/third.so"};
   std::stable_partition(fileList.begin(), fileList.end(), ge::IsLegacySoFile);
   EXPECT_EQ(fileList[0], "/path/first.so");
   EXPECT_EQ(fileList[1], "/path/second.so");
@@ -1687,9 +1690,8 @@ TEST_F(UtestLegacySoPartition, ExactLegacySoName_MovedToEnd) {
 }
 
 TEST_F(UtestLegacySoPartition, SimilarButNotLegacySuffix_NotMoved) {
-  std::vector<std::string> fileList = {
-      "/path/legacy.so", "/path/not_legacy.so.bak",
-      "/path/real_legacy.so", "/path/_legacy.sox"};
+  std::vector<std::string> fileList = {"/path/legacy.so", "/path/not_legacy.so.bak", "/path/real_legacy.so",
+                                       "/path/_legacy.sox"};
   std::stable_partition(fileList.begin(), fileList.end(), ge::IsLegacySoFile);
   EXPECT_EQ(fileList[0], "/path/legacy.so");
   EXPECT_EQ(fileList[1], "/path/not_legacy.so.bak");

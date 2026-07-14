@@ -147,6 +147,7 @@ const std::unordered_set<std::string> kOm2UnsuppotedFlag = {
     "compress_weight_conf",
     "enable_compress_weight",
     "enable_attr_compression",
+    "h2d_overlapped_with_compute",
 };
 
 namespace ge {
@@ -635,6 +636,8 @@ class GFlagUtils {
         "E.g.: \"pass_name1:on;pass_name2:off\"\n"
         "  --static_model_ops_lower_limit    Set the lower limit of static subgraph op count in dynamic shape "
         "partition. The value must be an integer greater than or equal to -1.\n"
+        "  --h2d_overlapped_with_compute    Enable input H2D overlap for static shape models. "
+        "0(default): disable; 1: enable default DP; boundaries like 44,64,68.\n"
         "  --op_select_implmode    Set op select implmode. Support high_precision, high_performance, "
         "high_precision_for_all, high_performance_for_all. default: high_performance\n"
         "  --optypelist_for_implmode    Appoint which op to select implmode, cooperated with op_select_implmode.\n"
@@ -980,6 +983,9 @@ class GFlagUtils {
       GE_ASSERT_SUCCESS(CheckValidValueRange("--static_model_ops_lower_limit", FLAGS_static_model_ops_lower_limit, -1L,
                                              std::numeric_limits<int64_t>::max()),
                         "[Check][StaticModelOpsLowerLimit]failed!");
+    }
+    if (!FLAGS_h2d_overlapped_with_compute.empty()) {
+      GELOGI("[InputH2DOverlap] h2d_overlapped_with_compute is set to %s.", FLAGS_h2d_overlapped_with_compute.c_str());
     }
     return SUCCESS;
   }
@@ -1976,6 +1982,10 @@ void SetAtcJitOptions(std::map<std::string, std::string> &options) {
   if (!FLAGS_static_model_ops_lower_limit.empty()) {
     options.insert(std::pair<std::string, std::string>(ge::OPTION_STATIC_MODEL_OPS_LOWER_LIMIT,
                                                        FLAGS_static_model_ops_lower_limit));
+  }
+  if (!FLAGS_h2d_overlapped_with_compute.empty()) {
+    options.insert(
+        std::pair<std::string, std::string>(ge::OPTION_H2D_OVERLAPPED_WITH_COMPUTE, FLAGS_h2d_overlapped_with_compute));
   }
 }
 

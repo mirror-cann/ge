@@ -40,6 +40,7 @@ DECLARE_string(display_model_info);
 DECLARE_string(jit_compile);
 DECLARE_string(optimization_switch);
 DECLARE_string(static_model_ops_lower_limit);
+DECLARE_string(h2d_overlapped_with_compute);
 DECLARE_string(raw_ge_options);
 DECLARE_bool(raw_ge_options_ignore_unsupported);
 DECLARE_string(save_original_model);
@@ -106,6 +107,7 @@ class AtcTest : public testing::Test {
     FLAGS_jit_compile = "1";
     FLAGS_optimization_switch = "";
     FLAGS_static_model_ops_lower_limit = "";
+    FLAGS_h2d_overlapped_with_compute = "";
     FLAGS_raw_ge_options = "";
     FLAGS_raw_ge_options_ignore_unsupported = false;
     FLAGS_save_original_model = "";

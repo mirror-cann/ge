@@ -484,6 +484,33 @@ TEST_F(AtcCommonSTest, CheckPrecisionModeAndPrecisionModeV2) {
   remove(Generatefile("", "tmp.om").c_str());
   MainImplTearDown();
 }
+
+// H2D overlap option shares the same flow as deterministic: CLI flag is collected by SetAtcJitOptions
+// into the options map, then GELib::Initialize writes it into global options and thread local context.
+TEST_F(AtcCommonSTest, H2DOverlappedWithComputeOptionPassedToContext) {
+  MainImplSetUp();
+  std::string om_arg = "--model=st_run_data/origin_model/add.pb";
+  std::string output_arg = Generatefile("--output=", "h2d_overlap_tmp");
+  ge::GetThreadLocalContext().SetGlobalOption({});
+  char *argv[] = {"atc",
+                  "--mode=0",
+                  "--framework=3",
+                  const_cast<char *>(om_arg.c_str()),
+                  const_cast<char *>(output_arg.c_str()),
+                  "--soc_version=\"Ascend310\"",
+                  "--h2d_overlapped_with_compute=1",
+                  "--input_format=NCHW",
+                  "--host_env_os=linux",
+                  "--host_env_cpu=x86_64"};
+  (void)main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  std::string ge_option;
+  EXPECT_EQ(ge::GetThreadLocalContext().GetOption(ge::OPTION_H2D_OVERLAPPED_WITH_COMPUTE, ge_option),
+            ge::GRAPH_SUCCESS);
+  EXPECT_STREQ(ge_option.c_str(), "1");
+  remove(Generatefile("", "h2d_overlap_tmp.om").c_str());
+  MainImplTearDown();
+  ReInitGe();
+}
 TEST_F(AtcCommonSTest, pb_keep_dtype_invalid) {
   unsetenv("ASCEND_OPP_PATH");
   ReInitGe();

@@ -178,6 +178,7 @@ const char_t *const OPTION_EXECUTE_TIMES = "execute_times";
 const char_t *const OPTION_ES_MAX_REMOTEOP_NUM_PER_STREAM = "es_max_remoteop_num_per_stream";
 const char_t *const OPTION_HOST_SCHEDULING_MAX_THRESHOLD = "ge.exec.hostSchedulingMaxThreshold";
 const char_t *const OPTION_EXTERNAL_WEIGHT_DIR = "ge.externalWeightDir";
+const char_t *const OPTION_H2D_OVERLAPPED_WITH_COMPUTE = "ge.compile.h2dOverlappedWithCompute";
 
 // option for experimental
 const char_t *const OPTION_STATIC_MODEL_OPS_LOWER_LIMIT = "ge.exec.static_model_ops_lower_limit";
@@ -686,6 +687,7 @@ static const char_t *const OPTION_EXPORT_COMPILE_STAT = ge::OPTION_EXPORT_COMPIL
 static const char_t *const OPTIMIZATION_SWITCH = ge::OPTIMIZATION_SWITCH;
 static const char_t *const INPUT_HINT_SHAPE = ge::INPUT_HINT_SHAPE;
 static const char_t *const OPTION_OUTPUT_REUSE_INPUT_MEM_INDEXES = ge::OPTION_OUTPUT_REUSE_INPUT_MEM_INDEXES;
+static const char_t *const OPTION_H2D_OVERLAPPED_WITH_COMPUTE = ge::OPTION_H2D_OVERLAPPED_WITH_COMPUTE;
 static const char_t *const OFFLINE_MODE = "ge.offlineMode";
 static const char_t *const EXEC_DEVICE_CONFIG_PATH = "ge.exec.exec_device_config_path";
 // for interface: aclgrphBuildModel
@@ -741,6 +743,7 @@ const std::set<std::string> ir_builder_suppported_options = {INPUT_FORMAT,
                                                              OPTIMIZATION_SWITCH,
                                                              INPUT_HINT_SHAPE,
                                                              OPTION_OUTPUT_REUSE_INPUT_MEM_INDEXES,
+                                                             OPTION_H2D_OVERLAPPED_WITH_COMPUTE,
                                                              OFFLINE_MODE,
                                                              EXEC_DEVICE_CONFIG_PATH};
 
@@ -790,6 +793,7 @@ const std::set<std::string> global_options = {CORE_TYPE,
                                               OO_CONSTANT_FOLDING,
                                               OO_DEAD_CODE_ELIMINATION,
                                               OPTION_EXPORT_COMPILE_STAT,
+                                              OPTION_H2D_OVERLAPPED_WITH_COMPUTE,
                                               OPTIMIZATION_SWITCH};
 #endif
 }  // namespace ir_option

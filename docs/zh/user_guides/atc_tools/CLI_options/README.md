@@ -55,6 +55,7 @@
       - [--enable\_small\_channel](--enable_small_channel.md)
       - [--fusion\_switch\_file](--fusion_switch_file.md)
       - [--hccl\_sub\_comm\_config](--hccl_sub_comm_config.md)
+      - [--h2d\_overlapped\_with\_compute](--h2d_overlapped_with_compute.md)
       - [--mdl\_bank\_path](--mdl_bank_path.md)
       - [--oo\_constant\_folding](--oo_constant_folding.md)
       - [--oo\_dead\_code\_elimination](--oo_dead_code_elimination.md)

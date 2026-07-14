@@ -49,6 +49,7 @@ DECLARE_string(auto_tune_mode);
 DECLARE_string(jit_compile);
 DECLARE_string(optimization_switch);
 DECLARE_string(static_model_ops_lower_limit);
+DECLARE_string(h2d_overlapped_with_compute);
 DECLARE_string(raw_ge_options);
 DECLARE_bool(raw_ge_options_ignore_unsupported);
 DECLARE_string(soc_version);

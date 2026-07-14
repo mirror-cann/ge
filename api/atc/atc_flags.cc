@@ -119,6 +119,10 @@ DEFINE_string(static_model_ops_lower_limit, "",
               "Optional; set the lower limit of static subgraph op count in dynamic shape partition. "
               "The value must be an integer greater than or equal to -1.");
 
+DEFINE_string(h2d_overlapped_with_compute, "",
+              "Optional; enable input H2D overlap for static shape models. "
+              "0(default): disable; 1: enable default DP; boundaries like 44,64,68.");
+
 DEFINE_string(raw_ge_options, "", "Optional; raw GE options json file path. Only \"compile options\" will be parsed.");
 
 DEFINE_bool(

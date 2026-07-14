@@ -212,6 +212,7 @@ TEST_F(AtcRawOptionsUTest, RawOptionNameHelpersMapCliAndUserOptions) {
   EXPECT_FALSE(IsRawNonReplaceableCliOption("log"));
   EXPECT_EQ(GetRawCliName("not.supported", option_to_cli_name), "");
   EXPECT_EQ(GetRawCliName("log", option_to_cli_name), "--log");
+  EXPECT_EQ(GetRawCliName(OPTION_H2D_OVERLAPPED_WITH_COMPUTE, option_to_cli_name), "");
 
   std::unordered_map<std::string, std::string> user_options;
   EXPECT_FALSE(IsCliOptionExplicitlySet("not.supported", option_to_cli_name, user_options));
@@ -232,6 +233,10 @@ TEST_F(AtcRawOptionsUTest, RawOptionValueValidationUsesCliAndRegisteredCheckers)
   EXPECT_EQ(CheckRawRegisteredOptimizationOptionValue(kRawUtCheckerOption, "ok"), ge::SUCCESS);
   EXPECT_EQ(CheckRawRegisteredOptimizationOptionValue(kRawUtCheckerOption, "bad"), ge::PARAM_INVALID);
   EXPECT_EQ(CheckRawRegisteredOptimizationOptionValue("ge.oo.raw_options_ut.not_registered", "bad"), ge::SUCCESS);
+}
+
+TEST_F(AtcRawOptionsUTest, H2DOverlappedWithComputeOptionDoesNotUseRawOption) {
+  EXPECT_EQ(GetRawCliName(OPTION_H2D_OVERLAPPED_WITH_COMPUTE, BuildRawGeOptionToCliNameMap()), "");
 }
 
 TEST_F(AtcRawOptionsUTest, FilterRawGeOptionsRejectsOrIgnoresUnsupportedAndValidatesSupported) {
