@@ -10,5 +10,5 @@
 
 include(cmake/function.cmake)
 if (BUILD_OPEN_PROJECT OR ENABLE_OPEN_SRC)
-    find_package_if_target_not_exists(securec MODULE REQUIRED)
+    find_cann_package(securec MODULE REQUIRED)
 endif ()
