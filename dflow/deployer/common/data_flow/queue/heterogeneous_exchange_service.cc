@@ -679,15 +679,20 @@ Status HeterogeneousExchangeService::UpdateTensorDesc(const RuntimeTensorDesc &r
                                                       GeTensorDesc &tensor_desc) {
   auto num_dims = runtime_tensor_desc.shape[0];
   auto num_ori_dims = runtime_tensor_desc.original_shape[0];
-  GE_CHK_BOOL_RET_STATUS(num_dims <= kMaxDimSize, UNSUPPORTED,
+  GE_CHK_BOOL_RET_STATUS((num_dims >= 0) && (num_dims <= kMaxDimSize), UNSUPPORTED,
                          "shape dim number out of range, num_dims = %ld, max = %ld", num_dims, kMaxDimSize);
-  GE_CHK_BOOL_RET_STATUS(num_ori_dims <= kMaxDimSize, UNSUPPORTED,
+  GE_CHK_BOOL_RET_STATUS((num_ori_dims >= 0) && (num_ori_dims <= kMaxDimSize), UNSUPPORTED,
                          "original shape dim number out of range, num_dims = %ld, max = %ld", num_ori_dims,
                          kMaxDimSize);
-  GeShape shape(std::vector<int64_t>(&runtime_tensor_desc.shape[1], &runtime_tensor_desc.shape[1] + num_dims));
-  GeShape ori_shape(std::vector<int64_t>(&runtime_tensor_desc.shape[1], &runtime_tensor_desc.shape[1] + num_dims));
-  tensor_desc.MutableShape() = std::move(shape);
-  tensor_desc.MutableShape() = std::move(ori_shape);
+  GeShape shape(std::vector<int64_t>(&runtime_tensor_desc.shape[1], &runtime_tensor_desc.shape[1 + num_dims]));
+  if (num_ori_dims == 0) {
+    tensor_desc.SetOriginShape(shape);
+  } else {
+    GeShape ori_shape(std::vector<int64_t>(&runtime_tensor_desc.original_shape[1],
+                                           &runtime_tensor_desc.original_shape[1 + num_ori_dims]));
+    tensor_desc.SetOriginShape(ori_shape);
+  }
+  tensor_desc.SetShape(std::move(shape));
   tensor_desc.SetDataType(static_cast<DataType>(runtime_tensor_desc.dtype));
   return SUCCESS;
 }

@@ -527,7 +527,7 @@ void AbnormalStatusHandler::MonitorFileAndHeartbeatProc(const std::string &file_
         resource_config_modify = true;
         break;
       }
-      event_buf += sizeof(struct inotify_event *) + event->len;
+      event_buf += sizeof(struct inotify_event) + event->len;
     }
     if (resource_config_modify) {
       GELOGI("AbnormalStatusMonitor, The path[%s] has modify", file_path.c_str());

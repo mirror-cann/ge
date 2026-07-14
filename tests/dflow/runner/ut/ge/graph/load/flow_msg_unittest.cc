@@ -161,6 +161,7 @@ TEST_F(FlowMsgTest, TestBuildTensorFlowMsg) {
   reinterpret_cast<RuntimeTensorDesc *>(data)->format = static_cast<int64_t>(FORMAT_ND);
   reinterpret_cast<RuntimeTensorDesc *>(data)->shape[0] = 1;
   reinterpret_cast<RuntimeTensorDesc *>(data)->shape[1] = 1;
+  reinterpret_cast<RuntimeTensorDesc *>(data)->original_shape[0] = 0;
   reinterpret_cast<RuntimeTensorDesc *>(data)->data_size = 4;
   auto tensor_data = reinterpret_cast<int8_t *>(data) + sizeof(RuntimeTensorDesc);
   reinterpret_cast<int32_t *>(tensor_data)[0] = 5;

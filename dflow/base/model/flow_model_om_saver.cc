@@ -151,6 +151,8 @@ Status SaveOmDataToFile(const std::shared_ptr<PneModel> &submodel, flow_model::p
       // for subgraph cache mode, release_pkg is equal to om file name
       std::regex dir_pattern(R"([A-Za-z0-9./+\-_]+)");
       std::smatch match_result;
+      GE_CHK_BOOL_RET_STATUS(std::regex_match(release_pkg, match_result, dir_pattern), PARAM_INVALID,
+                             "Invalid release pkg path: %s", release_pkg.c_str());
       GE_CHK_BOOL_RET_STATUS(std::regex_match(om_file_name, match_result, dir_pattern), PARAM_INVALID,
                              "Invalid target om file path: %s", om_file_name.c_str());
       GELOGI("Copy release pkg: %s to cache file: %s.", release_pkg.c_str(), om_file_name.c_str());
