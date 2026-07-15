@@ -9,6 +9,8 @@ This directory provides examples for implementing custom fusion passes by inheri
 | Move ReLU after Concat before Concat custom pass example (Python version) | [README](2_move_relu_before_concat_pass/python/README.md) |
 | Modify Conv operator data format custom pass example | [README](3_modify_conv_data_format_pass/cpp/README.md) |
 | Modify Conv operator data format custom pass example (Python version) | [README](3_modify_conv_data_format_pass/python/README.md) |
+| MMOE network MatMul fusion (Pack+BatchMatMulV2+Split) custom pass example | [README](4_mmoe_bmm_split_pass/cpp/README_en.md) |
+| MMOE network first-layer MatMul fusion (Concat+MatMul+SplitV) custom pass example | [README](5_mmoe_matmul_pass/cpp/README_en.md) |
 
 ## Development Guide
 
