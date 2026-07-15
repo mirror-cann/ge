@@ -378,10 +378,7 @@ Status GeExecutor::Initialize() {
 }
 
 Status GeExecutor::Finalize() {
-  const Status ret = GeExecutor::FinalizeEx();
-  (void)custom_op::ShutdownCustomOpsForProcess();
-  (void)GePythonRuntimeManager::Instance().ShutdownProcess();
-  return ret;
+  return GeExecutor::FinalizeEx();
 }
 
 Status GeExecutor::SetDynamicBatchSize(const uint32_t model_id, void *const dynamic_input_addr, const uint64_t length,
