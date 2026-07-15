@@ -540,11 +540,14 @@ ge::graphStatus LaunchMixMainTask(MixLaunchArgs &launch_args, MixTaskPara &mix_p
 
 ge::graphStatus ProcMixVectorCoreTask(const KernelContext *context, MixLaunchArgs launch_args,
                                       int32_t addr_start, const RtKernelLaunchArgsEx &args) {
+  mix_prof_data = MixVectorProf{};
   auto io_num = context->GetInputValue<size_t>(static_cast<size_t>(InputCommon::kIoNum));
   int32_t mix_start = addr_start + (io_num << 1);
   auto mix_args = context->GetInputPointer<MixCoreArgs>(mix_start);
   FE_ASSERT_NOTNULL(mix_args);
   auto mix_para = CalcMixTaskParaByType(launch_args, mix_args);
+  FE_ASSERT_TRUE(mix_para.main_blk_dim != 0 || (mix_para.need_sub_task && mix_para.sub_blk_dim != 0),
+                 "block dim is 0, no task to launch");
   if (!mix_para.need_sub_task) {
     mix_prof_data.sub_task_enable = false;
     return LaunchMixMainTask(launch_args, mix_para);
@@ -563,32 +566,43 @@ ge::graphStatus ProcMixVectorCoreTask(const KernelContext *context, MixLaunchArg
   auto &io_args_info = args.GetIoArgsInfo();
   if (launch_args.is_dynamic) {
     // main
-    launch_args.cfgInfo->blockDimOffset = mix_para.main_offset;
-    mix_prof_data.main_begin_time = MsprofSysCycleTime();
-    FE_CHK_RT_RET(rtKernelLaunchWithHandleV2(launch_args.handle, launch_args.tiling_key, mix_para.main_blk_dim,
-        launch_args.arg_ex, launch_args.smDesc, launch_args.stream, launch_args.cfgInfo));
-    mix_prof_data.main_end_time = MsprofSysCycleTime();
-    FE_ASSERT_GRAPH_SUCCESS(SaveAicoreL0ExceptionDump(io_args_info, io_num, context, addr_start, shape_buffer));
+    if (mix_para.main_blk_dim > 0) {
+      launch_args.cfgInfo->blockDimOffset = mix_para.main_offset;
+      mix_prof_data.main_begin_time = MsprofSysCycleTime();
+      FE_CHK_RT_RET(rtKernelLaunchWithHandleV2(launch_args.handle, launch_args.tiling_key, mix_para.main_blk_dim,
+                                               launch_args.arg_ex, launch_args.smDesc, launch_args.stream,
+                                               launch_args.cfgInfo));
+      mix_prof_data.main_end_time = MsprofSysCycleTime();
+      FE_ASSERT_GRAPH_SUCCESS(SaveAicoreL0ExceptionDump(io_args_info, io_num, context, addr_start, shape_buffer));
+    }
     // sub
-    launch_args.cfgInfo->blockDimOffset = mix_para.sub_offset;
-    mix_prof_data.sub_begin_time = MsprofSysCycleTime();
-    FE_CHK_RT_RET(rtVectorCoreKernelLaunchWithHandle(launch_args.handle, launch_args.tiling_key, mix_para.sub_blk_dim,
-        launch_args.arg_ex, launch_args.smDesc, sub_stream, launch_args.cfgInfo));
-    mix_prof_data.sub_end_time = MsprofSysCycleTime();
+    if (mix_para.sub_blk_dim > 0) {
+      launch_args.cfgInfo->blockDimOffset = mix_para.sub_offset;
+      mix_prof_data.sub_begin_time = MsprofSysCycleTime();
+      FE_CHK_RT_RET(rtVectorCoreKernelLaunchWithHandle(launch_args.handle, launch_args.tiling_key, mix_para.sub_blk_dim,
+                                                       launch_args.arg_ex, launch_args.smDesc, sub_stream,
+                                                       launch_args.cfgInfo));
+      mix_prof_data.sub_end_time = MsprofSysCycleTime();
+    }
   } else {
     // main
-    launch_args.cfgInfo->blockDimOffset = mix_para.main_offset;
-    mix_prof_data.main_begin_time = MsprofSysCycleTime();
-    FE_CHK_RT_RET(rtKernelLaunchWithFlagV2(launch_args.handle, mix_para.main_blk_dim, launch_args.arg_ex,
-        launch_args.smDesc, launch_args.stream, launch_args.flags, launch_args.cfgInfo));
-    mix_prof_data.main_end_time = MsprofSysCycleTime();
-    FE_ASSERT_GRAPH_SUCCESS(SaveAicoreL0ExceptionDump(io_args_info, io_num, context, addr_start, shape_buffer));
+    if (mix_para.main_blk_dim > 0) {
+      launch_args.cfgInfo->blockDimOffset = mix_para.main_offset;
+      mix_prof_data.main_begin_time = MsprofSysCycleTime();
+      FE_CHK_RT_RET(rtKernelLaunchWithFlagV2(launch_args.handle, mix_para.main_blk_dim, launch_args.arg_ex,
+                                             launch_args.smDesc, launch_args.stream, launch_args.flags,
+                                             launch_args.cfgInfo));
+      mix_prof_data.main_end_time = MsprofSysCycleTime();
+      FE_ASSERT_GRAPH_SUCCESS(SaveAicoreL0ExceptionDump(io_args_info, io_num, context, addr_start, shape_buffer));
+    }
     // sub
-    launch_args.cfgInfo->blockDimOffset = mix_para.sub_offset;
-    mix_prof_data.sub_begin_time = MsprofSysCycleTime();
-    FE_CHK_RT_RET(rtVectorCoreKernelLaunch(launch_args.handle, mix_para.sub_blk_dim, launch_args.arg_ex,
-                                           launch_args.smDesc, sub_stream, launch_args.flags, launch_args.cfgInfo));
-    mix_prof_data.sub_end_time = MsprofSysCycleTime();
+    if (mix_para.sub_blk_dim > 0) {
+      launch_args.cfgInfo->blockDimOffset = mix_para.sub_offset;
+      mix_prof_data.sub_begin_time = MsprofSysCycleTime();
+      FE_CHK_RT_RET(rtVectorCoreKernelLaunch(launch_args.handle, mix_para.sub_blk_dim, launch_args.arg_ex,
+                                             launch_args.smDesc, sub_stream, launch_args.flags, launch_args.cfgInfo));
+      mix_prof_data.sub_end_time = MsprofSysCycleTime();
+    }
   }
   FE_CHK_RT_RET(aclrtRecordNotify(rt_notify2, sub_stream));
   FE_CHK_RT_RET(aclrtWaitAndResetNotify(rt_notify2, launch_args.stream, UINT32_MAX));
