@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <cinttypes>
 #include "graph/build/memory/graph_mem_assigner.h"
+#include "graph/build/input_h2d_overlap_planner.h"
 #include "common/plugin/ge_make_unique_util.h"
 #include "framework/common/helper/model_helper.h"
 #include "common/ge_common/ge_types.h"
@@ -322,6 +323,15 @@ Status GraphBuilder::Build(ComputeGraphPtr &comp_graph, GeRootModelPtr &ge_root_
   // To be compatible with the old process, do not verify the return value temporarily.
   (void)AttrUtils::GetBool(comp_graph, ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, is_dynamic_shape);
   if (is_dynamic_shape || comp_graph->GetGraphUnknownFlag()) {
+    bool input_h2d_overlap_enabled = false;
+    GE_CHK_STATUS_RET(IsInputH2DOverlapEnabled(input_h2d_overlap_enabled),
+                      "[Check][InputH2DOverlap] option failed, graph:%s.", comp_graph->GetName().c_str());
+    if (input_h2d_overlap_enabled) {
+      GELOGE(UNSUPPORTED, "[Check][InputH2DOverlap] dynamic shape is not supported, graph:%s, dynamic:%d, unknown:%d.",
+             comp_graph->GetName().c_str(), static_cast<int32_t>(is_dynamic_shape),
+             static_cast<int32_t>(comp_graph->GetGraphUnknownFlag()));
+      return UNSUPPORTED;
+    }
     GE_CHK_STATUS_RET(BuildForDynamicShapeGraph(comp_graph, ge_root_model_ptr, ge_model_ptr, session_id, true),
                       "[Build][DynamicShapeGraph] failed, graph:%s, session id:%" PRIu64 ".",
                       comp_graph->GetName().c_str(), session_id);
@@ -384,6 +394,11 @@ Status GraphBuilder::BuildForKnownShapeGraph(ComputeGraphPtr &comp_graph, GeMode
   GE_ASSERT_SUCCESS(ReGetTaskInfo(comp_graph, session_id, *model_ptr), "ReGetTaskInfo fail, Graph[%s].",
                     comp_graph->GetName().c_str());
   GE_COMPILE_TRACE_TIMESTAMP_END(ReGetTaskInfo, "GraphBuilder::ReGetTaskInfo");
+
+  GE_TRACE_START(SaveInputH2DOverlapPlan);
+  GE_CHK_STATUS_RET(builder.SaveInputH2DOverlapPlan(*model_ptr), "[Save][InputH2DOverlapPlan] fail, Graph[%s].",
+                    comp_graph->GetName().c_str());
+  GE_COMPILE_TRACE_TIMESTAMP_END(SaveInputH2DOverlapPlan, "GraphBuilder::SaveInputH2DOverlapPlan");
 
   ge_model_ptr = MakeShared<ge::GeModel>();
   if (ge_model_ptr == nullptr) {

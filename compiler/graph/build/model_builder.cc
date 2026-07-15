@@ -11,10 +11,12 @@
 #include "graph/build/model_builder.h"
 #include <securectype.h>
 #include <iostream>
+#include <memory>
 #include <set>
 #include <unordered_map>
 #include "mmpa/mmpa_api.h"
 #include "common/dump/dump_manager.h"
+#include "graph/build/input_h2d_overlap_planner.h"
 #include "graph/build/stream/dynamic_stream_allocator.h"
 #include "graph/build/stream_graph_optimizer.h"
 #include "common/omg_util/omg_util.h"
@@ -127,6 +129,7 @@ ModelBuilder::ModelBuilder(uint64_t session_id, ComputeGraphPtr compute_graph, c
       stream_num_(0),
       notify_num_(0),
       event_num_(0),
+      input_h2d_overlap_planner_(std::make_unique<InputH2DOverlapPlanner>()),
       label_num_(0),
       stream_max_parallel_num_(stream_max_parallel_num),
       hcom_parallel_(hcom_parallel),
@@ -1084,10 +1087,24 @@ Status ModelBuilder::PreBuildModel() {
   return SUCCESS;
 }
 
+Status ModelBuilder::PrepareInputH2DOverlap() {
+  return input_h2d_overlap_planner_->Prepare(compute_graph_, stream_allocator_);
+}
+
+Status ModelBuilder::AddInputH2DOverlapCopyStream() {
+  return input_h2d_overlap_planner_->AddCopyStream(stream_num_);
+}
+
+Status ModelBuilder::SaveInputH2DOverlapPlan(Model &model) {
+  return input_h2d_overlap_planner_->SaveToModel(stream_allocator_, stream_num_, event_num_, model);
+}
+
 Status ModelBuilder::RefreshRealStream(std::unordered_map<int64_t, std::vector<domi::TaskDef>> &node_id_2_node_tasks) {
   GE_ASSERT_SUCCESS(
       stream_allocator_.SplitStreamAndRefreshTaskDef(node_id_2_node_tasks, stream_num_, event_num_, notify_num_),
       "SplitStreamAndRefreshTaskDef failed, graph:%s", compute_graph_->GetName().c_str());
+  GE_ASSERT_SUCCESS(AddInputH2DOverlapCopyStream(), "AddInputH2DOverlapCopyStream failed, graph:%s",
+                    compute_graph_->GetName().c_str());
   huge_streams_ = stream_allocator_.GetHugeStreams();
   return SUCCESS;
 }
@@ -1125,6 +1142,11 @@ Status ModelBuilder::BuildModelForGetTask(ge::Model &model) {
   GE_TRACE_START(CompileSingleOp);
   GE_CHK_STATUS_RET(CompileSingleOp(), "[Compile][SingleOp] fail. graph:%s", compute_graph_->GetName().c_str());
   GE_COMPILE_TRACE_TIMESTAMP_END(CompileSingleOp, "GraphBuilder::CompileSingleOp");
+
+  GE_TRACE_START(PrepareInputH2DOverlap);
+  GE_CHK_STATUS_RET(PrepareInputH2DOverlap(), "[Prepare][InputH2DOverlap] failed. graph:%s",
+                    compute_graph_->GetName().c_str());
+  GE_COMPILE_TRACE_TIMESTAMP_END(PrepareInputH2DOverlap, "GraphBuilder::PrepareInputH2DOverlap");
 
   // insert event notify nodes by logical stream id.
   GE_TRACE_START(InsertSyncNodesByLogicStream);

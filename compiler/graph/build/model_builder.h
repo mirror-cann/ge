@@ -33,6 +33,8 @@
 #include "graph/build/model_data_info.h"
 
 namespace ge {
+class InputH2DOverlapPlanner;
+
 class ModelBuilder {
  public:
   ModelBuilder(uint64_t session_id, ge::ComputeGraphPtr compute_graph, const Graph2SubGraphInfoList &subgraphs,
@@ -49,6 +51,7 @@ class ModelBuilder {
   Status PreBuildModel();
   Status BuildModelForGetTask(ge::Model &model);
   Status BuildModelDefForStream(ge::Model &model);
+  Status SaveInputH2DOverlapPlan(ge::Model &model);
   Status RefreshRealStream(std::unordered_map<int64_t, std::vector<domi::TaskDef>> &node_id_2_node_tasks);
   ge::Status BuildModelForGetDynShapeTask(ge::Model &model_def);
   Status AssignStreamForDynamicShapeGraph(ComputeGraphPtr &compute_graph);
@@ -99,6 +102,10 @@ class ModelBuilder {
 
   Status CompileSingleOp() const;
 
+  Status PrepareInputH2DOverlap();
+
+  Status AddInputH2DOverlapCopyStream();
+
   void CollectCheckAicpuAttr(const OpDescPtr &op_desc, std::set<std::string> &aicpu_op_types,
                              std::set<std::string> &aicpu_tf_op_types) const;
 
@@ -141,6 +148,7 @@ class ModelBuilder {
   std::vector<uint32_t> notify_types_;
   int64_t event_num_;
   std::vector<int64_t> huge_streams_;
+  std::unique_ptr<InputH2DOverlapPlanner> input_h2d_overlap_planner_;
 
   uint32_t label_num_;
 

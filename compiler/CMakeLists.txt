@@ -148,6 +148,8 @@ set(COMPILER_SRC_LIST
     "graph/build/memory/dynamic_batch_mem_assigner.cc"
     "graph/build/memory/mem_reuse_strategy.cc"
     "graph/build/model_builder.cc"
+    "graph/build/input_h2d_overlap_plan.cc"
+    "graph/build/input_h2d_overlap_planner.cc"
     "graph/build/run_context_util.cc"
     "graph/build/stream_graph_optimizer.cc"
     "graph/build/task_generator.cc"
