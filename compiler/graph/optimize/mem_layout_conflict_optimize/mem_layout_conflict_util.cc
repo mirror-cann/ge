@@ -1345,14 +1345,17 @@ Status MemLayoutConflictUtil::IsWhileNeedInsertIdentityAtOutput(const ComputeGra
                                                                 bool &is_need_insert) {
   const auto netoutput = while_body->GetOrUpdateNetOutputNode();
   GE_CHECK_NOTNULL(netoutput);
-  const auto output_size = netoutput->GetAllInDataAnchorsSize();
-  if (output_size != 1U) {
+  if (netoutput->GetAllInDataAnchorsSize() != 1U) {
     is_need_insert = true;
     return SUCCESS;
   }
 
   const auto data_node = while_body->FindFirstNodeMatchType(DATA);
   GE_CHECK_NOTNULL(data_node);
+  if (data_node->GetAllOutDataAnchorsSize() != 1U) {
+    is_need_insert = true;
+    return SUCCESS;
+  }
 
   const auto in_anchor = netoutput->GetInDataAnchor(0);
   GE_CHECK_NOTNULL(in_anchor);
@@ -1361,12 +1364,6 @@ Status MemLayoutConflictUtil::IsWhileNeedInsertIdentityAtOutput(const ComputeGra
   const auto out_node = peer_out_anchor->GetOwnerNode();
   GE_CHECK_NOTNULL(out_node);
 
-  if (data_node->GetAllOutDataAnchorsSize() != 1U) {
-    is_need_insert = true;
-    return SUCCESS;
-  }
-
-  const auto out_data_anchor = data_node->GetOutDataAnchor(0);
   SymbolToAnchors symbol_to_anchors_;
   AnchorToSymbol anchor_to_symbol_;
   GE_ASSERT_SUCCESS(GraphUtils::GetRefMapping(while_body, symbol_to_anchors_, anchor_to_symbol_),
@@ -1375,14 +1372,29 @@ Status MemLayoutConflictUtil::IsWhileNeedInsertIdentityAtOutput(const ComputeGra
   const auto symbol_cnt = symbol_to_anchors_.size();
   // one input/output, 1 symbol, then equal with (data--netoutput), no need to insert at output
   // one input/output, >2 symbols, then more than one node inside, no need to insert at output
-  if (symbol_cnt != 2) {
-    GELOGD("[MemConflict] No need to insert output identity node in while_body %s, symbol_to_anchors size %d.",
-           while_body->GetName().c_str(), symbol_cnt);
-    is_need_insert = false;
+  if (symbol_cnt == 2) {
+    is_need_insert = true;
     return SUCCESS;
   }
 
-  is_need_insert = true;
+  // 找 netoutput.in[0] 对应的 symbol 下所有 anchor，有连续内存节点则需要插入 identity
+  const auto symbol_iter = anchor_to_symbol_.find(NodeIndexIO(out_node, peer_out_anchor->GetIdx(), kOut).ToString());
+  if (symbol_iter != anchor_to_symbol_.end()) {
+    const auto anchor_iter = symbol_to_anchors_.find(symbol_iter->second);
+    if (anchor_iter != symbol_to_anchors_.end()) {
+      for (const auto &anchor : anchor_iter->second) {
+        if (anchor.node_ptr_ != nullptr && anchor.io_type_ == kIn &&
+            (IsNoPaddingContinuousInput(anchor.node_ptr_) || IsContinuousInput(anchor.node_ptr_))) {
+          is_need_insert = true;
+          return SUCCESS;
+        }
+      }
+    }
+  }
+
+  GELOGD("[MemConflict] No need to insert output identity node in while_body %s, symbol_to_anchors size %d.",
+         while_body->GetName().c_str(), symbol_cnt);
+  is_need_insert = false;
   return SUCCESS;
 }
 

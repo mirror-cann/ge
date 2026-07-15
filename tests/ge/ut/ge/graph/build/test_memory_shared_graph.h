@@ -100,6 +100,7 @@ ComputeGraphPtr BuildContinuousOutInWithThreeNode();
 ComputeGraphPtr BuildContinuousOutInVisitLastNodeFirst();
 ComputeGraphPtr BuildOneNodeConnectTwoPhonyConcat();
 ComputeGraphPtr BuildPartitionedCallWithPhonyConcatSubgraph();
+ComputeGraphPtr BuildWhileWithRefAndSubgraph();
 }  // namespace block_mem_ut
 }  // namespace ge
 #endif  // AIR_CXX_TEST_MEMORY_SHARED_GRAPH_H

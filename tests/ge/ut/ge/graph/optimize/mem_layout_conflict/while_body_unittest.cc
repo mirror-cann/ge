@@ -345,4 +345,100 @@ TEST_F(UtestMemLayoutConflictWhileBody, WhileBodyTwoDataToNetoutputWithNoExchang
   EXPECT_EQ(mem_check::ResultChecker::CheckIdentityNum(graph, 0U), GRAPH_SUCCESS);
 }
 
+/*
+ *        data
+ *          |
+ *        while1
+ *          |
+ *         op
+ *          |
+ *       netoutput0
+ *
+ * subgraph cond             subgraph body
+ * +-------------------+     +------------------------------------------------------+
+ * | data              |     | data--reshape0--reshape1(nopadding)--netoutput       |
+ * +-------------------+     +------------------------------------------------------+
+ *
+ * reshape 是 ref 节点，data/reshape0/reshape1/netoutput 在同一 symbol 链
+ * symbol_cnt == 1 (!= 2), reshape1 has NoPaddingContinuousInput, need insert identity
+ */
+TEST_F(UtestMemLayoutConflictWhileBody, WhileBodyNoPaddingContinuousInside_InsertIdentityN_Success) {
+  auto builder = ut::GraphBuilder("test");
+  auto data = builder.AddNode("data", DATA, 0, 1);
+  auto while1 = builder.AddNode("while1", WHILE, 1, 1);
+  auto op = builder.AddNode("op", ADD, 1, 1);
+  auto net_output = builder.AddNode("net_output", NETOUTPUT, 1, 0);
+  builder.AddDataEdge(data, 0, while1, 0);
+  builder.AddDataEdge(while1, 0, op, 0);
+  builder.AddDataEdge(op, 0, net_output, 0);
+  ge::ComputeGraphPtr graph = builder.GetGraph();
+
+  AddWhileDummyCond(graph, "while1");
+
+  // body: data→reshape0→phony_concat←data, phony_concat→netoutput
+  // reshape 是 ref 节点让 data/reshape0/phony_concat 在同一 symbol 链
+  // phony_concat 多 input + NoPaddingContinuousInput
+  ge::ut::GraphBuilder body_builder("body");
+  auto body_data = body_builder.AddNode("body_data", DATA, 1, 1);
+  auto reshape0 = body_builder.AddNode("body_reshape0", RESHAPE, 1, 1);
+  auto phony_concat = body_builder.AddNode("body_phony_concat", PHONYCONCAT, 2, 1);
+  auto body_netoutput = body_builder.AddNode("body_netoutput", NETOUTPUT, 1, 1);
+  ge::AttrUtils::SetInt(body_data->GetOpDesc(), "_parent_node_index", static_cast<int>(0));
+  ge::AttrUtils::SetInt(body_netoutput->GetOpDesc()->MutableInputDesc(0), "_parent_node_index", static_cast<int>(0));
+  body_builder.AddDataEdge(body_data, 0, reshape0, 0);
+  body_builder.AddDataEdge(reshape0, 0, phony_concat, 0);
+  body_builder.AddDataEdge(body_data, 0, phony_concat, 1);
+  body_builder.AddDataEdge(phony_concat, 0, body_netoutput, 0);
+  auto body_graph = body_builder.GetGraph();
+  AddSubgraphInstance(graph, body_graph, 1, "while1");
+
+  // 给 phony_concat 设置 NoPaddingContinuousInput + OUTPUT_REUSE_INPUT，使其进入 symbol 链
+  AttrUtils::SetBool(phony_concat->GetOpDesc(), ATTR_NAME_NOPADDING_CONTINUOUS_INPUT, true);
+  AttrUtils::SetBool(phony_concat->GetOpDesc(), ATTR_NAME_OUTPUT_REUSE_INPUT, true);
+
+  MemLayoutConflictOptimizer mem_check_pass;
+  ASSERT_EQ(mem_check_pass.Run(graph), GRAPH_SUCCESS);
+  EXPECT_EQ(mem_check::ResultChecker::CheckIdentityNum(graph, 1U), GRAPH_SUCCESS);
+}
+
+/*
+ *        data
+ *          |
+ *        while1
+ *          |
+ *       netoutput0
+ *
+ * subgraph cond             subgraph body
+ * +-------------------+     +-------------------+
+ * | data              |     | data(2 outputs)   |
+ * +-------------------+     |   └--netoutput    |
+ *                           +-------------------+
+ *
+ * data node has 2 outputs, is_need_insert = true
+ */
+TEST_F(UtestMemLayoutConflictWhileBody, WhileBodyDataMultiOutput_InsertIdentityN_Success) {
+  auto builder = ut::GraphBuilder("test");
+  auto data = builder.AddNode("data", DATA, 0, 1);
+  auto while1 = builder.AddNode("while1", WHILE, 1, 1);
+  auto net_output = builder.AddNode("net_output", NETOUTPUT, 1, 0);
+  builder.AddDataEdge(data, 0, while1, 0);
+  builder.AddDataEdge(while1, 0, net_output, 0);
+  ge::ComputeGraphPtr graph = builder.GetGraph();
+
+  AddWhileDummyCond(graph, "while1");
+
+  // body: data(2 outputs)→netoutput
+  ge::ut::GraphBuilder body_builder("body");
+  auto body_data = body_builder.AddNode("body_data", DATA, 1, 2);
+  auto body_netoutput = body_builder.AddNode("body_netoutput", NETOUTPUT, 1, 1);
+  ge::AttrUtils::SetInt(body_data->GetOpDesc(), "_parent_node_index", static_cast<int>(0));
+  ge::AttrUtils::SetInt(body_netoutput->GetOpDesc()->MutableInputDesc(0), "_parent_node_index", static_cast<int>(0));
+  body_builder.AddDataEdge(body_data, 0, body_netoutput, 0);
+  auto body_graph = body_builder.GetGraph();
+  AddSubgraphInstance(graph, body_graph, 1, "while1");
+
+  MemLayoutConflictOptimizer mem_check_pass;
+  ASSERT_EQ(mem_check_pass.Run(graph), GRAPH_SUCCESS);
+}
+
 }  // namespace ge

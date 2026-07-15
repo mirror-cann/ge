@@ -3911,6 +3911,29 @@ TEST_F(UtestMemoryAssignerTest, PartitionedCallSuspendOut_WithPhonyConcatSubgrap
   EXPECT_EQ(partitioned_call_offsets.at(1), relu2_offsets.at(0));
 }
 
+TEST_F(UtestMemoryAssignerTest, WhileWithRefAndSubgraph) {
+  auto graph = block_mem_ut::BuildWhileWithRefAndSubgraph();
+  MemoryAssigner memory_assigner(graph);
+  map<uint64_t, size_t> mem_offset;
+  size_t zero_memory_size = 0U;
+  EXPECT_EQ(memory_assigner.AssignMemory(mem_offset, zero_memory_size), GRAPH_SUCCESS);
+
+  auto while_node = graph->FindNode("while_node");
+  ASSERT_NE(while_node, nullptr);
+  auto output_offsets = while_node->GetOpDesc()->GetOutputOffset();
+  ASSERT_GE(output_offsets.size(), 2U);
+  auto input_offsets = while_node->GetOpDesc()->GetInputOffset();
+  ASSERT_GE(input_offsets.size(), 2U);
+
+  // While is pass-through: output[0] ref input[0], UpdateParentNodeOffset must not break this
+  EXPECT_EQ(input_offsets.at(0), output_offsets.at(0));
+
+  // data0 不在 symbol 链上，FindSymbolAnchors 返回 nullptr，UpdateSymbolOutputOffset 应返回 SUCCESS
+  auto data0 = graph->FindNode("data0");
+  ASSERT_NE(data0, nullptr);
+  EXPECT_EQ(memory_assigner.GetGraphMemoryAssigner()->UpdateSymbolOutputOffset(data0, 0, 0), GRAPH_SUCCESS);
+}
+
 TEST_F(UtestMemoryAssignerTest, SingleOutDiffStreamOptimize) {
   map<string, string> options{{"ge.hardwareInfo", "memory_size:102400"}, {MEMORY_OPTIMIZATION_POLICY, kMemoryPriority}};
 

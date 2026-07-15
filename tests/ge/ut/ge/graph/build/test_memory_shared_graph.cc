@@ -2872,5 +2872,53 @@ ComputeGraphPtr BuildPartitionedCallWithPhonyConcatSubgraph() {
   graph->TopologicalSorting();
   return graph;
 }
+
+ComputeGraphPtr BuildWhileWithRefAndSubgraph() {
+  auto root_builder = block_mem_ut::GraphBuilder("root_graph");
+  const auto &data0 = root_builder.AddNode("data0", DATA, 0, 1);
+  const auto &data1 = root_builder.AddNode("data1", DATA, 0, 1);
+  // While 是 pass-through: output[i] ref input[i]
+  const auto &while_node = root_builder.AddNode("while_node", WHILE, 2, 2);
+  const auto &identity = root_builder.AddNode("identity", IDENTITY, 1, 1);
+  const auto &root_netoutput = root_builder.AddNode("root_netoutput", NETOUTPUT, 2, 0);
+  root_builder.AddDataEdge(data0, 0, while_node, 0);
+  root_builder.AddDataEdge(data1, 0, while_node, 1);
+  root_builder.AddDataEdge(while_node, 0, identity, 0);
+  root_builder.AddDataEdge(identity, 0, root_netoutput, 0);
+  root_builder.AddDataEdge(while_node, 1, root_netoutput, 1);
+  auto graph = root_builder.GetGraph();
+
+  auto sub_builder = block_mem_ut::GraphBuilder("while_sub");
+  const auto &sub_data0 = sub_builder.AddNode("sub_data0", DATA, 0, 1);
+  const auto &sub_data1 = sub_builder.AddNode("sub_data1", DATA, 0, 1);
+  const auto &sub_relu = sub_builder.AddNode("sub_relu", RELU, 1, 1);
+  const auto &sub_reshape = sub_builder.AddNode("sub_reshape", RESHAPE, 1, 1);
+  const auto &sub_netoutput = sub_builder.AddNode("sub_netoutput", NETOUTPUT, 2, 0);
+  sub_builder.AddDataEdge(sub_data0, 0, sub_relu, 0);
+  sub_builder.AddDataEdge(sub_relu, 0, sub_netoutput, 0);
+  sub_builder.AddDataEdge(sub_data1, 0, sub_reshape, 0);
+  sub_builder.AddDataEdge(sub_reshape, 0, sub_netoutput, 1);
+  auto sub_graph = sub_builder.GetGraph();
+
+  sub_graph->SetParentNode(while_node);
+  sub_graph->SetParentGraph(graph);
+  while_node->GetOpDesc()->AddSubgraphName("while_sub");
+  while_node->GetOpDesc()->SetSubgraphInstanceName(0, "while_sub");
+  graph->AddSubgraph(sub_graph->GetName(), sub_graph);
+
+  AttrUtils::SetInt(sub_netoutput->GetOpDesc()->MutableInputDesc(0), ATTR_NAME_PARENT_NODE_INDEX, 0);
+  AttrUtils::SetInt(sub_netoutput->GetOpDesc()->MutableInputDesc(1), ATTR_NAME_PARENT_NODE_INDEX, 1);
+
+  MemConflictShareGraph::SetShapeForAllNodes(sub_graph, {1, 1, 16, 8});
+  MemConflictShareGraph::SetShapeForAllNodes(graph, {1, 1, 16, 8});
+  sub_reshape->GetOpDescBarePtr()->MutableOutputDesc(0)->SetShape(GeShape({2, 1, 16, 8}));
+  sub_netoutput->GetOpDescBarePtr()->MutableInputDesc(1)->SetShape(GeShape({2, 1, 16, 8}));
+
+  MemConflictShareGraph::SetSizeForAllNodes(sub_graph);
+  MemConflictShareGraph::SetSizeForAllNodes(graph);
+
+  graph->TopologicalSorting();
+  return graph;
+}
 }  // namespace block_mem_ut
 }  // namespace ge

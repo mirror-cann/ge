@@ -2056,6 +2056,17 @@ Status GraphMemoryAssigner::AssignReferenceMemory(const NodePtr &node) const {
                         "[Update][RefOffset]fail for node: %s", node->GetName().c_str());
     }
   }
+
+  // ref output offset 设好后，同步到 symbol 链上的其他节点（含子图 netoutput）
+  if (node->GetType() == WHILE) {
+    for (const auto &out2in : out2ins) {
+      auto output_list = node->GetOpDesc()->GetOutputOffset();
+      if (static_cast<size_t>(out2in.first) < output_list.size()) {
+        GE_CHK_STATUS_RET(UpdateSymbolOutputOffset(node, out2in.first, output_list[out2in.first]),
+                          "[Update][SymbolOutputOffset]fail for node: %s", node->GetName().c_str());
+      }
+    }
+  }
   return ge::SUCCESS;
 }
 
@@ -2089,24 +2100,13 @@ bool GraphMemoryAssigner::CheckInputIsSupportAtomic(const ge::Node *node) {
 // 更新父节点的offset
 Status GraphMemoryAssigner::UpdateParentNodeOutputOffset(const ge::NodePtr &node, int64_t output_index,
                                                          int64_t offset) const {
-  if (GetMemAssignerPtr() == nullptr) {
+  const auto *anchors = FindSymbolAnchors(node, output_index);
+  if (anchors == nullptr) {
     return SUCCESS;
   }
-  NodeIndexIO node_index_io{node, output_index, kOut};
-  const auto &anchor_str = node_index_io.ToString();
-  const auto symbol_anchor_iter = GetMemAssignerPtr()->anchor_to_symbol_.find(anchor_str);
-  GE_ASSERT_TRUE(symbol_anchor_iter != GetMemAssignerPtr()->anchor_to_symbol_.end(), "cannot find symbol by anchor %s",
-                 anchor_str.c_str());
-
-  const auto &anchor_iter = GetMemAssignerPtr()->symbol_to_anchors_.find(symbol_anchor_iter->second);
-  GE_ASSERT_TRUE(anchor_iter != GetMemAssignerPtr()->symbol_to_anchors_.end(), "cannot find anchor by symbol %s",
-                 symbol_anchor_iter->second.c_str());
-  for (const auto &anchor : anchor_iter->second) {
+  for (const auto &anchor : *anchors) {
     auto op_desc = anchor.node_ptr_->GetOpDescBarePtr();
-    if ((anchor.io_type_ != kOut) || (op_desc == nullptr)) {
-      continue;
-    }
-    if (op_desc->GetSubgraphInstanceNames().empty()) {
+    if ((anchor.io_type_ != kOut) || (op_desc == nullptr) || op_desc->GetSubgraphInstanceNames().empty()) {
       continue;
     }
     auto output_offsets = op_desc->GetOutputOffset();
@@ -2118,6 +2118,48 @@ Status GraphMemoryAssigner::UpdateParentNodeOutputOffset(const ge::NodePtr &node
     }
   }
   return SUCCESS;
+}
+
+// 从外往子图内刷新 output offset：symbol 链上所有 kOut 都刷新（不限子图节点）
+Status GraphMemoryAssigner::UpdateSymbolOutputOffset(const ge::NodePtr &node, int64_t output_index,
+                                                     int64_t offset) const {
+  const auto *anchors = FindSymbolAnchors(node, output_index);
+  if (anchors == nullptr) {
+    return SUCCESS;
+  }
+  for (const auto &anchor : *anchors) {
+    auto op_desc = anchor.node_ptr_->GetOpDescBarePtr();
+    if ((anchor.io_type_ != kOut) || (op_desc == nullptr)) {
+      continue;
+    }
+    auto output_offsets = op_desc->GetOutputOffset();
+    if (output_offsets.size() > anchor.index_) {
+      output_offsets[anchor.index_] = offset;
+      op_desc->SetOutputOffset(output_offsets);
+      GELOGI("node %s(%s) output[%u] offset is updated to %lld, from node %s out_index %lld", op_desc->GetNamePtr(),
+             op_desc->GetTypePtr(), anchor.index_, offset, node->GetNamePtr(), output_index);
+    }
+  }
+  return SUCCESS;
+}
+
+const std::list<NodeIndexIO> *GraphMemoryAssigner::FindSymbolAnchors(const ge::NodePtr &node,
+                                                                     int64_t output_index) const {
+  if (GetMemAssignerPtr() == nullptr) {
+    return nullptr;
+  }
+  NodeIndexIO node_index_io{node, output_index, kOut};
+  const auto &anchor_str = node_index_io.ToString();
+  const auto symbol_anchor_iter = GetMemAssignerPtr()->anchor_to_symbol_.find(anchor_str);
+  if (symbol_anchor_iter == GetMemAssignerPtr()->anchor_to_symbol_.end()) {
+    GELOGW("cannot find symbol by anchor %s", anchor_str.c_str());
+    return nullptr;
+  }
+  const auto &anchor_iter = GetMemAssignerPtr()->symbol_to_anchors_.find(symbol_anchor_iter->second);
+  if (anchor_iter == GetMemAssignerPtr()->symbol_to_anchors_.end()) {
+    return nullptr;
+  }
+  return &(anchor_iter->second);
 }
 
 Status GraphMemoryAssigner::AssignAtomicOutputMemory(

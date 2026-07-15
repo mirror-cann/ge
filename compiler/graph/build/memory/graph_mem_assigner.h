@@ -280,6 +280,8 @@ class GraphMemoryAssigner {
   Status AssignAtomicOutputMemory(const NodePtr &node, std::map<int64_t, std::vector<int64_t>> &mem_type_to_offset_end,
                                   std::map<int64_t, std::vector<int64_t>> &mem_type_to_real_atomic_sizes);
   Status UpdateParentNodeOutputOffset(const ge::NodePtr &node, int64_t output_index, int64_t offset) const;
+  Status UpdateSymbolOutputOffset(const ge::NodePtr &node, int64_t output_index, int64_t offset) const;
+  const std::list<NodeIndexIO> *FindSymbolAnchors(const ge::NodePtr &node, int64_t output_index) const;
   Status AssignOrdinaryAtomicWorkspaceMemory(const OpDescPtr &op_desc,
                                              std::map<std::string, std::map<int64_t, int64_t>> &workspace_info,
                                              std::map<int64_t, std::vector<int64_t>> &mem_type_to_offset_end,
