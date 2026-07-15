@@ -20,7 +20,6 @@ enum class CustomOpCapability : uint32_t {
   kShapeInfer = 1U << 2U,
   kPortable = 1U << 3U,
   kArgsUpdater = 1U << 4U,
-  kAnnotatedArgs = 1U << 5U,
 };
 
 using CustomOpCapabilityMask = uint32_t;

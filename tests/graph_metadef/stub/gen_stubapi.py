@@ -42,8 +42,6 @@ RETURN_STATEMENTS = {
     "graphStatus": "    return ge::GRAPH_SUCCESS;",
     "ge::graphStatus": "    return ge::GRAPH_SUCCESS;",
     "ge::Status": "    return ge::SUCCESS;",
-    "ArgsRefreshStrategy": "    return ArgsRefreshStrategy::kNone;",
-    "ge::ArgsRefreshStrategy": "    return ge::ArgsRefreshStrategy::kNone;",
     "Status": "    return 0U;",
     "Format": "    return Format();",
     "ge::Format": "    return ge::Format();",

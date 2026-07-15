@@ -94,7 +94,6 @@ class AnnotatedArgsOp : virtual public BaseCustomOp {
   /**
    * 声明 kernel launch 参数，编译期调用。
    * 当前端侧离线模型的 TaskDef 生成仅支持单次 AddLaunch 和主 stream launch。
-   * 声明式地址刷新场景则支持多次 AddLaunch 和主 stream launch
    * @param ctx 声明式参数上下文，可通过 ctx 分配 workspace、获取输入/输出 tensor、添加 launch 任务
    * @return GRAPH_SUCCESS 表示声明成功，否则返回错误码
    * @since 9.2.0(2026-07)

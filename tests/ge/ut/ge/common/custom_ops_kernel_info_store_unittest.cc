@@ -292,43 +292,6 @@ class MockAnnotatedArgsWithMultipleLaunchesCustomOp : public AnnotatedArgsOp, pu
   }
 };
 
-std::atomic_uint32_t g_both_refresh_interfaces_declare_count{0U};
-
-class MockBothRefreshInterfacesCustomOp : public AnnotatedArgsOp, public ArgsUpdater, public EagerExecuteOp {
- public:
-  graphStatus DeclareLaunchArgs(gert::AnnotatedArgsContext &ctx) override {
-    (void)ctx;
-    ++g_both_refresh_interfaces_declare_count;
-    return GRAPH_FAILED;
-  }
-
-  graphStatus UpdateHostArgs(gert::UpdateArgsContext *ctx) override {
-    (void)ctx;
-    return GRAPH_SUCCESS;
-  }
-
-  graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
-    (void)ctx;
-    return GRAPH_SUCCESS;
-  }
-};
-
-std::atomic_uint32_t g_annotated_eager_declare_count{0U};
-
-class MockAnnotatedArgsAndEagerCustomOp : public AnnotatedArgsOp, public EagerExecuteOp {
- public:
-  graphStatus DeclareLaunchArgs(gert::AnnotatedArgsContext &ctx) override {
-    (void)ctx;
-    ++g_annotated_eager_declare_count;
-    return GRAPH_FAILED;
-  }
-
-  graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
-    (void)ctx;
-    return GRAPH_SUCCESS;
-  }
-};
-
 class MockAnnotatedArgsWithMismatchStreamCustomOp : public AnnotatedArgsOp, public MockPortableCustomOp {
  public:
   graphStatus DeclareLaunchArgs(gert::AnnotatedArgsContext &ctx) override {
@@ -788,81 +751,15 @@ TEST_F(UtestCustomOpsKernelInfoStore, GenerateTaskDeclaresAnnotatedArgsAndFillsK
   EXPECT_EQ(parsed_arg_descs[3].addr_type, AddrType::CUSTOM_VALUE);
 
   auto op_desc = node->GetOpDesc();
-  std::vector<std::string> prefixes;
-  EXPECT_FALSE(AttrUtils::GetListStr(op_desc, ATTR_NAME_KERNEL_NAMES_PREFIX, prefixes));
-  const std::string prefixed_attr = "_custom_launch_0_";
-  std::string prefixed_kernel_name;
-  EXPECT_FALSE(AttrUtils::GetStr(op_desc, prefixed_attr + ATTR_NAME_TBE_KERNEL_NAME, prefixed_kernel_name));
-  Buffer prefixed_kernel_buffer;
-  EXPECT_FALSE(AttrUtils::GetBytes(op_desc, prefixed_attr + ATTR_NAME_TBE_KERNEL_BUFFER, prefixed_kernel_buffer));
-  EXPECT_EQ(op_desc->TryGetExtAttr(prefixed_attr + OP_EXTATTR_NAME_TBE_KERNEL, OpKernelBinPtr()), nullptr);
-
-  std::string kernel_name;
-  ASSERT_TRUE(AttrUtils::GetStr(op_desc, ATTR_NAME_TBE_KERNEL_NAME, kernel_name));
-  EXPECT_EQ(kernel_name, "custom_add_kernel");
-  Buffer kernel_buffer;
-  ASSERT_TRUE(AttrUtils::GetBytes(op_desc, ATTR_NAME_TBE_KERNEL_BUFFER, kernel_buffer));
+  const auto *kernel_name = AttrUtils::GetStr(op_desc, ATTR_NAME_TBE_KERNEL_NAME);
+  ASSERT_NE(kernel_name, nullptr);
+  EXPECT_EQ(*kernel_name, "custom_add_kernel");
   auto tbe_kernel = op_desc->TryGetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, OpKernelBinPtr());
   ASSERT_NE(tbe_kernel, nullptr);
   EXPECT_EQ(tbe_kernel->GetName(), "custom_add_kernel");
   ASSERT_EQ(tbe_kernel->GetBinDataSize(), 4U);
   const uint8_t expected_bin[] = {0x11U, 0x22U, 0x33U, 0x44U};
-  ASSERT_EQ(kernel_buffer.GetSize(), sizeof(expected_bin));
-  ASSERT_NE(kernel_buffer.GetData(), nullptr);
-  EXPECT_EQ(std::memcmp(kernel_buffer.GetData(), expected_bin, sizeof(expected_bin)), 0);
   EXPECT_EQ(std::memcmp(tbe_kernel->GetBinData(), expected_bin, sizeof(expected_bin)), 0);
-}
-
-TEST_F(UtestCustomOpsKernelInfoStore, GenerateTaskOnNonMobileSocDeclaresAnnotatedArgsOp) {
-  GetThreadLocalContext().SetGraphOption({{ge::SOC_VERSION, "Ascend910B"}});
-
-  const std::string kTestOpType = "TestAnnotatedArgsNonMobile_BuilderTest";
-  auto creator = []() -> std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<MockAnnotatedArgsWithConstInputCustomOp>();
-  };
-  ASSERT_EQ(CustomOpFactory::RegisterCustomOpCreator(AscendString(kTestOpType.c_str()), creator), GRAPH_SUCCESS);
-
-  ComputeGraphPtr graph;
-  auto node = BuildStaticCustomNodeWithConstInput(kTestOpType, graph);
-  ASSERT_NE(node, nullptr);
-
-  std::vector<domi::TaskDef> tasks;
-  EXPECT_EQ(GenerateTaskForNode(node, tasks), SUCCESS);
-
-  ASSERT_EQ(tasks.size(), 1U);
-  EXPECT_EQ(tasks[0].kernel().kernel_name(), "custom_add_kernel");
-  EXPECT_EQ(tasks[0].kernel().block_dim(), 8U);
-  EXPECT_FALSE(tasks[0].kernel().context().args_format().empty());
-}
-
-TEST_F(UtestCustomOpsKernelInfoStore, GenerateTaskOnNonMobileSocWritesPrefixedKernelAttrs) {
-  GetThreadLocalContext().SetGraphOption({{ge::SOC_VERSION, "Ascend910B"}});
-
-  const std::string kTestOpType = "TestAnnotatedArgsNonMobilePrefixedAttrs_BuilderTest";
-  auto creator = []() -> std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<MockAnnotatedArgsWithConstInputCustomOp>();
-  };
-  ASSERT_EQ(CustomOpFactory::RegisterCustomOpCreator(AscendString(kTestOpType.c_str()), creator), GRAPH_SUCCESS);
-
-  ComputeGraphPtr graph;
-  auto node = BuildStaticCustomNodeWithConstInput(kTestOpType, graph);
-  ASSERT_NE(node, nullptr);
-
-  std::vector<domi::TaskDef> tasks;
-  ASSERT_EQ(GenerateTaskForNode(node, tasks), SUCCESS);
-  ASSERT_EQ(tasks.size(), 1U);
-
-  std::vector<std::string> prefixes;
-  ASSERT_TRUE(AttrUtils::GetListStr(node->GetOpDesc(), ATTR_NAME_KERNEL_NAMES_PREFIX, prefixes));
-  ASSERT_EQ(prefixes.size(), 1U);
-  EXPECT_EQ(prefixes[0], "_custom_launch_0_");
-
-  std::string kernel_name;
-  ASSERT_TRUE(AttrUtils::GetStr(node->GetOpDesc(), prefixes[0] + ATTR_NAME_TBE_KERNEL_NAME, kernel_name));
-  EXPECT_EQ(kernel_name, tasks[0].kernel().kernel_name());
-  auto tbe_kernel = node->GetOpDesc()->TryGetExtAttr(prefixes[0] + OP_EXTATTR_NAME_TBE_KERNEL, OpKernelBinPtr());
-  ASSERT_NE(tbe_kernel, nullptr);
-  EXPECT_EQ(tbe_kernel->GetName(), tasks[0].kernel().kernel_name());
 }
 
 TEST_F(UtestCustomOpsKernelInfoStore, GenerateTaskSupportsInvalidOptionalBeforeRequiredInput) {
@@ -925,68 +822,6 @@ TEST_F(UtestCustomOpsKernelInfoStore, GenerateTaskOnNonMobileSocFillsBasicCustom
   EXPECT_EQ(task.kernel().context().op_index(), 7);
 }
 
-TEST_F(UtestCustomOpsKernelInfoStore, GenerateTaskOnNonMobileSocUsesUpdateCallbackWhenBothRefreshInterfacesExist) {
-  GetThreadLocalContext().SetGraphOption({{ge::SOC_VERSION, "Ascend910B"}});
-  g_both_refresh_interfaces_declare_count.store(0U);
-  const std::string kTestOpType = "TestBothRefreshInterfacesCustomOp_NonMobile_BuilderTest";
-  auto creator = []() -> std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<MockBothRefreshInterfacesCustomOp>();
-  };
-  ASSERT_EQ(CustomOpFactory::RegisterCustomOpCreator(AscendString(kTestOpType.c_str()), creator), GRAPH_SUCCESS);
-  EXPECT_EQ(CustomOpFactory::GetArgsRefreshStrategy(AscendString(kTestOpType.c_str())),
-            ArgsRefreshStrategy::kUpdateCallback);
-
-  ComputeGraphPtr graph;
-  auto node = BuildStaticCustomNode(kTestOpType, graph);
-  ASSERT_NE(node, nullptr);
-
-  std::vector<domi::TaskDef> tasks;
-  EXPECT_EQ(GenerateTaskForNode(node, tasks), SUCCESS);
-
-  ASSERT_EQ(tasks.size(), 1U);
-  const auto &task = tasks[0];
-  EXPECT_EQ(task.stream_id(), 3U);
-  EXPECT_EQ(task.type(), static_cast<uint32_t>(ModelTaskType::MODEL_TASK_CUSTOM_KERNEL));
-  EXPECT_EQ(task.sqe_num(), 5U);
-  EXPECT_EQ(task.kernel().context().op_index(), 7);
-  EXPECT_TRUE(task.kernel().kernel_name().empty());
-  EXPECT_TRUE(task.kernel().context().args_format().empty());
-  EXPECT_EQ(g_both_refresh_interfaces_declare_count.load(), 0U);
-}
-
-TEST_F(UtestCustomOpsKernelInfoStore, GenerateTaskOnMobileSocRejectsUpdateCallbackWhenBothRefreshInterfacesExist) {
-  g_both_refresh_interfaces_declare_count.store(0U);
-  const std::string kTestOpType = "TestBothRefreshInterfacesCustomOp_Mobile_BuilderTest";
-  auto creator = []() -> std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<MockBothRefreshInterfacesCustomOp>();
-  };
-  ASSERT_EQ(CustomOpFactory::RegisterCustomOpCreator(AscendString(kTestOpType.c_str()), creator), GRAPH_SUCCESS);
-  EXPECT_EQ(CustomOpFactory::GetArgsRefreshStrategy(AscendString(kTestOpType.c_str())),
-            ArgsRefreshStrategy::kUpdateCallback);
-
-  ComputeGraphPtr graph;
-  auto node = BuildStaticCustomNode(kTestOpType, graph);
-  ASSERT_NE(node, nullptr);
-
-  std::vector<domi::TaskDef> tasks;
-  EXPECT_EQ(GenerateTaskForNode(node, tasks), INTERNAL_ERROR);
-  EXPECT_TRUE(tasks.empty());
-  EXPECT_EQ(g_both_refresh_interfaces_declare_count.load(), 0U);
-}
-
-TEST_F(UtestCustomOpsKernelInfoStore, GenerateTaskOnMobileSocRejectsDefaultStrategy) {
-  const std::string kTestOpType = "TestUnregisteredCustomOp_MobileDefaultStrategy_BuilderTest";
-  EXPECT_EQ(CustomOpFactory::GetArgsRefreshStrategy(AscendString(kTestOpType.c_str())), ArgsRefreshStrategy::kNone);
-
-  ComputeGraphPtr graph;
-  auto node = BuildStaticCustomNode(kTestOpType, graph);
-  ASSERT_NE(node, nullptr);
-
-  std::vector<domi::TaskDef> tasks;
-  EXPECT_EQ(GenerateTaskForNode(node, tasks), INTERNAL_ERROR);
-  EXPECT_TRUE(tasks.empty());
-}
-
 TEST_F(UtestCustomOpsKernelInfoStore, GenerateTaskProbeRecordsDynamicWorkspace) {
   const std::string kTestOpType = "TestAnnotatedArgsWithWorkspaceProbe_BuilderTest";
   auto creator = []() -> std::unique_ptr<BaseCustomOp> {
@@ -1042,112 +877,14 @@ TEST_F(UtestCustomOpsKernelInfoStore, GenerateTaskSupportsMultipleWorkspaceArgs)
   EXPECT_EQ(parsed_arg_descs[3].ir_idx, 1);
 }
 
-TEST_F(UtestCustomOpsKernelInfoStore, GenerateTaskOnMobileSocRejectsMultipleLaunches) {
-  const std::string kTestOpType = "TestMultipleLaunchesCustomOp_MobileReject_BuilderTest";
-  auto creator = []() -> std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<MockAnnotatedArgsWithMultipleLaunchesCustomOp>();
-  };
-  ASSERT_EQ(CustomOpFactory::RegisterCustomOpCreator(AscendString(kTestOpType.c_str()), creator), GRAPH_SUCCESS);
-
-  ComputeGraphPtr graph;
-  auto node = BuildStaticCustomNode(kTestOpType, graph);
-  ASSERT_NE(node, nullptr);
-
-  std::vector<domi::TaskDef> tasks;
-  EXPECT_EQ(GenerateTaskForNode(node, tasks), INTERNAL_ERROR);
-  EXPECT_TRUE(tasks.empty());
-}
-
-TEST_F(UtestCustomOpsKernelInfoStore, GenerateTaskSupportsMultipleLaunches) {
-  GetThreadLocalContext().SetGraphOption({{ge::SOC_VERSION, "Ascend910B"}});
-
+TEST_F(UtestCustomOpsKernelInfoStore, GenerateTaskFailsWhenDeclareAddsMultipleLaunches) {
   const std::string kTestOpType = "TestMultipleLaunchesCustomOp_BuilderTest";
   auto creator = []() -> std::unique_ptr<BaseCustomOp> {
     return std::make_unique<MockAnnotatedArgsWithMultipleLaunchesCustomOp>();
   };
   ASSERT_EQ(CustomOpFactory::RegisterCustomOpCreator(AscendString(kTestOpType.c_str()), creator), GRAPH_SUCCESS);
 
-  ComputeGraphPtr graph;
-  auto node = BuildStaticCustomNode(kTestOpType, graph);
-  ASSERT_NE(node, nullptr);
-
-  std::vector<domi::TaskDef> tasks;
-  EXPECT_EQ(GenerateTaskForNode(node, tasks), SUCCESS);
-
-  ASSERT_EQ(tasks.size(), 2U);
-  EXPECT_EQ(tasks[0].stream_id(), 3U);
-  EXPECT_EQ(tasks[1].stream_id(), 3U);
-  EXPECT_EQ(tasks[0].kernel().context().op_index(), 7);
-  EXPECT_EQ(tasks[1].kernel().context().op_index(), 7);
-  EXPECT_NE(tasks[0].kernel().kernel_name(), tasks[1].kernel().kernel_name());
-  EXPECT_FALSE(tasks[0].kernel().context().args_format().empty());
-  EXPECT_FALSE(tasks[1].kernel().context().args_format().empty());
-}
-
-TEST_F(UtestCustomOpsKernelInfoStore, GenerateTaskMultipleLaunchesWritesPrefixedKernelAttrs) {
-  GetThreadLocalContext().SetGraphOption({{ge::SOC_VERSION, "Ascend910B"}});
-
-  const std::string kTestOpType = "TestMultipleLaunchesKernelAttrs_BuilderTest";
-  auto creator = []() -> std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<MockAnnotatedArgsWithMultipleLaunchesCustomOp>();
-  };
-  ASSERT_EQ(CustomOpFactory::RegisterCustomOpCreator(AscendString(kTestOpType.c_str()), creator), GRAPH_SUCCESS);
-
-  ComputeGraphPtr graph;
-  auto node = BuildStaticCustomNode(kTestOpType, graph);
-  ASSERT_NE(node, nullptr);
-
-  std::vector<domi::TaskDef> tasks;
-  ASSERT_EQ(GenerateTaskForNode(node, tasks), SUCCESS);
-  ASSERT_EQ(tasks.size(), 2U);
-
-  std::vector<std::string> prefixes;
-  ASSERT_TRUE(AttrUtils::GetListStr(node->GetOpDesc(), ATTR_NAME_KERNEL_NAMES_PREFIX, prefixes));
-  ASSERT_EQ(prefixes.size(), 2U);
-  EXPECT_EQ(prefixes[0], "_custom_launch_0_");
-  EXPECT_EQ(prefixes[1], "_custom_launch_1_");
-
-  for (size_t i = 0U; i < prefixes.size(); ++i) {
-    const auto &prefix = prefixes[i];
-    std::string kernel_name;
-    ASSERT_TRUE(AttrUtils::GetStr(node->GetOpDesc(), prefix + ATTR_NAME_TBE_KERNEL_NAME, kernel_name));
-    EXPECT_EQ(kernel_name, tasks[i].kernel().kernel_name());
-    std::string binary_magic;
-    ASSERT_TRUE(AttrUtils::GetStr(node->GetOpDesc(), prefix + TVM_ATTR_NAME_MAGIC, binary_magic));
-    EXPECT_EQ(binary_magic, "RT_DEV_BINARY_MAGIC_ELF_AIVEC");
-    auto tbe_kernel = node->GetOpDesc()->TryGetExtAttr(prefix + OP_EXTATTR_NAME_TBE_KERNEL, OpKernelBinPtr());
-    ASSERT_NE(tbe_kernel, nullptr);
-    EXPECT_EQ(tbe_kernel->GetName(), tasks[i].kernel().kernel_name());
-  }
-}
-
-TEST_F(UtestCustomOpsKernelInfoStore, GenerateTaskMultipleLaunchesProducesModelBuilderReadableKernelAttrs) {
-  GetThreadLocalContext().SetGraphOption({{ge::SOC_VERSION, "Ascend910B"}});
-
-  const std::string kTestOpType = "TestMultiLaunchModelBuilderReadableAttrs_BuilderTest";
-  auto creator = []() -> std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<MockAnnotatedArgsWithMultipleLaunchesCustomOp>();
-  };
-  ASSERT_EQ(CustomOpFactory::RegisterCustomOpCreator(AscendString(kTestOpType.c_str()), creator), GRAPH_SUCCESS);
-
-  ComputeGraphPtr graph;
-  auto node = BuildStaticCustomNode(kTestOpType, graph);
-  ASSERT_NE(node, nullptr);
-
-  std::vector<domi::TaskDef> tasks;
-  ASSERT_EQ(GenerateTaskForNode(node, tasks), SUCCESS);
-  ASSERT_EQ(tasks.size(), 2U);
-
-  std::vector<std::string> prefixes;
-  ASSERT_TRUE(AttrUtils::GetListStr(node->GetOpDesc(), ATTR_NAME_KERNEL_NAMES_PREFIX, prefixes));
-  for (size_t i = 0U; i < prefixes.size(); ++i) {
-    Buffer kernel_buffer;
-    std::string kernel_name;
-    ASSERT_TRUE(AttrUtils::GetStr(node->GetOpDesc(), prefixes[i] + ATTR_NAME_TBE_KERNEL_NAME, kernel_name));
-    ASSERT_TRUE(AttrUtils::GetBytes(node->GetOpDesc(), prefixes[i] + ATTR_NAME_TBE_KERNEL_BUFFER, kernel_buffer));
-    EXPECT_EQ(kernel_name, tasks[i].kernel().kernel_name());
-    EXPECT_GT(kernel_buffer.GetSize(), 0U);
-  }
+  ExpectGenerateTaskFailedWithStatus(kTestOpType, INTERNAL_ERROR);
 }
 
 TEST_F(UtestCustomOpsKernelInfoStore, GenerateTaskFailsWhenDeclareSetsMismatchStreamId) {
@@ -1328,7 +1065,7 @@ TEST_F(UtestCustomOpsKernelInfoStore, GenerateTaskSupportsUnknownTensorShapesInK
   EXPECT_EQ(tasks.size(), 1U);
 }
 
-TEST_F(UtestCustomOpsKernelInfoStore, GenerateTaskOnUnknownGraphDoesNotValidateEagerCapability) {
+TEST_F(UtestCustomOpsKernelInfoStore, GenerateTaskFailsWhenOwnerGraphIsUnknown) {
   const std::string kTestOpType = "TestUnknownGraphCustomOp_BuilderTest";
   auto creator = []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<MockAnnotatedArgsCustomOp>(); };
   ASSERT_EQ(CustomOpFactory::RegisterCustomOpCreator(AscendString(kTestOpType.c_str()), creator), GRAPH_SUCCESS);
@@ -1341,54 +1078,8 @@ TEST_F(UtestCustomOpsKernelInfoStore, GenerateTaskOnUnknownGraphDoesNotValidateE
   owner_graph->SetGraphUnknownFlag(true);
 
   std::vector<domi::TaskDef> tasks;
-  EXPECT_EQ(GenerateTaskForNode(node, tasks), SUCCESS);
-
-  ASSERT_EQ(tasks.size(), 1U);
-  const auto &task = tasks[0];
-  EXPECT_EQ(task.type(), static_cast<uint32_t>(ModelTaskType::MODEL_TASK_CUSTOM_KERNEL));
-  EXPECT_EQ(task.kernel().context().op_index(), 7);
-  EXPECT_TRUE(task.kernel().kernel_name().empty());
-  EXPECT_TRUE(task.kernel().context().args_format().empty());
-}
-
-TEST_F(UtestCustomOpsKernelInfoStore, GenerateTaskOnUnknownGraphUsesBasicTaskForAnnotatedEagerOp) {
-  const std::vector<std::pair<std::string, std::string>> cases = {
-      {"KirinX90", "TestUnknownGraphAnnotatedEagerOp_Mobile"},
-      {"Ascend910B", "TestUnknownGraphAnnotatedEagerOp_NonMobile"},
-  };
-
-  for (const auto &test_case : cases) {
-    const std::string &soc_version = test_case.first;
-    const std::string &op_type = test_case.second;
-    GetThreadLocalContext().SetGraphOption({{ge::SOC_VERSION, soc_version}});
-    g_annotated_eager_declare_count.store(0U);
-    auto creator = []() -> std::unique_ptr<BaseCustomOp> {
-      return std::make_unique<MockAnnotatedArgsAndEagerCustomOp>();
-    };
-    ASSERT_EQ(CustomOpFactory::RegisterCustomOpCreator(AscendString(op_type.c_str()), creator), GRAPH_SUCCESS);
-
-    ComputeGraphPtr graph;
-    auto node = BuildStaticCustomNode(op_type, graph);
-    ASSERT_NE(node, nullptr);
-    auto *const owner_graph = node->GetOwnerComputeGraphBarePtr();
-    ASSERT_NE(owner_graph, nullptr);
-    owner_graph->SetGraphUnknownFlag(true);
-
-    std::vector<domi::TaskDef> tasks;
-    EXPECT_EQ(GenerateTaskForNode(node, tasks), SUCCESS) << "soc_version=" << soc_version;
-    EXPECT_EQ(g_annotated_eager_declare_count.load(), 0U) << "soc_version=" << soc_version;
-    EXPECT_EQ(tasks.size(), 1U) << "soc_version=" << soc_version;
-    if (tasks.size() != 1U) {
-      continue;
-    }
-    const auto &task = tasks[0];
-    EXPECT_EQ(task.stream_id(), 3U);
-    EXPECT_EQ(task.type(), static_cast<uint32_t>(ModelTaskType::MODEL_TASK_CUSTOM_KERNEL));
-    EXPECT_EQ(task.sqe_num(), 5U);
-    EXPECT_EQ(task.kernel().context().op_index(), 7);
-    EXPECT_TRUE(task.kernel().kernel_name().empty());
-    EXPECT_TRUE(task.kernel().context().args_format().empty());
-  }
+  EXPECT_NE(GenerateTaskForNode(node, tasks), SUCCESS);
+  EXPECT_TRUE(tasks.empty());
 }
 
 TEST_F(UtestCustomOpsKernelInfoStore, GenerateTaskFailsWhenAnnotatedArgsRejectsParameters) {
@@ -1406,7 +1097,7 @@ TEST_F(UtestCustomOpsKernelInfoStore, GenerateTaskFailsWhenAnnotatedArgsRejectsP
       return std::make_unique<MockInvalidAnnotatedArgsCustomOp>(invalid_case);
     };
     ASSERT_EQ(CustomOpFactory::RegisterCustomOpCreator(AscendString(op_type.c_str()), creator), GRAPH_SUCCESS);
-    ExpectGenerateTaskFailedWithStatus(op_type, GRAPH_FAILED);
+    ExpectGenerateTaskFailed(op_type);
   }
 }
 

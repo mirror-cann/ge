@@ -179,22 +179,12 @@ void CustomOpRegistry::RemoveCustomOps(const std::vector<AscendString> &op_types
   removed_custom_ops.clear();
 }
 
-ArgsRefreshStrategy CustomOpRegistry::GetArgsRefreshStrategy(const AscendString &op_type) {
+bool CustomOpRegistry::IsAddressRefreshable(const AscendString &op_type) {
   const auto *custom_op = CreateOrGetCustomOp(op_type);
   if (custom_op == nullptr) {
-    return ArgsRefreshStrategy::kNone;
+    return false;
   }
-  if (CustomOpCast<ArgsUpdater>(custom_op) != nullptr) {
-    return ArgsRefreshStrategy::kUpdateCallback;
-  }
-  if (CustomOpCast<AnnotatedArgsOp>(custom_op) != nullptr) {
-    return ArgsRefreshStrategy::kAnnotatedArgs;
-  }
-  return ArgsRefreshStrategy::kNone;
-}
-
-bool CustomOpRegistry::IsAddressRefreshable(const AscendString &op_type) {
-  return GetArgsRefreshStrategy(op_type) != ArgsRefreshStrategy::kNone;
+  return CustomOpCast<ArgsUpdater>(custom_op) != nullptr;
 }
 
 BaseCustomOp *CustomOpRegistry::FindCustomOp(const AscendString &op_type) const {

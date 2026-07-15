@@ -10,7 +10,6 @@
 
 #include "graph/build/model_builder.h"
 #include <securectype.h>
-#include <cstring>
 #include <iostream>
 #include <set>
 #include <unordered_map>
@@ -71,23 +70,6 @@ bool IsGeLocalOp(const ge::ConstOpDescPtr &op_desc) {
       ge::CONSTANT,    ge::ENTER,       ge::REFENTER,     ge::LOOPCOND,        ge::NEXTITERATION,   ge::FILECONSTANT,
       ge::EXIT,        ge::REFEXIT,     ge::MERGE,        ge::MEMCPYADDRASYNC, ge::REFNEXTITERATION};
   return (ge_local_set.find(type) != ge_local_set.end());
-}
-
-bool IsSameKernelBin(const ge::TBEKernelPtr &lhs, const ge::TBEKernelPtr &rhs) {
-  if ((lhs == nullptr) || (rhs == nullptr)) {
-    return lhs == rhs;
-  }
-  if (lhs->GetBinDataSize() != rhs->GetBinDataSize()) {
-    return false;
-  }
-  const size_t bin_size = lhs->GetBinDataSize();
-  if (bin_size == 0U) {
-    return true;
-  }
-  if ((lhs->GetBinData() == nullptr) || (rhs->GetBinData() == nullptr)) {
-    return false;
-  }
-  return std::memcmp(lhs->GetBinData(), rhs->GetBinData(), bin_size) == 0;
 }
 
 ge::Status SaveSoftSyncOpWeightByDependNames(const ge::NodePtr &node, const std::vector<std::string> &depend_names) {
@@ -834,7 +816,7 @@ Status ModelBuilder::SaveAtomicTBEKernel(const OpDescPtr &op_desc) {
     return ge::FAILED;
   }
 
-  GE_ASSERT_SUCCESS(AddTBEKernelToStore(op_desc, tbe_kernel, "atomic"));
+  tbe_kernel_store_.AddTBEKernel(tbe_kernel);
   GELOGD("Atomic_clean_node tbe_kernel_name %s!", tbe_kernel->GetName().c_str());
   (void)AttrUtils::SetStr(op_desc, ATOMIC_ATTR_TBE_KERNEL_NAME, tbe_kernel->GetName());
 
@@ -865,24 +847,6 @@ Status ModelBuilder::SaveAtomicTBEKernel(const OpDescPtr &op_desc) {
   return SUCCESS;
 }
 
-Status ModelBuilder::AddTBEKernelToStore(const OpDescPtr &op_desc, const TBEKernelPtr &tbe_kernel,
-                                         const std::string &kernel_type) {
-  if (tbe_kernel == nullptr) {
-    return SUCCESS;
-  }
-  const auto existing_kernel = tbe_kernel_store_.FindKernel(tbe_kernel->GetName());
-  if (existing_kernel == nullptr) {
-    tbe_kernel_store_.AddTBEKernel(tbe_kernel);
-    return SUCCESS;
-  }
-  GE_ASSERT_TRUE(IsSameKernelBin(existing_kernel, tbe_kernel),
-                 "TBE kernel name %s maps to different bins, op:%s(%s), kernel_type:%s", tbe_kernel->GetName().c_str(),
-                 op_desc->GetNamePtr(), op_desc->GetTypePtr(), kernel_type.c_str());
-  GELOGD("TBE kernel bin %s is already saved, op:%s(%s), kernel_type:%s", tbe_kernel->GetName().c_str(),
-         op_desc->GetNamePtr(), op_desc->GetTypePtr(), kernel_type.c_str());
-  return SUCCESS;
-}
-
 Status ModelBuilder::SaveNormalTBEKernel(const OpDescPtr &op_desc) {
   TBEKernelPtr tbe_kernel = op_desc->TryGetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, TBEKernelPtr());
   if (tbe_kernel == nullptr) {
@@ -892,7 +856,7 @@ Status ModelBuilder::SaveNormalTBEKernel(const OpDescPtr &op_desc) {
     return SUCCESS;  // Not TBE node.
   }
   (void)AttrUtils::SetStr(op_desc, "_kernelname", tbe_kernel->GetName());
-  GE_ASSERT_SUCCESS(AddTBEKernelToStore(op_desc, tbe_kernel, "normal"));
+  tbe_kernel_store_.AddTBEKernel(tbe_kernel);
 
   // Compat for compiler changes: remove prefix (node name) of attr name for symbol of kernel elf
   std::string symbol_of_elf;
@@ -927,16 +891,16 @@ Status ModelBuilder::SaveFftsPlusTBEKernel(const OpDescPtr &op_desc) {
   const auto thread_tbe_kernel =
       op_desc->TryGetExtAttr(OP_EXTATTR_NAME_THREAD_TBE_KERNEL, std::vector<OpKernelBinPtr>{});
   for (size_t i = 0UL; i < thread_tbe_kernel.size(); ++i) {
-    GE_ASSERT_SUCCESS(AddTBEKernelToStore(op_desc, thread_tbe_kernel[i], "thread"));
+    tbe_kernel_store_.AddTBEKernel(thread_tbe_kernel[i]);
   }
 
-  const auto SaveMixTBE = [&op_desc, this](const std::string &prefix, const std::string &core_type) -> Status {
+  const auto SaveMixTBE = [&op_desc, this](const std::string &prefix, const std::string &core_type) {
     TBEKernelPtr tbe_kernel = op_desc->TryGetExtAttr(prefix + OP_EXTATTR_NAME_TBE_KERNEL, TBEKernelPtr());
     if (tbe_kernel == nullptr) {
       tbe_kernel = CreateOpTBEKernel(op_desc, prefix);
     }
     GE_CHECK_NOTNULL(tbe_kernel);
-    GE_ASSERT_SUCCESS(AddTBEKernelToStore(op_desc, tbe_kernel, core_type));
+    tbe_kernel_store_.AddTBEKernel(tbe_kernel);
     GELOGD("Add %s kernel bin, Op(%s:%s)", core_type.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str());
     return SUCCESS;
   };

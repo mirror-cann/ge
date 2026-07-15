@@ -112,7 +112,6 @@ class ModelBuilder {
   Status SaveNormalTBEKernel(const OpDescPtr &op_desc);
   Status SaveCustAiCpuKernel(const OpDescPtr &op_desc, std::set<std::string> &aicpu_name_set);
   Status SaveFftsPlusTBEKernel(const OpDescPtr &op_desc);
-  Status AddTBEKernelToStore(const OpDescPtr &op_desc, const TBEKernelPtr &tbe_kernel, const std::string &kernel_type);
   TBEKernelPtr CreateOpTBEKernel(const OpDescPtr &op_desc, const std::string &prefix_kernel_name) const;
   // In order to optimize the size of om,
   // delete the attributes saved in tbekernelstore and nodes on the graph at the same time.

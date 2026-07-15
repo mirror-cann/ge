@@ -25,21 +25,12 @@
 #include "graph/load/model_manager/sink_only_allocator.h"
 #include "register/op_tiling_registry.h"
 #include "graph/custom_op.h"
-#include "graph/custom_op/args_refresh.h"
 #include "exe_graph/runtime/eager_op_execution_context.h"
 #include <deque>
-#include <map>
-#include <set>
-#include <utility>
 #include <vector>
 #include "framework/runtime/args_handler.h"
 
 namespace ge {
-struct CustomArgsFormatInfo {
-  std::map<size_t, std::pair<size_t, size_t>> ir_input_2_range;
-  std::map<size_t, std::pair<size_t, size_t>> ir_output_2_range;
-  std::vector<ArgDesc> arg_descs;
-};
 class SinkOpArgsHandler;
 class CustomTaskInfo : public TaskInfo {
   friend class SinkOpArgsHandler;
@@ -77,17 +68,12 @@ class CustomTaskInfo : public TaskInfo {
     return args_allocation_results_;
   }
 
+  // 后续扩展刷新模式后，该函数需要同步适配
   bool NeedReserveArgsTable() const override {
-    return args_refresh_strategy_ == ArgsRefreshStrategy::kUpdateCallback;
+    return is_args_refreshable_;
   }
 
   Status UpdateHostArgs(void *base_addr, size_t mem_size) override;
-
-  Status GetTaskArgsRefreshInfos(std::vector<TaskArgsRefreshInfo> &infos) override;
-
-  ArgsRefreshStrategy GetArgsRefreshStrategy() const {
-    return args_refresh_strategy_;
-  }
 
  private:
   Status InsertDumpOp(const std::string &dump_mode);
@@ -95,26 +81,15 @@ class CustomTaskInfo : public TaskInfo {
                                const std::vector<uint64_t> &output_addrs_value);
   void SetCustomDumpInfo(const DumpProperties &dump_properties, DumpOp &dump_op) const;
 
-  void UpdateIoAndWorkspaceAddrs(const IowAddrs &iow_addrs);
-
   const std::deque<gert::KernelArgs> &GetKernelArgsDeque(gert::Placement placement) const;
 
-  Status ParseAnnotatedArgsTaskRunParam(const domi::KernelDef &kernel_def, const domi::KernelContext &context,
-                                        TaskRunParam &task_run_param);
+  void UpdateIoAndWorkspaceAddrs(const IowAddrs &iow_addrs);
 
   Status ConstructCustomKernelContextInputsOutputs(const ge::OpDescPtr &op_desc,
                                                    std::vector<std::unique_ptr<uint8_t[]>> &inputs,
                                                    std::vector<std::unique_ptr<uint8_t[]>> &outputs) const;
-  Status DistributeAnnotatedArgsFromTaskDef();
 
   Status InitArgsIoAddrsUpdater();
-
-  Status AssembleIoByArgsFormat();
-  size_t GetArgsSizeByFormat() const;
-  void AppendIoAddr(const uint64_t addr, const uint64_t addr_type);
-  Status AppendInputOutputAddr(size_t ir_idx, bool is_input);
-  Status AppendInputOutputAddrByInstanceIndex(size_t ins_idx, bool is_input);
-  Status AppendWorkspaceAddr(int32_t ir_idx);
 
   const gert::KernelArgs *MallocReadOnlyDevArgsImpl(void *host_args, size_t args_size);
 
@@ -137,7 +112,6 @@ class CustomTaskInfo : public TaskInfo {
 
   ArgsIoAddrsUpdater args_io_addrs_updater_;
   ArgsUpdater *args_update_op_ = nullptr;
-  ArgsRefreshStrategy args_refresh_strategy_ = ArgsRefreshStrategy::kNone;
   bool is_args_refreshable_ = false;
   size_t input_count_ = 0;
   size_t output_count_ = 0;
@@ -145,19 +119,9 @@ class CustomTaskInfo : public TaskInfo {
   std::deque<gert::KernelArgs> kernel_args_host_deque_;
   std::deque<gert::KernelArgs> kernel_args_device_deque_;
   std::vector<ArgsAllocationResult> args_allocation_results_;
-  std::vector<gert::GertMemBlock *> offline_workspace_blocks_;
   std::vector<void *> ws_vec_;
   std::vector<std::unique_ptr<uint8_t[]>> inputs_holder_;
   std::vector<std::unique_ptr<uint8_t[]>> outputs_holder_;
-  std::string kernel_name_;
-  uint32_t block_dim_ = 1U;
-
-  CustomArgsFormatInfo args_format_holder_;
-  void *args_ = nullptr;
-  std::vector<uint64_t> io_addrs_;
-  std::vector<uint64_t> io_addr_mem_types_;
-  // io_addr_offset_ is 0 because custom op args buffer contains only io addrs (no tiling/header prefix)
-  size_t io_addr_offset_ = 0UL;
 };
 }  // namespace ge
 #endif  // CANN_GRAPH_ENGINE_EAGER_TASK_INFO_H

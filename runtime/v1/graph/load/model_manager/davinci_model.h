@@ -959,8 +959,6 @@ class DavinciModel {
     return logical_mem_allocations_;
   }
 
-  TBEKernelPtr FindTbeKernelBin(const std::string &kernel_name) const;
-
   const std::vector<MemInfo> &GetFmMemoryInfos() const {
     return runtime_param_.fm_memory_infos;
   }
