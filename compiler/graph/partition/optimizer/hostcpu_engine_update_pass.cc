@@ -129,7 +129,21 @@ bool IsSupportHostcpu(const OpDescPtr &op_desc) {
   auto op_infos = OpsKernelManager::GetInstance().GetOpsKernelInfo(op_desc->GetType());
   for (const auto &it : op_infos) {
     if ((it.engine == kHostCpuEngineName) && (it.opKernelLib == kHostCpuOpKernelLibName)) {
-      return true;
+      const auto host_cpu_store = OpsKernelManager::GetInstance().GetOpsKernelInfoStore(kHostCpuOpKernelLibName);
+      if (host_cpu_store == nullptr) {
+        GELOGW(
+            "[HostcpuEngineUpdatePass]: host cpu kernel info store is null, skip dtype support check for node[%s] "
+            "type[%s].",
+            op_desc->GetName().c_str(), op_desc->GetType().c_str());
+        return true;
+      }
+      std::string unsupported_reason;
+      if (host_cpu_store->CheckSupported(op_desc, unsupported_reason)) {
+        return true;
+      }
+      GELOGI("[HostcpuEngineUpdatePass]: host cpu kernel does not support node[%s] type[%s], reason[%s].",
+             op_desc->GetName().c_str(), op_desc->GetType().c_str(), unsupported_reason.c_str());
+      return false;
     }
   }
   return false;
@@ -157,6 +171,25 @@ bool IsDynamicGraph(const ComputeGraphPtr &graph) {
   } else {
     return true;
   }
+}
+
+bool CanMarkAsHostModelInput(const NodePtr &node, const std::set<NodePtr> &host_exe_ops) {
+  const auto &output_nodes = node->GetOutDataNodes();
+  if (output_nodes.empty()) {
+    GELOGI("[HostcpuEngineUpdatePass]: input node %s has no data consumer, skip host model input.",
+           node->GetName().c_str());
+    return false;
+  }
+
+  for (const auto &output_node : output_nodes) {
+    if (host_exe_ops.count(output_node) == 0U) {
+      GELOGW("[HostcpuEngineUpdatePass]: input node %s has non-host consumer %s type[%s], skip host model input.",
+             node->GetName().c_str(), (output_node == nullptr) ? "nullptr" : output_node->GetName().c_str(),
+             (output_node == nullptr) ? "nullptr" : output_node->GetTypePtr());
+      return false;
+    }
+  }
+  return true;
 }
 }  // namespace
 
@@ -366,6 +399,9 @@ Status HostcpuEngineUpdatePass::MarkHostTensorAsModelInput(const ComputeGraphPtr
     }
 
     if (!IsHostModelInputType(op_desc)) {
+      continue;
+    }
+    if (!CanMarkAsHostModelInput(node, host_exe_ops_)) {
       continue;
     }
     (void)AttrUtils::SetBool(op_desc, ATTR_NAME_HOST_TENSOR_AS_MODEL_INPUT, true);

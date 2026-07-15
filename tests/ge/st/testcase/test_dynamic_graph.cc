@@ -20,9 +20,11 @@
 
 #include "graph/load/model_manager/model_manager.h"
 #include "host_cpu_engine/host_cpu_engine.h"
+#include "common/opskernel/ops_kernel_info_store.h"
 #include "ge_running_env/fake_ops_kernel_builder.h"
 #include "engines/manager/opskernel_manager/ops_kernel_builder_manager.h"
 #include "engines/manager/opskernel_manager/dnn_ops_kernel_manager.h"
+#include "graph/partition/optimizer/hostcpu_engine_update_pass.h"
 #include "hybrid/common/npu_memory_allocator.h"
 #include "graph/bin_cache/node_compile_cache_module.h"
 #include "register/op_tiling_registry.h"
@@ -111,6 +113,161 @@ struct DummyCompileInfo {
   int64_t b;
   std::vector<int64_t> c;
 };
+
+const std::string kStHostCpuEngine = "DNN_VM_HOST_CPU";
+const std::string kStHostCpuKernelStore = "DNN_VM_HOST_CPU_OP_STORE";
+
+class FakeUnsupportedHostCpuOpsKernelInfoStore : public OpsKernelInfoStore {
+ public:
+  Status Initialize(const std::map<std::string, std::string> &options) override {
+    (void)options;
+    return SUCCESS;
+  }
+
+  Status Finalize() override {
+    return SUCCESS;
+  }
+
+  bool CheckSupported(const OpDescPtr &op_desc, std::string &unsupported_reason) const override {
+    (void)op_desc;
+    ++check_supported_count_;
+    unsupported_reason = "fake host cpu store does not support this dtype";
+    return false;
+  }
+
+  void GetAllOpsKernelInfo(std::map<std::string, ge::OpInfo> &infos) const override {
+    (void)infos;
+  }
+
+  uint32_t GetCheckSupportedCount() const {
+    return check_supported_count_;
+  }
+
+ private:
+  mutable uint32_t check_supported_count_ = 0U;
+};
+
+class ScopedHostCpuPassEnv {
+ public:
+  explicit ScopedHostCpuPassEnv(bool install_unsupported_store = true) {
+    auto &ops_kernel_info = OpsKernelManager::GetInstance().ops_kernel_info_;
+    auto &ops_kernel_store = OpsKernelManager::GetInstance().ops_kernel_store_;
+    BackupOpInfo(DATA);
+    BackupOpInfo(CONSTANT);
+    BackupOpInfo(CONCATV2);
+    const auto store_iter = ops_kernel_store.find(kStHostCpuKernelStore);
+    if (store_iter != ops_kernel_store.end()) {
+      old_host_cpu_store_ = store_iter->second;
+      has_old_host_cpu_store_ = true;
+    }
+
+    OpInfo host_op_info;
+    host_op_info.engine = kStHostCpuEngine;
+    host_op_info.opKernelLib = kStHostCpuKernelStore;
+
+    OpInfo aicore_op_info;
+    aicore_op_info.engine = "AIcoreEngine";
+    aicore_op_info.opKernelLib = "AIcoreEngine";
+
+    OpInfo gelocal_op_info;
+    gelocal_op_info.engine = kEngineNameGeLocal;
+    gelocal_op_info.opKernelLib = kEngineNameGeLocal;
+
+    ops_kernel_info[DATA] = {gelocal_op_info};
+    ops_kernel_info[CONSTANT] = {gelocal_op_info};
+    ops_kernel_info[CONCATV2] = {host_op_info, aicore_op_info};
+    if (install_unsupported_store) {
+      unsupported_store_ = std::make_shared<FakeUnsupportedHostCpuOpsKernelInfoStore>();
+      ops_kernel_store[kStHostCpuKernelStore] = unsupported_store_;
+    } else {
+      ops_kernel_store.erase(kStHostCpuKernelStore);
+    }
+  }
+
+  ~ScopedHostCpuPassEnv() {
+    auto &ops_kernel_store = OpsKernelManager::GetInstance().ops_kernel_store_;
+    RestoreOpInfo(DATA);
+    RestoreOpInfo(CONSTANT);
+    RestoreOpInfo(CONCATV2);
+    if (has_old_host_cpu_store_) {
+      ops_kernel_store[kStHostCpuKernelStore] = old_host_cpu_store_;
+    } else {
+      ops_kernel_store.erase(kStHostCpuKernelStore);
+    }
+  }
+
+  uint32_t GetCheckSupportedCount() const {
+    return (unsupported_store_ == nullptr) ? 0U : unsupported_store_->GetCheckSupportedCount();
+  }
+
+ private:
+  void BackupOpInfo(const std::string &op_type) {
+    auto &ops_kernel_info = OpsKernelManager::GetInstance().ops_kernel_info_;
+    const auto iter = ops_kernel_info.find(op_type);
+    if (iter != ops_kernel_info.end()) {
+      old_op_infos_[op_type] = iter->second;
+    }
+  }
+
+  void RestoreOpInfo(const std::string &op_type) {
+    auto &ops_kernel_info = OpsKernelManager::GetInstance().ops_kernel_info_;
+    const auto iter = old_op_infos_.find(op_type);
+    if (iter != old_op_infos_.end()) {
+      ops_kernel_info[op_type] = iter->second;
+    } else {
+      ops_kernel_info.erase(op_type);
+    }
+  }
+
+  std::map<std::string, std::vector<OpInfo>> old_op_infos_;
+  OpsKernelInfoStorePtr old_host_cpu_store_;
+  std::shared_ptr<FakeUnsupportedHostCpuOpsKernelInfoStore> unsupported_store_;
+  bool has_old_host_cpu_store_ = false;
+};
+
+ComputeGraphPtr BuildHostCpuUnsupportedConcatV2Graph() {
+  auto data_op = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_STRING, {1}).Build("data");
+  auto axis_op = OP_CFG(CONSTANT).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {}).Build("axis");
+  auto concat_op = OP_CFG(CONCATV2).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_STRING, {1}).Build("concat");
+  auto netoutput_op = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_STRING, {1}).Build("netoutput");
+  DEF_GRAPH(g1) {
+    CHAIN(NODE(data_op)->NODE(concat_op)->NODE(netoutput_op));
+    CHAIN(NODE(axis_op)->EDGE(0, 1)->NODE(concat_op));
+  };
+
+  auto graph = ToComputeGraph(g1);
+  graph->SetGraphUnknownFlag(true);
+  auto data = graph->FindNode("data");
+  auto axis = graph->FindNode("axis");
+  auto concat = graph->FindNode("concat");
+  if ((data == nullptr) || (axis == nullptr) || (concat == nullptr)) {
+    return nullptr;
+  }
+
+  data->GetOpDesc()->SetOpKernelLibName(kEngineNameGeLocal);
+  axis->GetOpDesc()->SetOpKernelLibName(kEngineNameGeLocal);
+  concat->GetOpDesc()->SetOpKernelLibName(kEngineNameAiCore);
+  (void)AttrUtils::SetBool(data->GetOpDesc(), ATTR_NAME_HOST_TENSOR, true);
+
+  auto data_desc = GeTensorDesc(GeShape({1}), FORMAT_ND, DT_STRING);
+  auto axis_desc = GeTensorDesc(GeShape(std::vector<int64_t>{}), FORMAT_ND, DT_INT32);
+  auto output_desc = GeTensorDesc(GeShape({1}), FORMAT_ND, DT_STRING);
+  *concat->GetOpDesc()->MutableInputDesc(0) = data_desc;
+  *concat->GetOpDesc()->MutableInputDesc(1) = axis_desc;
+  *concat->GetOpDesc()->MutableOutputDesc(0) = output_desc;
+  return graph;
+}
+
+ComputeGraphPtr BuildHostInputWithoutConsumerGraphForSt() {
+  auto graph = std::make_shared<ge::ComputeGraph>("host_input_without_consumer");
+  graph->SetGraphUnknownFlag(true);
+  auto op_desc = std::make_shared<OpDesc>("data", DATA);
+  op_desc->AddOutputDesc(GeTensorDesc(GeShape({1}), FORMAT_ND, DT_INT32));
+  op_desc->SetOpKernelLibName(kEngineNameGeLocal);
+  (void)AttrUtils::SetBool(op_desc, ATTR_NAME_HOST_TENSOR, true);
+  (void)graph->AddNode(op_desc);
+  return graph;
+}
 
 template <typename T, typename std::enable_if<(!std::is_array<T>::value), int>::type = 0>
 static void *CreateCompileInfo() {
@@ -1761,6 +1918,73 @@ TEST_F(DynamicGraphTest, TestControlOp_While) {
   inputs = {cond_tensor, value_tensor};
   EXPECT_EQ(session.RunGraph(graph_id, inputs, outputs), SUCCESS);
   session.RemoveGraph(graph_id);
+}
+
+TEST_F(DynamicGraphTest, HostCpuPassDoesNotRouteUnsupportedConcatV2ToHostCpu) {
+  setenv("ENABLE_RUNTIME_V2", "1", 1);
+  ScopedHostCpuPassEnv host_cpu_pass_env;
+  auto graph = BuildHostCpuUnsupportedConcatV2Graph();
+  ASSERT_NE(graph, nullptr);
+  auto data = graph->FindNode("data");
+  auto concat = graph->FindNode("concat");
+  ASSERT_NE(data, nullptr);
+  ASSERT_NE(concat, nullptr);
+
+  HostcpuEngineUpdatePass pass;
+  NodeEngineMap node_atomic_engine_map;
+  NodeEngineMap node_composite_engine_map;
+  EXPECT_EQ(pass.Run(graph, node_atomic_engine_map, node_composite_engine_map), SUCCESS);
+
+  EXPECT_GT(host_cpu_pass_env.GetCheckSupportedCount(), 0U);
+  EXPECT_EQ(concat->GetOpDesc()->GetOpKernelLibName(), kEngineNameAiCore);
+  EXPECT_TRUE(node_atomic_engine_map.count(concat) == 0U);
+  bool is_host_model_input = false;
+  (void)AttrUtils::GetBool(data->GetOpDesc(), ATTR_NAME_HOST_TENSOR_AS_MODEL_INPUT, is_host_model_input);
+  EXPECT_FALSE(is_host_model_input);
+  unsetenv("ENABLE_RUNTIME_V2");
+}
+
+TEST_F(DynamicGraphTest, HostCpuPassRoutesConcatV2WhenHostCpuStoreMissing) {
+  setenv("ENABLE_RUNTIME_V2", "1", 1);
+  ScopedHostCpuPassEnv host_cpu_pass_env(false);
+  auto graph = BuildHostCpuUnsupportedConcatV2Graph();
+  ASSERT_NE(graph, nullptr);
+  auto data = graph->FindNode("data");
+  auto concat = graph->FindNode("concat");
+  ASSERT_NE(data, nullptr);
+  ASSERT_NE(concat, nullptr);
+
+  HostcpuEngineUpdatePass pass;
+  NodeEngineMap node_atomic_engine_map;
+  NodeEngineMap node_composite_engine_map;
+  EXPECT_EQ(pass.Run(graph, node_atomic_engine_map, node_composite_engine_map), SUCCESS);
+
+  EXPECT_EQ(concat->GetOpDesc()->GetOpKernelLibName(), kStHostCpuKernelStore);
+  EXPECT_EQ(concat->GetOpDesc()->GetOpEngineName(), kStHostCpuEngine);
+  EXPECT_EQ(node_atomic_engine_map[concat], kStHostCpuEngine);
+  bool is_host_model_input = false;
+  (void)AttrUtils::GetBool(data->GetOpDesc(), ATTR_NAME_HOST_TENSOR_AS_MODEL_INPUT, is_host_model_input);
+  EXPECT_TRUE(is_host_model_input);
+  unsetenv("ENABLE_RUNTIME_V2");
+}
+
+TEST_F(DynamicGraphTest, HostCpuPassDoesNotMarkHostInputWithoutConsumer) {
+  setenv("ENABLE_RUNTIME_V2", "1", 1);
+  ScopedHostCpuPassEnv host_cpu_pass_env(false);
+  auto graph = BuildHostInputWithoutConsumerGraphForSt();
+  ASSERT_NE(graph, nullptr);
+  auto data = graph->FindNode("data");
+  ASSERT_NE(data, nullptr);
+
+  HostcpuEngineUpdatePass pass;
+  NodeEngineMap node_atomic_engine_map;
+  NodeEngineMap node_composite_engine_map;
+  EXPECT_EQ(pass.Run(graph, node_atomic_engine_map, node_composite_engine_map), SUCCESS);
+
+  bool is_host_model_input = false;
+  (void)AttrUtils::GetBool(data->GetOpDesc(), ATTR_NAME_HOST_TENSOR_AS_MODEL_INPUT, is_host_model_input);
+  EXPECT_FALSE(is_host_model_input);
+  unsetenv("ENABLE_RUNTIME_V2");
 }
 
 TEST_F(DynamicGraphTest, TestHostCpu) {

@@ -16,6 +16,7 @@
 #include "framework/common/ge_types.h"
 #include "engines/manager/opskernel_manager/dnn_ops_kernel_manager.h"
 #include "common/opskernel/ops_kernel_info_types.h"
+#include "common/opskernel/ops_kernel_info_store.h"
 #include "graph/utils/node_utils.h"
 #include "mmpa/mmpa_api.h"
 #include "macro_utils/dt_public_unscope.h"
@@ -29,6 +30,37 @@ using namespace testing;
 
 namespace ge {
 namespace {
+const std::string kHostCpuKernelStore = "DNN_VM_HOST_CPU_OP_STORE";
+
+class FakeHostCpuOpsKernelInfoStore : public OpsKernelInfoStore {
+ public:
+  explicit FakeHostCpuOpsKernelInfoStore(bool supported) : supported_(supported) {}
+
+  Status Initialize(const std::map<std::string, std::string> &options) override {
+    (void)options;
+    return SUCCESS;
+  }
+
+  Status Finalize() override {
+    return SUCCESS;
+  }
+
+  void GetAllOpsKernelInfo(std::map<std::string, OpInfo> &infos) const override {
+    (void)infos;
+  }
+
+  bool CheckSupported(const OpDescPtr &op_desc, std::string &unsupported_reason) const override {
+    (void)op_desc;
+    if (!supported_) {
+      unsupported_reason = "fake host cpu store not support";
+    }
+    return supported_;
+  }
+
+ private:
+  bool supported_;
+};
+
 void SetNoStorage(const ge::OpDescPtr &op_desc, Format format, DataType dt, std::initializer_list<int64_t> in_shape,
                   std::initializer_list<int64_t> out_shape) {
   for (size_t i = 0; i < op_desc->GetInputsSize(); ++i) {
@@ -288,6 +320,36 @@ ComputeGraphPtr BuildGraphMapIndex() {
   return sub_graph2;
 }
 
+// data(_host_tensor) -> shape -> gather -> netoutput, const -> gather.
+ComputeGraphPtr BuildHostCpuSupportCheckGraph() {
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("data", "Data")->NODE("shape", "Shape")->NODE("gather", "Gather")->NODE("netoutput", "NetOutput"));
+    CHAIN(NODE("const", "Const")->EDGE(0, 1)->NODE("gather", "Gather"));
+  };
+
+  auto graph = ToComputeGraph(g1);
+  graph->SetGraphUnknownFlag(true);
+  graph->FindNode("data")->GetOpDesc()->SetOpKernelLibName(kEngineNameGeLocal);
+  graph->FindNode("shape")->GetOpDesc()->SetOpKernelLibName(kEngineNameGeLocal);
+  graph->FindNode("const")->GetOpDesc()->SetOpKernelLibName(kEngineNameGeLocal);
+  graph->FindNode("gather")->GetOpDesc()->SetOpKernelLibName(kEngineNameAiCore);
+  graph->FindNode("netoutput")->GetOpDesc()->SetOpKernelLibName(kEngineNameGeLocal);
+  SetNoStorage(graph->FindNode("gather")->GetOpDesc(), ge::FORMAT_ND, DT_INT32, {1}, {1});
+  (void)ge::AttrUtils::SetBool(graph->FindNode("data")->GetOpDesc(), ge::ATTR_NAME_HOST_TENSOR, true);
+  return graph;
+}
+
+ComputeGraphPtr BuildHostInputWithoutConsumerGraph() {
+  auto graph = std::make_shared<ge::ComputeGraph>("host_input_without_consumer");
+  graph->SetGraphUnknownFlag(true);
+  auto op_desc = std::make_shared<OpDesc>("data", DATA);
+  op_desc->AddOutputDesc(GeTensorDesc(GeShape(std::vector<int64_t>{1}), FORMAT_ND, DT_INT32));
+  op_desc->SetOpKernelLibName(kEngineNameGeLocal);
+  (void)ge::AttrUtils::SetBool(op_desc, ge::ATTR_NAME_HOST_TENSOR, true);
+  (void)graph->AddNode(op_desc);
+  return graph;
+}
+
 }  // namespace
 class UtestHostcpuEngineUpdatePass : public Test {
  public:
@@ -321,6 +383,11 @@ class UtestHostcpuEngineUpdatePass : public Test {
 
     OpsKernelManager::GetInstance().ops_kernel_info_["Mul"].emplace_back(host_op_info);
     OpsKernelManager::GetInstance().ops_kernel_info_["Mul"].emplace_back(aicore_op_info);
+  }
+
+  void TearDown() {
+    OpsKernelManager::GetInstance().ops_kernel_store_.erase(kHostCpuKernelStore);
+    unsetenv("ENABLE_RUNTIME_V2");
   }
 };
 
@@ -393,6 +460,54 @@ TEST_F(UtestHostcpuEngineUpdatePass, TestSucc) {
   EXPECT_NE(while_graph, nullptr);
   EXPECT_EQ(pass.Run(while_graph, node_atomic_engine_map, node_composite_engine_map), SUCCESS);
   unsetenv("ENABLE_RUNTIME_V2");
+}
+
+TEST_F(UtestHostcpuEngineUpdatePass, HostCpuSupportCheckSucceedsWithKernelStore) {
+  setenv("ENABLE_RUNTIME_V2", "1", 1);
+  OpsKernelManager::GetInstance().ops_kernel_store_[kHostCpuKernelStore] =
+      std::make_shared<FakeHostCpuOpsKernelInfoStore>(true);
+  auto graph = BuildHostCpuSupportCheckGraph();
+  EXPECT_NE(graph, nullptr);
+
+  HostcpuEngineUpdatePass pass;
+  NodeEngineMap node_atomic_engine_map;
+  NodeEngineMap node_composite_engine_map;
+  EXPECT_EQ(pass.Run(graph, node_atomic_engine_map, node_composite_engine_map), SUCCESS);
+
+  EXPECT_EQ(graph->FindNode("gather")->GetOpDesc()->GetOpKernelLibName(), kHostCpuKernelStore);
+  EXPECT_EQ(graph->FindNode("gather")->GetOpDesc()->GetOpEngineName(), "DNN_VM_HOST_CPU");
+}
+
+TEST_F(UtestHostcpuEngineUpdatePass, HostCpuSupportCheckFailsWithKernelStore) {
+  setenv("ENABLE_RUNTIME_V2", "1", 1);
+  OpsKernelManager::GetInstance().ops_kernel_store_[kHostCpuKernelStore] =
+      std::make_shared<FakeHostCpuOpsKernelInfoStore>(false);
+  auto graph = BuildHostCpuSupportCheckGraph();
+  EXPECT_NE(graph, nullptr);
+
+  HostcpuEngineUpdatePass pass;
+  NodeEngineMap node_atomic_engine_map;
+  NodeEngineMap node_composite_engine_map;
+  EXPECT_EQ(pass.Run(graph, node_atomic_engine_map, node_composite_engine_map), SUCCESS);
+
+  EXPECT_EQ(graph->FindNode("gather")->GetOpDesc()->GetOpKernelLibName(), kEngineNameAiCore);
+  EXPECT_TRUE(node_atomic_engine_map.count(graph->FindNode("gather")) == 0U);
+}
+
+TEST_F(UtestHostcpuEngineUpdatePass, HostInputWithoutConsumerNotMarkedAsModelInput) {
+  setenv("ENABLE_RUNTIME_V2", "1", 1);
+  auto graph = BuildHostInputWithoutConsumerGraph();
+  EXPECT_NE(graph, nullptr);
+
+  HostcpuEngineUpdatePass pass;
+  NodeEngineMap node_atomic_engine_map;
+  NodeEngineMap node_composite_engine_map;
+  EXPECT_EQ(pass.Run(graph, node_atomic_engine_map, node_composite_engine_map), SUCCESS);
+
+  bool is_host_model_input = false;
+  (void)ge::AttrUtils::GetBool(graph->FindNode("data")->GetOpDesc(), ge::ATTR_NAME_HOST_TENSOR_AS_MODEL_INPUT,
+                               is_host_model_input);
+  EXPECT_FALSE(is_host_model_input);
 }
 
 TEST_F(UtestHostcpuEngineUpdatePass, CheckInputForHostExec) {
