@@ -11,6 +11,7 @@
 #include "engines/custom_engine/custom_ops_kernel_builder.h"
 #include <cinttypes>
 #include <limits>
+#include <map>
 #include <memory>
 #include <new>
 #include <string>
@@ -53,6 +54,8 @@ constexpr uint32_t kMaxCustomOpSqeNum = 5;
 constexpr uint32_t kKernelArgSlotSize = sizeof(uint64_t);
 constexpr const char_t *kCustomOmcAppendWs = "_custom_omc_append_ws";
 constexpr const char_t *kAppendWs = "_append_ws";
+constexpr const char_t *kCustomLaunchPrefix = "_custom_launch_";
+constexpr const char_t *kDefaultCustomKernelMagic = "RT_DEV_BINARY_MAGIC_ELF_AIVEC";
 constexpr size_t kWorkspaceAlignment = 512U;
 
 bool IsMobileSocVersion(const std::string &soc_version) {
@@ -397,6 +400,11 @@ Status CheckFinalWorkspaceCount(const OpDescPtr &op_desc, const WorkspaceAllocat
   return SUCCESS;
 }
 
+enum class OfflineLaunchGenMode {
+  kMobileLegacySingleTask,
+  kStandardOmMultiTask,
+};
+
 Status CheckAnnotatedArgsTaskPlan(const OpDescPtr &op_desc, const gert::AnnotatedArgsHandler &args_handler,
                                   const uint32_t stream_id) {
   GE_ASSERT_NOTNULL(op_desc);
@@ -406,16 +414,29 @@ Status CheckAnnotatedArgsTaskPlan(const OpDescPtr &op_desc, const gert::Annotate
            op_desc->GetTypePtr());
     return INTERNAL_ERROR;
   }
-  if (launch_count != 1U) {
-    GELOGE(INTERNAL_ERROR, "Custom op AddLaunch count %zu is not supported, op_name:%s, op_type:%s", launch_count,
-           op_desc->GetNamePtr(), op_desc->GetTypePtr());
-    return INTERNAL_ERROR;
+  for (size_t i = 0U; i < launch_count; ++i) {
+    const auto *launch = args_handler.GetLaunch(i);
+    GE_ASSERT_NOTNULL(launch);
+    if (launch->GetStreamId() != stream_id) {
+      GELOGE(INTERNAL_ERROR,
+             "Custom op launch[%zu] stream id %u does not match node stream id %u, op_name:%s, op_type:%s", i,
+             launch->GetStreamId(), stream_id, op_desc->GetNamePtr(), op_desc->GetTypePtr());
+      return INTERNAL_ERROR;
+    }
   }
-  const auto *launch = args_handler.GetLaunch(0U);
-  GE_ASSERT_NOTNULL(launch);
-  if (launch->GetStreamId() != stream_id) {
-    GELOGE(INTERNAL_ERROR, "Custom op launch stream id %u does not match node stream id %u, op_name:%s, op_type:%s",
-           launch->GetStreamId(), stream_id, op_desc->GetNamePtr(), op_desc->GetTypePtr());
+  return SUCCESS;
+}
+
+Status CheckAnnotatedArgsTaskPlanForMode(const OpDescPtr &op_desc, const gert::AnnotatedArgsHandler &args_handler,
+                                         const uint32_t stream_id, const OfflineLaunchGenMode mode) {
+  const auto check_ret = CheckAnnotatedArgsTaskPlan(op_desc, args_handler, stream_id);
+  if (check_ret != SUCCESS) {
+    return check_ret;
+  }
+  if ((mode == OfflineLaunchGenMode::kMobileLegacySingleTask) && (args_handler.GetLaunchCount() != 1U)) {
+    GELOGE(INTERNAL_ERROR,
+           "Custom op AddLaunch count %zu is not supported in mobile OMC scenario, op_name:%s, op_type:%s",
+           args_handler.GetLaunchCount(), op_desc->GetNamePtr(), op_desc->GetTypePtr());
     return INTERNAL_ERROR;
   }
   return SUCCESS;
@@ -461,26 +482,39 @@ Status SetArgsOffset(const size_t slot_count, domi::KernelContext *const kernel_
   return SUCCESS;
 }
 
+std::string MakeCustomLaunchPrefix(const size_t launch_index) {
+  return std::string(kCustomLaunchPrefix) + std::to_string(launch_index) + "_";
+}
+
 Status SetKernelBinAttrs(const char *const kernel_name, const uint8_t *const kernel_bin_data,
-                         const size_t kernel_bin_size, const OpDescPtr &op_desc) {
+                         const size_t kernel_bin_size, const OpDescPtr &op_desc, const std::string &prefix) {
   std::vector<char> kernel_bin(kernel_bin_data, kernel_bin_data + kernel_bin_size);
   auto tbe_kernel = std::make_shared<OpKernelBin>(kernel_name, std::move(kernel_bin));
   GE_ASSERT_NOTNULL(tbe_kernel, "Create OpKernelBin failed.");
-  GE_ASSERT_TRUE(op_desc->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel),
-                 "Set ext attr %s failed for custom op %s(%s).", OP_EXTATTR_NAME_TBE_KERNEL, op_desc->GetNamePtr(),
+  GE_ASSERT_TRUE(op_desc->SetExtAttr(prefix + OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel),
+                 "Set ext attr %s failed for custom op %s(%s).", (prefix + OP_EXTATTR_NAME_TBE_KERNEL).c_str(),
+                 op_desc->GetNamePtr(), op_desc->GetTypePtr());
+  GE_ASSERT_TRUE(AttrUtils::SetStr(op_desc, prefix + ATTR_NAME_TBE_KERNEL_NAME, kernel_name),
+                 "Set %s failed for custom op %s(%s).", (prefix + ATTR_NAME_TBE_KERNEL_NAME).c_str(),
+                 op_desc->GetNamePtr(), op_desc->GetTypePtr());
+  GE_ASSERT_TRUE(AttrUtils::SetBytes(op_desc, prefix + ATTR_NAME_TBE_KERNEL_BUFFER,
+                                     Buffer::CopyFrom(kernel_bin_data, kernel_bin_size)),
+                 "Set %s failed for custom op %s(%s).", (prefix + ATTR_NAME_TBE_KERNEL_BUFFER).c_str(),
+                 op_desc->GetNamePtr(), op_desc->GetTypePtr());
+  std::string binary_magic;
+  if (!AttrUtils::GetStr(op_desc, TVM_ATTR_NAME_MAGIC, binary_magic) || binary_magic.empty()) {
+    binary_magic = kDefaultCustomKernelMagic;
+    GE_ASSERT_TRUE(AttrUtils::SetStr(op_desc, TVM_ATTR_NAME_MAGIC, binary_magic), "Set %s failed for custom op %s(%s).",
+                   TVM_ATTR_NAME_MAGIC.c_str(), op_desc->GetNamePtr(), op_desc->GetTypePtr());
+  }
+  GE_ASSERT_TRUE(AttrUtils::SetStr(op_desc, prefix + TVM_ATTR_NAME_MAGIC, binary_magic),
+                 "Set %s failed for custom op %s(%s).", (prefix + TVM_ATTR_NAME_MAGIC).c_str(), op_desc->GetNamePtr(),
                  op_desc->GetTypePtr());
-  GE_ASSERT_TRUE(AttrUtils::SetStr(op_desc, ATTR_NAME_TBE_KERNEL_NAME, kernel_name),
-                 "Set %s failed for custom op %s(%s).", ATTR_NAME_TBE_KERNEL_NAME.c_str(), op_desc->GetNamePtr(),
-                 op_desc->GetTypePtr());
-  GE_ASSERT_TRUE(
-      AttrUtils::SetBytes(op_desc, ATTR_NAME_TBE_KERNEL_BUFFER, Buffer::CopyFrom(kernel_bin_data, kernel_bin_size)),
-      "Set %s failed for custom op %s(%s).", ATTR_NAME_TBE_KERNEL_BUFFER.c_str(), op_desc->GetNamePtr(),
-      op_desc->GetTypePtr());
   return SUCCESS;
 }
 
 Status FillKernelTask(const Node &node, const gert::AnnotatedArgsHandler::LaunchRecord &launch_task,
-                      domi::TaskDef &task_def) {
+                      const std::string &kernel_attr_prefix, domi::TaskDef &task_def) {
   const auto op_desc = node.GetOpDesc();
   GE_ASSERT_NOTNULL(op_desc);
   const auto *args_data = launch_task.GetArgsData();
@@ -496,6 +530,8 @@ Status FillKernelTask(const Node &node, const gert::AnnotatedArgsHandler::Launch
                  op_desc->GetNamePtr(), op_desc->GetTypePtr());
   GE_ASSERT_TRUE((kernel_bin_data != nullptr) && (kernel_bin_size > 0U), "Custom op %s(%s) kernel bin is empty.",
                  op_desc->GetNamePtr(), op_desc->GetTypePtr());
+  GE_ASSERT_TRUE(launch_task.GetBlockDim() > 0U, "Custom op %s(%s) block dim is zero.", op_desc->GetNamePtr(),
+                 op_desc->GetTypePtr());
   GE_ASSERT_TRUE((args_data != nullptr) && (arg_descs != nullptr) && (slot_count > 0U) &&
                      (args_size == (slot_count * kKernelArgSlotSize)),
                  "Custom op %s(%s) args size %zu does not match arg desc size %zu.", op_desc->GetNamePtr(),
@@ -521,13 +557,31 @@ Status FillKernelTask(const Node &node, const gert::AnnotatedArgsHandler::Launch
   kernel_context->set_args_format(ArgsFormatDescUtils::Serialize(arg_desc_vec));
   kernel_context->set_args_count(static_cast<uint32_t>(slot_count));
   GE_ASSERT_SUCCESS(SetArgsOffset(slot_count, kernel_context));
-  GE_ASSERT_SUCCESS(SetKernelBinAttrs(kernel_name, kernel_bin_data, kernel_bin_size, op_desc));
+  GE_ASSERT_SUCCESS(SetKernelBinAttrs(kernel_name, kernel_bin_data, kernel_bin_size, op_desc, kernel_attr_prefix));
+  return SUCCESS;
+}
+
+Status ValidateKernelBinNames(const OpDescPtr &op_desc, const gert::AnnotatedArgsHandler &args_handler) {
+  const size_t launch_count = args_handler.GetLaunchCount();
+  for (size_t i = 0U; i < launch_count; ++i) {
+    const auto *const launch = args_handler.GetLaunch(i);
+    GE_ASSERT_NOTNULL(launch);
+    const auto *const name = launch->GetKernelName();
+    const auto *const data = launch->GetKernelBinData();
+    const auto size = launch->GetKernelBinSize();
+    GE_ASSERT_TRUE((name != nullptr) && (name[0] != '\0'),
+                   "Custom op launch[%zu] kernel name is empty, op_name:%s, op_type:%s", i, op_desc->GetNamePtr(),
+                   op_desc->GetTypePtr());
+    GE_ASSERT_TRUE((data != nullptr) && (size > 0U),
+                   "Custom op launch[%zu] kernel bin is empty, op_name:%s, op_type:%s", i, op_desc->GetNamePtr(),
+                   op_desc->GetTypePtr());
+  }
   return SUCCESS;
 }
 
 Status DeclareLaunchArgsTaskPlan(const OpDescPtr &op_desc, AnnotatedArgsOp &annotated_args_op,
                                  WorkspaceAllocator &workspace_allocator, const uint32_t stream_id,
-                                 AnnotatedArgsCapture &capture) {
+                                 const OfflineLaunchGenMode mode, AnnotatedArgsCapture &capture) {
   std::vector<void *> inputs = GetHoldersRawPtr(capture.input_tensor_holders);
   inputs.push_back(&workspace_allocator);
 
@@ -560,7 +614,7 @@ Status DeclareLaunchArgsTaskPlan(const OpDescPtr &op_desc, AnnotatedArgsOp &anno
            op_desc->GetTypePtr());
     return GRAPH_FAILED;
   }
-  return CheckAnnotatedArgsTaskPlan(op_desc, capture.args_handler, stream_id);
+  return CheckAnnotatedArgsTaskPlanForMode(op_desc, capture.args_handler, stream_id, mode);
 }
 
 Status UpdateAnnotatedArgsWorkspaceAttrs(const OpDescPtr &op_desc, const WorkspaceAllocator &workspace_allocator,
@@ -580,7 +634,7 @@ Status UpdateAnnotatedArgsWorkspaceAttrs(const OpDescPtr &op_desc, const Workspa
 }
 
 Status GenerateAnnotatedArgsTask(const Node &node, const OpDescPtr &op_desc, RunContext &context,
-                                 std::vector<domi::TaskDef> &tasks) {
+                                 const OfflineLaunchGenMode mode, std::vector<domi::TaskDef> &tasks) {
   GE_ASSERT_SUCCESS(CheckStaticGraph(node));
   AnnotatedArgsOp *annotated_args_op = nullptr;
   GE_ASSERT_SUCCESS(GetAnnotatedArgsOp(op_desc, annotated_args_op));
@@ -594,17 +648,36 @@ Status GenerateAnnotatedArgsTask(const Node &node, const OpDescPtr &op_desc, Run
   uint32_t stream_id = 0U;
   GE_ASSERT_SUCCESS(GetCustomOpStreamId(op_desc, stream_id));
   const auto launch_task_plan_ret =
-      DeclareLaunchArgsTaskPlan(op_desc, *annotated_args_op, workspace_allocator, stream_id, capture);
+      DeclareLaunchArgsTaskPlan(op_desc, *annotated_args_op, workspace_allocator, stream_id, mode, capture);
   if (launch_task_plan_ret != SUCCESS) {
     return launch_task_plan_ret;
   }
   GE_ASSERT_SUCCESS(UpdateAnnotatedArgsWorkspaceAttrs(op_desc, workspace_allocator, workspace_mode));
 
-  domi::TaskDef task_def = {};
-  const auto *launch = capture.args_handler.GetLaunch(0U);
-  GE_ASSERT_NOTNULL(launch);
-  GE_ASSERT_SUCCESS(FillKernelTask(node, *launch, task_def));
-  tasks.push_back(task_def);
+  GE_ASSERT_SUCCESS(ValidateKernelBinNames(op_desc, capture.args_handler));
+  if (mode == OfflineLaunchGenMode::kMobileLegacySingleTask) {
+    domi::TaskDef task_def = {};
+    const auto *launch = capture.args_handler.GetLaunch(0U);
+    GE_ASSERT_NOTNULL(launch);
+    GE_ASSERT_SUCCESS(FillKernelTask(node, *launch, "", task_def));
+    tasks.emplace_back(std::move(task_def));
+    return SUCCESS;
+  }
+
+  std::vector<std::string> prefixes;
+  prefixes.reserve(capture.args_handler.GetLaunchCount());
+  for (size_t i = 0U; i < capture.args_handler.GetLaunchCount(); ++i) {
+    const std::string prefix = MakeCustomLaunchPrefix(i);
+    prefixes.emplace_back(prefix);
+    domi::TaskDef task_def = {};
+    const auto *launch = capture.args_handler.GetLaunch(i);
+    GE_ASSERT_NOTNULL(launch);
+    GE_ASSERT_SUCCESS(FillKernelTask(node, *launch, prefix, task_def));
+    tasks.emplace_back(std::move(task_def));
+  }
+  GE_ASSERT_TRUE(AttrUtils::SetListStr(op_desc, ATTR_NAME_KERNEL_NAMES_PREFIX, prefixes),
+                 "Set %s failed for custom op %s(%s).", ATTR_NAME_KERNEL_NAMES_PREFIX.c_str(), op_desc->GetNamePtr(),
+                 op_desc->GetTypePtr());
   return SUCCESS;
 }
 
@@ -621,7 +694,7 @@ Status FillBasicCustomKernelTask(const Node &node, domi::TaskDef &task_def) {
 
 Status GenerateBasicCustomKernelTask(const Node &node, const OpDescPtr &op_desc, const std::string &soc_version,
                                      std::vector<domi::TaskDef> &tasks) {
-  GELOGI("Custom op %s(%s) generate basic custom kernel task, not OMC scenario, soc_version: %s", op_desc->GetNamePtr(),
+  GELOGI("Custom op %s(%s) generate basic custom kernel task, soc_version: %s", op_desc->GetNamePtr(),
          op_desc->GetTypePtr(), soc_version.c_str());
   domi::TaskDef task_def = {};
   GE_ASSERT_SUCCESS(FillBasicCustomKernelTask(node, task_def));
@@ -668,10 +741,29 @@ Status CustomOpsKernelBuilder::GenerateTask(const Node &node, RunContext &contex
 
   std::string soc_version;
   (void)ge::GetContext().GetOption(ge::SOC_VERSION, soc_version);
-  if (!IsMobileSocVersion(soc_version)) {
-    return GenerateBasicCustomKernelTask(node, op_desc, soc_version, tasks);
+
+  const auto *const owner_graph = node.GetOwnerComputeGraphBarePtr();
+  GE_ASSERT_NOTNULL(owner_graph, "Owner graph of custom op %s(%s) is null.", node.GetNamePtr(), node.GetTypePtr());
+  if (!owner_graph->GetGraphUnknownFlag()) {
+    const bool is_mobile_omc = IsMobileSocVersion(soc_version);
+    const auto args_refresh_strategy = CustomOpFactory::GetArgsRefreshStrategy(AscendString(op_desc->GetTypePtr()));
+    if (args_refresh_strategy == ArgsRefreshStrategy::kAnnotatedArgs) {
+      // 端侧场景下的自定义算子只支持单任务的 AnnotatedArgsOp 生成方式，非端侧场景下的自定义算子支持多任务的
+      // AnnotatedArgsOp 生成方式
+      const auto mode =
+          is_mobile_omc ? OfflineLaunchGenMode::kMobileLegacySingleTask : OfflineLaunchGenMode::kStandardOmMultiTask;
+      return GenerateAnnotatedArgsTask(node, op_desc, context, mode, tasks);
+    }
+    // 端侧场景下的自定义算子必须实现 AnnotatedArgsOp 接口，其他生成方式不支持
+    if (is_mobile_omc) {
+      GELOGE(INTERNAL_ERROR, "Custom op %s(%s) does not implement AnnotatedArgsOp, soc_version: %s",
+             op_desc->GetNamePtr(), op_desc->GetTypePtr(), soc_version.c_str());
+      return INTERNAL_ERROR;
+    }
   }
-  return GenerateAnnotatedArgsTask(node, op_desc, context, tasks);
+  // 全部动态图场景的自定义算子或者在非端侧场景中没有实现 AnnotatedArgsOp 的自定义算子，使用最基础的 CustomKernelTask
+  // 生成方式
+  return GenerateBasicCustomKernelTask(node, op_desc, soc_version, tasks);
 }
 }  // namespace custom
 }  // namespace ge

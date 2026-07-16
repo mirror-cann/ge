@@ -389,6 +389,7 @@ set(STUB_HEADER_LIST
     ${CMAKE_CURRENT_LIST_DIR}/../third_party/transformer/src/axis_constants.h
     ${GE_METADEF_INC_DIR}/common/screen_printer.h
     ${GE_METADEF_INC_DIR}/graph/custom_op_pull_registry.h
+    ${GE_METADEF_INC_DIR}/graph/custom_op/args_refresh.h
     ${GE_METADEF_INC_DIR}/graph/custom_op_registry.h
 )
 

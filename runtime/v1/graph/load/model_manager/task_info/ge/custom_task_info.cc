@@ -11,17 +11,26 @@
 #include "graph/load/model_manager/task_info/ge/custom_task_info.h"
 
 #include <cinttypes>
+#include <limits>
+#include <set>
 
 #include "acl/acl_rt.h"
 #include "common/checker.h"
+#include "common/ge_common/ge_types.h"
+#include "common/kernel_handles_manager/kernel_handle_utils.h"
 #include "common/tbe_handle_store/tbe_handle_store.h"
 #include "exe_graph/runtime/eager_op_execution_context.h"
 #include "exe_graph/runtime/update_args_context.h"
 #include "framework/runtime/args_handler.h"
+#include "graph/debug/ge_attr_define.h"
 #include "graph/debug/ge_util.h"
 #include "graph/load/model_manager/model_manager.h"
 #include "graph/load/model_manager/model_utils.h"
 #include "graph/manager/graph_var_manager.h"
+#include "graph/utils/args_format_desc_utils.h"
+#include "graph/utils/math_util.h"
+#include "graph/args_format_desc.h"
+#include "graph/utils/op_desc_utils.h"
 #include "graph/utils/node_utils.h"
 #include "graph/custom_op.h"
 #include "graph/custom_op/cast.h"
@@ -36,6 +45,10 @@ namespace ge {
 namespace {
 const ge::char_t *const kDumpOutput = "output";
 const ge::char_t *const kDumpInput = "input";
+constexpr uint32_t kAddressLen = static_cast<uint32_t>(sizeof(uint64_t));
+constexpr size_t kCustomOpArgsReserved = 16UL;
+constexpr size_t kCustomOpArgsFieldSize = sizeof(void *);
+constexpr const char_t *kDefaultCustomKernelMagic = "RT_DEV_BINARY_MAGIC_ELF_AIVEC";
 
 bool IsInputDescValid(const ge::GeTensorDesc &input_desc, size_t &invalid_index_num) {
   if (input_desc.IsValid() != ge::GRAPH_SUCCESS) {
@@ -66,6 +79,38 @@ std::vector<void *> GetHoldersRawPtr(const std::vector<std::unique_ptr<uint8_t[]
     (void)holderRawPtr.emplace_back(holder.get());
   }
   return holderRawPtr;
+}
+
+Status GetCustomKernelBinaryMagic(const OpDescPtr &op_desc, int32_t &binary_magic) {
+  GE_ASSERT_NOTNULL(op_desc);
+  std::string magic_value;
+  (void)AttrUtils::GetStr(op_desc, TVM_ATTR_NAME_MAGIC, magic_value);
+  if (magic_value.empty()) {
+    magic_value = kDefaultCustomKernelMagic;
+    GELOGW("Custom op %s(%s) has no %s attr, use default magic %s.", op_desc->GetNamePtr(), op_desc->GetTypePtr(),
+           TVM_ATTR_NAME_MAGIC.c_str(), magic_value.c_str());
+  }
+
+  if (magic_value == "RT_DEV_BINARY_MAGIC_ELF") {
+    binary_magic = RT_DEV_BINARY_MAGIC_ELF;
+    return SUCCESS;
+  }
+  if (magic_value == "RT_DEV_BINARY_MAGIC_ELF_AIVEC") {
+    binary_magic = RT_DEV_BINARY_MAGIC_ELF_AIVEC;
+    return SUCCESS;
+  }
+  if (magic_value == "RT_DEV_BINARY_MAGIC_ELF_AICUBE") {
+    binary_magic = RT_DEV_BINARY_MAGIC_ELF_AICUBE;
+    return SUCCESS;
+  }
+
+  GELOGE(PARAM_INVALID, "[CUSTOM OP] invalid %s attr %s for op %s(%s)", TVM_ATTR_NAME_MAGIC.c_str(),
+         magic_value.c_str(), op_desc->GetNamePtr(), op_desc->GetTypePtr());
+  return PARAM_INVALID;
+}
+
+std::string MakeCustomKernelBinName(const uint32_t model_id, const OpDescPtr &op_desc, const std::string &kernel_name) {
+  return std::to_string(model_id) + "_" + op_desc->GetName() + "_" + kernel_name;
 }
 }  // namespace
 
@@ -170,14 +215,19 @@ Status CustomTaskInfo::ParseTaskRunParam(const domi::TaskDef &task_def, DavinciM
 
   const RuntimeParam &rts_param = davinci_model->GetRuntimeParam();
   input_data_addrs_ = ModelUtils::GetInputAddrsValue(rts_param, op_desc_, input_mem_types_);
-  output_data_addrs_ = ModelUtils::GetOutputAddrsValue(rts_param, op_desc_, output_mem_types_);
+  output_data_addrs_ = ModelUtils::GetOutputAddrsValue(rts_param, op_desc_, output_mem_types_, true);
   workspace_addrs_ = ModelUtils::GetWorkspaceDataAddrsValue(rts_param, op_desc_, workspace_mem_types_);
 
   AscendString op_type(op_desc_->GetType().c_str());
   const auto &custom_op_registry = davinci_model->GetCustomOpRegistry();
   GE_ASSERT_NOTNULL(custom_op_registry, "[CUSTOM OP] custom op registry is nullptr for op %s.",
                     op_desc_->GetName().c_str());
-  is_args_refreshable_ = custom_op_registry->IsAddressRefreshable(op_type);
+  args_refresh_strategy_ = custom_op_registry->GetArgsRefreshStrategy(op_type);
+  is_args_refreshable_ = args_refresh_strategy_ != ArgsRefreshStrategy::kNone;
+
+  if (args_refresh_strategy_ == ArgsRefreshStrategy::kAnnotatedArgs) {
+    return ParseAnnotatedArgsTaskRunParam(kernel_def, context, task_run_param);
+  }
 
   for (size_t i = 0UL; i < input_data_addrs_.size(); i++) {
     task_run_param.parsed_input_addrs.push_back({input_data_addrs_[i], input_mem_types_[i], is_args_refreshable_, {0}});
@@ -190,12 +240,56 @@ Status CustomTaskInfo::ParseTaskRunParam(const domi::TaskDef &task_def, DavinciM
     task_run_param.parsed_workspace_addrs.push_back(
         {workspace_addrs_[i], workspace_mem_types_[i], is_args_refreshable_, {0}});
   }
-  const auto mem_size = input_data_addrs_.size() + output_data_addrs_.size() + workspace_addrs_.size();
-  task_run_param.args_descs.push_back(
-      {static_cast<int64_t>(MemSizeAlign(mem_size, sizeof(uintptr_t))), args_placement_});
-  GELOGI("Get args size[%u] of op[%s], is known node[%d], task_type: %d, placement: %d.", mem_size,
+  int64_t io_count = 0;
+  GE_ASSERT_TRUE(!ge::AddOverflow(input_data_addrs_.size(), output_data_addrs_.size(), io_count),
+                 "[CUSTOM OP] input/output count overflow for op %s", op_desc_->GetNamePtr());
+  int64_t args_field_count = 0;
+  GE_ASSERT_TRUE(!ge::AddOverflow(io_count, kCustomOpArgsReserved, args_field_count),
+                 "[CUSTOM OP] args field count overflow for op %s", op_desc_->GetNamePtr());
+  int64_t args_size = 0;
+  GE_ASSERT_TRUE(!ge::MulOverflow(args_field_count, kCustomOpArgsFieldSize, args_size),
+                 "[CUSTOM OP] args size overflow for op %s", op_desc_->GetNamePtr());
+  task_run_param.args_descs.push_back({args_size, args_placement_});
+  GELOGI("Get args size[%" PRId64 "] of op[%s], is known node[%d], task_type: %d, placement: %d.", args_size,
          op_desc_->GetName().c_str(), static_cast<int32_t>(davinci_model->IsFeatureBaseRefreshable()),
          static_cast<int32_t>(static_cast<ModelTaskType>(task_def.type())), args_placement_);
+  return SUCCESS;
+}
+
+Status CustomTaskInfo::ParseAnnotatedArgsTaskRunParam(const domi::KernelDef &kernel_def,
+                                                      const domi::KernelContext &context,
+                                                      TaskRunParam &task_run_param) {
+  const auto &args_format_str = context.args_format();
+  GE_ASSERT_TRUE(!args_format_str.empty(), "[CUSTOM OP] kAnnotatedArgs requires non-empty args_format for op %s",
+                 op_desc_->GetNamePtr());
+  GE_ASSERT_SUCCESS(ArgsFormatDesc::Parse(op_desc_, args_format_str, args_format_holder_.arg_descs));
+  (void)OpDescUtils::GetIrInputInstanceDescRange(op_desc_, args_format_holder_.ir_input_2_range);
+  (void)OpDescUtils::GetIrOutputDescRange(op_desc_, args_format_holder_.ir_output_2_range);
+
+  GE_ASSERT_TRUE(!kernel_def.kernel_name().empty(), "[CUSTOM OP] kAnnotatedArgs kernel_name is empty for op %s",
+                 op_desc_->GetNamePtr());
+  GE_ASSERT_TRUE(kernel_def.block_dim() > 0U, "[CUSTOM OP] kAnnotatedArgs block_dim is 0 for op %s",
+                 op_desc_->GetNamePtr());
+  kernel_name_ = kernel_def.kernel_name();
+  block_dim_ = kernel_def.block_dim();
+
+  for (size_t i = 0UL; i < input_data_addrs_.size(); i++) {
+    task_run_param.parsed_input_addrs.push_back({input_data_addrs_[i], input_mem_types_[i], true, {0}});
+  }
+  for (size_t i = 0UL; i < output_data_addrs_.size(); i++) {
+    task_run_param.parsed_output_addrs.push_back({output_data_addrs_[i], output_mem_types_[i], true, {0}});
+  }
+  for (size_t i = 0UL; i < workspace_addrs_.size(); i++) {
+    task_run_param.parsed_workspace_addrs.push_back({workspace_addrs_[i], workspace_mem_types_[i], true, {0}});
+  }
+
+  const auto args_size = GetArgsSizeByFormat();
+  GE_ASSERT_TRUE(args_size <= static_cast<size_t>(std::numeric_limits<uint32_t>::max()),
+                 "[CUSTOM OP] args_size %zu exceeds uint32 max for op %s", args_size, op_desc_->GetNamePtr());
+  task_run_param.args_descs.push_back(
+      {static_cast<int64_t>(MemSizeAlign(args_size, sizeof(uintptr_t))), args_placement_});
+  GELOGI("kAnnotatedArgs parsed args[%zu] of op[%s], args format[%s], placement: %d.", args_size,
+         op_desc_->GetNamePtr(), args_format_str.c_str(), args_placement_);
   return SUCCESS;
 }
 
@@ -210,14 +304,23 @@ Status CustomTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *const d
   GE_CHK_STATUS_RET_NOLOG(SetStream(task_def.stream_id(), davinci_model_->GetStreamList()));
 
   UpdateIoAndWorkspaceAddrs(iow_addrs);
+  stream_id_ = task_def.stream_id();
   GE_ASSERT_TRUE((args[static_cast<size_t>(args_placement_)].dev_addr != 0U),
                  "[Check][Param] Op:%s, dev addr is nullptr.", op_desc_->GetName().c_str());
   auto mem_block_manager_allocator = davinci_model_->GetAllocator();
   sink_only_allocator_ = ComGraphMakeShared<gert::memory::SinkOnlyAllocator>();
   sink_only_allocator_->SetAllocator(mem_block_manager_allocator);
 
-  GELOGI("CustomTaskInfo Init Success, node: %s, logic stream id: %u, stream: %p.", op_desc_->GetName().c_str(),
-         task_def.stream_id(), stream_);
+  if (args_refresh_strategy_ == ArgsRefreshStrategy::kAnnotatedArgs) {
+    args_ = ValueToPtr(args[static_cast<size_t>(args_placement_)].dev_addr);
+    GE_ASSERT_SUCCESS(AssembleIoByArgsFormat());
+    ArgsIoAddrsUpdater::OpInfo op_info{op_desc_->GetName(), op_desc_->GetType()};
+    GE_ASSERT_SUCCESS(
+        args_io_addrs_updater_.Init(davinci_model_->GetLogicalMemAllocation(), io_addrs_, io_addr_mem_types_, op_info));
+  }
+
+  GELOGI("CustomTaskInfo Init Success, node: %s, logic stream id: %u, stream: %p, args_refresh_strategy: %d.",
+         op_desc_->GetName().c_str(), task_def.stream_id(), stream_, static_cast<int32_t>(args_refresh_strategy_));
   return SUCCESS;
 }
 
@@ -294,6 +397,11 @@ Status CustomTaskInfo::Distribute() {
 
   AscendString op_type(op_desc_->GetType().c_str());
   GE_ASSERT_NOTNULL(davinci_model_);
+
+  if (args_refresh_strategy_ == ArgsRefreshStrategy::kAnnotatedArgs) {
+    return DistributeAnnotatedArgsFromTaskDef();
+  }
+
   const auto &custom_op_registry = davinci_model_->GetCustomOpRegistry();
   GE_ASSERT_NOTNULL(custom_op_registry, "[CUSTOM OP] custom op registry is nullptr for op %s.",
                     op_desc_->GetName().c_str());
@@ -335,6 +443,135 @@ Status CustomTaskInfo::Distribute() {
 
   GELOGI("CustomTaskInfo Distribute Success, node: %s, stream_id: %u, stream: %p, task_id: %u",
          op_desc_->GetName().c_str(), stream_id_, stream_, task_id_);
+  return SUCCESS;
+}
+
+size_t CustomTaskInfo::GetArgsSizeByFormat() const {
+  const auto &arg_descs = args_format_holder_.arg_descs;
+  size_t tmp_size = 0UL;
+  for (const auto &arg_desc : arg_descs) {
+    (void)ArgsFormatDesc::GetArgSize(op_desc_, arg_desc, tmp_size);
+  }
+  return tmp_size;
+}
+
+void CustomTaskInfo::AppendIoAddr(const uint64_t addr, const uint64_t addr_type) {
+  io_addrs_.push_back(addr);
+  io_addr_mem_types_.push_back(addr_type);
+}
+
+Status CustomTaskInfo::AppendInputOutputAddr(size_t ir_idx, bool is_input) {
+  const std::map<size_t, std::pair<size_t, size_t>> &ir_2_range =
+      is_input ? args_format_holder_.ir_input_2_range : args_format_holder_.ir_output_2_range;
+  const auto iter = ir_2_range.find(ir_idx);
+  GE_ASSERT(iter != ir_2_range.end(), "Ir idx [%zu] is not found, input flag %u.", ir_idx, is_input);
+  const auto &range_pair = iter->second;
+  // optional IR input with no instance (e.g. optional input not provided), use placeholder 0 addr
+  if (is_input && range_pair.second == 0UL) {
+    AppendIoAddr(0UL, kAbsoluteMemType);
+    return SUCCESS;
+  }
+  size_t begin_idx = range_pair.first;
+  const std::vector<uint64_t> &addrs = is_input ? input_data_addrs_ : output_data_addrs_;
+  const std::vector<uint64_t> &types = is_input ? input_mem_types_ : output_mem_types_;
+  for (size_t i = 0UL; i < range_pair.second; ++i, ++begin_idx) {
+    GE_ASSERT(begin_idx < addrs.size(), "ir_idx:[%zu], begin_index [%zu] is out of range, max_size:[%zu].", ir_idx,
+              begin_idx, addrs.size());
+    AppendIoAddr(addrs[begin_idx], types[begin_idx]);
+  }
+  return SUCCESS;
+}
+
+Status CustomTaskInfo::AppendWorkspaceAddr(int32_t ir_idx) {
+  if (ir_idx < 0) {
+    (void)io_addrs_.insert(io_addrs_.cend(), workspace_addrs_.cbegin(), workspace_addrs_.cend());
+    (void)io_addr_mem_types_.insert(io_addr_mem_types_.cend(), workspace_mem_types_.cbegin(),
+                                    workspace_mem_types_.cend());
+  } else {
+    const size_t idx = static_cast<size_t>(ir_idx);
+    GE_ASSERT(idx < workspace_addrs_.size(), "workspace index[%zu] is out of workspace addrs range[%zu]", idx,
+              workspace_addrs_.size());
+    AppendIoAddr(workspace_addrs_[idx], workspace_mem_types_[idx]);
+  }
+  return SUCCESS;
+}
+
+Status CustomTaskInfo::AssembleIoByArgsFormat() {
+  const auto &arg_descs = args_format_holder_.arg_descs;
+  io_addrs_.reserve(arg_descs.size());
+  io_addr_mem_types_.reserve(arg_descs.size());
+  for (const auto &arg_format : arg_descs) {
+    switch (arg_format.addr_type) {
+      case AddrType::INPUT: {
+        GE_ASSERT_SUCCESS(AppendInputOutputAddr(static_cast<size_t>(arg_format.ir_idx), true));
+        break;
+      }
+      case AddrType::OUTPUT: {
+        GE_ASSERT_SUCCESS(AppendInputOutputAddr(static_cast<size_t>(arg_format.ir_idx), false));
+        break;
+      }
+      case AddrType::WORKSPACE: {
+        GE_ASSERT_SUCCESS(AppendWorkspaceAddr(arg_format.ir_idx));
+        break;
+      }
+      case AddrType::CUSTOM_VALUE: {
+        AppendIoAddr(*reinterpret_cast<const uint64_t *>(arg_format.reserved), kAbsoluteMemType);
+        break;
+      }
+      case AddrType::PLACEHOLDER: {
+        AppendIoAddr(0UL, kAbsoluteMemType);
+        break;
+      }
+      default: {
+        GELOGE(FAILED, "[CUSTOM OP] unsupported addr_type %d for op %s", static_cast<int32_t>(arg_format.addr_type),
+               op_desc_->GetNamePtr());
+        return FAILED;
+      }
+    }
+  }
+  return SUCCESS;
+}
+
+Status CustomTaskInfo::DistributeAnnotatedArgsFromTaskDef() {
+  GE_ASSERT_TRUE(!kernel_name_.empty(), "Annotated args kernel_name is empty, op=%s", op_desc_->GetNamePtr());
+
+  const auto kernel_bin = davinci_model_->FindTbeKernelBin(kernel_name_);
+  GE_ASSERT_NOTNULL(kernel_bin, "[CUSTOM OP] cannot find kernel bin %s for op %s(%s)", kernel_name_.c_str(),
+                    op_desc_->GetNamePtr(), op_desc_->GetTypePtr());
+
+  int32_t binary_magic = 0;
+  GE_ASSERT_SUCCESS(GetCustomKernelBinaryMagic(op_desc_, binary_magic));
+  AicoreRegisterInfo aicore_register_info;
+  aicore_register_info.magic = binary_magic;
+  aicore_register_info.kernel_bin = kernel_bin;
+  aicore_register_info.kernel_bin_name = MakeCustomKernelBinName(davinci_model_->GetModelId(), op_desc_, kernel_name_);
+  KernelRegisterInfo register_info = aicore_register_info;
+
+  auto kernel_handles_manager = davinci_model_->GetKernelHandlesManager(KernelHandleType::kAicore);
+  GE_ASSERT_NOTNULL(kernel_handles_manager);
+  const auto bin_name = kernel_handles_manager->GenerateKey(register_info);
+  auto bin_handle = kernel_handles_manager->GetOrRegisterKernel(register_info, bin_name);
+  GE_ASSERT_NOTNULL(bin_handle);
+  auto func_handle = KernelHandleUtils::GetFuncHandle(bin_handle, kernel_name_);
+  GE_ASSERT_NOTNULL(func_handle);
+
+  SetTaskTag(op_desc_->GetNamePtr());
+  LaunchKernelParam launch_kernel_param;
+  launch_kernel_param.args = args_;
+  launch_kernel_param.args_size = static_cast<uint32_t>(GetArgsSizeByFormat());
+  launch_kernel_param.block_dim = block_dim_;
+  launch_kernel_param.stream = stream_;
+  GE_ASSERT_SUCCESS(KernelHandleUtils::LaunchKernel(func_handle, launch_kernel_param));
+  GE_ASSERT_RT_OK(aclrtGetThreadLastTaskId(&task_id_));
+  int32_t rt_stream_id = 0;
+  GE_ASSERT_RT_OK(aclrtStreamGetId(stream_, &rt_stream_id));
+  stream_id_ = static_cast<uint32_t>(rt_stream_id);
+  CacheLastTaskExtendInfoIfCollective(op_desc_->GetName(), op_desc_->GetType());
+  input_count_ = input_data_addrs_.size();
+  output_count_ = output_data_addrs_.size();
+  GELOGI(
+      "CustomTaskInfo distribute annotated args from TaskDef success, node: %s, kernel: %s, stream_id: %u, task_id: %u",
+      op_desc_->GetName().c_str(), kernel_name_.c_str(), stream_id_, task_id_);
   return SUCCESS;
 }
 
@@ -408,6 +645,14 @@ const gert::KernelArgs *CustomTaskInfo::MallocReadOnlyDevArgsImpl(void *host_arg
   return &kernel_args_device_deque_.back();
 }
 
+Status CustomTaskInfo::GetTaskArgsRefreshInfos(std::vector<TaskArgsRefreshInfo> &infos) {
+  if (args_refresh_strategy_ != ArgsRefreshStrategy::kAnnotatedArgs) {
+    return SUCCESS;
+  }
+  args_io_addrs_updater_.GenArgsRefreshInfos(infos, io_addr_offset_, args_placement_);
+  return SUCCESS;
+}
+
 const std::deque<gert::KernelArgs> &CustomTaskInfo::GetKernelArgsDeque(gert::Placement placement) const {
   if (placement == gert::Placement::kPlacementHost) {
     return kernel_args_host_deque_;
@@ -417,10 +662,13 @@ const std::deque<gert::KernelArgs> &CustomTaskInfo::GetKernelArgsDeque(gert::Pla
 }
 
 Status CustomTaskInfo::UpdateHostArgs(void *base_addr, size_t mem_size) {
-  if (args_update_op_ == nullptr) {
-    GELOGE(FAILED, "UpdateHostArgs called on non-ArgsUpdater operator, task_id=%u", task_id_);
-    return FAILED;
+  if (args_refresh_strategy_ == ArgsRefreshStrategy::kAnnotatedArgs) {
+    return SUCCESS;
   }
+  if (args_refresh_strategy_ != ArgsRefreshStrategy::kUpdateCallback) {
+    return SUCCESS;
+  }
+  GE_ASSERT_NOTNULL(args_update_op_);
 
   auto *active_mem_base_addr = reinterpret_cast<uint64_t *>(base_addr);
   if (active_mem_base_addr == nullptr || mem_size == 0) {

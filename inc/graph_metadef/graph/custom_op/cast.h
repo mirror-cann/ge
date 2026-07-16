@@ -49,6 +49,11 @@ struct CustomOpCapabilityTrait<ArgsUpdater> {
   static constexpr CustomOpCapability kCapability = CustomOpCapability::kArgsUpdater;
 };
 
+template <>
+struct CustomOpCapabilityTrait<AnnotatedArgsOp> {
+  static constexpr CustomOpCapability kCapability = CustomOpCapability::kAnnotatedArgs;
+};
+
 template <typename T>
 T *CustomOpCast(BaseCustomOp *op) {
   if (op == nullptr) {
