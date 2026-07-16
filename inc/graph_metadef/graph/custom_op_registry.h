@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "graph/ascend_string.h"
+#include "graph/custom_op/args_refresh.h"
 #include "graph/ge_error_codes.h"
 
 namespace ge {
@@ -38,6 +39,7 @@ class CustomOpRegistry {
 
   BaseCustomOp *CreateOrGetCustomOp(const AscendString &op_type);
   void RemoveCustomOps(const std::vector<AscendString> &op_types);
+  ArgsRefreshStrategy GetArgsRefreshStrategy(const AscendString &op_type);
   bool IsAddressRefreshable(const AscendString &op_type);
   BaseCustomOp *FindCustomOp(const AscendString &op_type) const;
   bool HasCreator(const AscendString &op_type) const;

@@ -11,12 +11,17 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include <memory>
+#include <utility>
+#include "common/model/ge_model.h"
+#include "graph/debug/ge_attr_define.h"
 #include "graph/load/model_manager/task_info/ge/custom_task_info.h"
 #include "graph/load/model_manager/davinci_model.h"
 #include "graph/load/model_manager/reusable_stream_allocator.h"
 #include "graph/load/model_manager/model_args_manager.h"
 #include "graph/load/model_manager/memory_block_manager.h"
 #include "graph/op_desc.h"
+#include "graph/op_kernel_bin.h"
+#include "graph/utils/attr_utils.h"
 #include "graph/utils/op_desc_utils.h"
 #include "ffts_plus_proto_tools.h"
 #include "depends/runtime/src/runtime_stub.h"
@@ -26,12 +31,24 @@
 #include "graph/custom_op_registry.h"
 #include "exe_graph/runtime/kernel_args.h"
 #include "framework/runtime/args_handler.h"
+#include "graph/utils/args_format_desc_utils.h"
 
 namespace ge {
 namespace {
 class AclMockMemcpy : public AclRuntimeStub {
  public:
   MOCK_METHOD5(aclrtMemcpy, int32_t(void *, size_t, const void *, size_t, aclrtMemcpyKind));
+};
+
+class AclMockAnnotatedLaunch : public AclRuntimeStub {
+ public:
+  MOCK_METHOD4(aclrtBinaryLoadFromData,
+               aclError(const void *, size_t, const aclrtBinaryLoadOptions *, aclrtBinHandle *));
+  MOCK_METHOD3(aclrtBinaryGetFunction, aclError(const aclrtBinHandle, const char *, aclrtFuncHandle *));
+  MOCK_METHOD6(aclrtLaunchKernelV2,
+               aclError(aclrtFuncHandle, uint32_t, const void *, size_t, aclrtLaunchKernelCfg *, aclrtStream));
+  MOCK_METHOD1(aclrtGetThreadLastTaskId, aclError(uint32_t *));
+  MOCK_METHOD2(aclrtStreamGetId, aclError(aclrtStream, int32_t *));
 };
 }  // namespace
 
@@ -391,6 +408,51 @@ class TestArgsRefreshableCustomOp : public EagerExecuteOp {
   gert::Placement malloc_dev_args_placement_ = gert::Placement::kPlacementHost;
 };
 
+class TestAnnotatedArgsDeclarativeOp : public AnnotatedArgsOp {
+ public:
+  graphStatus DeclareLaunchArgs(gert::AnnotatedArgsContext &ctx) override {
+    static const uint8_t kBin[] = {0x31U};
+    declare_called_ = true;
+    const auto *input = ctx.GetInputTensor(0U);
+    const auto *output = ctx.GetOutputTensor(0U);
+    if ((input == nullptr) || (output == nullptr)) {
+      return GRAPH_FAILED;
+    }
+
+    gert::AnnotatedKernelArgs args(gert::InputAddr{0U, input->GetData<void>()},
+                                   gert::OutputAddr{0U, output->GetData<void>()}, static_cast<uint64_t>(0x1234U));
+    return ctx.AddLaunch(
+        gert::AnnotatedKernelLaunchInfo{"test_annotated_args_kernel", kBin, sizeof(kBin), 1U, ctx.GetStreamId()},
+        std::move(args));
+  }
+
+  bool declare_called_ = false;
+};
+
+class TestMultiAnnotatedArgsDeclarativeOp : public AnnotatedArgsOp {
+ public:
+  graphStatus DeclareLaunchArgs(gert::AnnotatedArgsContext &ctx) override {
+    static const uint8_t kInputBin[] = {0x41U};
+    static const uint8_t kOutputBin[] = {0x51U};
+    const auto *input = ctx.GetInputTensor(0U);
+    const auto *output = ctx.GetOutputTensor(0U);
+    if ((input == nullptr) || (output == nullptr)) {
+      return GRAPH_FAILED;
+    }
+
+    gert::AnnotatedKernelArgs input_args(gert::InputAddr{0U, input->GetData<void>()}, static_cast<uint64_t>(0x1111U));
+    GE_ASSERT_SUCCESS(ctx.AddLaunch(gert::AnnotatedKernelLaunchInfo{"test_multi_annotated_args_input_kernel", kInputBin,
+                                                                    sizeof(kInputBin), 1U, ctx.GetStreamId()},
+                                    std::move(input_args)));
+
+    gert::AnnotatedKernelArgs output_args(gert::OutputAddr{0U, output->GetData<void>()},
+                                          static_cast<uint64_t>(0x2222U));
+    return ctx.AddLaunch(gert::AnnotatedKernelLaunchInfo{"test_multi_annotated_args_output_kernel", kOutputBin,
+                                                         sizeof(kOutputBin), 1U, ctx.GetStreamId()},
+                         std::move(output_args));
+  }
+};
+
 class TestEagerOnlyCustomOp : public EagerExecuteOp {
  public:
   graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
@@ -446,6 +508,14 @@ void SetUpMinimalDavinciModel(DavinciModel &model, const OpDescPtr &op_desc) {
   }
   op_desc->SetOutputOffset(output_offset);
 
+  // Add IR inputs/outputs to match data anchors, so ArgsFormatDesc::Parse(op_desc, ...) can resolve ir indices.
+  for (size_t i = 0UL; i < input_count; ++i) {
+    op_desc->AppendIrInput("input" + std::to_string(i), IrInputType::kIrInputRequired);
+  }
+  for (size_t i = 0UL; i < output_count; ++i) {
+    op_desc->AppendIrOutput("output" + std::to_string(i), IrOutputType::kIrOutputRequired);
+  }
+
   model.runtime_param_.mem_size = 8192U;
   std::vector<uint8_t> memory_holder(model.runtime_param_.mem_size);
   model.runtime_param_.mem_base = reinterpret_cast<uintptr_t>(memory_holder.data());
@@ -461,6 +531,14 @@ void SetUpMinimalDavinciModel(DavinciModel &model, const OpDescPtr &op_desc) {
   model.stream_list_ = {stream};
 
   model.op_list_[op_desc->GetId()] = op_desc;
+  (void)AttrUtils::SetStr(op_desc, TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF_AIVEC");
+
+  model.ge_model_ = MakeShared<GeModel>();
+  std::vector<char> kernel_bin = {0x1, 0x2, 0x3, 0x4};
+  auto tbe_kernel = MakeShared<OpKernelBin>("test_kernel", std::move(kernel_bin));
+  if (tbe_kernel != nullptr) {
+    model.ge_model_->GetTBEKernelStore().AddTBEKernel(tbe_kernel);
+  }
 
   model.mem_type_to_allocator_[RT_MEMORY_HBM] = std::make_shared<MemoryBlockManager>(RT_MEMORY_HBM);
 
@@ -472,6 +550,42 @@ void SetUpMinimalDavinciModel(DavinciModel &model, const OpDescPtr &op_desc) {
   pool.placement = ArgsPlacement::kArgsPlacementHbm;
   model.args_manager_.extra_args_pools_.emplace_back(std::move(pool));
   model.args_manager_.davinci_model_ = &model;
+}
+
+IowAddrs BuildAnnotatedArgsIowAddrs(uint64_t input_addr = 0ULL, uint64_t output_addr = 0x40ULL,
+                                    uint64_t workspace_addr = 0x300ULL) {
+  IowAddrs iow_addrs;
+  iow_addrs.input_logic_addrs = {{input_addr, static_cast<uint64_t>(MemoryAppType::kMemoryTypeFeatureMap)}};
+  iow_addrs.output_logic_addrs = {{output_addr, static_cast<uint64_t>(MemoryAppType::kMemoryTypeFeatureMap)}};
+  iow_addrs.workspace_logic_addrs = {{workspace_addr, static_cast<uint64_t>(MemoryAppType::kMemoryTypeFeatureMap)}};
+  return iow_addrs;
+}
+
+void FillAnnotatedArgsTaskDef(domi::TaskDef &task_def, const int32_t op_index, const std::vector<ArgDesc> &arg_descs,
+                              const std::vector<uint64_t> &arg_values) {
+  task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_CUSTOM_KERNEL));
+  task_def.set_stream_id(0);
+  domi::KernelDef *kernel_def = task_def.mutable_kernel();
+  kernel_def->mutable_context()->set_op_index(op_index);
+  kernel_def->mutable_context()->set_args_format(ArgsFormatDescUtils::Serialize(arg_descs));
+  kernel_def->mutable_context()->set_args_count(static_cast<uint32_t>(arg_descs.size()));
+  std::string args_data(arg_values.size() * sizeof(uint64_t), '\0');
+  if (!arg_values.empty()) {
+    EXPECT_EQ(memcpy_s(args_data.data(), args_data.size(), arg_values.data(), arg_values.size() * sizeof(uint64_t)),
+              EOK);
+  }
+  kernel_def->set_args(std::move(args_data));
+  kernel_def->set_args_size(static_cast<uint64_t>(arg_values.size() * sizeof(uint64_t)));
+  kernel_def->set_kernel_name("test_kernel");
+  kernel_def->set_block_dim(1U);
+}
+
+std::vector<ArgDesc> BuildInputOutputCustomArgDescs() {
+  std::vector<ArgDesc> arg_descs;
+  ArgsFormatDescUtils::Append(arg_descs, AddrType::INPUT, 0);
+  ArgsFormatDescUtils::Append(arg_descs, AddrType::OUTPUT, 0);
+  ArgsFormatDescUtils::Append(arg_descs, AddrType::CUSTOM_VALUE);
+  return arg_descs;
 }
 
 class TestFailArgsUpdaterCustomOp : public ArgsUpdater, public EagerExecuteOp {
@@ -524,6 +638,7 @@ class UtestCustomTaskInfoE2E : public testing::Test {
     RTS_STUB_SETUP();
   }
   void TearDown() {
+    AclRuntimeStub::Reset();
     RTS_STUB_TEARDOWN();
   }
 };
@@ -538,10 +653,7 @@ TEST_F(UtestCustomTaskInfoE2E, Distribute_DetectsArgsUpdaterAndSetsArgsUpdateOp)
   SetUpMinimalDavinciModel(model, op_desc);
 
   domi::TaskDef task_def;
-  task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_CUSTOM_KERNEL));
-  task_def.set_stream_id(0);
-  domi::KernelDef *kernel_def = task_def.mutable_kernel();
-  kernel_def->mutable_context()->set_op_index(op_desc->GetId());
+  FillAnnotatedArgsTaskDef(task_def, op_desc->GetId(), BuildInputOutputCustomArgDescs(), {0ULL, 0x40ULL, 0x1234ULL});
 
   CustomTaskInfo task_info;
   TaskRunParam task_run_param;
@@ -574,10 +686,7 @@ TEST_F(UtestCustomTaskInfoE2E, Distribute_ExecuteCallsMallocReadOnlyDevArgs) {
   SetUpMinimalDavinciModel(model, op_desc);
 
   domi::TaskDef task_def;
-  task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_CUSTOM_KERNEL));
-  task_def.set_stream_id(0);
-  domi::KernelDef *kernel_def = task_def.mutable_kernel();
-  kernel_def->mutable_context()->set_op_index(op_desc->GetId());
+  FillAnnotatedArgsTaskDef(task_def, op_desc->GetId(), BuildInputOutputCustomArgDescs(), {0ULL, 0x40ULL, 0x1234ULL});
 
   CustomTaskInfo task_info;
   TaskRunParam task_run_param;
@@ -633,10 +742,7 @@ TEST_F(UtestCustomTaskInfoE2E, Distribute_AdditionalInputsOutputsWired) {
   SetUpMinimalDavinciModel(model, op_desc);
 
   domi::TaskDef task_def;
-  task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_CUSTOM_KERNEL));
-  task_def.set_stream_id(0);
-  domi::KernelDef *kernel_def = task_def.mutable_kernel();
-  kernel_def->mutable_context()->set_op_index(op_desc->GetId());
+  FillAnnotatedArgsTaskDef(task_def, op_desc->GetId(), BuildInputOutputCustomArgDescs(), {0ULL, 0x40ULL, 0x1234ULL});
 
   CustomTaskInfo task_info;
   TaskRunParam task_run_param;
@@ -669,10 +775,7 @@ TEST_F(UtestCustomTaskInfoE2E, UpdateHostArgs_CallsOpCallbackWithValidContext) {
   SetUpMinimalDavinciModel(model, op_desc);
 
   domi::TaskDef task_def;
-  task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_CUSTOM_KERNEL));
-  task_def.set_stream_id(0);
-  domi::KernelDef *kernel_def = task_def.mutable_kernel();
-  kernel_def->mutable_context()->set_op_index(op_desc->GetId());
+  FillAnnotatedArgsTaskDef(task_def, op_desc->GetId(), BuildInputOutputCustomArgDescs(), {0ULL, 0x40ULL, 0x1234ULL});
 
   CustomTaskInfo task_info;
   TaskRunParam task_run_param;
@@ -715,39 +818,6 @@ TEST_F(UtestCustomTaskInfoE2E, UpdateHostArgs_CallsOpCallbackWithValidContext) {
   model.runtime_param_.mem_base = 0U;
 }
 
-TEST_F(UtestCustomTaskInfoE2E, UpdateHostArgs_FailsOnNonArgsUpdaterOp) {
-  std::string op_type = GenerateUniqueOpType();
-  CustomOpFactory::RegisterCustomOpCreator(
-      op_type.c_str(), []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<TestEagerOnlyCustomOp>(); });
-
-  DavinciModel model(0, nullptr);
-  const auto op_desc = CreateOpDesc(op_type, op_type, 1, 1);
-  SetUpMinimalDavinciModel(model, op_desc);
-
-  domi::TaskDef task_def;
-  task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_CUSTOM_KERNEL));
-  task_def.set_stream_id(0);
-  domi::KernelDef *kernel_def = task_def.mutable_kernel();
-  kernel_def->mutable_context()->set_op_index(op_desc->GetId());
-
-  CustomTaskInfo task_info;
-  TaskRunParam task_run_param;
-  EXPECT_EQ(task_info.ParseTaskRunParam(task_def, &model, task_run_param), SUCCESS);
-
-  PisToArgs args;
-  args[static_cast<size_t>(ArgsPlacement::kArgsPlacementHbm)].dev_addr = 0xDEADBEEFULL;
-  IowAddrs iow_addrs;
-  EXPECT_EQ(task_info.Init(task_def, &model, args, {}, iow_addrs), SUCCESS);
-  EXPECT_EQ(task_info.Distribute(), SUCCESS);
-
-  EXPECT_FALSE(task_info.NeedReserveArgsTable());
-
-  uint64_t active_mem_base_addr[2] = {0x1000ULL, 0x2000ULL};
-  EXPECT_NE(task_info.UpdateHostArgs(active_mem_base_addr, 2), SUCCESS);
-
-  model.runtime_param_.mem_base = 0U;
-}
-
 TEST_F(UtestCustomTaskInfoE2E, UpdateHostArgs_FailsOnNullBaseAddrOrZeroSize) {
   std::string op_type = GenerateUniqueOpType();
   TestArgsUpdaterCustomOp *op_instance = nullptr;
@@ -762,10 +832,7 @@ TEST_F(UtestCustomTaskInfoE2E, UpdateHostArgs_FailsOnNullBaseAddrOrZeroSize) {
   SetUpMinimalDavinciModel(model, op_desc);
 
   domi::TaskDef task_def;
-  task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_CUSTOM_KERNEL));
-  task_def.set_stream_id(0);
-  domi::KernelDef *kernel_def = task_def.mutable_kernel();
-  kernel_def->mutable_context()->set_op_index(op_desc->GetId());
+  FillAnnotatedArgsTaskDef(task_def, op_desc->GetId(), BuildInputOutputCustomArgDescs(), {0ULL, 0x40ULL, 0x1234ULL});
 
   CustomTaskInfo task_info;
   TaskRunParam task_run_param;
@@ -801,10 +868,7 @@ TEST_F(UtestCustomTaskInfoE2E, InitArgsIoAddrsUpdater_PopulatesMemAllocationAndO
   SetUpMinimalDavinciModel(model, op_desc);
 
   domi::TaskDef task_def;
-  task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_CUSTOM_KERNEL));
-  task_def.set_stream_id(0);
-  domi::KernelDef *kernel_def = task_def.mutable_kernel();
-  kernel_def->mutable_context()->set_op_index(op_desc->GetId());
+  FillAnnotatedArgsTaskDef(task_def, op_desc->GetId(), BuildInputOutputCustomArgDescs(), {0ULL, 0x40ULL, 0x1234ULL});
 
   CustomTaskInfo task_info;
   TaskRunParam task_run_param;
@@ -879,10 +943,7 @@ TEST_F(UtestCustomTaskInfoE2E, AllocateArgsBuffer_MallocReadOnlyDevArgsE2E) {
   SetUpMinimalDavinciModel(model, op_desc);
 
   domi::TaskDef task_def;
-  task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_CUSTOM_KERNEL));
-  task_def.set_stream_id(0);
-  domi::KernelDef *kernel_def = task_def.mutable_kernel();
-  kernel_def->mutable_context()->set_op_index(op_desc->GetId());
+  FillAnnotatedArgsTaskDef(task_def, op_desc->GetId(), BuildInputOutputCustomArgDescs(), {0ULL, 0x40ULL, 0x1234ULL});
 
   CustomTaskInfo task_info;
   TaskRunParam task_run_param;
@@ -969,10 +1030,7 @@ TEST_F(UtestCustomTaskInfoE2E, ParseTaskRunParam_ArgsUpdater_SupportRefreshTrue)
   SetUpMinimalDavinciModel(model, op_desc);
 
   domi::TaskDef task_def;
-  task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_CUSTOM_KERNEL));
-  task_def.set_stream_id(0);
-  domi::KernelDef *kernel_def = task_def.mutable_kernel();
-  kernel_def->mutable_context()->set_op_index(op_desc->GetId());
+  FillAnnotatedArgsTaskDef(task_def, op_desc->GetId(), BuildInputOutputCustomArgDescs(), {0ULL, 0x40ULL, 0x1234ULL});
 
   CustomTaskInfo task_info;
   TaskRunParam task_run_param;
@@ -991,6 +1049,31 @@ TEST_F(UtestCustomTaskInfoE2E, ParseTaskRunParam_ArgsUpdater_SupportRefreshTrue)
   for (const auto &addr : task_run_param.parsed_workspace_addrs) {
     EXPECT_TRUE(addr.support_refresh);
   }
+
+  model.runtime_param_.mem_base = 0U;
+}
+
+TEST_F(UtestCustomTaskInfoE2E, ParseTaskRunParam_AnnotatedArgsOp_UsesAnnotatedArgsStrategy) {
+  std::string op_type = GenerateUniqueOpType();
+  CustomOpFactory::RegisterCustomOpCreator(op_type.c_str(), []() -> std::unique_ptr<BaseCustomOp> {
+    return std::make_unique<TestAnnotatedArgsDeclarativeOp>();
+  });
+
+  DavinciModel model(0, nullptr);
+  const auto op_desc = CreateOpDesc(op_type, op_type, 1, 1);
+  SetUpMinimalDavinciModel(model, op_desc);
+
+  domi::TaskDef task_def;
+  FillAnnotatedArgsTaskDef(task_def, op_desc->GetId(), BuildInputOutputCustomArgDescs(), {0ULL, 0x40ULL, 0x1234ULL});
+
+  CustomTaskInfo task_info;
+  TaskRunParam task_run_param;
+  EXPECT_EQ(task_info.ParseTaskRunParam(task_def, &model, task_run_param), SUCCESS);
+
+  EXPECT_EQ(task_info.GetArgsRefreshStrategy(), ArgsRefreshStrategy::kAnnotatedArgs);
+  EXPECT_FALSE(task_info.NeedReserveArgsTable());
+  ASSERT_FALSE(task_run_param.parsed_input_addrs.empty());
+  EXPECT_TRUE(task_run_param.parsed_input_addrs[0].support_refresh);
 
   model.runtime_param_.mem_base = 0U;
 }
@@ -1130,6 +1213,7 @@ TEST_F(UtestCustomTaskInfoE2E, UpdateHostArgs_EmptyMemAllocs_ReturnsFailed) {
   CustomTaskInfo task_info;
   MockArgsUpdater mock_updater;
   task_info.args_update_op_ = &mock_updater;
+  task_info.args_refresh_strategy_ = ArgsRefreshStrategy::kUpdateCallback;
 
   uint64_t active_mem_base_addr[2] = {0x1000ULL, 0x2000ULL};
   EXPECT_NE(task_info.UpdateHostArgs(active_mem_base_addr, 2), SUCCESS);
@@ -1272,17 +1356,21 @@ TEST_F(UtestCustomTaskInfoE2E, ParseOpIndex_ReturnsCorrectOpIndex) {
 TEST_F(UtestCustomTaskInfoE2E, UpdateHostArgs_NullBaseAddr_ReturnsFailed) {
   CustomTaskInfo task_info;
   DavinciModel model(0, nullptr);
+  MockArgsUpdater mock_updater;
   task_info.davinci_model_ = &model;
-  task_info.args_update_op_ = nullptr;
+  task_info.args_update_op_ = &mock_updater;
+  task_info.args_refresh_strategy_ = ArgsRefreshStrategy::kUpdateCallback;
   EXPECT_NE(task_info.UpdateHostArgs(nullptr, 2), SUCCESS);
 }
 
 TEST_F(UtestCustomTaskInfoE2E, UpdateHostArgs_ZeroMemSize_ReturnsFailed) {
   CustomTaskInfo task_info;
   DavinciModel model(0, nullptr);
+  MockArgsUpdater mock_updater;
   task_info.davinci_model_ = &model;
   uint64_t addr = 0x1000ULL;
-  task_info.args_update_op_ = nullptr;
+  task_info.args_update_op_ = &mock_updater;
+  task_info.args_refresh_strategy_ = ArgsRefreshStrategy::kUpdateCallback;
   EXPECT_NE(task_info.UpdateHostArgs(&addr, 0), SUCCESS);
 }
 
@@ -1291,8 +1379,9 @@ TEST_F(UtestCustomTaskInfoE2E, UpdateHostArgs_NullArgsUpdateOp_ReturnsFailed) {
   DavinciModel model(0, nullptr);
   task_info.davinci_model_ = &model;
   task_info.args_update_op_ = nullptr;
+  task_info.args_refresh_strategy_ = ArgsRefreshStrategy::kUpdateCallback;
   uint64_t active_mem_base_addr[2] = {0x1000ULL, 0x2000ULL};
-  EXPECT_EQ(task_info.UpdateHostArgs(active_mem_base_addr, 2), FAILED);
+  EXPECT_NE(task_info.UpdateHostArgs(active_mem_base_addr, 2), SUCCESS);
 }
 
 TEST_F(UtestCustomTaskInfoE2E, GetKernelArgsDeque_DeviceReturnsDeviceDeque) {
@@ -1336,6 +1425,208 @@ TEST_F(UtestCustomTaskInfoE2E, UpdateIoAndWorkspaceAddrs_EmptyIowAddrs_KeepsOrig
   EXPECT_EQ(task_info.input_mem_types_[0], static_cast<uint64_t>(MemoryAppType::kMemoryTypeFeatureMap));
   EXPECT_EQ(task_info.output_mem_types_[0], static_cast<uint64_t>(MemoryAppType::kMemoryTypeModelIo));
   EXPECT_EQ(task_info.workspace_mem_types_[0], static_cast<uint64_t>(MemoryAppType::kMemoryTypeFix));
+}
+
+TEST_F(UtestCustomTaskInfo, AssembleIoByArgsFormat_WorkspaceAndPlaceholder) {
+  CustomTaskInfo task_info;
+  task_info.workspace_addrs_ = {0x3000ULL, 0x4000ULL};
+  task_info.workspace_mem_types_ = {kFmMemType, kFixMemType};
+  ArgsFormatDescUtils::Append(task_info.args_format_holder_.arg_descs, AddrType::WORKSPACE);
+  ArgsFormatDescUtils::Append(task_info.args_format_holder_.arg_descs, AddrType::WORKSPACE, 1);
+  ArgsFormatDescUtils::Append(task_info.args_format_holder_.arg_descs, AddrType::PLACEHOLDER);
+
+  ASSERT_EQ(task_info.AssembleIoByArgsFormat(), SUCCESS);
+  EXPECT_EQ(task_info.io_addrs_, (std::vector<uint64_t>{0x3000ULL, 0x4000ULL, 0x4000ULL, 0ULL}));
+  EXPECT_EQ(task_info.io_addr_mem_types_,
+            (std::vector<uint64_t>{kFmMemType, kFixMemType, kFixMemType, kAbsoluteMemType}));
+}
+
+TEST_F(UtestCustomTaskInfo, AssembleIoByArgsFormat_UnsupportedAddrTypeReturnsFailed) {
+  CustomTaskInfo task_info;
+  task_info.op_desc_ = std::make_shared<OpDesc>("invalid_addr_type", "CustomOp");
+  ArgsFormatDescUtils::Append(task_info.args_format_holder_.arg_descs, AddrType::MAX);
+
+  EXPECT_EQ(task_info.AssembleIoByArgsFormat(), FAILED);
+  EXPECT_TRUE(task_info.io_addrs_.empty());
+  EXPECT_TRUE(task_info.io_addr_mem_types_.empty());
+}
+
+TEST_F(UtestCustomTaskInfo, GetTaskArgsRefreshInfos_NonAnnotatedStrategyDoesNotAppend) {
+  CustomTaskInfo task_info;
+  std::vector<TaskArgsRefreshInfo> infos;
+
+  EXPECT_EQ(task_info.GetTaskArgsRefreshInfos(infos), SUCCESS);
+  EXPECT_TRUE(infos.empty());
+}
+
+TEST_F(UtestCustomTaskInfo, GetTaskArgsRefreshInfos_AnnotatedStrategyAppendsInfo) {
+  CustomTaskInfo task_info;
+  task_info.args_refresh_strategy_ = ArgsRefreshStrategy::kAnnotatedArgs;
+  task_info.args_placement_ = ArgsPlacement::kArgsPlacementTs;
+  task_info.io_addr_offset_ = 16UL;
+  task_info.args_io_addrs_updater_.v_mem_allocation_id_and_offset_.push_back({2U, 0x20ULL});
+  std::vector<TaskArgsRefreshInfo> infos;
+
+  ASSERT_EQ(task_info.GetTaskArgsRefreshInfos(infos), SUCCESS);
+  ASSERT_EQ(infos.size(), 1UL);
+  EXPECT_EQ(infos[0].id, 2U);
+  EXPECT_EQ(infos[0].offset, 0x20ULL);
+  EXPECT_EQ(infos[0].io_index, 0UL);
+  EXPECT_EQ(infos[0].args_offset, 16UL);
+  EXPECT_EQ(infos[0].placement, ArgsPlacement::kArgsPlacementTs);
+  EXPECT_EQ(infos[0].args_format_policy, ArgsFormatPolicy::kAddrAll);
+}
+
+TEST_F(UtestCustomTaskInfo, UpdateHostArgs_NonCallbackStrategiesReturnSuccess) {
+  CustomTaskInfo task_info;
+  EXPECT_EQ(task_info.UpdateHostArgs(nullptr, 0UL), SUCCESS);
+
+  task_info.args_refresh_strategy_ = ArgsRefreshStrategy::kAnnotatedArgs;
+  EXPECT_EQ(task_info.UpdateHostArgs(nullptr, 0UL), SUCCESS);
+}
+
+namespace {
+class MockDeclareCountingOp : public AnnotatedArgsOp {
+ public:
+  graphStatus DeclareLaunchArgs(gert::AnnotatedArgsContext &ctx) override {
+    declare_call_count_++;
+    return GRAPH_SUCCESS;
+  }
+  int declare_call_count_ = 0;
+};
+}  // namespace
+
+// =====================================================================
+// Red tests: annotated-args refactor (currently fail under old behavior)
+// =====================================================================
+
+TEST_F(UtestCustomTaskInfoE2E, ParseTaskRunParam_AnnotatedArgs_EmptyArgsFormatReturnsFailed) {
+  const std::string op_type = GenerateUniqueOpType();
+  CustomOpFactory::RegisterCustomOpCreator(op_type.c_str(), []() -> std::unique_ptr<BaseCustomOp> {
+    return std::make_unique<TestAnnotatedArgsDeclarativeOp>();
+  });
+
+  DavinciModel model(0, nullptr);
+  const auto op_desc = CreateOpDesc(op_type, op_type, 1, 1);
+  SetUpMinimalDavinciModel(model, op_desc);
+
+  domi::TaskDef task_def;
+  task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_CUSTOM_KERNEL));
+  task_def.set_stream_id(0);
+  task_def.mutable_kernel()->mutable_context()->set_op_index(op_desc->GetId());
+
+  CustomTaskInfo task_info;
+  TaskRunParam task_run_param;
+  EXPECT_NE(task_info.ParseTaskRunParam(task_def, &model, task_run_param), SUCCESS)
+      << "Expected ParseTaskRunParam to fail for kAnnotatedArgs when args_format is empty";
+
+  model.runtime_param_.mem_base = 0U;
+}
+
+TEST_F(UtestCustomTaskInfoE2E, Distribute_AnnotatedArgs_DoesNotCallDeclareLaunchArgs) {
+  const std::string op_type = GenerateUniqueOpType();
+  MockDeclareCountingOp *op_instance = nullptr;
+  CustomOpFactory::RegisterCustomOpCreator(op_type.c_str(), [&op_instance]() -> std::unique_ptr<BaseCustomOp> {
+    auto op = std::make_unique<MockDeclareCountingOp>();
+    op_instance = op.get();
+    return op;
+  });
+
+  DavinciModel model(0, nullptr);
+  const auto op_desc = CreateOpDesc(op_type, op_type, 1, 0);
+  SetUpMinimalDavinciModel(model, op_desc);
+
+  std::vector<ArgDesc> arg_descs;
+  ArgsFormatDescUtils::Append(arg_descs, AddrType::INPUT, 0);
+  const std::string args_format_str = ArgsFormatDescUtils::Serialize(arg_descs);
+
+  const size_t args_count = 1U;
+  const size_t args_size = args_count * sizeof(uint64_t);
+  std::string args_data(args_size, '\0');
+
+  domi::TaskDef task_def;
+  task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_CUSTOM_KERNEL));
+  task_def.set_stream_id(0);
+  domi::KernelDef *kernel_def = task_def.mutable_kernel();
+  kernel_def->mutable_context()->set_op_index(op_desc->GetId());
+  kernel_def->mutable_context()->set_args_format(args_format_str);
+  kernel_def->mutable_context()->set_args_count(static_cast<uint32_t>(args_count));
+  kernel_def->set_args(std::move(args_data));
+  kernel_def->set_args_size(static_cast<uint64_t>(args_size));
+  kernel_def->set_kernel_name("test_kernel");
+  kernel_def->set_block_dim(1U);
+
+  CustomTaskInfo task_info;
+  TaskRunParam task_run_param;
+  ASSERT_EQ(task_info.ParseTaskRunParam(task_def, &model, task_run_param), SUCCESS);
+
+  PisToArgs args;
+  args[static_cast<size_t>(ArgsPlacement::kArgsPlacementHbm)].dev_addr = 0xDEADBEEFULL;
+  IowAddrs iow_addrs;
+  iow_addrs.input_logic_addrs = {{0ULL, static_cast<uint64_t>(MemoryAppType::kMemoryTypeFeatureMap)}};
+  ASSERT_EQ(task_info.Init(task_def, &model, args, {}, iow_addrs), SUCCESS);
+  EXPECT_EQ(task_info.Distribute(), SUCCESS);
+
+  ASSERT_NE(op_instance, nullptr);
+  EXPECT_EQ(op_instance->declare_call_count_, 0)
+      << "Distribute for kAnnotatedArgs must not call DeclareLaunchArgs at load time";
+
+  model.runtime_param_.mem_base = 0U;
+}
+
+TEST_F(UtestCustomTaskInfoE2E, Distribute_AnnotatedArgs_LaunchesTaskDefKernel) {
+  const std::string op_type = GenerateUniqueOpType();
+  CustomOpFactory::RegisterCustomOpCreator(op_type.c_str(), []() -> std::unique_ptr<BaseCustomOp> {
+    return std::make_unique<TestAnnotatedArgsDeclarativeOp>();
+  });
+
+  DavinciModel model(0, nullptr);
+  const auto op_desc = CreateOpDesc(op_type, op_type, 1, 1);
+  SetUpMinimalDavinciModel(model, op_desc);
+
+  domi::TaskDef task_def;
+  FillAnnotatedArgsTaskDef(task_def, op_desc->GetId(), BuildInputOutputCustomArgDescs(), {0ULL, 0x40ULL, 0x1234ULL});
+
+  CustomTaskInfo task_info;
+  TaskRunParam task_run_param;
+  ASSERT_EQ(task_info.ParseTaskRunParam(task_def, &model, task_run_param), SUCCESS);
+
+  PisToArgs args;
+  args[static_cast<size_t>(ArgsPlacement::kArgsPlacementHbm)].dev_addr = 0xDEADBEEFULL;
+  ASSERT_EQ(task_info.Init(task_def, &model, args, {}, BuildAnnotatedArgsIowAddrs()), SUCCESS);
+
+  auto acl_runtime_stub = std::make_shared<AclMockAnnotatedLaunch>();
+  AclRuntimeStub::SetInstance(acl_runtime_stub);
+  EXPECT_CALL(*acl_runtime_stub, aclrtBinaryLoadFromData(testing::_, testing::_, testing::_, testing::_))
+      .WillOnce(testing::Invoke([](const void *, size_t, const aclrtBinaryLoadOptions *, aclrtBinHandle *bin_handle) {
+        *bin_handle = reinterpret_cast<aclrtBinHandle>(0x1234);
+        return ACL_SUCCESS;
+      }));
+  EXPECT_CALL(*acl_runtime_stub, aclrtBinaryGetFunction(testing::_, testing::StrEq("test_kernel"), testing::_))
+      .WillOnce(testing::Invoke([](const aclrtBinHandle, const char *, aclrtFuncHandle *func_handle) {
+        *func_handle = reinterpret_cast<aclrtFuncHandle>(0x5678);
+        return ACL_SUCCESS;
+      }));
+  EXPECT_CALL(*acl_runtime_stub, aclrtLaunchKernelV2(reinterpret_cast<aclrtFuncHandle>(0x5678), 1U, testing::_,
+                                                     3U * sizeof(uint64_t), testing::_, testing::_))
+      .WillOnce(testing::Return(ACL_SUCCESS));
+  EXPECT_CALL(*acl_runtime_stub, aclrtGetThreadLastTaskId(testing::_)).WillOnce(testing::Invoke([](uint32_t *task_id) {
+    *task_id = 123U;
+    return ACL_SUCCESS;
+  }));
+  uint32_t stream_get_id_count = 0U;
+  EXPECT_CALL(*acl_runtime_stub, aclrtStreamGetId(testing::_, testing::_))
+      .WillRepeatedly(testing::Invoke([&stream_get_id_count](aclrtStream, int32_t *stream_id) {
+        ++stream_get_id_count;
+        *stream_id = 0;
+        return ACL_SUCCESS;
+      }));
+
+  EXPECT_EQ(task_info.Distribute(), SUCCESS);
+  EXPECT_GT(stream_get_id_count, 0U);
+  EXPECT_EQ(task_info.GetTaskID(), 123U);
+
+  model.runtime_param_.mem_base = 0U;
 }
 
 }  // namespace ge

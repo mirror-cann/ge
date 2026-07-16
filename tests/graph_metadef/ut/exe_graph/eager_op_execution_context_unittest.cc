@@ -17,7 +17,6 @@
 #include "rt_external.h"
 #include "faker/kernel_run_context_faker.h"
 #include "operator_reg.h"
-#include "graph/utils/args_format_desc_utils.h"
 
 namespace ge {
 REG_OP(node)

@@ -1098,6 +1098,18 @@ Status DavinciModel::InitAddrRefreshKernelBin() {
   return LoadAndRegisterAddrRefreshKernel(kernel_file_path);
 }
 
+TBEKernelPtr DavinciModel::FindTbeKernelBin(const std::string &kernel_name) const {
+  if (ge_model_ == nullptr) {
+    GELOGE(INTERNAL_ERROR, "[Check][Param] ge_model_ is null when finding tbe kernel bin");
+    return nullptr;
+  }
+  if (kernel_name.empty()) {
+    GELOGE(INTERNAL_ERROR, "[Check][Param] kernel_name is empty when finding tbe kernel bin");
+    return nullptr;
+  }
+  return ge_model_->GetTBEKernelStore().FindKernel(kernel_name);
+}
+
 Status DavinciModel::InitSpaceRegistry(const GeRootModelPtr &root_model) {
   if (space_registries_ != nullptr && space_registries_->at(static_cast<size_t>(OppImplVersion::kOpp)) != nullptr) {
     GELOGD("Space registry already exist.");

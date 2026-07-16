@@ -51,6 +51,10 @@ bool CustomOpFactory::IsAddressRefreshable(const AscendString &op_type) {
   return GetGlobalRegistry().IsAddressRefreshable(op_type);
 }
 
+ArgsRefreshStrategy CustomOpFactory::GetArgsRefreshStrategy(const AscendString &op_type) {
+  return GetGlobalRegistry().GetArgsRefreshStrategy(op_type);
+}
+
 graphStatus CustomOpFactory::LoadCustomOpsPartition(const uint8_t *data, size_t len) {
   return GetGlobalRegistry().LoadCustomOpsPartition(data, len);
 }

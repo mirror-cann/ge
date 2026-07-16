@@ -15,6 +15,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 #include "framework/common/op/ge_op_utils.h"
@@ -75,6 +76,14 @@ class ModelBuilder {
   void ClearOriginalFormat() const;
 
  private:
+  struct TBEKernelOrigin {
+    bool is_custom = false;
+    bool current_bin_has_custom_user = false;
+    std::string op_name;
+    std::string op_type;
+    std::string kernel_type;
+  };
+
   bool SetInputConst(const OpDescPtr &op_desc, const NodePtr &src_node, size_t index,
                      std::vector<bool> &is_input_const) const;
 
@@ -119,6 +128,7 @@ class ModelBuilder {
   Status SaveNormalTBEKernel(const OpDescPtr &op_desc);
   Status SaveCustAiCpuKernel(const OpDescPtr &op_desc, std::set<std::string> &aicpu_name_set);
   Status SaveFftsPlusTBEKernel(const OpDescPtr &op_desc);
+  Status AddTBEKernelToStore(const OpDescPtr &op_desc, const TBEKernelPtr &tbe_kernel, const std::string &kernel_type);
   TBEKernelPtr CreateOpTBEKernel(const OpDescPtr &op_desc, const std::string &prefix_kernel_name) const;
   // In order to optimize the size of om,
   // delete the attributes saved in tbekernelstore and nodes on the graph at the same time.
@@ -165,6 +175,7 @@ class ModelBuilder {
   size_t zero_copy_mem_size_;
 
   TBEKernelStore tbe_kernel_store_;
+  std::unordered_map<std::string, TBEKernelOrigin> tbe_kernel_origins_;
   CustAICPUKernelStore cust_aicpu_kernel_store_;
 
   uint8_t platform_type_;

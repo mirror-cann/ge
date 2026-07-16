@@ -155,9 +155,9 @@ class ModelArgsManager {
   };
 
   struct ReservedSegmentInfo {
-    size_t start_offset;    // reserved segment start offset (relative to model_args base address)
-    size_t total_size;      // reserved segment total size (capacity)
-    size_t current_offset;  // reserved segment current allocation offset (next allocation start position)
+    size_t start_offset = 0UL;    // reserved segment start offset (relative to model_args base address)
+    size_t total_size = 0UL;      // reserved segment total size (capacity)
+    size_t current_offset = 0UL;  // reserved segment current allocation offset (next allocation start position)
   };
 
   enum AllocForType : int32_t {

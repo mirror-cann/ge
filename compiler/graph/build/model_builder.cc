@@ -10,6 +10,7 @@
 
 #include "graph/build/model_builder.h"
 #include <securectype.h>
+#include <cstring>
 #include <iostream>
 #include <memory>
 #include <set>
@@ -72,6 +73,23 @@ bool IsGeLocalOp(const ge::ConstOpDescPtr &op_desc) {
       ge::CONSTANT,    ge::ENTER,       ge::REFENTER,     ge::LOOPCOND,        ge::NEXTITERATION,   ge::FILECONSTANT,
       ge::EXIT,        ge::REFEXIT,     ge::MERGE,        ge::MEMCPYADDRASYNC, ge::REFNEXTITERATION};
   return (ge_local_set.find(type) != ge_local_set.end());
+}
+
+bool IsSameKernelBin(const ge::TBEKernelPtr &lhs, const ge::TBEKernelPtr &rhs) {
+  if ((lhs == nullptr) || (rhs == nullptr)) {
+    return lhs == rhs;
+  }
+  if (lhs->GetBinDataSize() != rhs->GetBinDataSize()) {
+    return false;
+  }
+  const size_t bin_size = lhs->GetBinDataSize();
+  if (bin_size == 0U) {
+    return true;
+  }
+  if ((lhs->GetBinData() == nullptr) || (rhs->GetBinData() == nullptr)) {
+    return false;
+  }
+  return std::memcmp(lhs->GetBinData(), rhs->GetBinData(), bin_size) == 0;
 }
 
 ge::Status SaveSoftSyncOpWeightByDependNames(const ge::NodePtr &node, const std::vector<std::string> &depend_names) {
@@ -819,7 +837,7 @@ Status ModelBuilder::SaveAtomicTBEKernel(const OpDescPtr &op_desc) {
     return ge::FAILED;
   }
 
-  tbe_kernel_store_.AddTBEKernel(tbe_kernel);
+  GE_ASSERT_SUCCESS(AddTBEKernelToStore(op_desc, tbe_kernel, "atomic"));
   GELOGD("Atomic_clean_node tbe_kernel_name %s!", tbe_kernel->GetName().c_str());
   (void)AttrUtils::SetStr(op_desc, ATOMIC_ATTR_TBE_KERNEL_NAME, tbe_kernel->GetName());
 
@@ -850,6 +868,47 @@ Status ModelBuilder::SaveAtomicTBEKernel(const OpDescPtr &op_desc) {
   return SUCCESS;
 }
 
+Status ModelBuilder::AddTBEKernelToStore(const OpDescPtr &op_desc, const TBEKernelPtr &tbe_kernel,
+                                         const std::string &kernel_type) {
+  if (tbe_kernel == nullptr) {
+    return SUCCESS;
+  }
+  // TBEKernelStore 以 kernel name 为键，并保留最后写入的 bin。这里记录当前 bin 的归属及来源，
+  // 用于在不改变原有 last-writer-wins 行为的前提下，诊断同名不同 bin 的覆盖场景。
+  const std::string &kernel_name = tbe_kernel->GetName();
+  const bool is_custom = op_desc->GetOpKernelLibName() == ge::kCustomOpKernelLibName;
+  const auto origin_iter = tbe_kernel_origins_.find(kernel_name);
+  const bool previous_is_custom = (origin_iter != tbe_kernel_origins_.end()) && origin_iter->second.is_custom;
+  // 该标记描述当前 bin 内容是否曾被自定义算子使用，而不是 kernel name 是否曾被自定义算子使用。
+  // 因此，当前 bin 被不同内容覆盖后，不会继续传递与新 bin 无关的自定义算子历史。
+  const bool previous_bin_has_custom_user =
+      (origin_iter != tbe_kernel_origins_.end()) && origin_iter->second.current_bin_has_custom_user;
+  const auto existing_kernel = tbe_kernel_store_.FindKernel(kernel_name);
+  const bool is_same_kernel_bin = (existing_kernel != nullptr) && IsSameKernelBin(existing_kernel, tbe_kernel);
+  if ((existing_kernel != nullptr) && !is_same_kernel_bin && (previous_bin_has_custom_user || is_custom)) {
+    const std::string previous_op_name =
+        (origin_iter == tbe_kernel_origins_.end()) ? "unknown" : origin_iter->second.op_name;
+    const std::string previous_op_type =
+        (origin_iter == tbe_kernel_origins_.end()) ? "unknown" : origin_iter->second.op_type;
+    const std::string previous_kernel_type =
+        (origin_iter == tbe_kernel_origins_.end()) ? "unknown" : origin_iter->second.kernel_type;
+    GELOGW(
+        "Custom-related TBE kernel collision, kernel_name:%s, previous_op:%s(%s), previous_op_is_custom:%s, "
+        "previous_kernel_type:%s, previous_bin_size:%zu, current_op:%s(%s), current_op_is_custom:%s, "
+        "current_kernel_type:%s, current_bin_size:%zu. ",
+        kernel_name.c_str(), previous_op_name.c_str(), previous_op_type.c_str(), previous_is_custom ? "true" : "false",
+        previous_kernel_type.c_str(), existing_kernel->GetBinDataSize(), op_desc->GetNamePtr(), op_desc->GetTypePtr(),
+        is_custom ? "true" : "false", kernel_type.c_str(), tbe_kernel->GetBinDataSize());
+  }
+  tbe_kernel_store_.AddTBEKernel(tbe_kernel);
+  // 相同内容的写入继承已有 bin 的来源；不同内容的写入则以当前算子为起点重新记录来源，
+  // 避免早先的自定义算子 bin 导致后续无关 bin 产生告警。
+  const bool current_bin_has_custom_user = is_custom || (is_same_kernel_bin && previous_bin_has_custom_user);
+  tbe_kernel_origins_[kernel_name] = {is_custom, current_bin_has_custom_user, op_desc->GetName(), op_desc->GetType(),
+                                      kernel_type};
+  return SUCCESS;
+}
+
 Status ModelBuilder::SaveNormalTBEKernel(const OpDescPtr &op_desc) {
   TBEKernelPtr tbe_kernel = op_desc->TryGetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, TBEKernelPtr());
   if (tbe_kernel == nullptr) {
@@ -859,7 +918,7 @@ Status ModelBuilder::SaveNormalTBEKernel(const OpDescPtr &op_desc) {
     return SUCCESS;  // Not TBE node.
   }
   (void)AttrUtils::SetStr(op_desc, "_kernelname", tbe_kernel->GetName());
-  tbe_kernel_store_.AddTBEKernel(tbe_kernel);
+  GE_ASSERT_SUCCESS(AddTBEKernelToStore(op_desc, tbe_kernel, "normal"));
 
   // Compat for compiler changes: remove prefix (node name) of attr name for symbol of kernel elf
   std::string symbol_of_elf;
@@ -894,16 +953,16 @@ Status ModelBuilder::SaveFftsPlusTBEKernel(const OpDescPtr &op_desc) {
   const auto thread_tbe_kernel =
       op_desc->TryGetExtAttr(OP_EXTATTR_NAME_THREAD_TBE_KERNEL, std::vector<OpKernelBinPtr>{});
   for (size_t i = 0UL; i < thread_tbe_kernel.size(); ++i) {
-    tbe_kernel_store_.AddTBEKernel(thread_tbe_kernel[i]);
+    GE_ASSERT_SUCCESS(AddTBEKernelToStore(op_desc, thread_tbe_kernel[i], "thread"));
   }
 
-  const auto SaveMixTBE = [&op_desc, this](const std::string &prefix, const std::string &core_type) {
+  const auto SaveMixTBE = [&op_desc, this](const std::string &prefix, const std::string &core_type) -> Status {
     TBEKernelPtr tbe_kernel = op_desc->TryGetExtAttr(prefix + OP_EXTATTR_NAME_TBE_KERNEL, TBEKernelPtr());
     if (tbe_kernel == nullptr) {
       tbe_kernel = CreateOpTBEKernel(op_desc, prefix);
     }
     GE_CHECK_NOTNULL(tbe_kernel);
-    tbe_kernel_store_.AddTBEKernel(tbe_kernel);
+    GE_ASSERT_SUCCESS(AddTBEKernelToStore(op_desc, tbe_kernel, core_type));
     GELOGD("Add %s kernel bin, Op(%s:%s)", core_type.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str());
     return SUCCESS;
   };

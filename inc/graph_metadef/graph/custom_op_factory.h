@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "graph/custom_op.h"
+#include "graph/custom_op/args_refresh.h"
 #include "graph/ascend_string.h"
 #include "graph/ge_error_codes.h"
 
@@ -38,6 +39,7 @@ class CustomOpFactory {
   static graphStatus LoadCustomOpsPartition(const uint8_t *data, size_t len);
 
   static bool IsAddressRefreshable(const AscendString &op_type);
+  static ArgsRefreshStrategy GetArgsRefreshStrategy(const AscendString &op_type);
 
  private:
   static CustomOpRegistry &GetGlobalRegistry();

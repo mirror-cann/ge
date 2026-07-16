@@ -2048,6 +2048,120 @@ TEST_F(UtestModelBuilderTest, test_model_save) {
   EXPECT_NE(builder.SaveCustAiCpuKernel(cust_desc, aicpu_name_set), SUCCESS);
 }
 
+namespace {
+void SetDummyModelTaskDef(ge::Model &model) {
+  auto model_task_def = ge::MakeShared<domi::ModelTaskDef>();
+  ASSERT_NE(model_task_def, nullptr);
+  auto *const task_def = model_task_def->add_task();
+  ASSERT_NE(task_def, nullptr);
+  task_def->set_type(0U);
+  const size_t task_size = model_task_def->ByteSizeLong();
+  ge::Buffer serial_buff(task_size);
+  google::protobuf::io::ArrayOutputStream array_stream(serial_buff.GetData(),
+                                                       static_cast<int32_t>(serial_buff.GetSize()));
+  google::protobuf::io::CodedOutputStream output_stream(&array_stream);
+  output_stream.SetSerializationDeterministic(true);
+  ASSERT_TRUE(model_task_def->SerializeToCodedStream(&output_stream));
+  ASSERT_TRUE(AttrUtils::SetZeroCopyBytes(model, MODEL_ATTR_TASKS, std::move(serial_buff)));
+}
+
+void SetTbeKernelAttrs(const OpDescPtr &op_desc, const std::string &kernel_name, const Buffer &kernel_buffer) {
+  ASSERT_TRUE(AttrUtils::SetStr(op_desc, ATTR_NAME_TBE_KERNEL_NAME, kernel_name));
+  ASSERT_TRUE(AttrUtils::SetBytes(op_desc, ATTR_NAME_TBE_KERNEL_BUFFER, kernel_buffer));
+}
+}  // namespace
+
+TEST_F(UtestModelBuilderTest, SaveDataToModelUsesLastBinForSameKernelNameWithDifferentBins) {
+  auto graph = std::make_shared<ComputeGraph>("duplicate_tbe_kernel_graph");
+  auto first_op = std::make_shared<OpDesc>("first_op", RELU);
+  auto second_op = std::make_shared<OpDesc>("second_op", RELU);
+  ASSERT_NE(graph->AddNode(first_op), nullptr);
+  ASSERT_NE(graph->AddNode(second_op), nullptr);
+  SetTbeKernelAttrs(first_op, "shared_kernel", Buffer(4U, 0x1U));
+  SetTbeKernelAttrs(second_op, "shared_kernel", Buffer(4U, 0x2U));
+
+  Graph2SubGraphInfoList subgraphs;
+  std::map<std::string, int> stream_max_parallel_num;
+  ge::ModelBuilder builder(0, graph, subgraphs, stream_max_parallel_num, false);
+  ge::Model model;
+  ge::GeModel ge_model;
+  SetDummyModelTaskDef(model);
+
+  ASSERT_EQ(builder.SaveDataToModel(model, ge_model), SUCCESS);
+  const auto stored_kernel = ge_model.GetTBEKernelStore().FindKernel("shared_kernel");
+  ASSERT_NE(stored_kernel, nullptr);
+  ASSERT_EQ(stored_kernel->GetBinDataSize(), 4U);
+  for (size_t i = 0U; i < stored_kernel->GetBinDataSize(); ++i) {
+    EXPECT_EQ(static_cast<uint8_t>(stored_kernel->GetBinData()[i]), 0x2U);
+  }
+}
+
+TEST_F(UtestModelBuilderTest, AddTBEKernelToStoreTracksCustomUsageForCurrentBin) {
+  auto graph = std::make_shared<ComputeGraph>("custom_kernel_origin_graph");
+  Graph2SubGraphInfoList subgraphs;
+  std::map<std::string, int> stream_max_parallel_num;
+  ge::ModelBuilder builder(0, graph, subgraphs, stream_max_parallel_num, false);
+
+  auto custom_op = std::make_shared<OpDesc>("custom_op", "CustomOp");
+  custom_op->SetOpKernelLibName(kCustomOpKernelLibName);
+  auto first_non_custom_op = std::make_shared<OpDesc>("first_non_custom_op", RELU);
+  first_non_custom_op->SetOpKernelLibName("AIcoreEngine");
+  auto second_non_custom_op = std::make_shared<OpDesc>("second_non_custom_op", RELU);
+  second_non_custom_op->SetOpKernelLibName("AIcoreEngine");
+  auto third_non_custom_op = std::make_shared<OpDesc>("third_non_custom_op", RELU);
+  third_non_custom_op->SetOpKernelLibName("AIcoreEngine");
+  auto custom_kernel = std::make_shared<OpKernelBin>("shared_kernel", std::vector<char>{0x1, 0x1});
+  auto same_kernel = std::make_shared<OpKernelBin>("shared_kernel", std::vector<char>{0x1, 0x1});
+  auto conflicting_kernel = std::make_shared<OpKernelBin>("shared_kernel", std::vector<char>{0x2, 0x2});
+  auto next_kernel = std::make_shared<OpKernelBin>("shared_kernel", std::vector<char>{0x3, 0x3});
+
+  ASSERT_EQ(builder.AddTBEKernelToStore(custom_op, custom_kernel, "normal"), SUCCESS);
+  ASSERT_EQ(builder.AddTBEKernelToStore(first_non_custom_op, same_kernel, "normal"), SUCCESS);
+  auto origin_iter = builder.tbe_kernel_origins_.find("shared_kernel");
+  ASSERT_NE(origin_iter, builder.tbe_kernel_origins_.end());
+  EXPECT_FALSE(origin_iter->second.is_custom);
+  EXPECT_TRUE(origin_iter->second.current_bin_has_custom_user);
+
+  ASSERT_EQ(builder.AddTBEKernelToStore(second_non_custom_op, conflicting_kernel, "normal"), SUCCESS);
+  origin_iter = builder.tbe_kernel_origins_.find("shared_kernel");
+  ASSERT_NE(origin_iter, builder.tbe_kernel_origins_.end());
+  EXPECT_FALSE(origin_iter->second.current_bin_has_custom_user);
+
+  ASSERT_EQ(builder.AddTBEKernelToStore(third_non_custom_op, next_kernel, "normal"), SUCCESS);
+
+  origin_iter = builder.tbe_kernel_origins_.find("shared_kernel");
+  ASSERT_NE(origin_iter, builder.tbe_kernel_origins_.end());
+  EXPECT_FALSE(origin_iter->second.is_custom);
+  EXPECT_FALSE(origin_iter->second.current_bin_has_custom_user);
+  EXPECT_EQ(origin_iter->second.op_name, "third_non_custom_op");
+  EXPECT_EQ(origin_iter->second.op_type, RELU);
+  EXPECT_EQ(origin_iter->second.kernel_type, "normal");
+  EXPECT_EQ(builder.tbe_kernel_store_.FindKernel("shared_kernel"), next_kernel);
+}
+
+TEST_F(UtestModelBuilderTest, SaveDataToModelReusesSameKernelNameWithSameBin) {
+  auto graph = std::make_shared<ComputeGraph>("duplicate_same_tbe_kernel_graph");
+  auto first_op = std::make_shared<OpDesc>("first_op", RELU);
+  auto second_op = std::make_shared<OpDesc>("second_op", RELU);
+  ASSERT_NE(graph->AddNode(first_op), nullptr);
+  ASSERT_NE(graph->AddNode(second_op), nullptr);
+  const Buffer kernel_buffer(4U, 0x1U);
+  SetTbeKernelAttrs(first_op, "shared_kernel", kernel_buffer);
+  SetTbeKernelAttrs(second_op, "shared_kernel", kernel_buffer);
+
+  Graph2SubGraphInfoList subgraphs;
+  std::map<std::string, int> stream_max_parallel_num;
+  ge::ModelBuilder builder(0, graph, subgraphs, stream_max_parallel_num, false);
+  ge::Model model;
+  ge::GeModel ge_model;
+  SetDummyModelTaskDef(model);
+
+  EXPECT_EQ(builder.SaveDataToModel(model, ge_model), SUCCESS);
+  const size_t expected_size =
+      sizeof(KernelStoreItemHead) + std::string("shared_kernel").length() + kernel_buffer.GetSize();
+  EXPECT_EQ(ge_model.GetTBEKernelStore().DataSize(), expected_size);
+}
+
 TEST_F(UtestModelBuilderTest, CompileSingleOp) {
   Graph2SubGraphInfoList subgraphs;
   std::map<std::string, int> stream_max_parallel_num;
