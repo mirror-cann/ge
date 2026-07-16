@@ -1108,10 +1108,9 @@ class AscOverrides final : public OpOverrides {
     // Instantiate the node inside that .so via the bridge to avoid cross-library symbol issues.
     AscNodePtr node = af::AscGraphAddAscirNodeByType(*graph_, T::Type, NextName(T::Type).c_str(), dyn_in, dyn_out);
     GE_WARN_ASSERT(node != nullptr);
-    node->attr.sched.exec_order = NextOrder();
     node->attr.sched.axis = GetLoopAxisIds();
-    GELOGI("Asc graph <%s> add no.%ld node <%s, %s>", graph_->GetName().c_str(), node->attr.sched.exec_order,
-           node->GetName().c_str(), node->GetType().c_str());
+    GELOGI("Asc graph <%s> add node <%s, %s>", graph_->GetName().c_str(), node->GetName().c_str(),
+           node->GetType().c_str());
     GE_WARN_ASSERT(node->GetAllInDataAnchorsSize() == vars.size());
     for (int32_t i = 0U; i < static_cast<int32_t>(vars.size()); i++) {
       GE_WARN_ASSERT(vars[i].Buffer() != nullptr);

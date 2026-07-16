@@ -182,7 +182,8 @@ message ShapeEnvAttrGroupsDef {
 }
 
 message SchedInfoDef {
-  int64 exec_order = 1;
+  // Deprecated since 2026-07-15. Kept only for compatibility and can be removed after compatibility window.
+  int64 exec_order = 1 [deprecated = true];
   repeated int64 axis = 2;
   int64 loop_axis = 3;
   int32 exec_condition = 4;

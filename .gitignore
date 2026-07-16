@@ -42,3 +42,7 @@ __pycache__
 oat_reports/
 
 log/
+
+# python venv
+/venv
+/.venv

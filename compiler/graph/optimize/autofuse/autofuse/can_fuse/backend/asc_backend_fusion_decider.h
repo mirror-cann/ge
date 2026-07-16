@@ -294,7 +294,7 @@ class AscBackendFusionDecider : public FusionDecider {
                                      std::set<std::pair<NodePtr, NodePtr>> &link_ascnode_map) const;
 
   /**
-   * 该函数用于更新融合后的子图（subgraph）的执行顺序（exec_order）属性。
+   * 该函数用于更新融合后的子图（subgraph）的执行顺序。
    * 主要逻辑包括：
    * 1. 根据融合类型（垂直融合或水平融合），更新子图节点的执行顺序：
    *    1.1 对于垂直融合，使用前序子图的最大执行顺序更新后序子图的执行顺序。

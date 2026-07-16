@@ -11047,7 +11047,6 @@ inline af::AscOpOutput Data(const char *name, af::AscGraph &graph, const int64_t
 
   op.ir_attr.SetIndex(index);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -11066,7 +11065,6 @@ inline af::AscOpOutput Data(const char *name, af::AscGraph &graph, ge::DataType 
 
   op.ir_attr.SetIndex(index);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.dtype = dt;
@@ -11089,7 +11087,6 @@ inline af::AscOpOutput ContiguousData(const char *name, af::AscGraph &graph, ge:
 
   op.ir_attr.SetIndex(index);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.dtype = dt;
@@ -11107,7 +11104,6 @@ inline af::AscOpOutput Data(const char *name, af::AscGraph &graph) {
   const auto &desc = OpDescUtils::GetOpDescFromOperator(op);
   desc->SetExtAttr(RELATED_OP, op_ptr);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -11124,7 +11120,6 @@ inline af::AscOpOutput Data(const char *name, af::AscGraph &graph, ge::DataType 
   const auto &desc = OpDescUtils::GetOpDescFromOperator(op);
   desc->SetExtAttr(RELATED_OP, op_ptr);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.dtype = dt;
@@ -11145,7 +11140,6 @@ inline af::AscOpOutput ContiguousData(const char *name, af::AscGraph &graph, ge:
   const auto &desc = OpDescUtils::GetOpDescFromOperator(op);
   desc->SetExtAttr(RELATED_OP, op_ptr);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.dtype = dt;
@@ -11166,7 +11160,6 @@ inline af::AscOpOutput Scalar(const char *name, af::AscGraph &graph, const std::
   op.ir_attr.SetValue(value);
   op.ir_attr.SetIndex(index);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -11187,7 +11180,6 @@ inline af::AscOpOutput Scalar(const char *name, af::AscGraph &graph, ge::DataTyp
   op.ir_attr.SetValue(value);
   op.ir_attr.SetIndex(index);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.dtype = dt;
@@ -11212,7 +11204,6 @@ inline af::AscOpOutput ContiguousScalar(const char *name, af::AscGraph &graph, g
   op.ir_attr.SetValue(value);
   op.ir_attr.SetIndex(index);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.dtype = dt;
@@ -11230,7 +11221,6 @@ inline af::AscOpOutput Scalar(const char *name, af::AscGraph &graph) {
   const auto &desc = OpDescUtils::GetOpDescFromOperator(op);
   desc->SetExtAttr(RELATED_OP, op_ptr);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -11247,7 +11237,6 @@ inline af::AscOpOutput Scalar(const char *name, af::AscGraph &graph, ge::DataTyp
   const auto &desc = OpDescUtils::GetOpDescFromOperator(op);
   desc->SetExtAttr(RELATED_OP, op_ptr);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.dtype = dt;
@@ -11268,7 +11257,6 @@ inline af::AscOpOutput ContiguousScalar(const char *name, af::AscGraph &graph, g
   const auto &desc = OpDescUtils::GetOpDescFromOperator(op);
   desc->SetExtAttr(RELATED_OP, op_ptr);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.dtype = dt;
@@ -11288,7 +11276,6 @@ inline af::AscOpOutput ScalarData(const char *name, af::AscGraph &graph, const i
 
   op.ir_attr.SetIndex(index);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -11307,7 +11294,6 @@ inline af::AscOpOutput ScalarData(const char *name, af::AscGraph &graph, ge::Dat
 
   op.ir_attr.SetIndex(index);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.dtype = dt;
@@ -11330,7 +11316,6 @@ inline af::AscOpOutput ContiguousScalarData(const char *name, af::AscGraph &grap
 
   op.ir_attr.SetIndex(index);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.dtype = dt;
@@ -11348,7 +11333,6 @@ inline af::AscOpOutput ScalarData(const char *name, af::AscGraph &graph) {
   const auto &desc = OpDescUtils::GetOpDescFromOperator(op);
   desc->SetExtAttr(RELATED_OP, op_ptr);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -11365,7 +11349,6 @@ inline af::AscOpOutput ScalarData(const char *name, af::AscGraph &graph, ge::Dat
   const auto &desc = OpDescUtils::GetOpDescFromOperator(op);
   desc->SetExtAttr(RELATED_OP, op_ptr);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.dtype = dt;
@@ -11386,7 +11369,6 @@ inline af::AscOpOutput ContiguousScalarData(const char *name, af::AscGraph &grap
   const auto &desc = OpDescUtils::GetOpDescFromOperator(op);
   desc->SetExtAttr(RELATED_OP, op_ptr);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.dtype = dt;
@@ -11406,7 +11388,6 @@ inline af::AscOpOutput IndexExpr(const char *name, af::AscGraph &graph, const in
 
   op.ir_attr.SetExpr(expr);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -11425,7 +11406,6 @@ inline af::AscOpOutput IndexExpr(const char *name, af::AscGraph &graph, ge::Data
 
   op.ir_attr.SetExpr(expr);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.dtype = dt;
@@ -11448,7 +11428,6 @@ inline af::AscOpOutput ContiguousIndexExpr(const char *name, af::AscGraph &graph
 
   op.ir_attr.SetExpr(expr);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.dtype = dt;
@@ -11466,7 +11445,6 @@ inline af::AscOpOutput IndexExpr(const char *name, af::AscGraph &graph) {
   const auto &desc = OpDescUtils::GetOpDescFromOperator(op);
   desc->SetExtAttr(RELATED_OP, op_ptr);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -11483,7 +11461,6 @@ inline af::AscOpOutput IndexExpr(const char *name, af::AscGraph &graph, ge::Data
   const auto &desc = OpDescUtils::GetOpDescFromOperator(op);
   desc->SetExtAttr(RELATED_OP, op_ptr);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.dtype = dt;
@@ -11504,7 +11481,6 @@ inline af::AscOpOutput ContiguousIndexExpr(const char *name, af::AscGraph &graph
   const auto &desc = OpDescUtils::GetOpDescFromOperator(op);
   desc->SetExtAttr(RELATED_OP, op_ptr);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.dtype = dt;
@@ -11526,7 +11502,6 @@ inline af::AscOpOutput Output(const char *name, const af::AscOpOutput &x_in, con
 
   op.ir_attr.SetIndex(index);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -11543,7 +11518,6 @@ inline af::AscOpOutput Output(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -11560,7 +11534,6 @@ inline af::AscOpOutput Workspace(const char *name, const af::AscOpOutput &x_in) 
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -11579,7 +11552,6 @@ inline af::AscOpOutput Load(const char *name, const af::AscOpOutput &x_in, const
 
   op.ir_attr.SetOffset(offset);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -11596,7 +11568,6 @@ inline af::AscOpOutput Load(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -11615,7 +11586,6 @@ inline af::AscOpOutput Store(const char *name, const af::AscOpOutput &x_in, cons
 
   op.ir_attr.SetOffset(offset);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -11631,8 +11601,6 @@ inline void Store(const char *name, const af::AscOpOutput &ub_in, af::AscOpOutpu
   auto &store_op = const_cast<af::Operator &>(store_out.GetOwnerOp());
   gm_producer.SetInput(0U, store_op, 0U);
   AddEdgeForNode(store_op, 0U, gm_producer, 0U);
-  auto *gm_producer_attr = CodeGenUtils::GetOwnerOpAscAttr(gm_producer);
-  gm_producer_attr->sched.exec_order = CodeGenUtils::GenNextExecId(store_op);
 }
 inline af::AscOpOutput Store(const char *name, const af::AscOpOutput &x_in) {
   const auto &op_ptr = std::make_shared<af::ascir_op::Store>(name);
@@ -11642,7 +11610,6 @@ inline af::AscOpOutput Store(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -11657,8 +11624,6 @@ inline void Store(const char *name, const af::AscOpOutput &ub_in, af::AscOpOutpu
   auto &store_op = const_cast<af::Operator &>(store_out.GetOwnerOp());
   gm_producer.SetInput(0U, store_op, 0U);
   AddEdgeForNode(store_op, 0U, gm_producer, 0U);
-  auto *gm_producer_attr = CodeGenUtils::GetOwnerOpAscAttr(gm_producer);
-  gm_producer_attr->sched.exec_order = CodeGenUtils::GenNextExecId(store_op);
 }
 inline af::AscOpOutput Broadcast(const char *name, const af::AscOpOutput &x_in) {
   const auto &op_ptr = std::make_shared<af::ascir_op::Broadcast>(name);
@@ -11668,7 +11633,6 @@ inline af::AscOpOutput Broadcast(const char *name, const af::AscOpOutput &x_in) 
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -11685,7 +11649,6 @@ inline af::AscOpOutput RemovePad(const char *name, const af::AscOpOutput &x_in) 
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -11702,7 +11665,6 @@ inline af::AscOpOutput Pad(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -11719,7 +11681,6 @@ inline af::AscOpOutput Nop(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -11736,7 +11697,6 @@ inline af::AscOpOutput Cast(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -11753,7 +11713,6 @@ inline af::AscOpOutput Abs(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -11770,7 +11729,6 @@ inline af::AscOpOutput Exp(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -11787,7 +11745,6 @@ inline af::AscOpOutput Ln(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -11804,7 +11761,6 @@ inline af::AscOpOutput ArgMax(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -11821,7 +11777,6 @@ inline std::tuple<af::AscOpOutput, af::AscOpOutput> ArgMaxMultiRPhase1(const cha
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.value.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -11843,7 +11798,6 @@ inline af::AscOpOutput ArgMaxMultiRPhase2(const char *name, const af::AscOpOutpu
   op.value = value_in;
   op.index = index_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -11860,7 +11814,6 @@ inline af::AscOpOutput Sqrt(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -11877,7 +11830,6 @@ inline af::AscOpOutput Rsqrt(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -11894,7 +11846,6 @@ inline af::AscOpOutput Reciprocal(const char *name, const af::AscOpOutput &x_in)
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -11911,7 +11862,6 @@ inline af::AscOpOutput Erf(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -11928,7 +11878,6 @@ inline af::AscOpOutput Sign(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -11945,7 +11894,6 @@ inline af::AscOpOutput Tanh(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -11962,7 +11910,6 @@ inline af::AscOpOutput Isnan(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -11979,7 +11926,6 @@ inline af::AscOpOutput IsFinite(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -11996,7 +11942,6 @@ inline af::AscOpOutput IsInf(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12013,7 +11958,6 @@ inline af::AscOpOutput Relu(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12030,7 +11974,6 @@ inline af::AscOpOutput Neg(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12047,7 +11990,6 @@ inline af::AscOpOutput LogicalNot(const char *name, const af::AscOpOutput &x_in)
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12064,7 +12006,6 @@ inline af::AscOpOutput Max(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12081,7 +12022,6 @@ inline af::AscOpOutput Sum(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12098,7 +12038,6 @@ inline af::AscOpOutput Min(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12115,7 +12054,6 @@ inline af::AscOpOutput Mean(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12132,7 +12070,6 @@ inline af::AscOpOutput Prod(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12149,7 +12086,6 @@ inline af::AscOpOutput Sigmoid(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12166,7 +12102,6 @@ inline af::AscOpOutput Any(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12183,7 +12118,6 @@ inline af::AscOpOutput All(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12201,7 +12135,6 @@ inline af::AscOpOutput Add(const char *name, const af::AscOpOutput &x1_in, const
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12219,7 +12152,6 @@ inline af::AscOpOutput Sub(const char *name, const af::AscOpOutput &x1_in, const
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12237,7 +12169,6 @@ inline af::AscOpOutput Div(const char *name, const af::AscOpOutput &x1_in, const
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12255,7 +12186,6 @@ inline af::AscOpOutput Mul(const char *name, const af::AscOpOutput &x1_in, const
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12273,7 +12203,6 @@ inline af::AscOpOutput Minimum(const char *name, const af::AscOpOutput &x1_in, c
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12291,7 +12220,6 @@ inline af::AscOpOutput Maximum(const char *name, const af::AscOpOutput &x1_in, c
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12309,7 +12237,6 @@ inline af::AscOpOutput TrueDiv(const char *name, const af::AscOpOutput &x1_in, c
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12327,7 +12254,6 @@ inline af::AscOpOutput Remainder(const char *name, const af::AscOpOutput &x1_in,
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12345,7 +12271,6 @@ inline af::AscOpOutput LogicalOr(const char *name, const af::AscOpOutput &x1_in,
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12363,7 +12288,6 @@ inline af::AscOpOutput LogicalAnd(const char *name, const af::AscOpOutput &x1_in
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12381,7 +12305,6 @@ inline af::AscOpOutput Pow(const char *name, const af::AscOpOutput &x1_in, const
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12401,7 +12324,6 @@ inline af::AscOpOutput ClipByValue(const char *name, const af::AscOpOutput &x1_i
   op.x2 = x2_in;
   op.x3 = x3_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12419,7 +12341,6 @@ inline af::AscOpOutput Ge(const char *name, const af::AscOpOutput &x1_in, const 
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12437,7 +12358,6 @@ inline af::AscOpOutput Eq(const char *name, const af::AscOpOutput &x1_in, const 
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12455,7 +12375,6 @@ inline af::AscOpOutput Ne(const char *name, const af::AscOpOutput &x1_in, const 
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12473,7 +12392,6 @@ inline af::AscOpOutput Gt(const char *name, const af::AscOpOutput &x1_in, const 
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12491,7 +12409,6 @@ inline af::AscOpOutput Le(const char *name, const af::AscOpOutput &x1_in, const 
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12509,7 +12426,6 @@ inline af::AscOpOutput Lt(const char *name, const af::AscOpOutput &x1_in, const 
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12524,7 +12440,6 @@ inline af::AscOpOutput Concat(const char *name) {
   const auto &desc = OpDescUtils::GetOpDescFromOperator(op);
   desc->SetExtAttr(RELATED_OP, op_ptr);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12544,7 +12459,6 @@ inline af::AscOpOutput Select(const char *name, const af::AscOpOutput &x1_in, co
   op.x2 = x2_in;
   op.x3 = x3_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12564,7 +12478,6 @@ inline af::AscOpOutput Where(const char *name, const af::AscOpOutput &x1_in, con
   op.x2 = x2_in;
   op.x3 = x3_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12584,7 +12497,6 @@ inline af::AscOpOutput MaskedFill(const char *name, const af::AscOpOutput &x_in,
   op.mask = mask_in;
   op.value = value_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12601,7 +12513,6 @@ inline af::AscOpOutput Ub2ub(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12620,7 +12531,6 @@ inline af::AscOpOutput LeakyRelu(const char *name, const af::AscOpOutput &x_in, 
 
   op.ir_attr.SetNegative_slope(negative_slope);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12637,7 +12547,6 @@ inline af::AscOpOutput LeakyRelu(const char *name, const af::AscOpOutput &x_in) 
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12655,7 +12564,6 @@ inline af::AscOpOutput BitwiseAnd(const char *name, const af::AscOpOutput &x1_in
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12677,7 +12585,6 @@ inline af::AscOpOutput Gather(const char *name, const af::AscOpOutput &x1_in, co
   op.ir_attr.SetAxis(axis);
   op.ir_attr.SetNegative_index_support(negative_index_support);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12695,7 +12602,6 @@ inline af::AscOpOutput Gather(const char *name, const af::AscOpOutput &x1_in, co
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12712,7 +12618,6 @@ inline af::AscOpOutput Transpose(const char *name, const af::AscOpOutput &x_in) 
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12734,7 +12639,6 @@ inline std::tuple<af::AscOpOutput, af::AscOpOutput, af::AscOpOutput> FlashSoftma
   op.x2 = x2_in;
   op.x3 = x3_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y1.dtype = static_cast<ge::DataType>(x1_in.dtype);
@@ -12762,7 +12666,6 @@ inline af::AscOpOutput FloorDiv(const char *name, const af::AscOpOutput &x1_in, 
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12779,7 +12682,6 @@ inline af::AscOpOutput Gelu(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12800,7 +12702,6 @@ inline af::AscOpOutput Axpy(const char *name, const af::AscOpOutput &x1_in, cons
 
   op.ir_attr.SetAlpha(alpha);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12818,7 +12719,6 @@ inline af::AscOpOutput Axpy(const char *name, const af::AscOpOutput &x1_in, cons
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12844,7 +12744,6 @@ inline af::AscOpOutput MatMul(const char *name, const af::AscOpOutput &x1_in, co
   op.ir_attr.SetHas_relu(has_relu);
   op.ir_attr.SetEnable_hf32(enable_hf32);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12862,7 +12761,6 @@ inline af::AscOpOutput MatMul(const char *name, const af::AscOpOutput &x1_in, co
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12889,7 +12787,6 @@ inline af::AscOpOutput MatMulBias(const char *name, const af::AscOpOutput &x1_in
   op.ir_attr.SetHas_relu(has_relu);
   op.ir_attr.SetEnable_hf32(enable_hf32);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12909,7 +12806,6 @@ inline af::AscOpOutput MatMulBias(const char *name, const af::AscOpOutput &x1_in
   op.x2 = x2_in;
   op.bias = bias_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12937,7 +12833,6 @@ inline af::AscOpOutput MatMulOffset(const char *name, const af::AscOpOutput &x1_
   op.ir_attr.SetHas_relu(has_relu);
   op.ir_attr.SetEnable_hf32(enable_hf32);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12957,7 +12852,6 @@ inline af::AscOpOutput MatMulOffset(const char *name, const af::AscOpOutput &x1_
   op.x2 = x2_in;
   op.offset_w = offset_w_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -12987,7 +12881,6 @@ inline af::AscOpOutput MatMulOffsetBias(const char *name, const af::AscOpOutput 
   op.ir_attr.SetHas_relu(has_relu);
   op.ir_attr.SetEnable_hf32(enable_hf32);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13008,7 +12901,6 @@ inline af::AscOpOutput MatMulOffsetBias(const char *name, const af::AscOpOutput 
   op.bias = bias_in;
   op.offset_w = offset_w_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13034,7 +12926,6 @@ inline af::AscOpOutput BatchMatMul(const char *name, const af::AscOpOutput &x1_i
   op.ir_attr.SetAdj_x1(adj_x1);
   op.ir_attr.SetAdj_x2(adj_x2);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13052,7 +12943,6 @@ inline af::AscOpOutput BatchMatMul(const char *name, const af::AscOpOutput &x1_i
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13079,7 +12969,6 @@ inline af::AscOpOutput BatchMatMulBias(const char *name, const af::AscOpOutput &
   op.ir_attr.SetAdj_x1(adj_x1);
   op.ir_attr.SetAdj_x2(adj_x2);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13099,7 +12988,6 @@ inline af::AscOpOutput BatchMatMulBias(const char *name, const af::AscOpOutput &
   op.x2 = x2_in;
   op.bias = bias_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13127,7 +13015,6 @@ inline af::AscOpOutput BatchMatMulOffset(const char *name, const af::AscOpOutput
   op.ir_attr.SetAdj_x1(adj_x1);
   op.ir_attr.SetAdj_x2(adj_x2);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13147,7 +13034,6 @@ inline af::AscOpOutput BatchMatMulOffset(const char *name, const af::AscOpOutput
   op.x2 = x2_in;
   op.offset_w = offset_w_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13177,7 +13063,6 @@ inline af::AscOpOutput BatchMatMulOffsetBias(const char *name, const af::AscOpOu
   op.ir_attr.SetAdj_x1(adj_x1);
   op.ir_attr.SetAdj_x2(adj_x2);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13199,7 +13084,6 @@ inline af::AscOpOutput BatchMatMulOffsetBias(const char *name, const af::AscOpOu
   op.bias = bias_in;
   op.offset_w = offset_w_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13231,7 +13115,6 @@ inline af::AscOpOutput Conv2D(const char *name, const af::AscOpOutput &x_in, con
   op.ir_attr.SetOffset_x(offset_x);
   op.ir_attr.SetEnable_hf32(enable_hf32);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13249,7 +13132,6 @@ inline af::AscOpOutput Conv2D(const char *name, const af::AscOpOutput &x_in, con
   op.x = x_in;
   op.filter = filter_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13282,7 +13164,6 @@ inline af::AscOpOutput Conv2DBias(const char *name, const af::AscOpOutput &x_in,
   op.ir_attr.SetOffset_x(offset_x);
   op.ir_attr.SetEnable_hf32(enable_hf32);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13302,7 +13183,6 @@ inline af::AscOpOutput Conv2DBias(const char *name, const af::AscOpOutput &x_in,
   op.filter = filter_in;
   op.bias = bias_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13335,7 +13215,6 @@ inline af::AscOpOutput Conv2DOffset(const char *name, const af::AscOpOutput &x_i
   op.ir_attr.SetOffset_x(offset_x);
   op.ir_attr.SetEnable_hf32(enable_hf32);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13355,7 +13234,6 @@ inline af::AscOpOutput Conv2DOffset(const char *name, const af::AscOpOutput &x_i
   op.filter = filter_in;
   op.offset_w = offset_w_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13391,7 +13269,6 @@ inline af::AscOpOutput Conv2DOffsetBias(const char *name, const af::AscOpOutput 
   op.ir_attr.SetOffset_x(offset_x);
   op.ir_attr.SetEnable_hf32(enable_hf32);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13412,7 +13289,6 @@ inline af::AscOpOutput Conv2DOffsetBias(const char *name, const af::AscOpOutput 
   op.bias = bias_in;
   op.offset_w = offset_w_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13429,7 +13305,6 @@ inline af::AscOpOutput Square(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13446,7 +13321,6 @@ inline af::AscOpOutput RoundToInt(const char *name, const af::AscOpOutput &x_in)
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13463,7 +13337,6 @@ inline af::AscOpOutput TruncToInt(const char *name, const af::AscOpOutput &x_in)
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13481,7 +13354,6 @@ inline af::AscOpOutput Xor(const char *name, const af::AscOpOutput &x1_in, const
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13498,7 +13370,6 @@ inline af::AscOpOutput Trunc(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13515,7 +13386,6 @@ inline af::AscOpOutput Tan(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13533,7 +13403,6 @@ inline af::AscOpOutput TruncDiv(const char *name, const af::AscOpOutput &x1_in, 
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13550,7 +13419,6 @@ inline af::AscOpOutput Sinh(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13567,7 +13435,6 @@ inline af::AscOpOutput ModifiedBesselI0(const char *name, const af::AscOpOutput 
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13584,7 +13451,6 @@ inline af::AscOpOutput ModifiedBesselI1(const char *name, const af::AscOpOutput 
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13601,7 +13467,6 @@ inline af::AscOpOutput ModifiedBesselK0(const char *name, const af::AscOpOutput 
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13618,7 +13483,6 @@ inline af::AscOpOutput ModifiedBesselK1(const char *name, const af::AscOpOutput 
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13636,7 +13500,6 @@ inline af::AscOpOutput LaguerrePolynomialL(const char *name, const af::AscOpOutp
   op.x = x_in;
   op.n = n_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13654,7 +13517,6 @@ inline af::AscOpOutput LegendrePolynomialP(const char *name, const af::AscOpOutp
   op.x = x_in;
   op.n = n_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13671,7 +13533,6 @@ inline af::AscOpOutput AiryAi(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13688,7 +13549,6 @@ inline af::AscOpOutput Erfinv(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13707,7 +13567,6 @@ inline af::AscOpOutput Nddma(const char *name, const af::AscOpOutput &x_in, cons
 
   op.ir_attr.SetOffset(offset);
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13724,7 +13583,6 @@ inline af::AscOpOutput Nddma(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13741,7 +13599,6 @@ inline af::AscOpOutput Round(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13758,7 +13615,6 @@ inline af::AscOpOutput Exp2(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13775,7 +13631,6 @@ inline af::AscOpOutput Floor(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13795,7 +13650,6 @@ inline af::AscOpOutput Fma(const char *name, const af::AscOpOutput &x1_in, const
   op.x2 = x2_in;
   op.x3 = x3_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13812,7 +13666,6 @@ inline af::AscOpOutput Expm(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13829,7 +13682,6 @@ inline af::AscOpOutput Log2(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13847,7 +13699,6 @@ inline af::AscOpOutput LShift(const char *name, const af::AscOpOutput &x1_in, co
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13865,7 +13716,6 @@ inline af::AscOpOutput Mod(const char *name, const af::AscOpOutput &x1_in, const
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13882,7 +13732,6 @@ inline af::AscOpOutput BitwiseNot(const char *name, const af::AscOpOutput &x_in)
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13900,7 +13749,6 @@ inline af::AscOpOutput BitwiseOr(const char *name, const af::AscOpOutput &x1_in,
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13918,7 +13766,6 @@ inline af::AscOpOutput BitwiseXor(const char *name, const af::AscOpOutput &x1_in
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13935,7 +13782,6 @@ inline af::AscOpOutput Ceil(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13952,7 +13798,6 @@ inline af::AscOpOutput Cos(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13969,7 +13814,6 @@ inline af::AscOpOutput Acos(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -13986,7 +13830,6 @@ inline af::AscOpOutput Cosh(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -14003,7 +13846,6 @@ inline af::AscOpOutput Digamma(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -14020,7 +13862,6 @@ inline af::AscOpOutput Erfc(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -14037,7 +13878,6 @@ inline af::AscOpOutput Erfcx(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -14055,7 +13895,6 @@ inline af::AscOpOutput Atan2(const char *name, const af::AscOpOutput &x1_in, con
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -14073,7 +13912,6 @@ inline af::AscOpOutput CopySign(const char *name, const af::AscOpOutput &x1_in, 
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -14090,7 +13928,6 @@ inline af::AscOpOutput Ceil2Int(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -14107,7 +13944,6 @@ inline af::AscOpOutput FloorToInt(const char *name, const af::AscOpOutput &x_in)
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -14125,7 +13961,6 @@ inline af::AscOpOutput Fmod(const char *name, const af::AscOpOutput &x1_in, cons
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -14143,7 +13978,6 @@ inline af::AscOpOutput Hypot(const char *name, const af::AscOpOutput &x1_in, con
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -14160,7 +13994,6 @@ inline af::AscOpOutput Lgamma(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -14177,7 +14010,6 @@ inline af::AscOpOutput Log10(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -14195,7 +14027,6 @@ inline af::AscOpOutput LogicalXor(const char *name, const af::AscOpOutput &x1_in
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -14212,7 +14043,6 @@ inline af::AscOpOutput Log1p(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -14229,7 +14059,6 @@ inline af::AscOpOutput Sin(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -14246,7 +14075,6 @@ inline af::AscOpOutput Acosh(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -14263,7 +14091,6 @@ inline af::AscOpOutput Asin(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -14280,7 +14107,6 @@ inline af::AscOpOutput Asinh(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -14297,7 +14123,6 @@ inline af::AscOpOutput Atan(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -14314,7 +14139,6 @@ inline af::AscOpOutput Atanh(const char *name, const af::AscOpOutput &x_in) {
 
   op.x = x_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
@@ -14332,7 +14156,6 @@ inline af::AscOpOutput RShift(const char *name, const af::AscOpOutput &x1_in, co
   op.x1 = x1_in;
   op.x2 = x2_in;
 
-  op.attr.sched.exec_order = CodeGenUtils::GenNextExecId(op);
   SET_SCHED_AXIS_IF_IN_CONTEXT(op);
 
   op.y.mem->tensor_id = CodeGenUtils::GenNextTensorId(op);
