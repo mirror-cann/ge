@@ -580,10 +580,13 @@ Status AutofuseUtils::SerializeAndPackComputeGraph(const ComputeGraphPtr &comput
   auto root_graph = GraphUtils::FindRootGraph(node->GetOwnerComputeGraph());
   GE_ASSERT_NOTNULL(root_graph);
   const auto shape_env_attr = root_graph->GetAttrsGroup<ShapeEnvAttr>();
-  GE_ASSERT_NOTNULL(shape_env_attr);
+  // ShapeEnvAttr 存储在根图上，部分场景根图无此属性（如未符号化的图、HashCopyGraph 作为独立根图），
+  // 允许为空：compute_graph 始终创建空的 ShapeEnvAttr 供序列化，仅当根图非空时拷贝数据。
   auto sub_graph_env_attr = compute_graph->GetOrCreateAttrsGroup<ge::ShapeEnvAttr>();
   GE_ASSERT_NOTNULL(sub_graph_env_attr);
-  *sub_graph_env_attr = *shape_env_attr;
+  if (shape_env_attr != nullptr) {
+    *sub_graph_env_attr = *shape_env_attr;
+  }
   if (isHash) {
     // hash场景删除symbolic_to_value及value_to_symbol字符
     sub_graph_env_attr->ClearSymbolValueInfo();
@@ -609,11 +612,13 @@ Status AutofuseUtils::SerializeAndPackComputeGraph(const ComputeGraphPtr &comput
     output_attr_array.push_back(ori_symbols);
   }
 
-  for (const auto &sym_2_src : shape_env_attr->GetAllSym2Src()) {
-    std::string sym_str(sym_2_src.first.Serialize().get());
-    symbol_info[sym_str.c_str()] = sym_2_src.second->GetSourceStr();
-    GELOGD("Serial symbol_to_source, symbol: %s, source: %s", sym_str.c_str(),
-           sym_2_src.second->GetSourceStr().c_str());
+  if (shape_env_attr != nullptr) {
+    for (const auto &sym_2_src : shape_env_attr->GetAllSym2Src()) {
+      std::string sym_str(sym_2_src.first.Serialize().get());
+      symbol_info[sym_str.c_str()] = sym_2_src.second->GetSourceStr();
+      GELOGD("Serial symbol_to_source, symbol: %s, source: %s", sym_str.c_str(),
+             sym_2_src.second->GetSourceStr().c_str());
+    }
   }
 
   nlohmann::json json_obj;
