@@ -18,6 +18,6 @@ export ASCEND_ENGINE_PATH=${INSTALL_DIR}/lib64/plugin/opskernel/libfe.so:${INSTA
 
 该环境变量仅适用于将算子json文件转换为离线om模型的场景。
 
-## 支持的型号
+## 产品支持情况
 
 全量芯片支持

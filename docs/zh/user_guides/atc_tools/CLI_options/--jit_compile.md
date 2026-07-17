@@ -25,7 +25,7 @@
 ## 示例
 
 ```bash
-atc --jit_compile --model=model.onnx ...
+atc --jit_compile=1 --model=model.onnx ...
 ```
 
 ## 依赖约束

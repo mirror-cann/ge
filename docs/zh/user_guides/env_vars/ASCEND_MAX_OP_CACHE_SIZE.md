@@ -57,6 +57,6 @@ max_op_cache_size=500
 remain_cache_size_ratio=80
 ```
 
-## 支持的型号
+## 产品支持情况
 
 全量芯片支持

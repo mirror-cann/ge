@@ -16,6 +16,6 @@
 export MAX_COMPILE_CORE_NUMBER=5
 ```
 
-## 支持的型号
+## 产品支持情况
 
 全量芯片支持

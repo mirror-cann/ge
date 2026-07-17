@@ -23,30 +23,8 @@ export IGNORE_INFER_ERROR=1
 
 如果自定义算子入图交付件缺失（比如缺少InferDataType实现），有可能导致编译失败或者精度问题，建议参考《Ascend C算子开发指南》手册的“编程指南 \> 附录 \> 算子入图（GE图）开发”章节进行补齐。
 
-## 支持的型号
+## 产品支持情况
 
-<!-- npu="950" id1 -->
-Ascend 950PR/Ascend 950DT
-<!-- end id1 -->
-
-<!-- npu="A3" id2 -->
-Atlas A3 训练系列产品/Atlas A3 推理系列产品
-<!-- end id2 -->
-
-<!-- npu="910b" id3 -->
-Atlas A2 训练系列产品/Atlas A2 推理系列产品
-<!-- end id3 -->
-
-<!-- npu="910" id4 -->
-Atlas 训练系列产品
-<!-- end id4 -->
-
-<!-- npu="310p" id5 -->
-Atlas 推理系列产品
-<!-- end id5 -->
-
-<!-- npu="310b" id6 -->
-Atlas 200I/500 A2 推理产品
-<!-- end id6 -->
+全量芯片支持
 
 <!-- @ref: ge/res/docs/zh/user_guides/env_vars/IGNORE_INFER_ERROR_res.md#id1 -->

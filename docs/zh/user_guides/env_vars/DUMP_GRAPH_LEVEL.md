@@ -167,6 +167,6 @@ DUMP\_GRAPH\_LEVEL环境变量只有在[DUMP\_GE\_GRAPH](DUMP_GE_GRAPH.md)开启
 | 123 | ge_proto_xxxx_AfterAicpuFuseHostInputs.txt | GE | AicpuFuseHostInputs优化之后的图 | - |
 | 124 | ge_proto_xxxx_ExecuteGraphAfterSplit.txt | GE | 动态shape最终的执行图 | 白名单 |
 
-## 支持的型号
+## 产品支持情况
 
 全量芯片支持

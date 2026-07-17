@@ -28,3 +28,9 @@
   <!-- npu="950,A3,910b,910,310p" id3 -->
   - [MAX\_RUNTIME\_CORE\_NUMBER](MAX_RUNTIME_CORE_NUMBER.md)
   <!-- end id3 -->
+
+<!-- npu="A3,910b,910,310p" id4 -->
+- [后续版本废弃环境变量](env_variables_deprecated_in_future.md)
+  - [ENABLE\_ACLNN](ENABLE_ACLNN.md)
+  - [GE\_USE\_STATIC\_MEMORY](GE_USE_STATIC_MEMORY.md)
+<!-- end id4 -->

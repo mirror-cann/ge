@@ -32,7 +32,7 @@
 
 Caffe网络中具有相同类型名但计算功能不同的层，比如DetectionOutput层，需要使用算子映射指明为FSRDetectionOutput、SSDDetectionOutput等检测算子类型，否则生成离线模型会执行失败。
 
-该参数仅适用与Caffe框架。
+该参数仅适用于Caffe框架。
 
 ## 关联参数
 

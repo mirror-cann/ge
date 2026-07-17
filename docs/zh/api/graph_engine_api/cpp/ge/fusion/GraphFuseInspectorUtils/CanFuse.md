@@ -28,13 +28,25 @@ static bool CanFuse(const std::vector<GNode> &nodes_before_fuse, AscendString &f
 | 参数名 | 输入/输出 | 说明 |
 | --- | --- | --- |
 | nodes_before_fuse | 输入 | 融合前节点列表（列表内所有节点需连通）。 |
-| failed_reason | 输出 | 不支持融合的原因 |
+| failed_reason | 输出 | 不支持融合的原因。 |
 
 ## 返回值说明
 
 | 参数名 | 类型 | 说明 |
 | --- | --- | --- |
 | - | bool | - true：可融合。<br>  - false：不可融合（failed_reason填充具体原因）。 |
+
+上述原因需要用户自行打印，可以在接口下方添加如下代码：
+
+```c++
+// 执行CanFuse检查
+    AscendString failed_reason;
+    bool can_fuse = fusion::GraphFuseInspectorUtils::CanFuse(nodes_before_fuse, failed_reason);
+    if (!can_fuse) {
+        std::cerr << "[FuseNodes] CanFuse check failed: " << failed_reason.GetString() << std::endl;
+        return false;
+    }
+```
 
 ## 约束说明
 

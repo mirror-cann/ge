@@ -25,6 +25,6 @@ export ENABLE_DYNAMIC_SHAPE_MULTI_STREAM=1
 config.ge_config.enable_single_stream = True
 ```
 
-## 支持的型号
+## 产品支持情况
 
 全量芯片支持

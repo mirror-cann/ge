@@ -39,7 +39,7 @@ GE面向不同的用户场景，提供了不同的对接方案，便于用户更
   - 对于PyTorch、TensorFlow、MindSpore、PaddlePaddle等主流AI框架，目前已支持接入GE，用户仅需对训练代码进行少量的迁移适配即可使用GE图引擎能力，从而在AI处理器加速执行训练或在线推理任务。
     - PyTorch框架接入GE
 
-        PyTorch网络支持通过Ascend Extension for PyTorch的TorchAir组件接入GE图引擎。TorchAir（Torch Ascend Intermediate Representation）是Ascend Extension for PyTorch（torch\_npu）中支持图模式能力的扩展库，对接PyTorch的[Dynamo特性](https://docs.pytorch.org/docs/main/user_guide/torch_compiler/torch.compiler_dynamo_overview.html)，可将PyTorch的[FX](https://pytorch.org/docs/main/fx.html)（Functionalization）图转换为Ascend IR（Intermediate Representation）表达的计算图，再通过GE进行计算图的编译优化等操作，下发到昇腾硬件执行。
+        PyTorch网络支持通过Ascend for PyTorch的TorchAir组件接入GE图引擎。TorchAir（Torch Ascend Intermediate Representation）是Ascend for PyTorch（TorchNPU）中支持图模式能力的扩展库，对接PyTorch的[Dynamo特性](https://docs.pytorch.org/docs/main/user_guide/torch_compiler/torch.compiler_dynamo_overview.html)，可将PyTorch的[FX](https://pytorch.org/docs/main/fx.html)（Functionalization）图转换为Ascend IR（Intermediate Representation）表达的计算图，再通过GE进行计算图的编译优化等操作，下发到昇腾硬件执行。
 
         **图 2**  昇腾平台PyTorch图模式软件架构
         ![图示](../figures/pytorch_graph_arch.png "昇腾平台PyTorch图模式软件架构")
@@ -77,8 +77,8 @@ GE面向不同的用户场景，提供了不同的对接方案，便于用户更
 
         具体使用方法为：
 
-        1. 将原始PyTorch网络迁移到昇腾平台，详细迁移过程请参见[《PyTorch 训练模型迁移调优指南》](https://hiascend.com/document/redirect/CannCommunityPtQuick)。
-        2. 通过TorchAir实现图模式推理，详细配置方法具体请参见《PyTorch图模式使用指南\(TorchAir\)》。
+        1. 将原始PyTorch网络迁移到昇腾平台，详细迁移过程请参见《传统模型迁移调优指南》。
+        2. 通过TorchAir实现图模式推理，详细配置方法具体请参见《TorchAir使用指南》。
 
     - TensorFlow框架接入GE
 

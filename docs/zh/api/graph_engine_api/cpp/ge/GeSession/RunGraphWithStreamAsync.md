@@ -11,10 +11,10 @@
 
 - 本接口与[RunGraph](./RunGraph.md)和[RunGraphAsync](./RunGraphAsync.md)接口互斥；若在调用本接口前未执行[LoadGraph](./LoadGraph.md)完成图加载，则本接口将自动调用LoadGraph以完成加载。
 - 本接口与RunGraph均为运行指定ID对应的图，并输出结果，区别于RunGraph的是，该接口：
-    - 异步运行。
-    - inputs和outputs均为Device上的内存空间，且需要在运行前由用户分配内存大小。如下两种情况如果不分配输出内存，ouputs传空：
-        - 用户通过[RegisterExternalAllocator](./RegisterExternalAllocator.md)设置了外置allocator，如果没有分配输出内存，由GE调用外置allocator的接口分配内存，用户需要在外置allocator析构前释放这块内存。
-        - 用户没有设置外置allocator，GE将使用内置allocator分配内存，内存的生命周期与图的生命周期保持一致，用户需要在图卸载前（Session析构前或GEFinalize调用前）主动释放此内存，比如通过调用outputs.clear\(\)方法。若未及时释放，将引发未定义行为。
+  - 异步运行。
+  - inputs和outputs均为Device上的内存空间，且需要在运行前由用户分配内存大小。如下两种情况如果不分配输出内存，outputs传空：
+    - 用户通过[RegisterExternalAllocator](./RegisterExternalAllocator.md)设置了外置allocator，如果没有分配输出内存，由GE调用外置allocator的接口分配内存，用户需要在外置allocator析构前释放这块内存。
+    - 用户没有设置外置allocator，GE将使用内置allocator分配内存，内存的生命周期与图的生命周期保持一致，用户需要在图卸载前（Session析构前或GEFinalize调用前）主动释放此内存，比如通过调用outputs.clear\(\)方法。若未及时释放，将引发未定义行为。
 
 ## 函数原型
 

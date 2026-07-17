@@ -12,7 +12,7 @@
 
 ## 关联参数
 
-若--raw\_ge\_options指定的JSON文件中包含ATC工具不支持的选项，需配合[--raw\_ge\_options\_ignore\_unsupported](--raw_ge_options_ignore_unsupported.md)参数使用，当该参数设置为true时，ATC工具将忽略不支持的选项并打印warning，继续处理其余选项；当设置为fasle时，遇到不支持的选项将直接报错终止。
+若--raw\_ge\_options指定的JSON文件中包含ATC工具不支持的选项，需配合[--raw\_ge\_options\_ignore\_unsupported](--raw_ge_options_ignore_unsupported.md)参数使用，当该参数设置为true时，ATC工具将忽略不支持的选项并打印warning，继续处理其余选项；当设置为false时，遇到不支持的选项将直接报错终止。
 
 ## 参数取值
 

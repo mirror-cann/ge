@@ -30,6 +30,6 @@ export DUMP_GRAPH_PATH=/home/dumpgraph
 
 此环境变量需要配合[DUMP\_GE\_GRAPH](DUMP_GE_GRAPH.md)使用，即开启[DUMP\_GE\_GRAPH](DUMP_GE_GRAPH.md)的场景下，可通过DUMP\_GRAPH\_PATH指定DUMP图文件的存储路径。
 
-## 支持的型号
+## 产品支持情况
 
 全量芯片支持
