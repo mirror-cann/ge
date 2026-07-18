@@ -8,3 +8,4 @@
 | Resnet50图像识别dynamic batch样例                          | [Resnet50 dynamic batch](2_sample_resnet50_imagenet_classification_dynamic_batch/README.md) |
 | Qwen LLM样例                                              | [Qwen LLM](3_sample_qwen_llm/README.md)                          |
 | ACL GEMM样例                                              | [ACL GEMM](4_sample_acl_gemm/README.md)                          |
+| YOLOv13目标检测样例                                        | [YOLOv13](5_sample_yolov13/README.md)                          |

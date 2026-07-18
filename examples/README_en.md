@@ -11,4 +11,5 @@ This project provides call samples for different scenarios. After setting up the
 | Offline graph compilation execution sample | [README](offline_compile_run/README.md) |
 | Fusion Pass sample | [README](fusion_pass/README.md) |
 | Recommendation network high-performance inference sample | [README](recommendation/README.md) |
-| Custom operator graph integration sample | [README](custom_op/README_en.md)
+| Custom operator graph integration sample | [README](custom_op/README_en.md) |
+| YOLOv13 object detection sample | [README](acl/5_sample_yolov13/README_en.md) |
