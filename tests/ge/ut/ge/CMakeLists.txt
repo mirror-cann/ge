@@ -709,6 +709,7 @@ target_compile_definitions(ut_libge_multiparts_utest PRIVATE
 target_include_directories(ut_libge_multiparts_utest PRIVATE
     ${AIR_CODE_DIR}/tests/st/stubs
     ${AIR_CODE_DIR}/tests/framework/ge_runtime_stub/include
+    ${AIR_CODE_DIR}/tests/depends
     ${ASCEND_INSTALL_PATH}/include
     ${ASCEND_INSTALL_PATH}/include/exe_graph
     ${ASCGEN_DIR}/inc

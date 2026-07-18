@@ -17,8 +17,25 @@
 #include "common/debug/log.h"
 #include "common/ge_inner_error_codes.h"
 #include "macro_utils/dt_public_unscope.h"
+#include "depends/mmpa/src/mmpa_stub.h"
 
 namespace ge {
+namespace {
+class MockMmpaRealPathFail : public MmpaStubApiGe {
+ public:
+  int32_t RealPath(const CHAR *path, CHAR *realPath, INT32 realPathLen) override {
+    return EN_ERROR;
+  }
+};
+
+class MockMmpaAccessFail : public MmpaStubApiGe {
+ public:
+  INT32 mmAccess2(const CHAR *pathName, INT32 mode) override {
+    return EN_ERROR;
+  }
+};
+}  // namespace
+
 class UTEST_dump_properties : public testing::Test {
  protected:
   void SetUp() {}
@@ -422,5 +439,93 @@ TEST_F(UTEST_dump_properties, check_SetDumpFsmState) {
   dump_op_in_range.clear();
   dp.SetOpDumpRange(model, op_ranges_error4);
   EXPECT_NE(dp.SetDumpFsmState(model, "", "a", dump_fsm_state, dump_op_in_range), ge::SUCCESS);
+}
+
+TEST_F(UTEST_dump_properties, delete_property_value_found) {
+  DumpProperties dp;
+  dp.AddPropertyValue("model1", {"layer1"});
+  EXPECT_EQ(dp.GetAllDumpModel().size(), 1U);
+  dp.DeletePropertyValue("model1");
+  EXPECT_EQ(dp.GetAllDumpModel().size(), 0U);
+}
+
+TEST_F(UTEST_dump_properties, get_property_value_found) {
+  DumpProperties dp;
+  dp.AddPropertyValue("model1", {"layer1", "layer2"});
+  auto result = dp.GetPropertyValue("model1");
+  EXPECT_EQ(result.size(), 2U);
+  EXPECT_TRUE(result.count("layer1") > 0);
+  EXPECT_TRUE(result.count("layer2") > 0);
+}
+
+TEST_F(UTEST_dump_properties, is_need_dump_layer_op_empty) {
+  DumpProperties dp;
+  dp.AddPropertyValue("LAYER_OP_MODEL_NEED_DUMP_AND_IT_IS_NOT_A_MODEL_NAME", {});
+  EXPECT_TRUE(dp.IsNeedDump("model1", "om1", "any_op"));
+}
+
+TEST_F(UTEST_dump_properties, is_need_dump_model_empty_no_op_range) {
+  DumpProperties dp;
+  dp.AddPropertyValue("model1", {});
+  EXPECT_TRUE(dp.IsNeedDump("model1", "om1", "any_op"));
+}
+
+TEST_F(UTEST_dump_properties, set_dump_debug_atomic) {
+  DumpProperties dp;
+  dp.enable_dump_debug_ = "1";
+  std::map<std::string, std::string> options{{OPTION_EXEC_DUMP_DEBUG_MODE, "atomic_overflow"}};
+  GetThreadLocalContext().SetGlobalOption(options);
+  EXPECT_EQ(dp.SetDumpDebugOptions(), ge::SUCCESS);
+  EXPECT_TRUE(dp.is_train_op_debug_);
+}
+
+TEST_F(UTEST_dump_properties, set_dump_debug_all) {
+  DumpProperties dp;
+  dp.enable_dump_debug_ = "1";
+  std::map<std::string, std::string> options{{OPTION_EXEC_DUMP_DEBUG_MODE, "all"}};
+  GetThreadLocalContext().SetGlobalOption(options);
+  EXPECT_EQ(dp.SetDumpDebugOptions(), ge::SUCCESS);
+  EXPECT_TRUE(dp.is_train_op_debug_);
+}
+
+TEST_F(UTEST_dump_properties, set_dump_debug_invalid) {
+  DumpProperties dp;
+  dp.enable_dump_debug_ = "1";
+  std::map<std::string, std::string> options{{OPTION_EXEC_DUMP_DEBUG_MODE, "invalid_mode"}};
+  GetThreadLocalContext().SetGlobalOption(options);
+  EXPECT_EQ(dp.SetDumpDebugOptions(), ge::PARAM_INVALID);
+}
+
+TEST_F(UTEST_dump_properties, init_by_options_path_no_trailing_slash) {
+  DumpProperties dp;
+  std::string test_dir = "./test_dump_path_" + std::to_string(getpid());
+  (void)mkdir(test_dir.c_str(), 0755);
+  std::map<std::string, std::string> options{{OPTION_EXEC_ENABLE_DUMP, "1"}, {OPTION_EXEC_DUMP_PATH, test_dir}};
+  GetThreadLocalContext().SetGlobalOption(options);
+  auto st = dp.InitByOptions();
+  EXPECT_EQ(st, SUCCESS);
+  (void)rmdir(test_dir.c_str());
+}
+
+TEST_F(UTEST_dump_properties, check_dump_path_realpath_fail) {
+  DumpProperties dp;
+  std::string test_dir = "./test_realpath_fail_" + std::to_string(getpid());
+  (void)mkdir(test_dir.c_str(), 0755);
+  MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpaRealPathFail>());
+  auto st = dp.CheckDumpPathValid(test_dir);
+  EXPECT_NE(st, SUCCESS);
+  MmpaStub::GetInstance().Reset();
+  (void)rmdir(test_dir.c_str());
+}
+
+TEST_F(UTEST_dump_properties, check_dump_path_access_fail) {
+  DumpProperties dp;
+  std::string test_dir = "./test_access_fail_" + std::to_string(getpid());
+  (void)mkdir(test_dir.c_str(), 0755);
+  MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpaAccessFail>());
+  auto st = dp.CheckDumpPathValid(test_dir);
+  EXPECT_NE(st, SUCCESS);
+  MmpaStub::GetInstance().Reset();
+  (void)rmdir(test_dir.c_str());
 }
 }  // namespace ge

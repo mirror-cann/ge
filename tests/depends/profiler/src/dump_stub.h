@@ -160,6 +160,15 @@ class DumpStub {
     ClearOpInfos();
     ClearFuncRet();
     dump_configs_.clear();
+    mock_dump_path_.clear();
+  }
+
+  void SetMockDumpPath(const std::string &path) {
+    mock_dump_path_ = path;
+  }
+
+  const std::string &GetMockDumpPath() const {
+    return mock_dump_path_;
   }
 
   void SetEnableFlag(bool is_enable) {
@@ -195,6 +204,7 @@ class DumpStub {
   std::map<std::string, int32_t> stub_func_ret_;
   std::map<Adx::DumpType, Adx::DumpConfig> dump_configs_;
   bool is_enable_{true};
+  std::string mock_dump_path_;
 };
 }  // namespace ge
 

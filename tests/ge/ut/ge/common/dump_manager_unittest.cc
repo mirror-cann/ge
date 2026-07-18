@@ -690,4 +690,49 @@ TEST_F(UTEST_dump_manager, AddDumpProperties_With_enableDump_On_enableDumpDebug_
   DumpManager::GetInstance().Finalize();
   DumpStub::GetInstance().Reset();
 }
+
+TEST_F(UTEST_dump_manager, dump_status_on_with_dump_list_and_op_switch_on) {
+  DumpConfig dump_config;
+  dump_config.dump_path = "/tmp";
+  dump_config.dump_mode = "all";
+  dump_config.dump_status = "on";
+  dump_config.dump_op_switch = "on";
+  ModelDumpConfig dump_list;
+  dump_list.model_name = "test_model";
+  dump_list.layers.push_back("layer1");
+  dump_config.dump_list.push_back(dump_list);
+  auto ret = DumpManager::GetInstance().SetDumpConf(dump_config);
+  EXPECT_EQ(ret, ge::SUCCESS);
+  DumpManager::GetInstance().RemoveDumpProperties(0);
+}
+
+TEST_F(UTEST_dump_manager, get_cfg_from_option_with_pid_and_dev_id) {
+  DumpConfig dump_config;
+  std::map<std::string, std::string> options;
+  options[OPTION_EXEC_ENABLE_DUMP] = "1";
+  options[OPTION_EXEC_DUMP_MODE] = "all";
+  options["HOST_MASTER_PID"] = "12345";
+  options["EXECUTOR_DEVICE_ID"] = "3";
+  bool ret = DumpManager::GetInstance().GetCfgFromOption(options, dump_config);
+  EXPECT_EQ(ret, true);
+  EXPECT_NE(dump_config.dump_path.find("pid12345"), std::string::npos);
+  EXPECT_NE(dump_config.dump_path.find("device3"), std::string::npos);
+}
+
+TEST_F(UTEST_dump_manager, set_dump_path_with_acldump_override) {
+  DumpConfig dump_config;
+  dump_config.dump_path = "/tmp/test_dump";
+  dump_config.dump_mode = "all";
+  dump_config.dump_status = "on";
+  dump_config.dump_op_switch = "on";
+  ModelDumpConfig dump_list;
+  dump_list.model_name = "test_model";
+  dump_list.layers.push_back("layer1");
+  dump_config.dump_list.push_back(dump_list);
+  DumpStub::GetInstance().SetMockDumpPath("/custom/dump/path");
+  auto ret = DumpManager::GetInstance().SetDumpConf(dump_config);
+  EXPECT_EQ(ret, ge::SUCCESS);
+  DumpStub::GetInstance().SetMockDumpPath("");
+  DumpManager::GetInstance().RemoveDumpProperties(0);
+}
 }  // namespace ge

@@ -19,6 +19,8 @@
 #include "graph/utils/attr_utils.h"
 #include "graph/debug/ge_attr_define.h"
 #include "macro_utils/dt_public_unscope.h"
+#include "ascendcl/src/ascendcl_stub.h"
+#include "runtime/src/runtime_stub.h"
 
 namespace ge {
 class UTEST_dump_op : public testing::Test {
@@ -884,5 +886,119 @@ TEST_F(UTEST_dump_op, SetDumpModelName_NoMatch_Failed) {
 
   Status ret = dump_op.SetDumpModelName();
   EXPECT_EQ(ret, SUCCESS);
+}
+
+TEST_F(UTEST_dump_op, generate_ffts_dump_model_name_fail) {
+  DumpOp dump_op;
+  DumpProperties dump_properties;
+  OpDescPtr op_desc = std::make_shared<OpDesc>("GatherV2", "GatherV2");
+  std::set<std::string> temp;
+  dump_properties.model_dump_properties_map_.emplace("other_model", temp);
+  dump_properties.enable_dump_ = "1";
+  dump_properties.dump_mode_ = "all";
+  dump_op.SetDynamicModelInfo("model_name", "om_name", 1);
+  dump_op.SetDumpInfo(dump_properties, op_desc, {}, {}, nullptr);
+  void *load_dump_info = nullptr;
+  uint32_t load_dump_len = 0U;
+  void *unload_dump_info = nullptr;
+  uint32_t unload_dump_len = 0U;
+  auto ret = dump_op.GenerateFftsDump(dump_properties, load_dump_info, load_dump_len, unload_dump_info, unload_dump_len,
+                                      false);
+  EXPECT_EQ(ret, ge::SUCCESS);
+}
+
+TEST_F(UTEST_dump_op, launch_dump_op_aclrtGetDevice_fail) {
+  DumpOp dump_op;
+  DumpProperties dump_properties;
+  OpDescPtr op_desc = std::make_shared<OpDesc>("GatherV2", "GatherV2");
+  std::set<std::string> temp;
+  dump_properties.model_dump_properties_map_.emplace("model1", temp);
+  dump_properties.enable_dump_ = "1";
+  dump_op.SetDynamicModelInfo("model1", "model2", 1);
+  dump_op.SetDumpInfo(dump_properties, op_desc, {}, {}, nullptr);
+  g_acl_stub_mock = "aclrtGetDevice";
+  auto ret = dump_op.LaunchDumpOp(false);
+  EXPECT_NE(ret, ge::SUCCESS);
+  g_acl_stub_mock.clear();
+}
+
+TEST_F(UTEST_dump_op, executor_dump_op_aclrtMalloc_fail) {
+  DumpOp dump_op;
+  DumpProperties dump_properties;
+  OpDescPtr op_desc = std::make_shared<OpDesc>("GatherV2", "GatherV2");
+  GeTensorDesc tensor(GeShape({1, 2, 3}), FORMAT_NCHW, DT_FLOAT);
+  op_desc->AddInputDesc(tensor);
+  op_desc->AddOutputDesc(tensor);
+  std::set<std::string> temp;
+  dump_properties.model_dump_properties_map_.emplace("model1", temp);
+  dump_properties.enable_dump_ = "1";
+  dump_properties.dump_mode_ = "output";
+  dump_op.SetDynamicModelInfo("model1", "model2", 1);
+  std::vector<uintptr_t> input_addrs = {0};
+  std::vector<uintptr_t> output_addrs = {0x1000};
+  dump_op.SetDumpInfo(dump_properties, op_desc, input_addrs, output_addrs, nullptr);
+  g_acl_stub_mock = "aclrtMalloc";
+  auto ret = dump_op.LaunchDumpOp(false);
+  EXPECT_NE(ret, ge::SUCCESS);
+  g_acl_stub_mock.clear();
+}
+
+TEST_F(UTEST_dump_op, executor_dump_op_rtCpuKernelLaunch_fail) {
+  DumpOp dump_op;
+  DumpProperties dump_properties;
+  OpDescPtr op_desc = std::make_shared<OpDesc>("GatherV2", "GatherV2");
+  GeTensorDesc tensor(GeShape({1, 2, 3}), FORMAT_NCHW, DT_FLOAT);
+  op_desc->AddInputDesc(tensor);
+  op_desc->AddOutputDesc(tensor);
+  std::set<std::string> temp;
+  dump_properties.model_dump_properties_map_.emplace("model1", temp);
+  dump_properties.enable_dump_ = "1";
+  dump_properties.dump_mode_ = "output";
+  dump_op.SetDynamicModelInfo("model1", "model2", 1);
+  std::vector<uintptr_t> input_addrs = {0};
+  std::vector<uintptr_t> output_addrs = {0x1000};
+  dump_op.SetDumpInfo(dump_properties, op_desc, input_addrs, output_addrs, nullptr);
+  g_runtime_stub_mock = "rtCpuKernelLaunchWithFlag";
+  auto ret = dump_op.LaunchDumpOp(false);
+  EXPECT_NE(ret, ge::SUCCESS);
+  g_runtime_stub_mock.clear();
+}
+
+TEST_F(UTEST_dump_op, dump_output_tensor_size_fail) {
+  DumpOp dump_op;
+  DumpProperties dump_properties;
+  OpDescPtr op_desc = std::make_shared<OpDesc>("GatherV2", "GatherV2");
+  GeTensorDesc tensor(GeShape({1, -1}), FORMAT_NCHW, DT_FLOAT);
+  (void)AttrUtils::SetBool(tensor, ATTR_NAME_TENSOR_NO_TILING_MEM_TYPE, false);
+  op_desc->AddOutputDesc(tensor);
+  std::set<std::string> temp;
+  dump_properties.model_dump_properties_map_.emplace("model1", temp);
+  dump_properties.enable_dump_ = "1";
+  dump_properties.dump_mode_ = "output";
+  dump_op.SetDynamicModelInfo("model1", "model2", 1);
+  std::vector<uintptr_t> output_addrs = {0x1000};
+  dump_op.SetDumpInfo(dump_properties, op_desc, {}, output_addrs, nullptr);
+  auto ret = dump_op.LaunchDumpOp(false);
+  EXPECT_NE(ret, ge::SUCCESS);
+}
+
+TEST_F(UTEST_dump_op, dump_input_tensor_size_fail) {
+  DumpOp dump_op;
+  DumpProperties dump_properties;
+  OpDescPtr op_desc = std::make_shared<OpDesc>("GatherV2", "GatherV2");
+  GeTensorDesc tensor(GeShape({1, 2, 3}), FORMAT_NCHW, DT_FLOAT);
+  op_desc->AddInputDesc(tensor);
+  std::set<std::string> temp;
+  dump_properties.model_dump_properties_map_.emplace("model1", temp);
+  dump_properties.enable_dump_ = "1";
+  dump_properties.dump_mode_ = "input";
+  dump_op.SetDynamicModelInfo("model1", "model2", 1);
+  int dummy = 0;
+  std::vector<uintptr_t> input_addrs = {reinterpret_cast<uintptr_t>(&dummy)};
+  dump_op.SetDumpInfo(dump_properties, op_desc, input_addrs, {}, nullptr);
+  g_acl_stub_mock = "aclrtGetDevice";
+  auto ret = dump_op.LaunchDumpOp(false);
+  EXPECT_NE(ret, ge::SUCCESS);
+  g_acl_stub_mock.clear();
 }
 }  // namespace ge

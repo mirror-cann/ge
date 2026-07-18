@@ -24,4 +24,8 @@ TEST_F(GlobalDumperUT, RegisterCallback_Ok) {
   EXPECT_TRUE(global_dumper->IsEnable(DumpType::kExceptionDump));
   EXPECT_TRUE(global_dumper->IsEnable(DumpType::kHostDump));
 }
+
+TEST_F(GlobalDumperUT, OnGlobalDumperSwitch_NullInstance) {
+  EXPECT_NO_THROW(GlobalDumper::OnGlobalDumperSwitch(nullptr, 1));
+}
 }  // namespace gert

@@ -160,4 +160,13 @@ TEST_F(UTEST_error_tracking, update_task_id_model_not_found) {
 
   EXPECT_EQ(task_map.size(), initial_size);
 }
+
+TEST_F(UTEST_error_tracking, GetSingleOpTaskOpdescInfo_not_found) {
+  ErrorTrackingOpInfo op_info;
+  EXPECT_FALSE(ErrorTracking::GetInstance().GetSingleOpTaskOpdescInfo(99999, 99999, op_info));
+}
+
+TEST_F(UTEST_error_tracking, callback_nullptr) {
+  EXPECT_NO_THROW(ErrorTrackingCallback(nullptr));
+}
 }  // namespace ge

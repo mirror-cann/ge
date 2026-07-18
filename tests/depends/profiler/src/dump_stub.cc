@@ -166,6 +166,10 @@ extern "C" {
 #endif
 const char *acldumpGetPath(acldumpType dumpType) {
   (void)dumpType;
+  const std::string &mock_path = ge::DumpStub::GetInstance().GetMockDumpPath();
+  if (!mock_path.empty()) {
+    return mock_path.c_str();
+  }
   return "";
 }
 #ifdef __cplusplus

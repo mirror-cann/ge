@@ -794,5 +794,108 @@ TEST_F(UtestFileConstantUtilTransfer, test_refresh_relative_file_path_ok) {
   EXPECT_TRUE(AttrUtils::GetStr(op_desc, ATTR_NAME_LOCATION, file_name));
   EXPECT_EQ(file_name, "hello.bin");
 }
+
+TEST_F(UtestFileConstantUtilTransfer, ReadJsonFile_Exception) {
+  std::string bad_json_file = "test_bad_json_" + std::to_string(getpid()) + ".json";
+  std::ofstream out(bad_json_file);
+  out << "{invalid json content!!!}";
+  out.close();
+  nlohmann::json json_obj;
+  std::ifstream file_stream(bad_json_file);
+  bool caught = false;
+  try {
+    file_stream >> json_obj;
+  } catch (const nlohmann::json::exception &) {
+    caught = true;
+  }
+  EXPECT_TRUE(caught);
+  (void)remove(bad_json_file.c_str());
+}
+
+TEST_F(UtestFileConstantUtilTransfer, from_json_OptionInfo) {
+  nlohmann::json j;
+  j["value_bins"] = nlohmann::json::array();
+  OptionInfo option_info;
+  from_json(j, option_info);
+}
+
+TEST_F(UtestFileConstantUtilTransfer, GetFilePath_FileIdNotFound) {
+  std::map<std::string, std::string> file_id_to_path_map;
+  file_id_to_path_map["other_id"] = "other.bin";
+  OpDescPtr op_desc = CreateOpDesc("FileConstant", FILECONSTANT);
+  EXPECT_TRUE(AttrUtils::SetStr(op_desc, ATTR_NAME_FILE_CONSTANT_ID, "nonexistent_id"));
+  std::string file_path;
+  size_t offset = 0U;
+  size_t length = 0U;
+  Status ret = FileConstantUtils::GetFilePath(op_desc, file_id_to_path_map, file_path, offset, length);
+  EXPECT_EQ(ret, SUCCESS);
+  EXPECT_TRUE(file_path.empty());
+}
+
+TEST_F(UtestFileConstantUtilTransfer, ConvertFileConstToConst_FallbackFilePath) {
+  std::string file_name = "tmp_weight_pid/fallback_test.bin";
+  size_t file_const_size = 12;
+  size_t value_num = file_const_size / sizeof(float);
+  std::unique_ptr<float[]> float_buf(new float[value_num]);
+  for (size_t i = 0U; i < value_num; i++) {
+    float_buf[i] = static_cast<float>(i);
+  }
+  Status ret = FileSaver::SaveToFile(file_name, float_buf.get(), file_const_size);
+  EXPECT_EQ(ret, SUCCESS);
+
+  auto builder = ut::GraphBuilder("graph1");
+  auto file_const = builder.AddNode("file_const_fb", FILECONSTANT, 0, 1, FORMAT_ND, DT_FLOAT, {3});
+  auto netoutput = builder.AddNode("Node_OutPut", "NetOutPut", 1, 0);
+  OpDescPtr op_desc = file_const->GetOpDesc();
+  EXPECT_TRUE(AttrUtils::SetStr(op_desc, ATTR_NAME_FILE_PATH, file_name));
+  (void)AttrUtils::SetDataType(op_desc, "dtype", DT_FLOAT);
+
+  builder.AddDataEdge(file_const, 0, netoutput, 0);
+  auto graph = builder.GetGraph();
+  ret = FileConstantUtils::ConvertFileConstToConst(file_const);
+  EXPECT_EQ(ret, SUCCESS);
+  EXPECT_EQ(file_const->GetType(), CONSTANT);
+  (void)mmRmdir("tmp_weight_pid");
+}
+
+TEST_F(UtestFileConstantUtilTransfer, ConvertConstToFileConst_SingleNode) {
+  ExternalWeightManagerPool::Instance().Destroy();
+  GetContext().SetSessionId(0U);
+  ge::ut::GraphBuilder builder("graph");
+  auto const1 = builder.AddNode("const_single", "Const", 0, 1);
+  ge::GeTensorPtr tensor = std::make_shared<GeTensor>();
+  std::vector<uint8_t> value(4 * sizeof(float));
+  std::vector<int64_t> shape{4};
+  tensor->MutableTensorDesc().SetShape(GeShape(shape));
+  tensor->SetData(value);
+  tensor->MutableTensorDesc().SetDataType(DT_FLOAT);
+  ConstantUtils::SetWeight(const1->GetOpDesc(), 0, tensor);
+
+  const auto &external_weight_manager = ExternalWeightManagerPool::Instance().GetManager(GetContext().SessionId());
+  ASSERT_NE(external_weight_manager, nullptr);
+  external_weight_manager->SetWeightPath("./test_single_node_weight/weight");
+
+  auto ret = FileConstantUtils::ConvertConstToFileConst(const1);
+  EXPECT_EQ(ret, SUCCESS);
+  EXPECT_EQ(const1->GetType(), FILECONSTANT);
+  (void)mmRmdir("./test_single_node_weight");
+  ExternalWeightManagerPool::Instance().Destroy();
+}
+
+TEST_F(UtestFileConstantUtilTransfer, ChangeFilePathAttr_EmptyAndNoTmpDir) {
+  auto builder = ut::GraphBuilder("graph1");
+  auto file_const1 = builder.AddNode("fc_empty", FILECONSTANT, 0, 1, FORMAT_ND, DT_FLOAT, {3});
+  auto netoutput = builder.AddNode("Node_OutPut", "NetOutPut", 1, 0);
+
+  OpDescPtr op1 = file_const1->GetOpDesc();
+  EXPECT_TRUE(AttrUtils::SetStr(op1, ATTR_NAME_LOCATION, ""));
+
+  builder.AddDataEdge(file_const1, 0, netoutput, 0);
+  auto graph = builder.GetGraph();
+  std::string om_path = "om_path/hello.om";
+  auto ret = FileConstantUtils::ChangeFilePath(graph, om_path);
+  EXPECT_EQ(ret, SUCCESS);
+  (void)mmRmdir("om_path");
+}
 }  // namespace fileconstant
 }  // namespace ge

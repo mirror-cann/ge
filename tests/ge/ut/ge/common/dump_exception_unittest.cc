@@ -462,4 +462,24 @@ TEST_F(UTEST_dump_exception, AdumpOpInfoBuilder_test) {
   builder.DeviceInfo("ARGS_BEFOR_EXECUTE", &builder, 100);
   EXPECT_EQ(builder.Build().deviceInfos.size(), 1);
 }
+
+TEST_F(UTEST_dump_exception, MutableOpDescInfo_found_and_not_found) {
+  ExceptionDumper exception_dumper;
+  OpDescPtr op_desc = std::make_shared<OpDesc>("TestOp", "TestType");
+  ExtraOpInfo extra_op_info;
+  ge::OpDescInfoId id(10, 20, 0);
+  exception_dumper.SaveDumpOpInfo(op_desc, extra_op_info, id, false);
+
+  auto *info = exception_dumper.MutableOpDescInfo(10, 20);
+  EXPECT_NE(info, nullptr);
+  EXPECT_EQ(info->op_name, "TestOp");
+
+  auto *not_found = exception_dumper.MutableOpDescInfo(999, 999);
+  EXPECT_EQ(not_found, nullptr);
+}
+
+TEST_F(UTEST_dump_exception, DumpDevMem_size_zero) {
+  const auto ret = ExceptionDumper::DumpDevMem("test_file", nullptr, 0);
+  EXPECT_EQ(ret, ge::SUCCESS);
+}
 }  // namespace ge
