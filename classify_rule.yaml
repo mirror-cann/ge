@@ -163,6 +163,7 @@ fe:
       - cmake
       - scripts/build.sh
       - scripts/build_fe.sh
+      - compiler/engines/nn_engine/utils/common/aicore_util_attr_define.cc
       - compiler/engines/nn_engine/utils/common/cann_kb_adapter.cc
       - compiler/engines/nn_engine/op_compile_adapter
   llt:
