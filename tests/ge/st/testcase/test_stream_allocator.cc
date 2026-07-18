@@ -31,7 +31,10 @@
 #include "base/err_msg.h"
 #include "base/err_mgr.h"
 #include "common/opskernel/ops_kernel_info_types.h"
+#include "framework/common/scope_guard.h"
 #include "graph/build/stream/dag_stream_allocator_pass.h"
+#include "faker/magic_ops.h"
+#include "stub/gert_runtime_stub.h"
 
 extern std::string g_runtime_stub_mock;
 
@@ -2564,19 +2567,30 @@ TEST_F(STEST_stream_allocator, UserDefinedStreamLabel_with_SingleStreamOption_fa
 }
 
 /**
- * 用例描述：测试动态shape多流与auto multi-stream并行模式同时开启时编译失败
- * 预置条件：通过环境变量开启动态shape多流，Session选项设置auto multi-stream为LoadBalance模式
- * 测试步骤：
+ * 用例描述：测试动态shape多流与auto multi-stream并行模式同时开启时编译成功
+ *
+ * 预置条件：通过环境变量开启动态shape多流，Session选项设置auto multi-stream为LoadBalance模式 测试步骤：
  *   1. 构造一张动态shape图
  *   2. 设置ENABLE_DYNAMIC_SHAPE_MULTI_STREAM=1和ge.autoMultistreamParallelMode=LoadBalance:8
- *   3. 通过Session执行AddGraph和BuildGraph触发编译
+ *   3. 通过Session执行AddGraph和CompileGraph触发编译
  * 预期结果：
  *   1. AddGraph成功
- *   2. BuildGraph失败，提示动态shape多流与auto multi-stream并行模式不能同时开启
+ *   2. CompileGraph成功，动态shape编译允许auto multi-stream分流
  */
-TEST_F(STEST_stream_allocator, dynamic_multi_stream_with_auto_multistream_parallel_mode_failed) {
+TEST_F(STEST_stream_allocator, dynamic_multi_stream_with_auto_multistream_parallel_mode_success) {
   error_message::ErrMgrInit(error_message::ErrorMessageMode::INTERNAL_MODE);
-  setenv("ENABLE_DYNAMIC_SHAPE_MULTI_STREAM", "1", 0);
+  const char *const env_name = "ENABLE_DYNAMIC_SHAPE_MULTI_STREAM";
+  const char *const env_value = getenv(env_name);
+  const bool had_env = (env_value != nullptr);
+  const std::string env_backup = had_env ? env_value : "";
+  GE_MAKE_GUARD(recover_env, [=]() {
+    if (had_env) {
+      (void)setenv(env_name, env_backup.c_str(), 1);
+    } else {
+      (void)unsetenv(env_name);
+    }
+  });
+  (void)setenv(env_name, "1", 1);
   auto root_graph = BuildSimpleDynamicGraph();
   auto graph = GraphUtilsEx::CreateGraphFromComputeGraph(root_graph);
 
@@ -2585,12 +2599,7 @@ TEST_F(STEST_stream_allocator, dynamic_multi_stream_with_auto_multistream_parall
   auto ret = session.AddGraph(0, graph, options);
   EXPECT_EQ(ret, SUCCESS);
 
-  std::vector<InputTensorInfo> inputs;
-  ret = session.BuildGraph(0, inputs);
-  EXPECT_EQ(ret, FAILED);
-  auto error_msg = std::string(error_message::GetErrMgrErrorMessage().get());
-  EXPECT_TRUE(error_msg.find("Dynamic multi-stream and auto multi-stream parallel mode could not both enabled") !=
-              std::string::npos);
-  unsetenv("ENABLE_DYNAMIC_SHAPE_MULTI_STREAM");
+  ret = session.CompileGraph(0);
+  EXPECT_EQ(ret, SUCCESS);
 }
 }  // namespace ge

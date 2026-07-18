@@ -24,7 +24,6 @@
 namespace ge {
 namespace {
 constexpr int32_t kMaxStreamLimit = 64;
-constexpr int32_t kDefaultMaxPhysicalStreams = 8;
 
 const char_t *GetStrategyName(const minidag::StreamMergeStrategy strategy) {
   switch (strategy) {
@@ -147,14 +146,9 @@ Status RunMiniDAGStreamPass(const ConstGraphPtr &graph, StreamPassContext &conte
   GE_ASSERT_SUCCESS(GetContext().GetOption("ge.autoMultistreamParallelMode", multi_stream_mode),
                     "Failed to get ge.autoMultistreamParallelMode option");
 
-  // 3. 特殊场景：LoadBalance 不带数字，使用默认 8 条流
   int64_t effective_max_stream_id = -1;
   minidag::StreamMergeStrategy strategy;
-  if (multi_stream_mode == "LoadBalance") {
-    strategy = minidag::StreamMergeStrategy::kLoadBalance;
-    effective_max_stream_id = kDefaultMaxPhysicalStreams - 1;
-    GELOGI("LoadBalance without stream count, using default 8 streams.");
-  } else if (!ParseStreamConfig(multi_stream_mode, effective_max_stream_id, strategy)) {
+  if (!ParseStreamConfig(multi_stream_mode, effective_max_stream_id, strategy)) {
     return FAILED;
   }
 

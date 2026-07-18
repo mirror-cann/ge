@@ -943,6 +943,8 @@ TEST_F(UtestGraphPartition, partition_sub_graph_test) {
 
 TEST_F(UtestGraphPartition, partition_vector_engine_graph_test) {
   const auto back_options = ge::GetThreadLocalContext().GetAllSessionOptions();
+  GE_MAKE_GUARD(recover_session_options,
+                [&back_options]() { ge::GetThreadLocalContext().SetSessionOption(back_options); });
   auto options = back_options;
   options["ge.autoMultistreamParallelMode"] = "cv";
   ge::GetThreadLocalContext().SetSessionOption(options);

@@ -15,6 +15,7 @@
 
 #include "macro_utils/dt_public_scope.h"
 #include "graph/build/stream/dynamic_stream_allocator.h"
+#include "graph/build/stream/dag_stream_allocator_pass.h"
 #include "graph/build/stream/stream_utils.h"
 #include "macro_utils/dt_public_unscope.h"
 
@@ -284,6 +285,18 @@ class UtestDynamicStreamAllocator : public testing::Test {
   void AcParallelDisable() {
     std::map<std::string, std::string> options;
     options[AC_PARALLEL_ENABLE] = "0";
+    GetThreadLocalContext().SetGraphOption(options);
+  }
+
+  void AutoMultistreamMode(const std::string &mode) {
+    std::map<std::string, std::string> options;
+    options["ge.autoMultistreamParallelMode"] = mode;
+    GetThreadLocalContext().SetGraphOption(options);
+  }
+
+  void ClearAutoMultistreamMode() {
+    std::map<std::string, std::string> options;
+    options["ge.autoMultistreamParallelMode"] = "";
     GetThreadLocalContext().SetGraphOption(options);
   }
 
@@ -957,5 +970,69 @@ TEST_F(UtestDynamicStreamAllocator, dynamic_subgraph_alloc_attached_resource) {
   EXPECT_EQ(stream_num, 1);
   EXPECT_EQ(notify_num, 1);
   EXPECT_EQ(event_num, 0);
+}
+
+TEST_F(UtestDynamicStreamAllocator, auto_multistream_load_balance_refreshes_dynamic_streams) {
+  REGISTER_CUSTOM_PASS("MiniDAGStreamPass")
+      .CustomAllocateStreamPassFn([](const ge::ConstGraphPtr &graph, ge::StreamPassContext &context) -> ge::Status {
+        return ge::RunMiniDAGStreamPass(graph, context);
+      })
+      .Stage(ge::CustomPassStage::kAfterAssignLogicStream);
+  AutoMultistreamMode("LoadBalance:2");
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("data1", DATA)->NODE("relu1", RELU)->NODE("output", NETOUTPUT));
+    CHAIN(NODE("data2", DATA)->NODE("relu2", RELU)->NODE("output"));
+  };
+  auto graph = ToComputeGraph(g1);
+
+  auto data1 = CreateSubgraph("data1", graph, "data1", "DNN_VM_GE_LOCAL", 0, 1);
+  auto data2 = CreateSubgraph("data2", graph, "data2", "DNN_VM_GE_LOCAL", 0, 1);
+  auto aicore1 = CreateSubgraph("aicore1", graph, "relu1", "AIcoreEngine", 1, 1);
+  auto aicore2 = CreateSubgraph("aicore2", graph, "relu2", "AIcoreEngine", 1, 1);
+  auto output = CreateSubgraph("output", graph, "output", "DNN_VM_GE_LOCAL", 2, 0);
+
+  LinkSubGraph(data1, "end", aicore1, "placeholder");
+  LinkSubGraph(data2, "end", aicore2, "placeholder");
+  LinkSubGraph(aicore1, "end", output, "placeholder1");
+  LinkSubGraph(aicore2, "end", output, "placeholder2");
+
+  Graph2SubGraphInfoList subgraph_map;
+  subgraph_map[graph] = {data1, data2, aicore1, aicore2, output};
+
+  DynamicStreamAllocator allocator;
+  auto ret = allocator.AssignStreamsForDynamicShapeGraph(graph, subgraph_map);
+  EXPECT_EQ(ret, SUCCESS);
+  EXPECT_EQ(allocator.GetStreamNum(), 2);
+  EXPECT_EQ(GetStreamId(graph, "data1"), 0);
+  EXPECT_EQ(GetStreamId(graph, "relu1"), 0);
+  EXPECT_EQ(GetStreamId(graph, "data2"), 0);
+  EXPECT_EQ(GetStreamId(graph, "relu2"), 1);
+  EXPECT_EQ(GetStreamId(graph, "output"), 0);
+  EXPECT_EQ(GetSendEventNum(graph, "relu2"), 1);
+  EXPECT_EQ(GetRecvEventNum(graph, "output"), 1);
+  ClearAutoMultistreamMode();
+}
+
+TEST_F(UtestDynamicStreamAllocator, auto_multistream_invalid_mode_returns_failed) {
+  AutoMultistreamMode("LoadBalance:0");
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("data1", DATA)->NODE("relu", RELU)->NODE("output", NETOUTPUT));
+  };
+  auto graph = ToComputeGraph(g1);
+
+  auto data1 = CreateSubgraph("data1", graph, "data1", "DNN_VM_GE_LOCAL", 0, 1);
+  auto aicore = CreateSubgraph("aicore", graph, "relu", "AIcoreEngine", 1, 1);
+  auto output = CreateSubgraph("output", graph, "output", "DNN_VM_GE_LOCAL", 1, 0);
+
+  LinkSubGraph(data1, "end", aicore, "placeholder");
+  LinkSubGraph(aicore, "end", output, "placeholder");
+
+  Graph2SubGraphInfoList subgraph_map;
+  subgraph_map[graph] = {data1, aicore, output};
+
+  DynamicStreamAllocator allocator;
+  auto ret = allocator.AssignStreamsForDynamicShapeGraph(graph, subgraph_map);
+  EXPECT_NE(ret, SUCCESS);
+  ClearAutoMultistreamMode();
 }
 }  // namespace ge

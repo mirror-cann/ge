@@ -1432,19 +1432,6 @@ Status ModelBuilder::AssignStreamForDynamicShapeGraph(ComputeGraphPtr &compute_g
     return SUCCESS;
   }
 
-  std::string multi_stream_mode;
-  (void)GetContext().GetOption("ge.autoMultistreamParallelMode", multi_stream_mode);
-  if (!multi_stream_mode.empty()) {
-    auto readable_name = ge::GetContext().GetReadableName("ge.autoMultistreamParallelMode");
-    REPORT_PREDEFINED_ERR_MSG(
-        "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
-        std::vector<const char *>(
-            {readable_name.c_str(), multi_stream_mode.c_str(),
-             "Dynamic multi-stream and auto multi-stream parallel mode could not both enabled."}));
-    GELOGE(FAILED, "dynamic multi stream and multi-stream parallel mode could not both enable.");
-    return FAILED;
-  }
-
   if (GraphUtils::IsSingleOpScene(compute_graph)) {
     return SUCCESS;
   }

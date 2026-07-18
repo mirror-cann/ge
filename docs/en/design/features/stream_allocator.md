@@ -165,6 +165,8 @@ Users can influence stream allocation behavior through the following methods:
 | Configuration Item | Scope | Description |
 |--------|---------|------|
 | `SINGLE_STREAM_ENABLE` | Static Shape | Enable single-stream mode, all operators execute on one stream |
+| `ENABLE_DYNAMIC_SHAPE_MULTI_STREAM` | Dynamic Shape | The only enable switch for Dynamic Shape multi-stream; multi-stream is enabled only when the value is `1`, and otherwise Dynamic Shape remains single-stream |
+| `ge.autoMultistreamParallelMode` | Static Shape / Dynamic Shape | Retains its existing automatic multi-stream enable semantics for Static Shape. For Dynamic Shape, it selects the algorithm only after `ENABLE_DYNAMIC_SHAPE_MULTI_STREAM=1` and cannot enable multi-stream by itself. The `cv` mode splits streams by distinguishing aicore and vector engines; DAG modes must use explicit `LoadBalance:N` or `MainStream:N`, where `N` is an integer in `[1, 64]` |
 | `AC_PARALLEL_ENABLE` | Dynamic Shape | Values are "0", "1" or empty, controls whether AI CPU and AI Core execute in parallel |
 | `EVENT` | Static Shape | When set to "notify", use Notify instead of Event for synchronization |
 | `STREAM_LABEL` (Node Attribute) | All Scenarios | Operator-level stream label, operators with same label are allocated to same stream |
@@ -228,7 +230,13 @@ flowchart LR
 
 **OptimizeIneffectiveMultiStreamPass**: Topology optimization Pass, eliminating "nominally multi-stream but actually no parallel benefit" situations. If a node connects to another stream on all input/output directions, and no other nodes exist between input/output nodes on that stream, move the current node to that stream, reducing synchronization overhead.
 
-#### 4.1.2 Attached Stream Allocation
+#### 4.1.2 Auto Multi-Stream DAG Allocation
+
+`ge.autoMultistreamParallelMode` enables automatic multi-stream parallel mode. In Static Shape scenarios, the option retains its existing enable semantics, and stream allocation runs DAG Stream Pass after regular logical stream allocation: it first converts GE Graph to MiniDAG, executes the allocation strategy with node dependencies, device resources and optional profiling cost information, then writes the new stream_id back to GE Graph. This mode targets finer-grained node-level parallel opportunities in static graphs, while user-configured StreamLabel remains serial.
+
+`cv` is a special auto multi-stream mode. Common stream allocation logic recognizes it as CV allocation mode, and related Passes only take effect when this mode matches. DAG modes must use explicit `LoadBalance:N` or `MainStream:N`, where `N` is an integer in `[1, 64]`. Bare `LoadBalance` no longer defaults to eight streams and is invalid.
+
+#### 4.1.3 Attached Stream Allocation
 
 Attached Stream is an additional stream produced by a node besides the main stream. Some operators (such as SuperKernel) require multiple streams to execute different computation tasks. Attached stream allocation occurs after main stream allocation completes.
 
@@ -238,13 +246,17 @@ After attached stream allocation completes, total stream count = main stream cou
 
 ### 4.2 Dynamic Shape Stream Allocation
 
-Stream allocation strategy under dynamic shape is more conservative compared to static shape. By default, only one stream is allocated (single-stream mode). Multi-stream is only enabled when configuration allows. This is because dynamic shape graph structure is incomplete at compilation time, preventing precise dependency analysis.
+Stream allocation strategy under dynamic shape is more conservative compared to static shape. By default, only one stream is allocated (single-stream mode). Multi-stream allocation is entered only when `ENABLE_DYNAMIC_SHAPE_MULTI_STREAM=1`. This is because dynamic shape graph structure is incomplete at compilation time, preventing precise dependency analysis. `ge.autoMultistreamParallelMode` selects `cv` or an explicit DAG mode only after multi-stream is enabled; `cv`, `LoadBalance:N`, and `MainStream:N` cannot enable Dynamic Shape multi-stream by themselves.
 
 ```mermaid
 flowchart LR
     subgraph DynPassChain["Dynamic Shape Stream Allocation Strategy"]
         direction TB
+        D0{"ENABLE_DYNAMIC_SHAPE_MULTI_STREAM<br/>equals 1?"}
+        D0 -->|No| DS["Keep single-stream"]
+        D0 -->|Yes| D1
         D1["AssignEnginesOwningStream<br/>Stream allocation by engine"]
+        D1 --> D2
         D2{ac_parallel_enable?}
         D2 -->|Yes| D3["AssignAicpuCanParallel<br/>AICPU parallel judgment"]
         D2 -->|No| D4["AssignIndependentAicpuNode<br/>Independent AICPU node stream allocation"]
@@ -252,9 +264,11 @@ flowchart LR
         D4 --> D5
         D5 --> D6["AssignRemainSubgraphNeedAssignStream<br/>Remaining subgraph stream allocation"]
         D6 --> D7["ReassignStreamByStreamLabel<br/>Label reallocation"]
+        D7 --> D8["RunCustomStreamPass<br/>Custom/DAG allocation"]
+        D8 --> D9{"auto multi-stream<br/>DAG mode?"}
+        D9 -->|Yes| D10["RefreshContinuousStreamsByNodeIds<br/>Refresh by actual node streams and handle forced main-stream nodes"]
+        D9 -->|No| D11["cv/non-DAG mode keeps engine-priority continuity result<br/>forced main-stream nodes already handled during refresh"]
     end
-    D1 --> D2
-    D7 --> D8["Force main stream nodes<br/>Data/Variable/NetOutput/FILECONSTANT → stream 0"]
 ```
 
 **Key Differences from Static Shape:**
@@ -267,6 +281,9 @@ flowchart LR
 | Node-level Constraints | Few | Data, Variable, NetOutput, FILECONSTANT forced on main stream |
 | Attached Stream | Supported | Supported through independent interface `AssignAttachedResource` |
 | Synchronization Mechanism | Event + Notify dual mode | Event only |
+| Auto Multi-Stream | `ge.autoMultistreamParallelMode` retains its existing enable semantics | Enabled only by `ENABLE_DYNAMIC_SHAPE_MULTI_STREAM=1`; the option only selects the algorithm |
+
+In the Dynamic Shape multi-stream path, stream_id continuity has two steps. First, holes are eliminated according to engine priority, StreamLabel and other rules. If `ge.autoMultistreamParallelMode` is an explicit `LoadBalance:N` or `MainStream:N` DAG mode, where `N` is an integer in `[1, 64]`, stream_id actually used by nodes in the root graph and unknown-shape subgraphs are collected, remapped to continuous IDs in ascending order, and `stream_nodes_` is rebuilt. The `cv` mode does not enter the DAG node-based continuity branch and keeps the engine-priority continuity result. Compatibility for bare `LoadBalance` defaulting to eight streams has been retired. Subsequent cross-stream Event insertion is based on the final stream_id, avoiding holes or incorrect in-stream node ordering after auto multi-stream rewrites node streams.
 
 ### 4.3 Synchronization Event Management
 

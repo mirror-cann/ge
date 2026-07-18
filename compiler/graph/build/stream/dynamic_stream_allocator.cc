@@ -39,6 +39,25 @@ bool TopoOrderCompare(const NodePtr &n0, const NodePtr &n1) {
   }
   return (n0->GetOpDesc()->GetId() < n1->GetOpDesc()->GetId());
 }
+
+bool IsAutoMultistreamModeEnabled() {
+  std::string multi_stream_mode;
+  return (GetContext().GetOption("ge.autoMultistreamParallelMode", multi_stream_mode) == GRAPH_SUCCESS) &&
+         (!multi_stream_mode.empty()) && (multi_stream_mode != "cv");
+}
+
+Status CollectUsedStreamIds(const ComputeGraphPtr &graph, std::set<int64_t> &used_streams) {
+  GE_ASSERT_NOTNULL(graph);
+  for (const auto &node : graph->GetDirectNode()) {
+    const auto &op_desc = node->GetOpDesc();
+    GE_ASSERT_NOTNULL(op_desc);
+    const int64_t stream_id = op_desc->GetStreamId();
+    if (stream_id != kInvalidStream) {
+      used_streams.emplace(stream_id);
+    }
+  }
+  return SUCCESS;
+}
 }  // namespace
 
 Status DynamicStreamAllocator::AssignStreamsForDynamicShapeGraph(const ComputeGraphPtr &root_graph,
@@ -113,6 +132,9 @@ Status DynamicStreamAllocator::AssignStreams(const ComputeGraphPtr &root_graph,
   GE_ASSERT_SUCCESS(RefreshContinuousStreams(root_graph));
 
   GE_ASSERT_SUCCESS(StreamUtils::RunCustomStreamPass(root_graph, stream_num_));
+  if (IsAutoMultistreamModeEnabled()) {
+    GE_ASSERT_SUCCESS(RefreshContinuousStreamsByNodeIds(root_graph));
+  }
   return SUCCESS;
 }
 
@@ -537,6 +559,26 @@ Status DynamicStreamAllocator::RefreshContinuousStreams(const ComputeGraphPtr &r
   return SUCCESS;
 }
 
+Status DynamicStreamAllocator::RefreshContinuousStreamsByNodeIds(const ComputeGraphPtr &root_graph) {
+  std::set<int64_t> used_streams;
+  GE_ASSERT_SUCCESS(CollectUsedStreamIds(root_graph, used_streams));
+
+  stream_num_ = 0;
+  std::map<int64_t, int64_t> old_to_new_streams;
+  for (const auto stream_id : used_streams) {
+    old_to_new_streams[stream_id] = stream_num_;
+    ++stream_num_;
+  }
+  if (stream_num_ == 0) {
+    GELOGI("None of nodes need to assign stream, stream num is 0, it will cause problem, so change it to 1");
+    stream_num_ = 1;
+  }
+
+  stream_nodes_.clear();
+  GE_ASSERT_SUCCESS(RefreshStreamsForGraphByNodeIds(root_graph, old_to_new_streams));
+  return SUCCESS;
+}
+
 bool DynamicStreamAllocator::IsForcedAssignMainStream(const NodePtr &node) const {
   const auto &node_type = node->GetType();
   if (OpTypeUtils::IsDataNode(node_type) || (kNodesForcedInMainStream.count(node_type) > 0U) ||
@@ -574,6 +616,28 @@ Status DynamicStreamAllocator::RefreshStreamsForGraph(const ComputeGraphPtr &gra
            op_desc->GetStreamId(), node->GetType().c_str(), node->GetName().c_str());
   }
 
+  return SUCCESS;
+}
+
+Status DynamicStreamAllocator::RefreshStreamsForGraphByNodeIds(const ComputeGraphPtr &graph,
+                                                               const std::map<int64_t, int64_t> &old_to_new_streams) {
+  for (const auto &node : graph->GetDirectNode()) {
+    const auto &op_desc = node->GetOpDesc();
+    GE_CHECK_NOTNULL(op_desc);
+    const int64_t old_stream_id = op_desc->GetStreamId();
+    if ((old_stream_id == kInvalidStream) || old_to_new_streams.empty() || IsForcedAssignMainStream(node) ||
+        (!op_desc->GetSubgraphInstanceNames().empty())) {
+      op_desc->SetStreamId(kMainStream);
+    } else {
+      const auto iter = old_to_new_streams.find(old_stream_id);
+      GE_ASSERT_TRUE(iter != old_to_new_streams.end(), "Cannot find stream: %lld of %s.", old_stream_id,
+                     op_desc->GetName().c_str());
+      op_desc->SetStreamId(iter->second);
+    }
+    stream_nodes_[op_desc->GetStreamId()].emplace_back(node);
+    GELOGI("Refresh stream by node ids of graph: %s, stream_id: %lld, type: %s, name: %s.", graph->GetName().c_str(),
+           op_desc->GetStreamId(), node->GetType().c_str(), node->GetName().c_str());
+  }
   return SUCCESS;
 }
 

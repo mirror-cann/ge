@@ -162,15 +162,17 @@ class ReusableStreamAllocator {
 
 用户可通过以下方式影响流分配行为：
 
-| 配置项 | 影响范围 | 说明 |
-|--------|---------|------|
-| `SINGLE_STREAM_ENABLE` | 静态 Shape | 开启单流模式，所有算子在一条流上执行 |
-| `AC_PARALLEL_ENABLE` | 动态 Shape | 取值为 "0"、"1" 或空，控制 AI CPU 与 AI Core 是否并行 |
-| `EVENT` | 静态 Shape | 设为 "notify" 时，使用 Notify 替代 Event 进行同步 |
-| `STREAM_LABEL`（节点属性） | 所有场景 | 算子级别的流标签，相同标签的算子分配到同一条流 |
-| `USER_STREAM_LABEL`（节点属性） | 所有场景 | 用户级流标签，优先级最高 |
-| `PARALLEL_GROUP`（节点属性） | 静态 Shape | 并行组标识，同组算子分配到独立流 |
-| `ATTACHED_STREAM_INFO`（节点属性） | 静态 Shape | 附着流信息，一个节点可产生多条流 |
+| 配置项 | 影响范围 | 说明                                                                                                               |
+|--------|---------|------------------------------------------------------------------------------------------------------------------|
+| `SINGLE_STREAM_ENABLE` | 静态 Shape | 开启单流模式，所有算子在一条流上执行                                                                                               |
+| `ENABLE_DYNAMIC_SHAPE_MULTI_STREAM` | 动态 Shape | 动态 Shape 多流的唯一开启开关，仅值为 `1` 时开启；未开启时保持单流 |
+| `ge.autoMultistreamParallelMode` | 静态 Shape / 动态 Shape | 静态 Shape 下保持既有自动多流开启语义；动态 Shape 下仅在 `ENABLE_DYNAMIC_SHAPE_MULTI_STREAM=1` 后选择算法，不能单独开启多流。`cv` 模式通过区分 aicore、vector 引擎分流；DAG 模式须显式配置为 `LoadBalance:N` 或 `MainStream:N`，`N` 为 `[1, 64]` 范围内的整数 |
+| `AC_PARALLEL_ENABLE` | 动态 Shape | 取值为 "0"、"1" 或空，控制 AI CPU 与 AI Core 是否并行                                                                          |
+| `EVENT` | 静态 Shape | 设为 "notify" 时，使用 Notify 替代 Event 进行同步                                                                            |
+| `STREAM_LABEL`（节点属性） | 所有场景 | 算子级别的流标签，相同标签的算子分配到同一条流                                                                                          |
+| `USER_STREAM_LABEL`（节点属性） | 所有场景 | 用户级流标签，优先级最高                                                                                                     |
+| `PARALLEL_GROUP`（节点属性） | 静态 Shape | 并行组标识，同组算子分配到独立流                                                                                                 |
+| `ATTACHED_STREAM_INFO`（节点属性） | 静态 Shape | 附着流信息，一个节点可产生多条流                                                                                                 |
 
 单流模式与 `STREAM_LABEL` / `USER_STREAM_LABEL` 互斥；如果 `ge.enableSingleStream` 对应的对外参数被设置为 true 且子图带有 StreamLabel，逻辑流分配返回参数错误并上报 `E10055`。
 
@@ -230,7 +232,13 @@ flowchart LR
 
 **OptimizeIneffectiveMultiStreamPass**：拓扑优化 Pass，消除"名义上多流但实际不产生并行收益"的情况。如果某个节点在所有输入输出方向上都与另一条流相连，且在该流上输入输出节点之间没有其他节点，则将当前节点移到那条流上，从而减少同步开销。
 
-#### 4.1.2 附着流分配
+#### 4.1.2 Auto Multi-Stream DAG 分流
+
+`ge.autoMultistreamParallelMode` 用于开启自动多流并行模式。静态 Shape 场景下，该选项保持既有开启语义，流分配在常规逻辑流分配后运行 DAG Stream Pass：先将 GE Graph 转换为 MiniDAG，结合节点依赖关系、设备资源和可选 profiling 代价信息执行分流策略，再将新的 stream_id 写回 GE Graph。该模式面向静态图中更细粒度的节点级并行机会，用户手工设置 StreamLabel依旧保持串行。
+
+`cv` 是 auto multi-stream 的特殊模式，流分配公共逻辑会将其识别为 CV 分流模式，相关 Pass 只在匹配该模式时生效。DAG 模式必须显式配置为 `LoadBalance:N` 或 `MainStream:N`，其中 `N` 为 `[1, 64]` 范围内的整数；裸 `LoadBalance` 不再默认使用 8 条流，属于非法配置。
+
+#### 4.1.3 附着流分配
 
 附着流（Attached Stream）是一个节点产生的除主流之外的额外流。某些算子（如 SuperKernel）需要多条流来执行不同的计算任务。附着流分配在主流分配完成后进行。
 
@@ -240,13 +248,17 @@ flowchart LR
 
 ### 4.2 动态 Shape 流分配
 
-动态 Shape 下的流分配策略相比静态 Shape 更为保守——默认只分配一条流（单流模式），只有在配置开启多流时才启用多流。这是因为动态 Shape 的图结构在编译期不完整，无法进行精确的依赖分析。
+动态 Shape 下的流分配策略相比静态 Shape 更为保守——默认只分配一条流（单流模式），仅当 `ENABLE_DYNAMIC_SHAPE_MULTI_STREAM=1` 时才进入多流分配。这是因为动态 Shape 的图结构在编译期不完整，无法进行精确的依赖分析。`ge.autoMultistreamParallelMode` 仅在多流开启后选择 `cv` 或显式 DAG 模式；`cv`、`LoadBalance:N` 和 `MainStream:N` 均不能单独开启动态 Shape 多流。
 
 ```mermaid
 flowchart LR
     subgraph DynPassChain["动态 Shape 分流策略"]
         direction TB
+        D0{"ENABLE_DYNAMIC_SHAPE_MULTI_STREAM<br/>是否为 1?"}
+        D0 -->|否| DS["保持单流"]
+        D0 -->|是| D1
         D1["AssignEnginesOwningStream<br/>按引擎分流"]
+        D1 --> D2
         D2{ac_parallel_enable?}
         D2 -->|是| D3["AssignAicpuCanParallel<br/>AICPU 并行判断"]
         D2 -->|否| D4["AssignIndependentAicpuNode<br/>独立 AICPU 节点分流"]
@@ -254,21 +266,26 @@ flowchart LR
         D4 --> D5
         D5 --> D6["AssignRemainSubgraphNeedAssignStream<br/>剩余子图分流"]
         D6 --> D7["ReassignStreamByStreamLabel<br/>标签重分配"]
+        D7 --> D8["RunCustomStreamPass<br/>自定义/DAG分流"]
+        D8 --> D9{"auto multi-stream<br/>DAG模式?"}
+        D9 -->|是| D10["RefreshContinuousStreamsByNodeIds<br/>按节点实际流连续化并处理强制主流节点"]
+        D9 -->|否| D11["cv/非DAG模式保持引擎优先级连续化结果<br/>强制主流节点已在刷新时处理"]
     end
-    D1 --> D2
-    D7 --> D8["强制主流节点<br/>Data/Variable/NetOutput/FILECONSTANT → stream 0"]
 ```
 
 **与静态 Shape 的关键差异：**
 
-| 差异点 | 静态 Shape | 动态 Shape |
-|--------|-----------|-----------|
-| 默认模式 | 多流 | 单流 |
-| 分流粒度 | Pass 链式处理，规则精细 | 按引擎分流，规则简洁 |
-| 流复用策略 | 基于依赖关系的复杂复用判断 | 前驱/后继子图复用 |
-| 节点级约束 | 较少 | Data、Variable、NetOutput、FILECONSTANT 等强制在主流 |
-| 附着流 | 支持 | 通过独立接口 `AssignAttachedResource` 支持 |
-| 同步机制 | Event + Notify 双模式 | 仅 Event |
+| 差异点 | 静态 Shape           | 动态 Shape                                    |
+|--------|--------------------|---------------------------------------------|
+| 默认模式 | 多流                 | 单流                                          |
+| 分流粒度 | Pass 链式处理，规则精细     | 按引擎分流，规则简洁                                  |
+| 流复用策略 | 基于依赖关系的复杂复用判断      | 前驱/后继子图复用                                   |
+| 节点级约束 | 较少                 | Data、Variable、NetOutput、FILECONSTANT 等强制在主流 |
+| 附着流 | 支持                 | 通过独立接口 `AssignAttachedResource` 支持          |
+| 同步机制 | Event + Notify 双模式 | 仅 Event                                     |
+| Auto Multi-Stream | `ge.autoMultistreamParallelMode` 保持既有开启语义 | 仅由 `ENABLE_DYNAMIC_SHAPE_MULTI_STREAM=1` 开启，option 只选择算法 |
+
+动态 Shape 多流路径中的 stream_id 连续化分两步：先按引擎优先级、StreamLabel 等规则消除空洞；如果 `ge.autoMultistreamParallelMode` 为显式 `LoadBalance:N` 或 `MainStream:N` DAG 模式（`N` 为 `[1, 64]` 范围内的整数），再收集根图和未知 Shape 子图中节点实际使用的 stream_id，按从小到大的顺序重新映射为连续 ID，并重建 `stream_nodes_`。`cv` 模式不进入 DAG 按节点连续化分支，保持引擎优先级连续化结果。裸 `LoadBalance` 默认 8 流的兼容配置已下线。后续跨流 Event 插入基于最终 stream_id 执行，避免 auto multi-stream 改写节点流后留下空洞或错误的流内节点顺序。
 
 ### 4.3 同步事件管理
 

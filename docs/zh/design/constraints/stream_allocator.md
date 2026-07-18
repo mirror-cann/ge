@@ -13,7 +13,7 @@
 
 2. **分流模式区分**：
    - **静态shape**：默认多流，支持单流特殊场景
-   - **动态shape**：默认单流，可通过配置开启多流
+   - **动态shape**：默认单流，仅当 `ENABLE_DYNAMIC_SHAPE_MULTI_STREAM=1` 时开启多流
 
 3. **Pass架构设计**：流分配采用Pass链式处理架构，各Pass按优先级依次执行，每个Pass负责特定分流规则的处理
 
@@ -52,6 +52,8 @@
 
 5. **流连续性保证**：流分配完成后，会刷新流ID，确保流ID从0开始连续分配。任何可能修改节点 stream_id 的 Pass（包括迁移节点到新流、重排流ID等）都可能导致某些 stream_id 上不再有算子而产生空洞。因此，流ID连续性刷新必须在**所有可能修改 stream_id 的 Pass 之后**执行，作为逻辑流分配阶段的最后一步，才能正确消除空洞，避免运行时为空洞的 stream_id 额外申请物理流造成资源浪费
 
+6. **Auto Multi-Stream 模式**：静态shape支持通过 `ge.autoMultistreamParallelMode` 开启自动多流并行，既有开启语义不变。DAG多流算法通过自定义stream pass接入，须显式配置为 `LoadBalance:N` 或 `MainStream:N`，`N` 为 `[1, 64]` 范围内的整数；裸 `LoadBalance` 默认8流的兼容配置已下线。该 Pass 可能改写节点 stream_id，因此仍需遵守流连续性保证，确保后续内存分配、GenTask 和流拆分看到的是连续流 ID
+
 **静态shape物理流拆分**
 
 由于物理流承载的task数量是有限的，所以要对同一个逻辑流上的task计算数量并且做流拆分，这个阶段产生的stream和event总数就是在执行时申请的数量。该阶段以整图粒度做处理。
@@ -83,7 +85,7 @@
 
 **动态shape逻辑流分配**
 
-默认是单流，如果开启多流则根据以下规则分流：
+默认是单流，仅当 `ENABLE_DYNAMIC_SHAPE_MULTI_STREAM=1` 时才进入多流分配，并根据以下规则分流：
 
 1. **分流策略**：
    - AssignEnginesOwningStream：根据引擎分流，一个引擎对应一个stream_id，仅限于AIcoreEngine、VectorEngine、DNN_HCCL、DSAEngine
@@ -104,6 +106,8 @@
    - 无stream_id的节点放到主流
 
 4. **流连续性**：按引擎优先级排序后刷新流ID，保证流ID从0开始连续，消除空的流引用
+
+5. **Auto Multi-Stream 兼容**：动态shape多流仅由 `ENABLE_DYNAMIC_SHAPE_MULTI_STREAM=1` 开启。环境变量开关开启后，`ge.autoMultistreamParallelMode` 才用于选择 `cv` 或显式 DAG 模式；`cv`、`LoadBalance:N` 和 `MainStream:N` 不能单独开启动态shape多流。DAG 模式须配置为 `LoadBalance:N` 或 `MainStream:N`，`N` 为 `[1, 64]` 范围内的整数；裸 `LoadBalance` 默认8流的兼容配置已下线。DAG 模式会先执行按引擎复用和 StreamLabel 的既有规则，再运行自定义 Stream Pass。由于 DAG pass 会改写 stream id，需要按节点实际使用的 stream_id 重新连续化，并重建 stream_id 到节点列表的映射。后续 Event 插入必须基于该最终 stream_id，保证跨流依赖同步正确
 
 **同步机制设计**
 
@@ -152,6 +156,7 @@
 
 2. **动态shape约束**：
    - 多流开启时，ac_parallel_enable值只能是"0"、"1"、空
+   - 必须先设置 `ENABLE_DYNAMIC_SHAPE_MULTI_STREAM=1` 开启动态shape多流，之后 `ge.autoMultistreamParallelMode` 才选择算法；该 option 不能代替环境变量开关。显式 `LoadBalance:N`/`MainStream:N` DAG 模式必须在所有可能改写节点 stream_id 的自定义 Stream Pass 之后重新连续化，`cv` 模式保持引擎优先级连续化结果
    - AICPU引擎的流分配考虑并行场景
    - 特定节点（Data、NetOutput等）必须在主流
    - 子图节点必须在主流

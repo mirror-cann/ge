@@ -13,7 +13,7 @@
 
 2. **Stream Allocation Mode Distinction**:
    - **Static shape**: Default multi-stream, supports single-stream special scenarios
-   - **Dynamic shape**: Default single-stream, can enable multi-stream through configuration
+   - **Dynamic shape**: Default single-stream; multi-stream is enabled only when `ENABLE_DYNAMIC_SHAPE_MULTI_STREAM=1`
 
 3. **Pass Architecture Design**: Stream allocation adopts Pass chain processing architecture, each Pass executes in priority order, each Pass responsible for specific stream allocation rule processing
 
@@ -52,6 +52,8 @@
 
 5. **Stream Continuity Guarantee**: After stream allocation completion, will refresh stream ID, ensure stream ID starts from 0 continuous allocation. Any Pass that may modify node stream_id (including migrating node to new stream, reordering stream ID, etc.) may cause certain stream_id to no longer have operators and produce holes. Therefore, stream ID continuity refresh must execute **after all Passes that may modify stream_id**, as last step of logic stream allocation phase, can correctly eliminate holes, avoid runtime extra apply physical stream for holes stream_id causing resource waste
 
+6. **Auto Multi-Stream Mode**: Static shape supports enabling automatic multi-stream parallelism through `ge.autoMultistreamParallelMode`, and its existing enable semantics remain unchanged. The DAG multi-stream algorithm is integrated through custom stream pass and must be explicitly configured as `LoadBalance:N` or `MainStream:N`, where `N` is an integer in `[1, 64]`. Compatibility for bare `LoadBalance` defaulting to eight streams has been retired. This Pass may rewrite node stream_id, so it still needs to follow the stream continuity guarantee, ensuring subsequent memory allocation, GenTask and stream splitting see continuous stream IDs
+
 **Static Shape Physical Stream Splitting**
 
 Since physical stream carried task quantity is limited, need to calculate task quantity on same logic stream and do stream splitting, stream and event total number produced in this phase is quantity applied during execution. This phase processes at whole graph granularity.
@@ -83,7 +85,7 @@ Since physical stream carried task quantity is limited, need to calculate task q
 
 **Dynamic Shape Logic Stream Allocation**
 
-Default is single stream, if enable multi-stream then allocate stream according to following rules:
+The default is single-stream. Multi-stream allocation is entered only when `ENABLE_DYNAMIC_SHAPE_MULTI_STREAM=1`, and then streams are allocated according to the following rules:
 
 1. **Stream Allocation Strategy**:
    - AssignEnginesOwningStream: Allocate stream according to engine, one engine corresponds one stream_id, limited to AIcoreEngine、VectorEngine、DNN_HCCL、DSAEngine
@@ -94,6 +96,30 @@ Default is single stream, if enable multi-stream then allocate stream according 
    - ReassignStreamByStreamLabel: Nodes with stream_label allocated to new stream, same stream_label allocated to same stream (different engines can be allocated to same stream through stream_label)
 
 2. **Stream Reuse Principle**:
-   - aicpu cannot attach to hccl (IsEngineIndependent)
-   - Engine same or IsEngineAttach can reuse
-   - Can pass reuse relationship through reused_subgraph (such as AIcore attach to hccl after, subsequent AIcore can reuse)
+    - aicpu cannot attach to hccl (IsEngineIndependent)
+    - Engine same or IsEngineAttach can reuse
+    - Can pass reuse relationship through reused_subgraph (such as AIcore attach to hccl after, subsequent AIcore can reuse)
+
+3. **Node Stream Constraints**:
+   - Specific nodes such as Data, Variable, Constant, ConstPlaceholder, NetOutput and FILECONSTANT are forced to main stream (stream 0)
+   - Subgraph nodes must be on main stream
+   - Nodes without stream_id are placed on main stream
+
+4. **Stream Continuity**: Refresh stream IDs after sorting by engine priority, ensure stream IDs start from 0 and are continuous, eliminating empty stream references
+
+5. **Auto Multi-Stream Compatibility**: Dynamic Shape multi-stream is enabled only by `ENABLE_DYNAMIC_SHAPE_MULTI_STREAM=1`. After the environment switch is enabled, `ge.autoMultistreamParallelMode` selects `cv` or an explicit DAG mode; `cv`, `LoadBalance:N`, and `MainStream:N` cannot enable Dynamic Shape multi-stream by themselves. DAG modes must use `LoadBalance:N` or `MainStream:N`, where `N` is an integer in `[1, 64]`. Compatibility for bare `LoadBalance` defaulting to eight streams has been retired. DAG modes first execute existing rules based on engine reuse and StreamLabel, then run the custom Stream Pass. Because the DAG pass may rewrite stream id, stream IDs need to be made continuous again according to the stream_id actually used by nodes, and the mapping from stream_id to node list needs to be rebuilt. Subsequent Event insertion must be based on this final stream_id to ensure correct cross-stream dependency synchronization
+
+**Constraints and Boundary Conditions**
+
+1. **Static Shape Constraints**:
+   - Single-stream mode does not allow StreamLabel
+   - Attached stream can only be allocated after main stream allocation completes
+   - Event ID must be continuous, uniformly managed through Nodes2SyncInfos
+   - StreamLabel in dynamic gear scenarios needs gear information
+
+2. **Dynamic Shape Constraints**:
+   - When multi-stream is enabled, ac_parallel_enable value can only be "0", "1" or empty
+   - `ENABLE_DYNAMIC_SHAPE_MULTI_STREAM=1` must first enable Dynamic Shape multi-stream; only then does `ge.autoMultistreamParallelMode` select the algorithm, and the option cannot replace the environment switch. Explicit `LoadBalance:N`/`MainStream:N` DAG modes must refresh stream IDs to be continuous after all custom Stream Passes that may rewrite node stream_id, while `cv` mode keeps the engine-priority continuity result
+   - AICPU engine stream allocation considers parallel scenarios
+   - Specific nodes (Data, NetOutput, etc.) must be on main stream
+   - Subgraph nodes must be on main stream

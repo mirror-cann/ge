@@ -2305,23 +2305,36 @@ TEST_F(UtestModelBuilderTest, AssignStreamForDynamicShapeGraph_KeepTopoIdRight) 
   unsetenv("ENABLE_DYNAMIC_SHAPE_MULTI_STREAM");
 }
 
-TEST_F(UtestModelBuilderTest, AssignStreamForDynamicShapeGraph_EnableCvParallel_Fail) {
+TEST_F(UtestModelBuilderTest, AssignStreamForDynamicShapeGraph_AutoMultistreamOptionWithoutEnv_KeepSingleStream) {
   int64_t stream_num, event_num = 0;
   auto graph = gert::ShareGraph::MultiStreamTwoNodeGraph(stream_num, event_num);
-  EXPECT_NE(graph, nullptr);
-  graph->TopologicalSorting();
+  ASSERT_NE(graph, nullptr);
+  ASSERT_EQ(graph->TopologicalSorting(), GRAPH_SUCCESS);
 
-  setenv("ENABLE_DYNAMIC_SHAPE_MULTI_STREAM", "1", 0);
+  const char *const env_name = "ENABLE_DYNAMIC_SHAPE_MULTI_STREAM";
+  const char *const env_value = std::getenv(env_name);
+  const bool had_env = (env_value != nullptr);
+  const std::string env_backup = had_env ? env_value : "";
+  (void)unsetenv(env_name);
 
   const auto back_options = ge::GetThreadLocalContext().GetAllSessionOptions();
   auto options = back_options;
   options["ge.autoMultistreamParallelMode"] = "cv";
   ge::GetThreadLocalContext().SetSessionOption(options);
+
   Graph2SubGraphInfoList subgraphs;
   std::map<std::string, int> stream_max_parallel_num;
   ge::ModelBuilder builder(0, graph, subgraphs, stream_max_parallel_num, false);
-  ASSERT_NE(builder.AssignStreamForDynamicShapeGraph(graph), SUCCESS);
+  const auto ret = builder.AssignStreamForDynamicShapeGraph(graph);
 
-  unsetenv("ENABLE_DYNAMIC_SHAPE_MULTI_STREAM");
+  ge::GetThreadLocalContext().SetSessionOption(back_options);
+  if (had_env) {
+    (void)setenv(env_name, env_backup.c_str(), 1);
+  } else {
+    (void)unsetenv(env_name);
+  }
+
+  EXPECT_EQ(ret, SUCCESS);
+  EXPECT_EQ(builder.stream_num_, 0);
 }
 }  // namespace ge

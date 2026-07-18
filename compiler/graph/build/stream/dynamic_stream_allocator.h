@@ -74,6 +74,9 @@ class DynamicStreamAllocator {
 
   Status RefreshContinuousStreams(const ComputeGraphPtr &root_graph);
   Status RefreshStreamsForGraph(const ComputeGraphPtr &graph, const std::map<int64_t, int64_t> &old_to_new_streams);
+  Status RefreshContinuousStreamsByNodeIds(const ComputeGraphPtr &root_graph);
+  Status RefreshStreamsForGraphByNodeIds(const ComputeGraphPtr &graph,
+                                         const std::map<int64_t, int64_t> &old_to_new_streams);
   bool IsForcedAssignMainStream(const NodePtr &node) const;
 
   Status InsertEvents(const ComputeGraphPtr &root_graph);

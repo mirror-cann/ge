@@ -9,11 +9,16 @@
  */
 
 #include <gtest/gtest.h>
+
+#include <cstdlib>
+#include <string>
+
 #include "graph/build/stream/stream_utils.h"
 
 #include <graph_utils_ex.h>
 #include <debug/ge_attr_define.h>
 
+#include "graph/ge_local_context.h"
 #include "common/multi_stream_share_graph.h"
 
 namespace ge {
@@ -56,5 +61,34 @@ TEST_F(UtestStreamUtils, Convert_Both_UserStreamLabel_InnerStreamLabel) {
   std::string trans1_final_stream_label;
   EXPECT_TRUE(AttrUtils::GetStr(trans1->GetOpDesc(), ATTR_NAME_STREAM_LABEL, trans1_final_stream_label));
   EXPECT_STREQ(trans1_final_stream_label.c_str(), trans1_user_stream_label.c_str());
+}
+
+TEST_F(UtestStreamUtils, EnableDynamicShapeMultiStream_WithOptionModesAndNoEnv_ReturnsFalse) {
+  const char *const env_name = "ENABLE_DYNAMIC_SHAPE_MULTI_STREAM";
+  const char *const env_value = std::getenv(env_name);
+  const bool had_env = (env_value != nullptr);
+  const std::string env_backup = had_env ? env_value : "";
+  (void)unsetenv(env_name);
+
+  const auto back_session_options = GetThreadLocalContext().GetAllSessionOptions();
+  const auto back_graph_options = GetThreadLocalContext().GetAllGraphOptions();
+  auto session_options = back_session_options;
+  auto graph_options = back_graph_options;
+  const std::string auto_multistream_modes[] = {"cv", "LoadBalance:8", "MainStream:8", "LoadBalance"};
+  for (const auto &mode : auto_multistream_modes) {
+    session_options["ge.autoMultistreamParallelMode"] = mode;
+    graph_options["ge.autoMultistreamParallelMode"] = mode;
+    GetThreadLocalContext().SetSessionOption(session_options);
+    GetThreadLocalContext().SetGraphOption(graph_options);
+    EXPECT_FALSE(StreamUtils::EnableDynamicShapeMultiStream()) << mode;
+  }
+
+  GetThreadLocalContext().SetSessionOption(back_session_options);
+  GetThreadLocalContext().SetGraphOption(back_graph_options);
+  if (had_env) {
+    (void)setenv(env_name, env_backup.c_str(), 1);
+  } else {
+    (void)unsetenv(env_name);
+  }
 }
 }  // namespace ge
