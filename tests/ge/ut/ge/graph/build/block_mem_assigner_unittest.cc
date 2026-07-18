@@ -203,7 +203,19 @@ TEST_F(UtestBlockMemAssigner, IsZeroCopyBlock) {
   EXPECT_EQ(p1->IsZeroCopyBlock(node, 0, false), true);
 }
 
+TEST_F(UtestBlockMemAssigner, IsZeroCopyBlock_zerocopy) {
+  auto builder = std::make_shared<block_mem_ut::GraphBuilder>("graph");
+  auto node = builder->AddNode("node", DATA, 1, 1);
+  ComputeGraphPtr compute_graph = builder->GetGraph();
+  MemAssistInfo mem_assist_info;
+  mem_assist_info.compute_graph = compute_graph;
+  auto p1 = std::make_shared<FakBlockMemAssigner>(mem_assist_info);
+  ge::AttrUtils::SetBool(node->GetOpDesc(), "_is_multi_batch_shape_data", true);
+  EXPECT_EQ(p1->IsZeroCopyBlock(node, 0, false), true);
+}
+
 TEST_F(UtestBlockMemAssigner, IsZeroCopyBlock_Disable_zerocopy) {
+  FeatureMapRefreshOptionGuarder guarder;
   auto builder = std::make_shared<block_mem_ut::GraphBuilder>("graph");
   auto node = builder->AddNode("node", DATA, 1, 1);
   ComputeGraphPtr compute_graph = builder->GetGraph();

@@ -2758,7 +2758,7 @@ bool BlockMemAssigner::IsZeroCopyBlock(const NodePtr &node, uint32_t output_inde
   if (OpTypeUtils::IsDataNode(op_type)) {
     bool is_multi_batch_shape_data = false;
     (void)AttrUtils::GetBool(node->GetOpDesc(), "_is_multi_batch_shape_data", is_multi_batch_shape_data);
-    if (is_multi_batch_shape_data) {
+    if (is_feature_map_refreshable_ && is_multi_batch_shape_data) {
       GELOGD("Multi batch shape data node[%s] output memory no need zero copy.", node->GetName().c_str());
       return false;
     }
