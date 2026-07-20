@@ -11,7 +11,6 @@
 #ifndef GE_GRAPH_BUILD_STREAM_GRAPH_STREAM_ALLOCATOR_H_
 #define GE_GRAPH_BUILD_STREAM_GRAPH_STREAM_ALLOCATOR_H_
 
-#include <cstdint>
 #include <map>
 #include <set>
 #include <string>
@@ -46,13 +45,6 @@ struct StreamSplitSyncInfo {
   int64_t pre_stream_id;
   int64_t next_stream_id;
 };
-
-struct StandaloneWaitEvent {
-  NodePtr consumer_node;
-  uint32_t event_id;
-  bool generated;
-};
-
 using TaskNumInfos = std::map<int64_t, size_t>;
 using Nodes2SyncInfos = std::map<NodePtr, std::vector<uint32_t>, NodeCompareKey>;
 using Node2AttachedStreamId2EventId = std::map<NodePtr, std::map<int64_t, std::vector<uint32_t>>, NodeCompareKey>;
@@ -110,14 +102,6 @@ class StreamAllocator {
   }
   const std::vector<uint32_t> &GetNotifyTypes() const {
     return notify_types_;
-  }
-
-  Status AddExternalWaitRequest(const NodePtr &consumer_node);
-  const std::vector<StandaloneWaitEvent> &GetStandaloneWaitEvents() const {
-    return external_wait_events_;
-  }
-  int64_t GetStreamNum() const {
-    return stream_num_;
   }
 
   std::map<int64_t, int64_t> GetSplitStreamToLogicStream() {
@@ -199,12 +183,10 @@ class StreamAllocator {
       const std::map<NodePtr, std::vector<uint32_t>, NodeCompareKey> &peer_sync_info) const;
 
   Status GenerateSyncEventNodes(bool change_topo = true);
-  Status AssignStandaloneWaitEvents();
   Status InsertSyncSendEventNode(const NodePtr &node, const std::vector<uint32_t> &event_id_list, int64_t stream_id,
                                  int32_t &total_num, std::unordered_map<std::string, uint32_t> &sync_event_name);
   Status InsertSyncRecvEventNode(const NodePtr &node, const std::vector<uint32_t> &event_id_list, int64_t stream_id,
                                  int32_t &total_num, std::unordered_map<std::string, uint32_t> &sync_event_name);
-  Status InsertStandaloneWaitEventNodes(std::unordered_map<std::string, uint32_t> &sync_event_name);
   Status InsertSyncSendNotifyNode(const NodePtr &node, int32_t &total_num,
                                   std::unordered_map<std::string, uint32_t> &sync_notify_name);
   Status InsertSyncRecvNotifyNode(const NodePtr &node, int32_t &total_num,
@@ -297,8 +279,6 @@ class StreamAllocator {
   // node may have multi attached stream(SuperKernel)
   Node2AttachedStreamId2EventId attached_node_to_stream_id_to_send_event_id_;
   Node2AttachedStreamId2EventId attached_node_to_stream_id_to_recv_event_id_;
-
-  std::vector<StandaloneWaitEvent> external_wait_events_;
 };
 }  // namespace ge
 #endif  // GE_GRAPH_BUILD_STREAM_GRAPH_STREAM_ALLOCATOR_H_

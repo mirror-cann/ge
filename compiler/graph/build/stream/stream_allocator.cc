@@ -312,35 +312,6 @@ StreamAllocator::StreamAllocator(ComputeGraphPtr whole_graph, const Graph2SubGra
   enable_single_stream_ = StreamUtils::EnableSingleStream();
 }
 
-Status StreamAllocator::AddExternalWaitRequest(const NodePtr &consumer_node) {
-  GE_ASSERT_NOTNULL(consumer_node);
-  GE_ASSERT_NOTNULL(consumer_node->GetOpDesc());
-  external_wait_events_.push_back({consumer_node, UINT32_MAX, false});
-  return SUCCESS;
-}
-
-Status StreamAllocator::AssignStandaloneWaitEvents() {
-  for (auto &wait_event : external_wait_events_) {
-    GE_ASSERT_NOTNULL(wait_event.consumer_node);
-    const auto op_desc = wait_event.consumer_node->GetOpDesc();
-    GE_ASSERT_NOTNULL(op_desc);
-    if (op_desc->GetStreamId() < 0) {
-      REPORT_INNER_ERR_MSG("E19999", "external wait node %s stream id:%ld is invalid.", op_desc->GetNamePtr(),
-                           op_desc->GetStreamId());
-      GELOGE(FAILED, "[Check][ExternalWait] node:%s stream id:%ld is invalid.", op_desc->GetNamePtr(),
-             op_desc->GetStreamId());
-      return FAILED;
-    }
-    if (wait_event.event_id != UINT32_MAX) {
-      continue;
-    }
-    wait_event.event_id = event_num_++;
-    GELOGD("[InputH2DOverlap] assign external wait event:%u before node:%s stream:%ld.", wait_event.event_id,
-           op_desc->GetNamePtr(), op_desc->GetStreamId());
-  }
-  return SUCCESS;
-}
-
 void StreamAllocator::BuildEventReuseMap(const EventType event_type, const std::vector<uint32_t> &events,
                                          std::map<uint32_t, uint32_t> &event_seen, uint32_t &event_id) const {
   for (size_t i = 0U; i < events.size(); ++i) {
@@ -686,8 +657,6 @@ Status StreamAllocator::InsertSyncNodesByLogicStream(int64_t &stream_num, int64_
   GE_ASSERT_SUCCESS(UpdateStreamSwitchByLogicStream(), "UpdateStreamSwitchByLogicStream failed! graph:%s",
                     whole_graph_->GetName().c_str());
   GE_ASSERT_SUCCESS(CoverAllStreamByNetoutput());
-  GE_ASSERT_SUCCESS(AssignStandaloneWaitEvents(), "[Assign][StandaloneWaitEvents] failed! graph:%s",
-                    whole_graph_->GetName().c_str());
   GE_ASSERT_SUCCESS(GenerateSyncEventNodes(), "[GenerateSyncEventNodes] failed! graph:%s",
                     whole_graph_->GetName().c_str());
   notify_types_.resize(notify_num_, ACL_NOTIFY_DEFAULT);
@@ -2355,31 +2324,6 @@ Status StreamAllocator::InsertSyncRecvNotifyNode(const NodePtr &node, int32_t &t
   return SUCCESS;
 }
 
-Status StreamAllocator::InsertStandaloneWaitEventNodes(std::unordered_map<std::string, uint32_t> &sync_event_name) {
-  int32_t total_num = 0;
-  for (auto &wait_event : external_wait_events_) {
-    if (wait_event.generated) {
-      continue;
-    }
-    GE_ASSERT_NOTNULL(wait_event.consumer_node);
-    const auto op_desc = wait_event.consumer_node->GetOpDesc();
-    GE_ASSERT_NOTNULL(op_desc);
-    if (wait_event.event_id == UINT32_MAX) {
-      REPORT_INNER_ERR_MSG("E19999", "external wait node %s event is not assigned.", op_desc->GetNamePtr());
-      GELOGE(FAILED, "[Check][ExternalWait] node:%s event is not assigned.", op_desc->GetNamePtr());
-      return FAILED;
-    }
-    const std::vector<uint32_t> event_id_list{wait_event.event_id};
-    GE_ASSERT_SUCCESS(InsertSyncSendEventNode(wait_event.consumer_node, event_id_list, op_desc->GetStreamId(),
-                                              total_num, sync_event_name));
-    wait_event.generated = true;
-  }
-  if (total_num > 0) {
-    GELOGI("[InputH2DOverlap] insert %d external wait event nodes.", total_num);
-  }
-  return SUCCESS;
-}
-
 // Insert the real send/recv node in the graph
 Status StreamAllocator::GenerateSyncEventNodes(bool change_topo) {
   std::unordered_map<std::string, uint32_t> sync_event_name;
@@ -2433,8 +2377,6 @@ Status StreamAllocator::GenerateSyncEventNodes(bool change_topo) {
   GE_ASSERT_TRUE(total_send == total_recv);
 
   if (change_topo) {
-    GE_ASSERT_SUCCESS(InsertStandaloneWaitEventNodes(sync_event_name),
-                      "[Insert][StandaloneWaitEventNodes] failed! graph:%s", whole_graph_->GetName().c_str());
     GE_ASSERT_SUCCESS(whole_graph_->InsertGraphEvents(),
                       "[Insert][GraphEvents] Graph ReorderEventNodes failed, graph:%s,",
                       whole_graph_->GetName().c_str());

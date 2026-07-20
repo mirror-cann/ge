@@ -2771,6 +2771,7 @@ TEST_F(AtcCommonSTest, GeFlags_teardown_resets_raw_ge_options_flag_state) {
   EXPECT_EQ(ge::flgs::SetFlagValue("static_model_ops_lower_limit", "-2"), ge::flgs::GF_SUCCESS);
   EXPECT_EQ(FLAGS_save_original_model, "yes");
   EXPECT_EQ(FLAGS_static_model_ops_lower_limit, "-2");
+
   ResetAtcFlagsForTest();
 
   EXPECT_FALSE(FLAGS_raw_ge_options_ignore_unsupported);

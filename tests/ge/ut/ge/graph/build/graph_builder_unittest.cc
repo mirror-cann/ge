@@ -10,15 +10,12 @@
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include <set>
 #include "ge_graph_dsl/graph_dsl.h"
 
 #include "macro_utils/dt_public_scope.h"
 #include "graph/build/graph_builder.h"
-#include "graph/build/input_h2d_overlap_test_utils.h"
 #include "graph/utils/graph_utils_ex.h"
 #include "graph/utils/tensor_utils_ex.h"
-#include "graph/debug/ge_attr_define.h"
 #include "common/helper/file_saver.h"
 #include "api/gelib/gelib.h"
 #include "engines/manager/opskernel_manager/ops_kernel_builder_manager.h"
@@ -35,13 +32,10 @@
 #include "common/opskernel/ops_kernel_info_types.h"
 
 namespace ge {
-using namespace input_h2d_overlap;
-
 namespace {
 const char *const kKernelLibName = "ops_kernel_lib";
 const char *kSessionId = "123456";
 bool need_sk_append_ws = false;
-
 }  // namespace
 
 class GraphBuilderTest : public testing::Test {
@@ -105,31 +99,14 @@ class GraphBuilderTest : public testing::Test {
     };
     Status GenerateTask(const Node &node, RunContext &context, std::vector<domi::TaskDef> &tasks) override {
       domi::TaskDef task_def;
-      const auto op_desc = node.GetOpDesc();
-      GE_CHECK_NOTNULL(op_desc);
-      const auto stream_id = op_desc->GetStreamId();
-      if (stream_id >= 0) {
-        task_def.set_stream_id(static_cast<uint32_t>(stream_id));
-      }
-      if (node.GetType() == RECV) {
-        int64_t event_id = 0;
-        (void)AttrUtils::GetInt(op_desc, RECV_ATTR_EVENT_ID, event_id);
-        task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_EVENT_WAIT));
-        task_def.set_event_id(static_cast<uint32_t>(event_id));
-      } else if (node.GetType() == SEND) {
-        int64_t event_id = 0;
-        (void)AttrUtils::GetInt(op_desc, SEND_ATTR_EVENT_ID, event_id);
-        task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_EVENT_RECORD));
-        task_def.set_event_id(static_cast<uint32_t>(event_id));
-      }
       tasks.push_back(task_def);
-      AttrUtils::SetListInt(op_desc, "_test_task_generate_input_offset", op_desc->GetInputOffset());
-      AttrUtils::SetListInt(op_desc, "_test_task_generate_output_offset", op_desc->GetOutputOffset());
-      AttrUtils::SetInt(op_desc, "_test_get_run_context_memsize", context.dataMemSize);
+      AttrUtils::SetListInt(node.GetOpDesc(), "_test_task_generate_input_offset", node.GetOpDesc()->GetInputOffset());
+      AttrUtils::SetListInt(node.GetOpDesc(), "_test_task_generate_output_offset", node.GetOpDesc()->GetOutputOffset());
+      AttrUtils::SetInt(node.GetOpDesc(), "_test_get_run_context_memsize", context.dataMemSize);
       if ((node.GetType() == "SuperKernel") && (need_sk_append_ws)) {
         std::vector<int64_t> append_ws_vec;
         append_ws_vec.emplace_back(100);
-        AttrUtils::SetListInt(op_desc, "_append_ws", append_ws_vec);
+        AttrUtils::SetListInt(node.GetOpDesc(), "_append_ws", append_ws_vec);
       }
       return SUCCESS;
     };
@@ -263,7 +240,6 @@ class GraphBuilderTest : public testing::Test {
     OpsKernelBuilderRegistry::GetInstance().kernel_builders_[kKernelLibName] = fake_builder;
     OpsKernelBuilderRegistry::GetInstance().kernel_builders_["ops_kernel_info_hccl"] = fake_builder;
     OpsKernelBuilderRegistry::GetInstance().kernel_builders_["AIcoreEngine"] = fake_builder;
-    OpsKernelBuilderRegistry::GetInstance().kernel_builders_[kEngineNameDsa] = fake_builder;
   }
 
   void FinalizeGeLib() {
@@ -499,81 +475,6 @@ class GraphBuilderTest : public testing::Test {
     (void)ge::AttrUtils::SetInt(*root_graph, ATTR_MODEL_LABEL_NUM, 6);
     return root_graph;
   }
-
-  GeTensorDesc MakeInputH2DOverlapTensorDesc(const int64_t size) const {
-    constexpr int64_t kFloatBytes = 4;
-    const int64_t element_count = (size <= 0) ? 1 : ((size + kFloatBytes - 1) / kFloatBytes);
-    GeTensorDesc tensor_desc(GeShape({element_count}), FORMAT_ND, DT_FLOAT);
-    TensorUtils::SetSize(tensor_desc, size);
-    return tensor_desc;
-  }
-
-  NodePtr AddInputH2DOverlapDataNode(const ComputeGraphPtr &graph, const string &name, const int64_t input_index,
-                                     const int64_t size) const {
-    auto op_desc = std::make_shared<OpDesc>(name, DATA);
-    const auto tensor_desc = MakeInputH2DOverlapTensorDesc(size);
-    (void)op_desc->AddOutputDesc(tensor_desc);
-    (void)AttrUtils::SetInt(op_desc, ATTR_NAME_INDEX, input_index);
-    op_desc->SetOpKernelLibName(kEngineNameDsa);
-    op_desc->SetOpEngineName(kKernelLibName);
-    return graph->AddNode(op_desc);
-  }
-
-  NodePtr AddInputH2DOverlapOpNode(const ComputeGraphPtr &graph, const string &name, const string &type,
-                                   const uint32_t input_num, const uint32_t output_num, const int64_t size = 16) const {
-    auto op_desc = std::make_shared<OpDesc>(name, type);
-    const auto tensor_desc = MakeInputH2DOverlapTensorDesc(size);
-    for (uint32_t i = 0U; i < input_num; ++i) {
-      (void)op_desc->AddInputDesc(tensor_desc);
-    }
-    for (uint32_t i = 0U; i < output_num; ++i) {
-      (void)op_desc->AddOutputDesc(tensor_desc);
-    }
-    op_desc->SetOpKernelLibName(kKernelLibName);
-    op_desc->SetOpEngineName(kKernelLibName);
-    return graph->AddNode(op_desc);
-  }
-
-  ComputeGraphPtr BuildInputH2DOverlapGraph() {
-    auto graph = std::make_shared<ComputeGraph>("input_h2d_graph_builder");
-    auto data0 = AddInputH2DOverlapDataNode(graph, "data0", 0, 64);
-    auto data1 = AddInputH2DOverlapDataNode(graph, "data1", 1, 128);
-    auto no_task = AddInputH2DOverlapOpNode(graph, "no_task", IDENTITY, 1U, 1U, 64);
-    auto relu0 = AddInputH2DOverlapOpNode(graph, "relu0", RELU, 1U, 1U, 64);
-    auto add = AddInputH2DOverlapOpNode(graph, "add", ADD, 2U, 1U, 128);
-    auto netoutput = AddInputH2DOverlapOpNode(graph, "netoutput", NETOUTPUT, 1U, 0U, 128);
-
-    (void)AttrUtils::SetBool(no_task->GetOpDesc(), ATTR_NAME_NOTASK, true);
-    EXPECT_EQ(GraphUtils::AddEdge(data0->GetOutDataAnchor(0), no_task->GetInDataAnchor(0)), GRAPH_SUCCESS);
-    EXPECT_EQ(GraphUtils::AddEdge(no_task->GetOutDataAnchor(0), relu0->GetInDataAnchor(0)), GRAPH_SUCCESS);
-    EXPECT_EQ(GraphUtils::AddEdge(relu0->GetOutDataAnchor(0), add->GetInDataAnchor(0)), GRAPH_SUCCESS);
-    EXPECT_EQ(GraphUtils::AddEdge(data1->GetOutDataAnchor(0), add->GetInDataAnchor(1)), GRAPH_SUCCESS);
-    EXPECT_EQ(GraphUtils::AddEdge(add->GetOutDataAnchor(0), netoutput->GetInDataAnchor(0)), GRAPH_SUCCESS);
-    EXPECT_EQ(graph->TopologicalSorting(), GRAPH_SUCCESS);
-    return graph;
-  }
-
-  ComputeGraphPtr BuildInputH2DOverlapSingleGroupGraph() {
-    auto graph = std::make_shared<ComputeGraph>("input_h2d_single_group_graph_builder");
-    auto data0 = AddInputH2DOverlapDataNode(graph, "data0", 0, 64);
-    auto relu0 = AddInputH2DOverlapOpNode(graph, "relu0", RELU, 1U, 1U, 64);
-    auto netoutput = AddInputH2DOverlapOpNode(graph, "netoutput", NETOUTPUT, 1U, 0U, 64);
-
-    EXPECT_EQ(GraphUtils::AddEdge(data0->GetOutDataAnchor(0), relu0->GetInDataAnchor(0)), GRAPH_SUCCESS);
-    EXPECT_EQ(GraphUtils::AddEdge(relu0->GetOutDataAnchor(0), netoutput->GetInDataAnchor(0)), GRAPH_SUCCESS);
-    EXPECT_EQ(graph->TopologicalSorting(), GRAPH_SUCCESS);
-    return graph;
-  }
-
-  ComputeGraphPtr BuildInputH2DOverlapDirectOutputGraph() {
-    auto graph = std::make_shared<ComputeGraph>("input_h2d_direct_output_graph_builder");
-    auto data0 = AddInputH2DOverlapDataNode(graph, "data0", 0, 64);
-    auto netoutput = AddInputH2DOverlapOpNode(graph, "netoutput", NETOUTPUT, 1U, 0U, 64);
-
-    EXPECT_EQ(GraphUtils::AddEdge(data0->GetOutDataAnchor(0), netoutput->GetInDataAnchor(0)), GRAPH_SUCCESS);
-    EXPECT_EQ(graph->TopologicalSorting(), GRAPH_SUCCESS);
-    return graph;
-  }
 };
 
 TEST_F(GraphBuilderTest, CalcOpParam_fixed) {
@@ -673,204 +574,6 @@ TEST_F(GraphBuilderTest, test_build_for_graph_with_label) {
   GeRootModelPtr root_model;
   auto ret = graph_builder.Build(root_graph, root_model);
   EXPECT_EQ(ret, SUCCESS);
-}
-
-TEST_F(GraphBuilderTest, BuildInputH2DOverlapOptionOnWritesFeaturePlan) {
-  GraphBuilder graph_builder;
-  auto root_graph = BuildInputH2DOverlapGraph();
-  AttrUtils::SetStr(root_graph, ATTR_NAME_SESSION_GRAPH_ID, kSessionId);
-
-  const auto old_graph_options = GetThreadLocalContext().GetAllGraphOptions();
-  auto graph_options = old_graph_options;
-  graph_options["ge.compile.h2dOverlappedWithCompute"] = "0,1,2";
-  GetThreadLocalContext().SetGraphOption(graph_options);
-  GeRootModelPtr root_model;
-  const auto ret = graph_builder.Build(root_graph, root_model);
-  GetThreadLocalContext().SetGraphOption(old_graph_options);
-
-  ASSERT_EQ(ret, SUCCESS);
-  ASSERT_NE(root_model, nullptr);
-  const auto &name_to_model = root_model->GetSubgraphInstanceNameToModel();
-  ASSERT_EQ(name_to_model.size(), 1U);
-  const auto ge_model = name_to_model.begin()->second;
-  ASSERT_NE(ge_model, nullptr);
-  const auto model_task_def = ge_model->GetModelTaskDefPtr();
-  ASSERT_NE(model_task_def, nullptr);
-
-  NamedAttrs plan_attr;
-  ASSERT_TRUE(AttrUtils::GetNamedAttrs(ge_model, input_h2d_overlap_test::kPlanAttrName, plan_attr));
-  InputH2DOverlapFinalPlan plan;
-  ASSERT_TRUE(input_h2d_overlap_test::DecodePlan(plan_attr, plan));
-  int64_t stream_num = 0;
-  int64_t event_num = 0;
-  ASSERT_TRUE(AttrUtils::GetInt(ge_model, ATTR_MODEL_STREAM_NUM, stream_num));
-  ASSERT_TRUE(AttrUtils::GetInt(ge_model, ATTR_MODEL_EVENT_NUM, event_num));
-  EXPECT_EQ(plan.version, 1U);
-  EXPECT_LT(plan.copy_stream_id, static_cast<uint32_t>(stream_num));
-  ASSERT_EQ(plan.groups.size(), 2U);
-
-  std::set<uint32_t> planned_input_indexes;
-  std::set<uint32_t> planned_event_ids;
-  uint32_t wait_point_count = 0U;
-  for (const auto &copy_group : plan.groups) {
-    ASSERT_GT(copy_group.inputs.size(), 0U);
-    ASSERT_GT(copy_group.wait_points.size(), 0U);
-    for (const auto &input : copy_group.inputs) {
-      planned_input_indexes.emplace(input.input_index);
-      EXPECT_GT(input.size, 0U);
-      if (input.input_index == 0U) {
-        EXPECT_EQ(input.size, 96U);
-      } else if (input.input_index == 1U) {
-        EXPECT_EQ(input.size, 160U);
-      }
-    }
-    for (const auto &wait_point : copy_group.wait_points) {
-      ++wait_point_count;
-      EXPECT_LT(wait_point.stream_id, static_cast<uint32_t>(stream_num));
-      EXPECT_LT(wait_point.event_id, static_cast<uint32_t>(event_num));
-      ASSERT_LT(wait_point.wait_task_id, static_cast<uint32_t>(model_task_def->task_size()));
-      planned_event_ids.emplace(wait_point.event_id);
-
-      const auto &wait_task = model_task_def->task(wait_point.wait_task_id);
-      EXPECT_EQ(wait_task.type(), static_cast<uint32_t>(ModelTaskType::MODEL_TASK_EVENT_WAIT));
-      EXPECT_EQ(wait_task.stream_id(), wait_point.stream_id);
-      EXPECT_EQ(wait_task.event_id(), wait_point.event_id);
-      EXPECT_NE(wait_task.stream_id(), plan.copy_stream_id);
-    }
-  }
-  EXPECT_EQ(planned_input_indexes, (std::set<uint32_t>{0U, 1U}));
-  EXPECT_EQ(wait_point_count, 2U);
-  EXPECT_EQ(planned_event_ids.size(), 2U);
-}
-
-TEST_F(GraphBuilderTest, BuildInputH2DOverlapOptionOffSkipsFeaturePlan) {
-  GraphBuilder graph_builder;
-  auto root_graph = BuildInputH2DOverlapGraph();
-  AttrUtils::SetStr(root_graph, ATTR_NAME_SESSION_GRAPH_ID, kSessionId);
-
-  const auto old_graph_options = GetThreadLocalContext().GetAllGraphOptions();
-  auto graph_options = old_graph_options;
-  graph_options["ge.compile.h2dOverlappedWithCompute"] = "0";
-  GetThreadLocalContext().SetGraphOption(graph_options);
-  GeRootModelPtr root_model;
-  const auto ret = graph_builder.Build(root_graph, root_model);
-  GetThreadLocalContext().SetGraphOption(old_graph_options);
-
-  ASSERT_EQ(ret, SUCCESS);
-  ASSERT_NE(root_model, nullptr);
-  const auto &name_to_model = root_model->GetSubgraphInstanceNameToModel();
-  ASSERT_EQ(name_to_model.size(), 1U);
-  const auto ge_model = name_to_model.begin()->second;
-  ASSERT_NE(ge_model, nullptr);
-  const auto model_task_def = ge_model->GetModelTaskDefPtr();
-  ASSERT_NE(model_task_def, nullptr);
-
-  NamedAttrs plan_attr;
-  EXPECT_FALSE(AttrUtils::GetNamedAttrs(ge_model, input_h2d_overlap_test::kPlanAttrName, plan_attr));
-}
-
-TEST_F(GraphBuilderTest, BuildInputH2DOverlapDynamicShapeGraphFails) {
-  GraphBuilder graph_builder;
-  auto root_graph = BuildInputH2DOverlapGraph();
-  AttrUtils::SetStr(root_graph, ATTR_NAME_SESSION_GRAPH_ID, kSessionId);
-  (void)AttrUtils::SetBool(root_graph, ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, true);
-
-  const auto old_graph_options = GetThreadLocalContext().GetAllGraphOptions();
-  auto graph_options = old_graph_options;
-  graph_options["ge.compile.h2dOverlappedWithCompute"] = "1";
-  GetThreadLocalContext().SetGraphOption(graph_options);
-  GeRootModelPtr root_model;
-  const auto ret = graph_builder.Build(root_graph, root_model);
-  GetThreadLocalContext().SetGraphOption(old_graph_options);
-
-  EXPECT_EQ(ret, UNSUPPORTED);
-}
-
-TEST_F(GraphBuilderTest, BuildInputH2DOverlapDefaultSingleGroupSkipsFeaturePlan) {
-  GraphBuilder graph_builder;
-  auto root_graph = BuildInputH2DOverlapSingleGroupGraph();
-  AttrUtils::SetStr(root_graph, ATTR_NAME_SESSION_GRAPH_ID, kSessionId);
-
-  const auto old_graph_options = GetThreadLocalContext().GetAllGraphOptions();
-  auto graph_options = old_graph_options;
-  graph_options["ge.compile.h2dOverlappedWithCompute"] = "1";
-  GetThreadLocalContext().SetGraphOption(graph_options);
-  GeRootModelPtr root_model;
-  const auto ret = graph_builder.Build(root_graph, root_model);
-  GetThreadLocalContext().SetGraphOption(old_graph_options);
-
-  ASSERT_EQ(ret, SUCCESS);
-  ASSERT_NE(root_model, nullptr);
-  const auto &name_to_model = root_model->GetSubgraphInstanceNameToModel();
-  ASSERT_EQ(name_to_model.size(), 1U);
-  const auto ge_model = name_to_model.begin()->second;
-  ASSERT_NE(ge_model, nullptr);
-  const auto model_task_def = ge_model->GetModelTaskDefPtr();
-  ASSERT_NE(model_task_def, nullptr);
-
-  NamedAttrs plan_attr;
-  EXPECT_FALSE(AttrUtils::GetNamedAttrs(ge_model, input_h2d_overlap_test::kPlanAttrName, plan_attr));
-}
-
-TEST_F(GraphBuilderTest, BuildInputH2DOverlapConfigSingleGroupWritesFeaturePlan) {
-  GraphBuilder graph_builder;
-  auto root_graph = BuildInputH2DOverlapSingleGroupGraph();
-  AttrUtils::SetStr(root_graph, ATTR_NAME_SESSION_GRAPH_ID, kSessionId);
-
-  const auto old_graph_options = GetThreadLocalContext().GetAllGraphOptions();
-  auto graph_options = old_graph_options;
-  graph_options["ge.compile.h2dOverlappedWithCompute"] = "0,1";
-  GetThreadLocalContext().SetGraphOption(graph_options);
-  GeRootModelPtr root_model;
-  const auto ret = graph_builder.Build(root_graph, root_model);
-  GetThreadLocalContext().SetGraphOption(old_graph_options);
-
-  ASSERT_EQ(ret, SUCCESS);
-  ASSERT_NE(root_model, nullptr);
-  const auto &name_to_model = root_model->GetSubgraphInstanceNameToModel();
-  ASSERT_EQ(name_to_model.size(), 1U);
-  const auto ge_model = name_to_model.begin()->second;
-  ASSERT_NE(ge_model, nullptr);
-  const auto model_task_def = ge_model->GetModelTaskDefPtr();
-  ASSERT_NE(model_task_def, nullptr);
-
-  NamedAttrs plan_attr;
-  ASSERT_TRUE(AttrUtils::GetNamedAttrs(ge_model, input_h2d_overlap_test::kPlanAttrName, plan_attr));
-  InputH2DOverlapFinalPlan plan;
-  ASSERT_TRUE(input_h2d_overlap_test::DecodePlan(plan_attr, plan));
-  int64_t stream_num = 0;
-  ASSERT_TRUE(AttrUtils::GetInt(ge_model, ATTR_MODEL_STREAM_NUM, stream_num));
-  EXPECT_EQ(plan.version, 1U);
-  EXPECT_LT(plan.copy_stream_id, static_cast<uint32_t>(stream_num));
-  ASSERT_EQ(plan.groups.size(), 1U);
-  EXPECT_EQ(plan.groups[0].inputs.size(), 1U);
-  EXPECT_EQ(plan.groups[0].wait_points.size(), 1U);
-}
-
-TEST_F(GraphBuilderTest, BuildInputH2DOverlapConfigDirectOutputSkipsFeaturePlan) {
-  GraphBuilder graph_builder;
-  auto root_graph = BuildInputH2DOverlapDirectOutputGraph();
-  AttrUtils::SetStr(root_graph, ATTR_NAME_SESSION_GRAPH_ID, kSessionId);
-
-  const auto old_graph_options = GetThreadLocalContext().GetAllGraphOptions();
-  auto graph_options = old_graph_options;
-  graph_options["ge.compile.h2dOverlappedWithCompute"] = "0,1";
-  GetThreadLocalContext().SetGraphOption(graph_options);
-  GeRootModelPtr root_model;
-  const auto ret = graph_builder.Build(root_graph, root_model);
-  GetThreadLocalContext().SetGraphOption(old_graph_options);
-
-  ASSERT_EQ(ret, SUCCESS);
-  ASSERT_NE(root_model, nullptr);
-  const auto &name_to_model = root_model->GetSubgraphInstanceNameToModel();
-  ASSERT_EQ(name_to_model.size(), 1U);
-  const auto ge_model = name_to_model.begin()->second;
-  ASSERT_NE(ge_model, nullptr);
-  const auto model_task_def = ge_model->GetModelTaskDefPtr();
-  ASSERT_NE(model_task_def, nullptr);
-
-  NamedAttrs plan_attr;
-  EXPECT_FALSE(AttrUtils::GetNamedAttrs(ge_model, input_h2d_overlap_test::kPlanAttrName, plan_attr));
 }
 
 TEST_F(GraphBuilderTest, test_build_for_static_shape_graph_with_const) {

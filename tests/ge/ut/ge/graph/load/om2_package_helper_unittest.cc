@@ -26,6 +26,7 @@
 #include "file_utils.h"
 #include <algorithm>
 #include <gtest/gtest.h>
+#include <filesystem>
 #include <fstream>
 #include "common/env_path.h"
 #include "mmpa/mmpa_api.h"
@@ -34,14 +35,9 @@
 #include "graph/utils/tensor_utils.h"
 #include "graph/utils/file_utils.h"
 #include "graph/utils/graph_utils.h"
-#include <google/protobuf/text_format.h>
-#include "proto/ge_ir.pb.h"
-#include "proto/onnx/ge_onnx.pb.h"
-#include <cerrno>
 #include <cstdio>
 #include <sstream>
-#include <sys/stat.h>
-#include <sys/types.h>
+#include <system_error>
 
 #include "ge_runtime_stub/include/common/share_graph.h"
 #include "ge_runtime_stub/include/faker/ge_model_builder.h"
@@ -202,37 +198,8 @@ GeRootModelPtr CreateInvalidGeRootModel() {
 }
 
 bool IsTmpDirExists() {
-  struct stat st{};
-  return (stat(kTmpDir, &st) == 0) && S_ISDIR(st.st_mode);
-}
-
-bool IsDirectory(const std::string &path) {
-  struct stat st{};
-  return (stat(path.c_str(), &st) == 0) && S_ISDIR(st.st_mode);
-}
-
-bool CreateDirectories(const std::string &path) {
-  if (path.empty()) {
-    return false;
-  }
-  if (IsDirectory(path)) {
-    return true;
-  }
-
-  std::string normalized = path;
-  while ((normalized.size() > 1U) && (normalized.back() == '/')) {
-    normalized.pop_back();
-  }
-
-  size_t pos = (normalized.front() == '/') ? 1U : 0U;
-  while ((pos = normalized.find('/', pos)) != std::string::npos) {
-    const std::string parent = normalized.substr(0U, pos);
-    if (!parent.empty() && !IsDirectory(parent) && (mkdir(parent.c_str(), 0755) != 0) && (errno != EEXIST)) {
-      return false;
-    }
-    ++pos;
-  }
-  return IsDirectory(normalized) || (mkdir(normalized.c_str(), 0755) == 0) || (errno == EEXIST);
+  std::error_code ec;
+  return std::filesystem::is_directory(kTmpDir, ec) && !ec;
 }
 
 std::string GetOm2DumpPath(const std::string &file_name) {
@@ -340,8 +307,8 @@ class Om2PackageHelperUt : public testing::Test {
     const auto ascend_install_path = EnvPath().GetAscendInstallPath();
     setenv("ASCEND_HOME_PATH", ascend_install_path.c_str(), 1);
     setenv("ASCEND_WORK_PATH", test_work_dir.c_str(), 1);
-    om2_workspace_base_dir_ = PathUtils::Join({test_work_dir, ".ascend_temp", ".tmp_om2_workspace"});
-    ASSERT_TRUE(CreateDirectories(om2_workspace_base_dir_));
+    om2_workspace_base_dir_ = std::filesystem::path(test_work_dir) / ".ascend_temp" / ".tmp_om2_workspace";
+    std::filesystem::create_directories(om2_workspace_base_dir_);
     asan_guard_ = std::make_unique<ScopedEnvVar>("ASAN_OPTIONS", "detect_leaks=0:halt_on_error=0");
     lsan_guard_ = std::make_unique<ScopedEnvVar>("LSAN_OPTIONS", "exitcode=0");
   }
@@ -357,7 +324,7 @@ class Om2PackageHelperUt : public testing::Test {
   std::string test_case_name;
   std::string test_work_dir;
   const std::string kZipFileBaseName = "fake_test";
-  std::string om2_workspace_base_dir_;
+  std::filesystem::path om2_workspace_base_dir_;
 
  private:
   std::unique_ptr<ScopedEnvVar> asan_guard_;
@@ -836,7 +803,7 @@ TEST_F(Om2PackageHelperUt, ConvertOm2Model_Ok_GenOm2WithFileConstMeta) {
 
 TEST_F(Om2PackageHelperUt, RelocateExternalWeights_SkipInvalidConstItemsAndCompressRuntimeEntry) {
   const std::string tmp_weight_dir = PathUtils::Join({test_work_dir, "tmp_weight"});
-  ASSERT_TRUE(CreateDirectories(tmp_weight_dir));
+  ASSERT_TRUE(std::filesystem::create_directories(tmp_weight_dir));
   const std::string weight_file_name = "weight_from_path.bin";
   const std::string old_weight_path = PathUtils::Join({tmp_weight_dir, weight_file_name});
   {

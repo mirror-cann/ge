@@ -277,7 +277,6 @@ add_executable(graph_engine_compile_test
         "${AIR_CODE_DIR}/tests/ge/st/testcase/test_swap_pass.cc"
         "${AIR_CODE_DIR}/tests/ge/st/testcase/test_mem_layout_conflict.cc"
         "${AIR_CODE_DIR}/tests/ge/st/testcase/test_input_merge_copy.cc"
-        "${AIR_CODE_DIR}/tests/ge/st/testcase/test_input_h2d_overlap_compile.cc"
         "${AIR_CODE_DIR}/tests/ge/st/testcase/test_optimization_option.cc"
         "${AIR_CODE_DIR}/tests/ge/st/testcase/dump/static_shape/static_shape_dump_test.cc"
         "${AIR_CODE_DIR}/tests/ge/ut/ge/graph/optimize/graph_lint_unittest.cc"
