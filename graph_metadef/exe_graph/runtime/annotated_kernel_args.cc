@@ -113,7 +113,7 @@ ge::graphStatus AnnotatedKernelArgs::AppendArg(const WorkspaceAddr &addr) {
                        static_cast<internal::AnnotatedKernelArgsImpl *>(impl_));
 }
 
-ge::graphStatus AnnotatedKernelArgs::AppendArg(const uint64_t value) {
+ge::graphStatus AnnotatedKernelArgs::AppendArg(uint64_t value) {
   auto *impl = static_cast<internal::AnnotatedKernelArgsImpl *>(impl_);
   if (impl == nullptr) {
     return ge::GRAPH_FAILED;

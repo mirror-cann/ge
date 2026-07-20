@@ -120,7 +120,7 @@ ge::graphStatus AnnotatedKernelArgs::AppendArg(const WorkspaceAddr &addr) {
                        static_cast<StubAnnotatedKernelArgsImpl *>(impl_));
 }
 
-ge::graphStatus AnnotatedKernelArgs::AppendArg(const uint64_t value) {
+ge::graphStatus AnnotatedKernelArgs::AppendArg(uint64_t value) {
   auto *impl = static_cast<StubAnnotatedKernelArgsImpl *>(impl_);
   if (impl == nullptr) {
     return ge::GRAPH_FAILED;
@@ -152,8 +152,8 @@ rtStream EagerOpExecutionContext::GetStream() const {
   return nullptr;
 }
 
-Tensor *EagerOpExecutionContext::MallocOutputTensor(const size_t index, const StorageShape &shape,
-                                                    const StorageFormat &format, const ge::DataType dtype) {
+Tensor *EagerOpExecutionContext::MallocOutputTensor(size_t index, const StorageShape &shape,
+                                                    const StorageFormat &format, ge::DataType dtype) {
   (void)index;
   (void)shape;
   (void)format;
@@ -161,24 +161,24 @@ Tensor *EagerOpExecutionContext::MallocOutputTensor(const size_t index, const St
   return nullptr;
 }
 
-Tensor *EagerOpExecutionContext::MakeOutputRefInput(const size_t output_index, const size_t input_index) const {
+Tensor *EagerOpExecutionContext::MakeOutputRefInput(size_t output_index, size_t input_index) const {
   (void)output_index;
   (void)input_index;
   return nullptr;
 }
 
-void *EagerOpExecutionContext::MallocWorkSpace(const size_t size) {
+void *EagerOpExecutionContext::MallocWorkSpace(size_t size) {
   (void)size;
   return nullptr;
 }
 
-const KernelArgs *EagerOpExecutionContext::MallocReadOnlyDevArgs(void *const host_args, const size_t args_size) const {
+const KernelArgs *EagerOpExecutionContext::MallocReadOnlyDevArgs(void *host_args, size_t args_size) const {
   (void)host_args;
   (void)args_size;
   return nullptr;
 }
 
-WorkspaceAddr AnnotatedArgsContext::MallocWorkSpace(const size_t size) {
+WorkspaceAddr AnnotatedArgsContext::MallocWorkSpace(size_t size) {
   (void)size;
   return WorkspaceAddr{0U, nullptr};
 }

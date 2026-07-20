@@ -21,7 +21,7 @@
 #include "graph/utils/args_format_desc_utils.h"
 
 namespace gert {
-WorkspaceAddr AnnotatedArgsContext::MallocWorkSpace(const size_t size) {
+WorkspaceAddr AnnotatedArgsContext::MallocWorkSpace(size_t size) {
   GE_ASSERT_TRUE(size > 0U, "Offline launch workspace size is zero.");
   const auto additional_input_start = GetAdditionalInputStartIndex();
   GE_ASSERT_TRUE(additional_input_start >= 0);

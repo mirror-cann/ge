@@ -47,8 +47,9 @@ class AnnotatedArgsHandler : public ArgsHandler {
     uint32_t GetStreamId() const;
 
    private:
-    LaunchRecord(const char *kernel_name, const void *kernel_bin, size_t kernel_bin_size, uint32_t block_dim,
-                 uint32_t stream_id, std::vector<uint8_t> &&args_data, std::vector<ge::ArgDesc> &&arg_descs);
+    LaunchRecord(const char *const kernel_name, const void *const kernel_bin, const size_t kernel_bin_size,
+                 const uint32_t block_dim, const uint32_t stream_id, std::vector<uint8_t> &&args_data,
+                 std::vector<ge::ArgDesc> &&arg_descs);
 
     std::string kernel_name_;
     std::vector<uint8_t> kernel_bin_;
@@ -64,16 +65,17 @@ class AnnotatedArgsHandler : public ArgsHandler {
   AnnotatedArgsHandler &operator=(const AnnotatedArgsHandler &other) = delete;
   ~AnnotatedArgsHandler() override;
 
-  const KernelArgs *MallocReadOnlyDevArgs(void *host_args, size_t args_size) override;
-  const std::deque<KernelArgs> &GetKernelArgs(Placement placement) const override;
+  const KernelArgs *MallocReadOnlyDevArgs(void *const host_args, const size_t args_size) override;
+  const std::deque<KernelArgs> &GetKernelArgs(const Placement placement) const override;
 
   size_t GetLaunchCount() const;
   // Returned pointer is invalidated when another launch is appended or this handler is destroyed.
-  const LaunchRecord *GetLaunch(size_t index) const;
+  const LaunchRecord *GetLaunch(const size_t index) const;
 
  private:
-  void AddLaunch(const char *kernel_name, const void *kernel_bin, size_t kernel_bin_size, uint32_t block_dim,
-                 uint32_t stream_id, std::vector<uint8_t> &&args_data, std::vector<ge::ArgDesc> &&arg_descs);
+  void AddLaunch(const char *const kernel_name, const void *const kernel_bin, const size_t kernel_bin_size,
+                 const uint32_t block_dim, const uint32_t stream_id, std::vector<uint8_t> &&args_data,
+                 std::vector<ge::ArgDesc> &&arg_descs);
 
   std::vector<LaunchRecord> launch_records_;
   friend class AnnotatedArgsContext;
