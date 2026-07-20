@@ -44,6 +44,20 @@ class CustomOpLoader {
     return SUCCESS;
   }
 
+  Status LoadPythonCustomOpsIfNeeded() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!NeedLoadPythonCustomOps()) {
+      return SUCCESS;
+    }
+    const auto ret = LoadPythonCustomOps();
+    if (ret != SUCCESS) {
+      GELOGE(ret, "Load Python custom ops failed.");
+      return ret;
+    }
+    python_custom_ops_loaded_ = true;
+    return SUCCESS;
+  }
+
   Status Unload() {
     std::lock_guard<std::mutex> lock(mutex_);
     if (python_custom_ops_loaded_) {
@@ -84,10 +98,7 @@ Status LoadCustomOps() {
 }
 
 Status LoadPythonCustomOpsIfNeeded() {
-  if (!NeedLoadPythonCustomOps()) {
-    return SUCCESS;
-  }
-  return LoadPythonCustomOps();
+  return CustomOpLoader::GetInstance().LoadPythonCustomOpsIfNeeded();
 }
 
 Status UnloadCustomOps() {
