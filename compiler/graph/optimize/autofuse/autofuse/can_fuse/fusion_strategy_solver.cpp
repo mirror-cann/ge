@@ -241,6 +241,11 @@ Status FusingNode::Fuse(const FusingNodePtr &node1, const FusingNodePtr &node2, 
       GE_ASSERT_NOTNULL(peer_in_anchor);
       const auto peer_node = peer_in_anchor->GetOwnerNodeBarePtr();
       GE_ASSERT_NOTNULL(peer_node);
+      const auto peer_op_desc = peer_node->GetOpDesc();
+      GE_ASSERT_NOTNULL(peer_op_desc);
+      if (!AutofuseUtils::IsAutoFuseNode(peer_op_desc)) {
+        continue;
+      }
       const auto it = fusing_nodes.find(peer_node);
       if (it != fusing_nodes.end()) {
         // 把自己和自己的祖先加入输出节点的祖先里
