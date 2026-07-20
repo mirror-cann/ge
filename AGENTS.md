@@ -97,6 +97,7 @@ rm -rf build_ut/ build_st/ output/ build/ build_out/ cov/ build_cmake_gcov/
 | [`stream_allocator.md`](docs/zh/design/features/stream_allocator.md) | 流分配、stream、多流、流复用、event同步、流激活 | `compiler/graph/build/stream/` |
 | [`infer_shape.md`](docs/zh/design/features/infer_shape.md) | InferShape、Shape推导、OriginShape、StorageShape、动态Shape、符号化推导 | `*infer_shape*`、`*symbolic_shape*` |
 | [`infer_format.md`](docs/zh/design/features/infer_format.md) | 格式推导、Format推导、InferFormat、OriginFormat、StorageFormat、TransData、格式传播 | `*format_refiner*`、`*format_optimize*` |
+| [`dflow.md`](docs/zh/design/modules/dflow/dflow.md) | DataFlow、dflow、流图、FlowGraph、FlowNode、ProcessPoint、FlowData、异步流水、数据驱动、多模型串接、模型下沉、UDF、用户自定义函数、FuncProcessPoint、FunctionPp、GraphPp、PNE引擎、ProcessNodeEngine、FlowMsg、rtMbuf、pyflow、pydflow、多实例部署、logic_device_id | `dflow/` |
 
 | 关键特性设计原则和软件约束 | 触发词 | 涉及目录 |
 |------|----------------|----------|
