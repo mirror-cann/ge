@@ -34,6 +34,7 @@
 #include "framework/common/runtime_tensor_desc.h"
 #include "graph/build/memory/dynamic_batch_mem_assigner.h"
 #include "runtime/subscriber/global_profiler.h"
+#include "common/ge_common/ge_types.h"
 
 using std::unordered_map;
 using std::unordered_set;
@@ -42,6 +43,7 @@ namespace {
 const char *const kAttrNameWorkspaceReuseFlag = "workspace_reuse_flag";
 const char *const kL2FusionDynamicConvergeOp = "l2fusion_dynamic_converge_op";
 const char *const kOpNoReuseMem = "no_reuse_mem_flag";
+const std::string kOffline = "offline";
 const int32_t kReuseMaxOpNum = 10;
 const int32_t kReuseMaxCharNum = 2000;
 const uint32_t kAutoMode = 1U;
@@ -2758,7 +2760,11 @@ bool BlockMemAssigner::IsZeroCopyBlock(const NodePtr &node, uint32_t output_inde
   if (OpTypeUtils::IsDataNode(op_type)) {
     bool is_multi_batch_shape_data = false;
     (void)AttrUtils::GetBool(node->GetOpDesc(), "_is_multi_batch_shape_data", is_multi_batch_shape_data);
-    if (is_feature_map_refreshable_ && is_multi_batch_shape_data) {
+    std::string build_graph_mode;
+    const bool is_build_graph_offline =
+        ((ge::GetContext().GetOption(ge::OPTION_BUILD_GRAPH_MODE, build_graph_mode) == ge::GRAPH_SUCCESS) &&
+         (build_graph_mode.compare(kOffline) == 0));
+    if (!is_build_graph_offline && is_multi_batch_shape_data) {
       GELOGD("Multi batch shape data node[%s] output memory no need zero copy.", node->GetName().c_str());
       return false;
     }
