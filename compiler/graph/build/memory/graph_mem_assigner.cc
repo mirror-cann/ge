@@ -95,6 +95,143 @@ int64_t GetSymbolOutputOffset(const ge::AnchorToSymbol &anchor_to_symbol, const 
   return ge::kInvalidOffset;
 }
 
+ge::Status GetOffsetFromPeerOutputList(const ge::NodePtr &node, int32_t input_index, int64_t &offset, bool &found) {
+  found = false;
+  const auto in_data_anchor_list = node->GetAllInDataAnchors();
+  if ((input_index < 0) || (static_cast<size_t>(input_index) >= in_data_anchor_list.size())) {
+    return ge::SUCCESS;
+  }
+  const auto &in_data_anchor = in_data_anchor_list.at(input_index);
+  GE_CHECK_NOTNULL(in_data_anchor);
+  const auto peer_out_anchor = in_data_anchor->GetPeerOutAnchor();
+  GE_CHECK_NOTNULL(peer_out_anchor);
+  auto peer_node = peer_out_anchor->GetOwnerNode();
+  GE_CHECK_NOTNULL(peer_node);
+  auto peer_op_desc = peer_node->GetOpDesc();
+  GE_CHECK_NOTNULL(peer_op_desc);
+
+  int32_t reuse_in_index = -1;
+  // 输入有ref或者是data或atomic，认为冲突
+  if (peer_node->GetType() == ge::DATA) {
+    GELOGE(ge::FAILED, "Conflict: node %s's input[%d] node %s's type is %s", node->GetName().c_str(), input_index,
+           peer_node->GetName().c_str(), peer_node->GetType().c_str());
+    return ge::FAILED;
+  }
+
+  bool is_atomic_node = false;
+  (void)ge::AttrUtils::GetBool(peer_op_desc, ge::ATOMIC_ATTR_IS_ATOMIC_NODE, is_atomic_node);
+  if (ge::GraphUtils::IsRefFromInput(peer_out_anchor, reuse_in_index) || is_atomic_node) {
+    GELOGE(ge::FAILED, "Conflict: node %s's input[%d] node %s is atomic node:%d or set reuse input %d",
+           node->GetName().c_str(), input_index, peer_node->GetName().c_str(), is_atomic_node, reuse_in_index);
+    return ge::FAILED;
+  }
+
+  std::vector<int64_t> offset_list;
+  if (!ge::AttrUtils::GetListInt(peer_op_desc, ge::ATTR_NAME_OUTPUT_OFFSET_LIST_FOR_CONTINUOUS, offset_list) ||
+      offset_list.empty()) {
+    return ge::SUCCESS;
+  }
+  int32_t peer_out_idx = peer_out_anchor->GetIdx();
+  if (peer_out_idx >= static_cast<int32_t>(offset_list.size())) {
+    return ge::SUCCESS;
+  }
+  offset = offset_list.at(peer_out_idx);
+  found = true;
+  return ge::SUCCESS;
+}
+
+ge::Status GetOffsetFromPeerInputList(const ge::NodePtr &node, int32_t output_index, int64_t &offset, bool &found) {
+  found = false;
+  const auto out_data_anchor = node->GetOutDataAnchor(output_index);
+  GE_CHECK_NOTNULL(out_data_anchor);
+  for (const auto &peer_in_anchor : out_data_anchor->GetPeerInDataAnchorsPtr()) {
+    if ((peer_in_anchor == nullptr) || (peer_in_anchor->GetOwnerNodeBarePtr() == nullptr) ||
+        (peer_in_anchor->GetOwnerNodeBarePtr()->GetOpDescBarePtr() == nullptr)) {
+      continue;
+    }
+
+    // 输出是netoutput，认为冲突
+    if (peer_in_anchor->GetOwnerNodeBarePtr()->GetType() == ge::NETOUTPUT) {
+      GELOGE(ge::FAILED, "Conflict: node %s's output[%d] node %s type is %s", node->GetName().c_str(), output_index,
+             peer_in_anchor->GetOwnerNodeBarePtr()->GetName().c_str(),
+             peer_in_anchor->GetOwnerNodeBarePtr()->GetType().c_str());
+      return ge::FAILED;
+    }
+
+    for (const auto &peer_in_node_out_anchor : peer_in_anchor->GetOwnerNodeBarePtr()->GetAllOutDataAnchors()) {
+      int32_t reuse_in_index = -1;
+      // 输出有ref，认为冲突
+      const bool reuse_input = ge::GraphUtils::IsRefFromInput(peer_in_node_out_anchor, reuse_in_index);
+      if (reuse_input && (reuse_in_index == peer_in_anchor->GetIdx())) {
+        GELOGE(ge::FAILED, "Conflict: node %s's output[%d] node %s is set reuse input %d", node->GetName().c_str(),
+               output_index, peer_in_anchor->GetOwnerNodeBarePtr()->GetName().c_str(), reuse_in_index);
+        return ge::FAILED;
+      }
+    }
+
+    std::vector<int64_t> offset_list;
+    if (!ge::AttrUtils::GetListInt(peer_in_anchor->GetOwnerNodeBarePtr()->GetOpDescBarePtr(),
+                                   ge::ATTR_NAME_INPUT_OFFSET_LIST_FOR_CONTINUOUS, offset_list) ||
+        offset_list.empty()) {
+      continue;
+    }
+    int32_t peer_in_idx = peer_in_anchor->GetIdx();
+    if (peer_in_idx >= static_cast<int32_t>(offset_list.size())) {
+      continue;
+    }
+    offset = offset_list.at(peer_in_idx);
+    found = true;
+    return ge::SUCCESS;
+  }
+  return ge::SUCCESS;
+}
+
+ge::Status GetCustomOffset(const ge::NodePtr &node, int32_t input_index, int32_t output_index, int64_t &offset) {
+  offset = 0;
+  auto op_desc = node->GetOpDesc();
+  GE_CHECK_NOTNULL(op_desc);
+  bool custom_input_output_offset = false;
+  (void)ge::AttrUtils::GetBool(op_desc, ge::ATTR_NAME_CUSTOM_INPUT_OUTPUT_OFFSET, custom_input_output_offset);
+  bool output_reuse_input = false;
+  (void)ge::AttrUtils::GetBool(op_desc, ge::ATTR_NAME_OUTPUT_REUSE_INPUT, output_reuse_input);
+  if (!custom_input_output_offset || !output_reuse_input) {
+    return ge::SUCCESS;
+  }
+  // 只支持单输入单输出
+  if ((op_desc->GetInputsSize() != 1U) || (op_desc->GetOutputsSize() != 1U)) {
+    GELOGE(ge::FAILED, "Conflict: node %s's input size:%zu out put size:%zu", node->GetName().c_str(),
+           op_desc->GetInputsSize(), op_desc->GetOutputsSize());
+    return ge::FAILED;
+  }
+
+  int64_t input_relative_offset = 0;
+  bool has_input_offset_list = false;
+  // 输入输出共用一块内存，input节点从offset右侧位置开始写数据
+  // |--offset--|--input--|
+  // |--------output------|
+  GE_ASSERT_SUCCESS(GetOffsetFromPeerOutputList(node, input_index, input_relative_offset, has_input_offset_list));
+
+  int64_t output_relative_offset = 0;
+  bool has_output_offset_list = false;
+  // 输入输出共用一块内存，自身节点从offset右侧位置开始写数据
+  // |--------input--------|
+  // |--offset--|--output--|
+  GE_ASSERT_SUCCESS(GetOffsetFromPeerInputList(node, output_index, output_relative_offset, has_output_offset_list));
+
+  if (has_input_offset_list && has_output_offset_list) {
+    GELOGE(ge::FAILED, "Conflict: node [%s] cannot set both %s on input peer and %s on output peer",
+           node->GetName().c_str(), ge::ATTR_NAME_OUTPUT_OFFSET_LIST_FOR_CONTINUOUS.c_str(),
+           ge::ATTR_NAME_INPUT_OFFSET_LIST_FOR_CONTINUOUS.c_str());
+    return ge::FAILED;
+  }
+
+  // 后面统一处理input + custom_offset，因此这里有正值也可能有负值
+  offset = output_relative_offset - input_relative_offset;
+  GELOGI("Node [%s] GetCustomOffset: input[%d] relative[%lld], output[%d] relative[%lld], offset[%lld]",
+         node->GetName().c_str(), input_index, input_relative_offset, output_index, output_relative_offset, offset);
+  return ge::SUCCESS;
+}
+
 bool isVariableMemoryNode(const ge::NodePtr &node) {
   return (node->GetType() == ge::VARIABLE) || (node->GetType() == ge::CONSTANTOP);
 }
@@ -798,9 +935,9 @@ ge::Status UpdateOffsetsByOffsetListAttr(const NodePtr &node, const int64_t inpu
                                                ATTR_NAME_INNER_OFFSET, new_inner_offset));
         }
         GELOGI(
-            "NoPaddingContinuousOutput Node [%s]' output[%d] has _input_offset_list_for_continuous [%lld],"
+            "Node [%s]' input[%d] has _input_offset_list_for_continuous [%lld],"
             " offset is set to %lld, new_inner_offset[%lld].",
-            peer_op_desc->GetName().c_str(), out_data_anchor->GetIdx(), offset_list[peer_in_data_anchor->GetIdx()],
+            peer_op_desc->GetName().c_str(), peer_in_data_anchor->GetIdx(), offset_list[peer_in_data_anchor->GetIdx()],
             origin_output_list[out_data_anchor->GetIdx()], new_inner_offset);
         has_input_offset_flag = true;
         break;
@@ -938,6 +1075,12 @@ Status GraphMemoryAssigner::UpdateRefOpOffsetReverse(const NodePtr &node) const 
     if (isVariableMemoryNode(peer_node)) {
       GELOGW("Peer node to update is %s, skip it. Node name:%s.", peer_node->GetType().c_str(),
              peer_node->GetName().c_str());
+      continue;
+    }
+    int64_t custom_offset = 0;
+    GE_ASSERT_SUCCESS(GetCustomOffset(node, out2in.second, out2in.first, custom_offset));
+    // 设置自定义offset时，不需要更新
+    if (custom_offset != 0) {
       continue;
     }
     auto peer_op_desc = peer_node->GetOpDesc();
@@ -1219,26 +1362,25 @@ Status GetFirstInputPeerOutOutputOffset(const ge::NodePtr &node, int64_t &mem_of
 Status GraphMemoryAssigner::AssignContinuousOutputMemory(const ge::NodePtr &node, int64_t memory_type,
                                                          uint32_t continuous_type) const {
   GELOGI("Current node %s needs continuous output.", node->GetName().c_str());
-  auto out_op_desc = node->GetOpDesc();
-  GE_IF_BOOL_EXEC(out_op_desc == nullptr,
-                  REPORT_INNER_ERR_MSG("E19999", "OpDesc is null, not expect for node:%s", node->GetName().c_str());
-                  GELOGE(ge::FAILED, "[Check][OpDesc]null is invalid, node:%s", node->GetName().c_str()));
-  std::vector<int64_t> output_list = out_op_desc->GetOutputOffset();
-  if ((out_op_desc->GetOutputsSize() > output_list.size()) || (output_list.size() == 0)) {
+  auto op_desc = node->GetOpDesc();
+  GE_CHECK_NOTNULL(op_desc);
+  if ((op_desc->GetOutputsSize() > op_desc->GetOutputOffset().size()) || (op_desc->GetOutputOffset().size() == 0)) {
     REPORT_INNER_ERR_MSG("E19999", "Output size:%zu more than output offset size:%zu, invalid in node:%s",
-                         out_op_desc->GetOutputsSize(), output_list.size(), node->GetName().c_str());
+                         op_desc->GetOutputsSize(), op_desc->GetOutputOffset().size(), node->GetName().c_str());
     GELOGE(ge::FAILED, "[Check][InnerData]Output size:%zu more than output offset size:%zu, invalid in node:%s",
-           out_op_desc->GetOutputsSize(), output_list.size(), node->GetName().c_str());
+           op_desc->GetOutputsSize(), op_desc->GetOutputOffset().size(), node->GetName().c_str());
     return ge::FAILED;
   }
 
   int64_t mem_offset = 0;
+  bool has_input_offset_flag = false;
   bool is_nopadding = ((continuous_type & ContinuousType::kTypeOutputNoPadding) != 0);
   if (is_nopadding) {
     // out tensor memory must be reused input tensor memory
-    if (GetFirstInputPeerOutOutputOffset(node, mem_offset) != SUCCESS) {
-      return ge::FAILED;
-    }
+    GE_ASSERT_SUCCESS(GetFirstInputPeerOutOutputOffset(node, mem_offset));
+
+    // 如果通过属性设置了偏移量，不用再计算内存大小，根据偏移量设置输出的值
+    GE_ASSERT_SUCCESS(UpdateOffsetsByOffsetListAttr(node, mem_offset, 0U, has_input_offset_flag));
   } else {
     // Get the reference type of the node, default is false
     bool is_ref = false;
@@ -1253,17 +1395,18 @@ Status GraphMemoryAssigner::AssignContinuousOutputMemory(const ge::NodePtr &node
              node->GetName().c_str());
       return SUCCESS;
     }
-    mem_offset = output_list[0];
+    mem_offset = op_desc->GetOutputOffset()[0];
   }
 
+  std::vector<int64_t> output_list = op_desc->GetOutputOffset();
   for (auto &out_data_anchor : node->GetAllOutDataAnchors()) {
-    output_list[out_data_anchor->GetIdx()] = mem_offset;
+    if (!has_input_offset_flag) {
+      output_list[out_data_anchor->GetIdx()] = mem_offset;
+    }
     int64_t tensor_desc_size = 0;
     int64_t nopadding_size = 0;
-    if (GetMemorySize(out_op_desc, out_op_desc->GetOutputDescPtr(out_data_anchor->GetIdx()), continuous_type,
-                      tensor_desc_size, nopadding_size) != ge::SUCCESS) {
-      return FAILED;
-    }
+    GE_ASSERT_SUCCESS(GetMemorySize(op_desc, op_desc->GetOutputDescPtr(out_data_anchor->GetIdx()), continuous_type,
+                                    tensor_desc_size, nopadding_size));
 
     if (is_nopadding) {
       mem_offset += nopadding_size;
@@ -1272,15 +1415,12 @@ Status GraphMemoryAssigner::AssignContinuousOutputMemory(const ge::NodePtr &node
       ge::AlignMemOffset(mem_offset);
     }
     GELOGI("[IMAS]Continuous output : Set %s name[%s] optype[%s] output[%d] offset to [%zu] stream_id[%" PRId64
-           "] memtype[%" PRId64
-           "]"
-           " size[%zu] realsize[%" PRId64 "] nopadding[%d].",
-           GraphNameId(compute_graph_.get()).c_str(), out_op_desc->GetName().substr(0, kMaxLogLen).c_str(),
+           "] memtype[%" PRId64 "] size[%zu] realsize[%" PRId64 "] nopadding[%d].",
+           GraphNameId(compute_graph_.get()).c_str(), op_desc->GetName().substr(0, kMaxLogLen).c_str(),
            node->GetType().c_str(), out_data_anchor->GetIdx(), output_list[out_data_anchor->GetIdx()],
-           out_op_desc->GetStreamId(), memory_type, 0UL, is_nopadding ? nopadding_size : tensor_desc_size,
-           is_nopadding);
+           op_desc->GetStreamId(), memory_type, 0UL, is_nopadding ? nopadding_size : tensor_desc_size, is_nopadding);
   }
-  out_op_desc->SetOutputOffset(output_list);
+  op_desc->SetOutputOffset(output_list);
   return ge::SUCCESS;
 }
 
@@ -2542,15 +2682,13 @@ ge::Status GraphMemoryAssigner::CheckRefNodeOffset(const NodePtr &node) const {
   auto output_list = opdesc->GetOutputOffset();
   auto input_list = opdesc->GetInputOffset();
   std::unordered_map<int32_t, int32_t> anchor_idx_2_input_idx;
-  const bool is_node_has_unfed_optional_input =
-      node->GetOpDesc()->GetAllInputsSize() != node->GetOpDesc()->GetInputsSize();
+  const bool is_node_has_unfed_optional_input = (opdesc->GetAllInputsSize() != opdesc->GetInputsSize());
   if (is_node_has_unfed_optional_input) {
     SetAnchorIdx2InputIdxMap(node, anchor_idx_2_input_idx);
     GE_CHK_BOOL_RET_STATUS(
         (anchor_idx_2_input_idx.size() == node->GetOpDesc()->GetInputOffset().size()), ge::PARAM_INVALID,
         "[Check][Failed]Node[%s], type[%s], input desc num[%zu] must be equal to input offset size[%zu].",
-        node->GetName().c_str(), node->GetType().c_str(), anchor_idx_2_input_idx.size(),
-        node->GetOpDesc()->GetInputOffset().size());
+        node->GetName().c_str(), node->GetType().c_str(), anchor_idx_2_input_idx.size(), input_list.size());
   }
   for (const auto &out2in : out2ins) {
     auto out_i = out2in.first;
@@ -2575,10 +2713,12 @@ ge::Status GraphMemoryAssigner::CheckRefNodeOffset(const NodePtr &node) const {
       GE_ERRORLOG_AND_ERRORMSG(ge::FAILED, error.c_str());
       return ge::FAILED;
     }
-    if (output_list[out_i] != input_list[in_i]) {
-      std::string error = "Node" + FmtToStr(opdesc->GetName()) + "input offset " + FmtToStr(input_list[in_i]) +
-                          "should equal to output offset" + FmtToStr(output_list[out_i]) + "with ref in" +
-                          FmtToStr(in_i) + "to output" + FmtToStr(out_i);
+    int64_t custom_offset = 0;
+    GE_ASSERT_SUCCESS(GetCustomOffset(node, in_i, out_i, custom_offset));
+    if (output_list[out_i] != input_list[in_i] + custom_offset) {
+      std::string error = "Node" + FmtToStr(opdesc->GetName()) + "input offset " + FmtToStr(input_list[in_i]) + " + " +
+                          FmtToStr(custom_offset) + " should equal to output offset" + FmtToStr(output_list[out_i]) +
+                          " with ref in" + FmtToStr(in_i) + "to output" + FmtToStr(out_i);
       GE_ERRORLOG_AND_ERRORMSG(ge::FAILED, error.c_str());
       return ge::FAILED;
     }
@@ -2869,6 +3009,12 @@ ge::Status GraphMemoryAssigner::UpdateRefOpOutputOffset(const NodePtr &node, con
     auto out_i = out2in.first;
     auto in_i = out2in.second;
     if (in_i == ref_in) {
+      int64_t custom_offset = 0;
+      GE_ASSERT_SUCCESS(GetCustomOffset(node, ref_in, out_i, custom_offset));
+      // 设置自定义offset时，不需要更新
+      if (custom_offset != 0) {
+        continue;
+      }
       auto origin_output_list = opdesc->GetOutputOffset();
       if (static_cast<size_t>(out_i) >= origin_output_list.size()) {
         std::string error = "Node" + FmtToStr(opdesc->GetName()) + "output offset size" +
@@ -2876,15 +3022,16 @@ ge::Status GraphMemoryAssigner::UpdateRefOpOutputOffset(const NodePtr &node, con
         GE_ERRORLOG_AND_ERRORMSG(ge::FAILED, error.c_str());
         return ge::FAILED;
       }
+      int64_t origin_offset = origin_output_list[out_i];
       origin_output_list[out_i] = input_offset;
       opdesc->SetOutputOffset(origin_output_list);
       if (has_inner_offset) {
         GE_CHECK_NOTNULL(opdesc->MutableOutputDesc(out_i));
         (void)ge::AttrUtils::SetInt(opdesc->MutableOutputDesc(out_i), ATTR_NAME_INNER_OFFSET, inner_offset);
       }
-      GELOGI("Node[%s] output[%d] is updated from reuse input index[%d] to offset[%" PRId64 "], inner_offset[%" PRId64
-             "]",
-             opdesc->GetName().c_str(), out_i, ref_in, input_offset, inner_offset);
+      GELOGI("Node[%s] output[%d] is updated from reuse input index[%d] from offset[%" PRId64 "] to offset[%" PRId64
+             "], inner_offset[%" PRId64 "]",
+             opdesc->GetName().c_str(), out_i, ref_in, origin_offset, origin_output_list[out_i], inner_offset);
       GE_ASSERT_SUCCESS(UpdateNoPaddingContinousOutputOffsets(node, input_offset, inner_offset));
     }
   }

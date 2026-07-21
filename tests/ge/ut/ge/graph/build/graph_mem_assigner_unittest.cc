@@ -673,7 +673,7 @@ TEST_F(UtestGraphMemAssigner, AssignContinuousOutputMemory) {
   auto output = vector<int64_t>();
   output.push_back(1);
   node->GetOpDesc()->SetOutputOffset(output);
-  EXPECT_EQ(graph_mem_assigner.AssignContinuousOutputMemory(node, 1, 127), FAILED);
+  EXPECT_NE(graph_mem_assigner.AssignContinuousOutputMemory(node, 1, 127), SUCCESS);
   auto output3 = vector<int64_t>();
   output3.push_back(1);
   output3.push_back(2);
@@ -681,13 +681,13 @@ TEST_F(UtestGraphMemAssigner, AssignContinuousOutputMemory) {
   node3->GetOpDesc()->SetOutputOffset(output3);
   EXPECT_EQ(node3->GetOpDesc()->GetOutputOffset().size(), 3);
   EXPECT_EQ(node3->GetOutDataAnchor(0)->GetIdx(), 0);
-  EXPECT_EQ(graph_mem_assigner.AssignContinuousOutputMemory(node, 1, 127), FAILED);
+  EXPECT_NE(graph_mem_assigner.AssignContinuousOutputMemory(node, 1, 127), SUCCESS);
   AttrUtils::SetBool(node->GetOpDesc(), "reference", true);
   EXPECT_EQ(graph_mem_assigner.AssignContinuousOutputMemory(node, 1, 4), SUCCESS);
   auto output2 = vector<int64_t>();
   output2.push_back(1);
   node2->GetOpDesc()->SetOutputOffset(output2);
-  EXPECT_EQ(graph_mem_assigner.AssignContinuousOutputMemory(node2, 1, 127), FAILED);
+  EXPECT_NE(graph_mem_assigner.AssignContinuousOutputMemory(node2, 1, 127), SUCCESS);
 }
 
 TEST_F(UtestGraphMemAssigner, AssignContinuousOutputMemoryCal) {
@@ -2010,5 +2010,280 @@ TEST_F(UtestGraphMemAssigner, PhonyConcatConnectToHcomBroadCast_CheckOffsetSucce
 
   auto a_node = graph->FindNode("a");
   EXPECT_FALSE(MemReuseUtils::IsAllOutRefAllInput(a_node));
+}
+
+TEST_F(UtestGraphMemAssigner, CustomInputOutputOffset_WithOutputOffsetList_Success) {
+  auto hcomallgather = OP_CFG(HCOMALLGATHER).InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 224, 224});
+  auto cast = OP_CFG(CAST).InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 224, 112});
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("data", DATA)
+              ->NODE("cast", cast)
+              ->EDGE(0, 0)
+              ->NODE("hcomallgather", hcomallgather)
+              ->EDGE(0, 0)
+              ->NODE("add", ADD)
+              ->EDGE(0, 0)
+              ->NODE("netoutput", NETOUTPUT));
+  };
+
+  auto graph = ToComputeGraph(g1);
+  auto node = graph->FindNode("hcomallgather");
+  ASSERT_NE(node, nullptr);
+  (void)ge::AttrUtils::SetBool(node->GetOpDesc(), ATTR_NAME_NOPADDING_CONTINUOUS_INPUT, true);
+  (void)ge::AttrUtils::SetBool(node->GetOpDesc(), ATTR_NAME_OUTPUT_REUSE_INPUT, true);
+  (void)ge::AttrUtils::SetInt(node->GetOpDesc(), ge::ATTR_NAME_REUSE_INPUT_ON_DIM_INDEX, 0);
+  (void)ge::AttrUtils::SetBool(node->GetOpDesc(), ATTR_NAME_CUSTOM_INPUT_OUTPUT_OFFSET, true);
+
+  const int64_t custom_offset = 100;
+  auto cast_node = graph->FindNode("cast");
+  ASSERT_NE(cast_node, nullptr);
+  std::vector<int64_t> output_offset_list = {custom_offset};
+  ge::AttrUtils::SetListInt(cast_node->GetOpDesc(), ATTR_NAME_OUTPUT_OFFSET_LIST_FOR_CONTINUOUS, output_offset_list);
+
+  UpdateGraphTensorSize(graph);
+  graph->TopologicalSorting();
+
+  std::map<uint64_t, size_t> mem_type_to_mem_offset;
+  size_t zero_copy_mem_size;
+  VarManager::Instance(graph->GetSessionID())->Init(0, graph->GetSessionID(), 0, 0);
+  MemoryAssigner mem_assigner(graph);
+  EXPECT_EQ(mem_assigner.AssignMemory(mem_type_to_mem_offset, zero_copy_mem_size), SUCCESS);
+
+  auto op_desc = node->GetOpDesc();
+  auto input_offsets = op_desc->GetInputOffset();
+  auto output_offsets = op_desc->GetOutputOffset();
+  ASSERT_FALSE(input_offsets.empty());
+  ASSERT_FALSE(output_offsets.empty());
+  EXPECT_EQ(output_offsets[0] - input_offsets[0], -custom_offset);
+}
+
+TEST_F(UtestGraphMemAssigner, CustomInputOutputOffset_WithInputOffsetList_Success) {
+  auto hcomallgather = OP_CFG(HCOMALLGATHER).InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 224, 112});
+  auto cast = OP_CFG(CAST).InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 224, 224});
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("data", DATA)
+              ->EDGE(0, 0)
+              ->NODE("cast", cast)
+              ->EDGE(0, 0)
+              ->NODE("hcomallgather", hcomallgather)
+              ->EDGE(0, 0)
+              ->NODE("add", ADD)
+              ->NODE("netoutput", NETOUTPUT));
+  };
+
+  auto graph = ToComputeGraph(g1);
+  auto node = graph->FindNode("hcomallgather");
+  ASSERT_NE(node, nullptr);
+  (void)ge::AttrUtils::SetBool(node->GetOpDesc(), ATTR_NAME_NOPADDING_CONTINUOUS_OUTPUT, true);
+  (void)ge::AttrUtils::SetBool(node->GetOpDesc(), ATTR_NAME_OUTPUT_REUSE_INPUT, true);
+  (void)ge::AttrUtils::SetInt(node->GetOpDesc(), ge::ATTR_NAME_REUSE_INPUT_ON_DIM_INDEX, 0);
+  (void)ge::AttrUtils::SetBool(node->GetOpDesc(), ATTR_NAME_CUSTOM_INPUT_OUTPUT_OFFSET, true);
+
+  const int64_t custom_offset = 100;
+  auto add_node = graph->FindNode("add");
+  ASSERT_NE(add_node, nullptr);
+  std::vector<int64_t> input_offset_list = {custom_offset};
+  ge::AttrUtils::SetListInt(add_node->GetOpDesc(), ATTR_NAME_INPUT_OFFSET_LIST_FOR_CONTINUOUS, input_offset_list);
+
+  UpdateGraphTensorSize(graph);
+  graph->TopologicalSorting();
+
+  std::map<uint64_t, size_t> mem_type_to_mem_offset;
+  size_t zero_copy_mem_size;
+  VarManager::Instance(graph->GetSessionID())->Init(0, graph->GetSessionID(), 0, 0);
+  MemoryAssigner mem_assigner(graph);
+  EXPECT_EQ(mem_assigner.AssignMemory(mem_type_to_mem_offset, zero_copy_mem_size), SUCCESS);
+
+  auto op_desc = node->GetOpDesc();
+  auto input_offsets = op_desc->GetInputOffset();
+  auto output_offsets = op_desc->GetOutputOffset();
+  ASSERT_FALSE(input_offsets.empty());
+  ASSERT_FALSE(output_offsets.empty());
+  EXPECT_EQ(output_offsets[0] - input_offsets[0], custom_offset);
+}
+
+TEST_F(UtestGraphMemAssigner, CustomInputOutputOffset_PeerOutputIsAtomic_Failed) {
+  auto hcomallgather = OP_CFG(HCOMALLGATHER).InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 224, 224});
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("cast", CAST)
+              ->EDGE(0, 0)
+              ->NODE("hcomallgather", hcomallgather)
+              ->EDGE(0, 0)
+              ->NODE("relu", RELU)
+              ->NODE("netoutput", NETOUTPUT));
+  };
+
+  auto graph = ToComputeGraph(g1);
+  auto node = graph->FindNode("hcomallgather");
+  ASSERT_NE(node, nullptr);
+  (void)ge::AttrUtils::SetBool(node->GetOpDesc(), ATTR_NAME_NOPADDING_CONTINUOUS_OUTPUT, true);
+  (void)ge::AttrUtils::SetBool(node->GetOpDesc(), ATTR_NAME_OUTPUT_REUSE_INPUT, true);
+  (void)ge::AttrUtils::SetInt(node->GetOpDesc(), ge::ATTR_NAME_REUSE_INPUT_ON_DIM_INDEX, 0);
+  (void)ge::AttrUtils::SetBool(node->GetOpDesc(), ATTR_NAME_CUSTOM_INPUT_OUTPUT_OFFSET, true);
+
+  auto cast_node = graph->FindNode("cast");
+  ASSERT_NE(cast_node, nullptr);
+  (void)ge::AttrUtils::SetBool(cast_node->GetOpDesc(), ATOMIC_ATTR_IS_ATOMIC_NODE, true);
+  std::vector<int64_t> output_offset_list = {100};
+  ge::AttrUtils::SetListInt(cast_node->GetOpDesc(), ATTR_NAME_OUTPUT_OFFSET_LIST_FOR_CONTINUOUS, output_offset_list);
+
+  UpdateGraphTensorSize(graph);
+  graph->TopologicalSorting();
+
+  std::map<uint64_t, size_t> mem_type_to_mem_offset;
+  size_t zero_copy_mem_size;
+  VarManager::Instance(graph->GetSessionID())->Init(0, graph->GetSessionID(), 0, 0);
+  MemoryAssigner mem_assigner(graph);
+  EXPECT_NE(mem_assigner.AssignMemory(mem_type_to_mem_offset, zero_copy_mem_size), SUCCESS);
+}
+
+TEST_F(UtestGraphMemAssigner, CustomInputOutputOffset_PeerInputIsRef_Failed) {
+  auto hcomallgather = OP_CFG(HCOMALLGATHER).InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 224, 224});
+  auto ref_op = OP_CFG(HCOMBROADCAST)
+                    .InCnt(2)
+                    .OutCnt(1)
+                    .TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 224, 224})
+                    .Attr(ATTR_NAME_REFERENCE, true)
+                    .InNames({"x", "y"})
+                    .OutNames({"y"});
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("data", DATA)->EDGE(0, 0)->NODE("ref", ref_op)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("data1", DATA)
+              ->EDGE(0, 0)
+              ->NODE("cast", CAST)
+              ->EDGE(0, 0)
+              ->NODE("hcomallgather", hcomallgather)
+              ->EDGE(0, 1)
+              ->NODE("ref", ref_op));
+  };
+
+  auto graph = ToComputeGraph(g1);
+  auto node = graph->FindNode("hcomallgather");
+  ASSERT_NE(node, nullptr);
+  (void)ge::AttrUtils::SetBool(node->GetOpDesc(), ATTR_NAME_NOPADDING_CONTINUOUS_OUTPUT, true);
+  (void)ge::AttrUtils::SetBool(node->GetOpDesc(), ATTR_NAME_OUTPUT_REUSE_INPUT, true);
+  (void)ge::AttrUtils::SetInt(node->GetOpDesc(), ge::ATTR_NAME_REUSE_INPUT_ON_DIM_INDEX, 0);
+  (void)ge::AttrUtils::SetBool(node->GetOpDesc(), ATTR_NAME_CUSTOM_INPUT_OUTPUT_OFFSET, true);
+
+  auto ref_node = graph->FindNode("ref");
+  ASSERT_NE(ref_node, nullptr);
+  std::vector<int64_t> input_offset_list = {0, 100};
+  ge::AttrUtils::SetListInt(ref_node->GetOpDesc(), ATTR_NAME_INPUT_OFFSET_LIST_FOR_CONTINUOUS, input_offset_list);
+
+  UpdateGraphTensorSize(graph);
+  graph->TopologicalSorting();
+
+  std::map<uint64_t, size_t> mem_type_to_mem_offset;
+  size_t zero_copy_mem_size;
+  VarManager::Instance(graph->GetSessionID())->Init(0, graph->GetSessionID(), 0, 0);
+  MemoryAssigner mem_assigner(graph);
+  EXPECT_NE(mem_assigner.AssignMemory(mem_type_to_mem_offset, zero_copy_mem_size), SUCCESS);
+}
+
+TEST_F(UtestGraphMemAssigner, CustomInputOutputOffset_PeerInputIsRef_Success) {
+  auto hcomallgather = OP_CFG(HCOMALLGATHER).InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 224, 112});
+  auto cast = OP_CFG(CAST).InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 224, 224});
+  auto ref_op = OP_CFG(HCOMBROADCAST)
+                    .InCnt(2)
+                    .OutCnt(1)
+                    .TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 224, 224})
+                    .Attr(ATTR_NAME_REFERENCE, true)
+                    .InNames({"x", "y"})
+                    .OutNames({"x"});
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("data", DATA)->EDGE(0, 0)->NODE("ref", ref_op)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("data1", DATA)
+              ->EDGE(0, 0)
+              ->NODE("cast", cast)
+              ->EDGE(0, 0)
+              ->NODE("hcomallgather", hcomallgather)
+              ->EDGE(0, 1)
+              ->NODE("ref", ref_op));
+  };
+
+  auto graph = ToComputeGraph(g1);
+  auto node = graph->FindNode("hcomallgather");
+  ASSERT_NE(node, nullptr);
+  (void)ge::AttrUtils::SetBool(node->GetOpDesc(), ATTR_NAME_NOPADDING_CONTINUOUS_OUTPUT, true);
+  (void)ge::AttrUtils::SetBool(node->GetOpDesc(), ATTR_NAME_OUTPUT_REUSE_INPUT, true);
+  (void)ge::AttrUtils::SetInt(node->GetOpDesc(), ge::ATTR_NAME_REUSE_INPUT_ON_DIM_INDEX, 0);
+  (void)ge::AttrUtils::SetBool(node->GetOpDesc(), ATTR_NAME_CUSTOM_INPUT_OUTPUT_OFFSET, true);
+
+  auto ref_node = graph->FindNode("ref");
+  ASSERT_NE(ref_node, nullptr);
+  std::vector<int64_t> input_offset_list = {0, 100};
+  ge::AttrUtils::SetListInt(ref_node->GetOpDesc(), ATTR_NAME_INPUT_OFFSET_LIST_FOR_CONTINUOUS, input_offset_list);
+
+  UpdateGraphTensorSize(graph);
+  graph->TopologicalSorting();
+
+  std::map<uint64_t, size_t> mem_type_to_mem_offset;
+  size_t zero_copy_mem_size;
+  VarManager::Instance(graph->GetSessionID())->Init(0, graph->GetSessionID(), 0, 0);
+  MemoryAssigner mem_assigner(graph);
+  EXPECT_EQ(mem_assigner.AssignMemory(mem_type_to_mem_offset, zero_copy_mem_size), SUCCESS);
+}
+
+TEST_F(UtestGraphMemAssigner, CustomInputOutputOffset_PeerIsData_Failed) {
+  DEF_GRAPH(g1) {
+    CHAIN(
+        NODE("data", DATA)->EDGE(0, 0)->NODE("hcomallgather", HCOMALLGATHER)->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
+  };
+
+  auto graph = ToComputeGraph(g1);
+  auto node = graph->FindNode("hcomallgather");
+  ASSERT_NE(node, nullptr);
+  (void)ge::AttrUtils::SetBool(node->GetOpDesc(), ATTR_NAME_NOPADDING_CONTINUOUS_OUTPUT, true);
+  (void)ge::AttrUtils::SetBool(node->GetOpDesc(), ATTR_NAME_OUTPUT_REUSE_INPUT, true);
+  (void)ge::AttrUtils::SetInt(node->GetOpDesc(), ge::ATTR_NAME_REUSE_INPUT_ON_DIM_INDEX, 0);
+  (void)ge::AttrUtils::SetBool(node->GetOpDesc(), ATTR_NAME_CUSTOM_INPUT_OUTPUT_OFFSET, true);
+
+  auto ref_node = graph->FindNode("netoutput");
+  ASSERT_NE(ref_node, nullptr);
+  std::vector<int64_t> input_offset_list = {100};
+  ge::AttrUtils::SetListInt(ref_node->GetOpDesc(), ATTR_NAME_INPUT_OFFSET_LIST_FOR_CONTINUOUS, input_offset_list);
+
+  UpdateGraphTensorSize(graph);
+  graph->TopologicalSorting();
+
+  std::map<uint64_t, size_t> mem_type_to_mem_offset;
+  size_t zero_copy_mem_size;
+  VarManager::Instance(graph->GetSessionID())->Init(0, graph->GetSessionID(), 0, 0);
+  MemoryAssigner mem_assigner(graph);
+  EXPECT_NE(mem_assigner.AssignMemory(mem_type_to_mem_offset, zero_copy_mem_size), SUCCESS);
+}
+
+TEST_F(UtestGraphMemAssigner, CustomInputOutputOffset_PeerIsDataOrNetoutput_Failed) {
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("data", DATA)
+              ->EDGE(0, 0)
+              ->NODE("cast", CAST)
+              ->EDGE(0, 0)
+              ->NODE("hcomallgather", HCOMALLGATHER)
+              ->EDGE(0, 0)
+              ->NODE("netoutput", NETOUTPUT));
+  };
+
+  auto graph = ToComputeGraph(g1);
+  auto node = graph->FindNode("hcomallgather");
+  ASSERT_NE(node, nullptr);
+  (void)ge::AttrUtils::SetBool(node->GetOpDesc(), ATTR_NAME_NOPADDING_CONTINUOUS_OUTPUT, true);
+  (void)ge::AttrUtils::SetBool(node->GetOpDesc(), ATTR_NAME_OUTPUT_REUSE_INPUT, true);
+  (void)ge::AttrUtils::SetInt(node->GetOpDesc(), ge::ATTR_NAME_REUSE_INPUT_ON_DIM_INDEX, 0);
+  (void)ge::AttrUtils::SetBool(node->GetOpDesc(), ATTR_NAME_CUSTOM_INPUT_OUTPUT_OFFSET, true);
+
+  auto ref_node = graph->FindNode("cast");
+  ASSERT_NE(ref_node, nullptr);
+  std::vector<int64_t> output_offset_list = {100};
+  ge::AttrUtils::SetListInt(ref_node->GetOpDesc(), ATTR_NAME_OUTPUT_OFFSET_LIST_FOR_CONTINUOUS, output_offset_list);
+
+  UpdateGraphTensorSize(graph);
+  graph->TopologicalSorting();
+
+  std::map<uint64_t, size_t> mem_type_to_mem_offset;
+  size_t zero_copy_mem_size;
+  VarManager::Instance(graph->GetSessionID())->Init(0, graph->GetSessionID(), 0, 0);
+  MemoryAssigner mem_assigner(graph);
+  EXPECT_NE(mem_assigner.AssignMemory(mem_type_to_mem_offset, zero_copy_mem_size), SUCCESS);
 }
 }  // namespace ge

@@ -47,6 +47,10 @@ class DefaultSlogStub : public SlogStub {
   }
 };
 
+SlogStub::SlogStub() {
+  log_init = true;
+}
+
 SlogStub::~SlogStub() {
   log_init = false;
   ge_log_level_ = DLOG_ERROR;

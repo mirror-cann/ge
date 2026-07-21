@@ -1632,6 +1632,7 @@ TEST_F(GeExecutorTest, sample_davinci_model_dynamic_memory) {
   ModelDumpInitCmd(ge_executor_);
 
   // ModelExecutor::RunGraph -> ExecuteGraph -> SyncExecuteModel -> ModelManager::DataInput -> DavinciModel::Push -> Run
+  GeRootModelPtr first_root_model;
   {
     // Test LoadModelOnline: GraphModelListener
     const auto ge_root_model = MakeShared<GeRootModel>();
@@ -1648,6 +1649,7 @@ TEST_F(GeExecutorTest, sample_davinci_model_dynamic_memory) {
 
     // Load model of graph
     EXPECT_EQ(model_executor.LoadGraph(ge_root_model, graph_node), SUCCESS);
+    first_root_model = ge_root_model;
     model_ids.emplace_back(ge_root_model->GetModelId());
 
     // Execute Synchronous
@@ -1715,6 +1717,9 @@ TEST_F(GeExecutorTest, sample_davinci_model_dynamic_memory) {
     // Unload model of graph
     EXPECT_EQ(model_executor.UnloadGraph(ge_root_model, graph->GetGraphID()), SUCCESS);
     CleanAippNodeInfo(graph, "_arg_3");
+  }
+  if (first_root_model != nullptr) {
+    (void)model_executor.UnloadGraph(first_root_model, graph->GetGraphID());
   }
   EXPECT_EQ(model_executor.Finalize(), SUCCESS);
 

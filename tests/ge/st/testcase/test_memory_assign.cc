@@ -17,6 +17,7 @@
 #include "graph/build/memory/binary_block_mem_assigner.h"
 #include "hybrid/node_executor/node_executor.h"
 #include "ge_graph_dsl/assert/graph_assert.h"
+#include "ge_graph_dsl/graph_dsl.h"
 #include "graph/attr_value.h"
 #include "api/gelib/gelib.h"
 #include "ge/ge_api_types.h"
@@ -266,4 +267,113 @@ TEST_F(MemoryAssignTest, NoPaddingContinuousOutputCheck_Failed) {
   auto split = compute_graph->FindNode("split");
   split->GetOpDescBarePtr()->SetOutputOffset({0, 1024});
   EXPECT_NE(SpecialNodeChecker::Check(compute_graph), SUCCESS);
+}
+
+/**
+ * 用例描述：自定义输入输出offset，通过输出peer的ATTR_NAME_INPUT_OFFSET_LIST_FOR_CONTINUOUS设置偏移
+ *
+ * 预置条件：
+ * 1.构造计算图：data -> hcomallgather -> add -> netoutput
+ * 2.hcomallgather设置ATTR_NAME_CUSTOM_INPUT_OUTPUT_OFFSET + ATTR_NAME_OUTPUT_REUSE_INPUT +
+ * ATTR_NAME_NOPADDING_CONTINUOUS_OUTPUT
+ * 3.add节点设置ATTR_NAME_INPUT_OFFSET_LIST_FOR_CONTINUOUS
+ *
+ * 测试步骤
+ * 1.构造计算图并编译
+ * 2.校验hcomallgather输出offset - 输入offset == custom_offset
+ * 预期结果
+ * 1. 编译成功，offset差值符合预期
+ */
+TEST_F(MemoryAssignTest, CustomInputOutputOffset_WithInputOffsetList_Success) {
+  GertRuntimeStub runtime_stub;
+  std::map<AscendString, AscendString> options;
+  options.emplace(ge::OPTION_GRAPH_RUN_MODE, "1");
+  Session session(options);
+
+  std::vector<int64_t> shape{1, 2, 3, 4};
+  auto data_1 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(1).OutCnt(1).Build("data_1");
+  auto hcom_1 = OP_CFG(HCOMALLGATHER).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(1).OutCnt(1).Build("hcom_1");
+
+  DEF_GRAPH(g1) {
+    CHAIN(NODE(data_1)->EDGE(0, 0)->NODE(hcom_1)->EDGE(0, 0)->NODE("a", RELU)->NODE("output_1", "NetOutput"));
+  };
+  auto graph = ToGeGraph(g1);
+  auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
+  auto hcom = compute_graph->FindNode("hcom_1");
+  ASSERT_NE(hcom, nullptr);
+  (void)ge::AttrUtils::SetBool(hcom->GetOpDesc(), ATTR_NAME_NOPADDING_CONTINUOUS_OUTPUT, true);
+  (void)ge::AttrUtils::SetBool(hcom->GetOpDesc(), ATTR_NAME_OUTPUT_REUSE_INPUT, true);
+  (void)ge::AttrUtils::SetInt(hcom->GetOpDesc(), ge::ATTR_NAME_REUSE_INPUT_ON_DIM_INDEX, 0);
+  (void)ge::AttrUtils::SetBool(hcom->GetOpDesc(), ATTR_NAME_CUSTOM_INPUT_OUTPUT_OFFSET, true);
+
+  const int64_t custom_offset = 100;
+  auto a_node = compute_graph->FindNode("a");
+  ASSERT_NE(a_node, nullptr);
+  std::vector<int64_t> offset_list = {custom_offset};
+  ge::AttrUtils::SetListInt(a_node->GetOpDesc(), ATTR_NAME_INPUT_OFFSET_LIST_FOR_CONTINUOUS, offset_list);
+
+  uint32_t graph_id = 1;
+  session.AddGraph(graph_id, graph);
+  auto ret = session.CompileGraph(graph_id);
+  EXPECT_EQ(ret, SUCCESS);
+
+  auto input_offsets = hcom->GetOpDesc()->GetInputOffset();
+  auto output_offsets = hcom->GetOpDesc()->GetOutputOffset();
+  ASSERT_FALSE(input_offsets.empty());
+  ASSERT_FALSE(output_offsets.empty());
+  EXPECT_EQ(output_offsets[0] - input_offsets[0], custom_offset);
+}
+
+/**
+ * 用例描述：自定义输入输出offset，通过输入peer的ATTR_NAME_OUTPUT_OFFSET_LIST_FOR_CONTINUOUS设置偏移
+ *
+ * 预置条件：
+ * 1.构造计算图：data -> add -> hcomallgather -> relu -> netoutput
+ * 2.hcomallgather设置ATTR_NAME_CUSTOM_INPUT_OUTPUT_OFFSET + ATTR_NAME_OUTPUT_REUSE_INPUT +
+ * ATTR_NAME_NOPADDING_CONTINUOUS_OUTPUT
+ * 3.add节点设置ATTR_NAME_OUTPUT_OFFSET_LIST_FOR_CONTINUOUS
+ *
+ * 测试步骤
+ * 1.构造计算图并编译
+ * 2.校验编译成功，ATTR_NAME_OUTPUT_OFFSET_LIST_FOR_CONTINUOUS被正确消费
+ * 预期结果
+ * 1. 编译成功
+ */
+TEST_F(MemoryAssignTest, CustomInputOutputOffset_WithOutputOffsetList_Success) {
+  GertRuntimeStub runtime_stub;
+  std::map<AscendString, AscendString> options;
+  options.emplace(ge::OPTION_FEATURE_BASE_REFRESHABLE, "1");
+  options.emplace(ge::OPTION_GRAPH_RUN_MODE, "1");
+  Session session(options);
+
+  std::vector<int64_t> shape{1, 2, 3, 4};
+  auto data_1 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(1).OutCnt(1).Build("data_1");
+  auto data_2 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(1).OutCnt(1).Build("data_2");
+  auto add_0 = OP_CFG(ADD).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(2).OutCnt(1).Build("add_0");
+  auto hcom_1 = OP_CFG(HCOMALLGATHER).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(1).OutCnt(1).Build("hcom_1");
+
+  DEF_GRAPH(g1) {
+    CHAIN(NODE(data_1)->EDGE(0, 0)->NODE(add_0)->EDGE(0, 0)->NODE(hcom_1));
+    CHAIN(NODE(hcom_1)->EDGE(0, 0)->NODE("a", RELU)->NODE("output_1", "NetOutput"));
+    CHAIN(NODE(data_2)->EDGE(0, 1)->NODE(add_0));
+  };
+  auto graph = ToGeGraph(g1);
+  auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
+  auto hcom = compute_graph->FindNode("hcom_1");
+  ASSERT_NE(hcom, nullptr);
+  (void)ge::AttrUtils::SetBool(hcom->GetOpDesc(), ATTR_NAME_NOPADDING_CONTINUOUS_INPUT, true);
+  (void)ge::AttrUtils::SetBool(hcom->GetOpDesc(), ATTR_NAME_OUTPUT_REUSE_INPUT, true);
+  (void)ge::AttrUtils::SetInt(hcom->GetOpDesc(), ge::ATTR_NAME_REUSE_INPUT_ON_DIM_INDEX, 0);
+  (void)ge::AttrUtils::SetBool(hcom->GetOpDesc(), ATTR_NAME_CUSTOM_INPUT_OUTPUT_OFFSET, true);
+
+  const int64_t custom_offset = 100;
+  auto add_node = compute_graph->FindNode("add_0");
+  ASSERT_NE(add_node, nullptr);
+  std::vector<int64_t> offset_list = {custom_offset};
+  ge::AttrUtils::SetListInt(add_node->GetOpDesc(), ATTR_NAME_OUTPUT_OFFSET_LIST_FOR_CONTINUOUS, offset_list);
+
+  uint32_t graph_id = 1;
+  session.AddGraph(graph_id, graph);
+  auto ret = session.CompileGraph(graph_id);
+  EXPECT_EQ(ret, SUCCESS);
 }

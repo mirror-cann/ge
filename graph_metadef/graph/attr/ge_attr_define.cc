@@ -1221,6 +1221,7 @@ const std::string ATTR_ZERO_COPY_RELATIVE_OFFSET = "_zero_copy_relative_offset";
 const std::string ATTR_IS_ZERO_COPY_BLOCK = "_is_zero_copy_block";
 const std::string ATTR_NAME_INPUT_OFFSET_LIST_FOR_CONTINUOUS = "_input_offset_list_for_continuous";
 const std::string ATTR_NAME_OUTPUT_OFFSET_LIST_FOR_CONTINUOUS = "_output_offset_list_for_continuous";
+const std::string ATTR_NAME_CUSTOM_INPUT_OUTPUT_OFFSET = "_custom_input_output_offset";
 
 // mark node cannot be deleted
 const std::string ATTR_NAME_CANNOT_BE_DELETED = "_cannot_be_deleted";
