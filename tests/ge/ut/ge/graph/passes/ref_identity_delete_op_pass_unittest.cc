@@ -64,7 +64,7 @@ class NodeBuilder {
  *      |              |                     |
  *     add<-------------                    add
  */
-TEST_F(UTestRefIdentityDeleteOpPass, ref_identity_delete_without_transnode_success) {
+TEST_F(UTestRefIdentityDeleteOpPass, RefIdentityDeleteOpPass_Ok_DirectConnectRefOp) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   ge::NodePtr variable_node = NodeBuilder("variable", VARIABLE)
                                   .AddInputDesc("input", {2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
@@ -130,7 +130,7 @@ TEST_F(UTestRefIdentityDeleteOpPass, ref_identity_delete_without_transnode_succe
   EXPECT_EQ(variable_ref->GetOutControlNodes().size(), 1);
 }
 
-TEST_F(UTestRefIdentityDeleteOpPass, ref_identity_delete_without_ref_identity) {
+TEST_F(UTestRefIdentityDeleteOpPass, RefIdentityDeleteOpPass_Ok_NoRefIdentity) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   ge::NodePtr variable_node = NodeBuilder("variable", VARIABLE)
           .AddInputDesc("input", {2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
@@ -164,4 +164,97 @@ TEST_F(UTestRefIdentityDeleteOpPass, ref_identity_delete_without_ref_identity) {
   pass_manager.AddPass("RefIdentityDeleteOpPass", new (std::nothrow) ge::RefIdentityDeleteOpPass);
   ge::Status status = pass_manager.Run(graph);
   EXPECT_EQ(status, ge::SUCCESS);
+}
+
+/**
+ *   variable
+ *      |
+ *      |
+ *  refidentity-->variable_ref   ==>     variable--->cast-->applymomentum--->add
+ *      |          ^   |                     |                                     ^
+ *      |          |   |                     |                                     |
+ *     cast--------|   |                 (ctrl edges preserved)
+ *      |              |
+ * applymomentum---|
+ *      |
+ *      |
+ *     add<-------------
+ *
+ * 精度模式下 FE 在 RefIdentity 和 RefOp 之间插入 Cast，验证直接删除 RefIdentity 后数据流正确旁路
+ */
+TEST_F(UTestRefIdentityDeleteOpPass, RefIdentityDeleteOpPass_Ok_TransOpBetweenRefOp) {
+  ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
+  ge::NodePtr variable_node = NodeBuilder("variable", VARIABLE)
+                                  .AddInputDesc("input", {2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
+                                  .AddOutputDesc("output", {2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
+                                  .Build(graph);
+
+  ge::NodePtr ref_identity_node = NodeBuilder("RefIdentity", REFIDENTITY)
+                                      .AddInputDesc("input", {2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
+                                      .AddOutputDesc("output", {2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
+                                      .Build(graph);
+
+  ge::NodePtr cast_node = NodeBuilder("Cast", CAST)
+                              .AddInputDesc("x", {2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
+                              .AddOutputDesc("y", {2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT16)
+                              .Build(graph);
+
+  ge::NodePtr apply_monetum_node = NodeBuilder("Applymomentum", APPLYMOMENTUM)
+                                       .AddInputDesc("var", {2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT16)
+                                       .AddOutputDesc("no_var", {2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT16)
+                                       .Build(graph);
+
+  ge::NodePtr add_node = NodeBuilder("Add", ADD)
+                             .AddInputDesc("x", {2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT16)
+                             .AddOutputDesc("y", {2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT16)
+                             .Build(graph);
+
+  ge::NodePtr variable_ref = NodeBuilder("VariableRef", VARIABLE)
+                                 .AddInputDesc("x", {2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
+                                 .AddOutputDesc("y", {2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
+                                 .Build(graph);
+
+  ge::GraphUtils::AddEdge(variable_node->GetOutDataAnchor(0), ref_identity_node->GetInDataAnchor(0));
+  ge::GraphUtils::AddEdge(ref_identity_node->GetOutDataAnchor(0), cast_node->GetInDataAnchor(0));
+  ge::GraphUtils::AddEdge(ref_identity_node->GetOutDataAnchor(0), variable_ref->GetInDataAnchor(0));
+  ge::GraphUtils::AddEdge(cast_node->GetOutDataAnchor(0), apply_monetum_node->GetInDataAnchor(0));
+  ge::GraphUtils::AddEdge(apply_monetum_node->GetOutDataAnchor(0), add_node->GetInDataAnchor(0));
+  ge::GraphUtils::AddEdge(variable_ref->GetOutControlAnchor(), add_node->GetInControlAnchor());
+  ge::GraphUtils::AddEdge(apply_monetum_node->GetOutControlAnchor(), variable_ref->GetInControlAnchor());
+  auto desc = apply_monetum_node->GetOpDesc()->GetInputDesc(0);
+  desc.SetRefPortByIndex({0});
+  apply_monetum_node->GetOpDesc()->UpdateInputDesc(0, desc);
+
+  ge::ComputeGraphPtr root_graph = std::make_shared<ComputeGraph>("root_graph");
+  ge::NodePtr parent_node = NodeBuilder("parent_node", "PartitionedCall")
+                                .AddInputDesc("input", {2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
+                                .AddOutputDesc("output", {2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
+                                .Build(root_graph);
+  ASSERT_EQ(ge::NodeUtils::AddSubgraph(*parent_node, "test", graph), ge::GRAPH_SUCCESS);
+
+  PassManager pass_manager;
+  pass_manager.AddPass("RefIdentityDeleteOpPass", new (std::nothrow) ge::RefIdentityDeleteOpPass);
+  ge::Status status = pass_manager.Run(root_graph);
+  EXPECT_EQ(status, ge::SUCCESS);
+
+  // RefIdentity 被删除，variable 直连 cast
+  EXPECT_EQ(variable_node->GetOutDataNodes().size(), 2);
+  const auto name0 = variable_node->GetOutDataNodes().at(0)->GetName();
+  const auto name1 = variable_node->GetOutDataNodes().at(1)->GetName();
+  const bool check_cast = (name0 == "Cast" || name1 == "Cast");
+  const bool check_ref = (name0 == "VariableRef" || name1 == "VariableRef");
+  EXPECT_EQ(check_cast, true);
+  EXPECT_EQ(check_ref, true);
+
+  // cast 直连 applymomentum
+  EXPECT_EQ(cast_node->GetOutDataNodes().size(), 1);
+  EXPECT_EQ(cast_node->GetOutDataNodes().at(0)->GetName(), "Applymomentum");
+
+  // applymomentum 的数据边和控制边保持不变
+  EXPECT_EQ(apply_monetum_node->GetOutDataNodes().size(), 1);
+  EXPECT_EQ(apply_monetum_node->GetOutDataNodes().at(0)->GetName(), "Add");
+  EXPECT_EQ(apply_monetum_node->GetOutControlNodes().size(), 1);
+  EXPECT_EQ(apply_monetum_node->GetOutControlNodes().at(0)->GetName(), "VariableRef");
+
+  EXPECT_EQ(variable_ref->GetOutControlNodes().size(), 1);
 }

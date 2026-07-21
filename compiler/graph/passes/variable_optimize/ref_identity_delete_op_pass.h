@@ -11,7 +11,6 @@
 #ifndef GE_GRAPH_PASSES_REF_IDENTITY_DELETE_OP_PASS_H_
 #define GE_GRAPH_PASSES_REF_IDENTITY_DELETE_OP_PASS_H_
 
-#include <map>
 #include <string>
 #include "framework/common/ge_inner_error_codes.h"
 #include "graph/passes/graph_pass.h"
@@ -23,7 +22,6 @@ class RefIdentityDeleteOpPass : public GraphPass {
 
  private:
   Status DealNoOutputRef(const NodePtr &ref_identity, const ComputeGraphPtr &graph) const;
-  NodePtr GetRefNode(const NodePtr &node, int32_t &input_index) const;
 };
 }  // namespace ge
 

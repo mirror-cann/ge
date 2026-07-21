@@ -9,47 +9,25 @@
  */
 
 #include "graph/passes/variable_optimize/ref_identity_delete_op_pass.h"
-#include <map>
-#include <stack>
-#include "common/op/transop_util.h"
 
 namespace ge {
+// RefIdentity 由 VariablePrepareOpPass 插入，仅作为 VariableRef 的挂载桥梁。
+// 其输出对端包括 VariableRef 以及 RefOp（精度模式下中间可能被 FE 插入 Cast/TransData）。
+// IsolateNode 会将 RefIdentity 的输入(Variable)直连到所有输出对端，保留原有数据流和控制边，
+// 因此无需校验下游是否为 RefOp，直接旁路并删除即可。
 Status RefIdentityDeleteOpPass::Run(ComputeGraphPtr graph) {
   GE_CHECK_NOTNULL(graph);
   for (auto &node : graph->GetDirectNode()) {
     if (node->GetType() != REFIDENTITY) {
       continue;
     }
-    int32_t input_index = 0;
-    CHECK_FALSE_EXEC(GetRefNode(node, input_index) != nullptr,
-                     REPORT_INNER_ERR_MSG("E19999", "Get Ref node of node:%s(%s) failed",
-                                       node->GetName().c_str(), node->GetType().c_str());
-                     GELOGE(FAILED, "[Get][RefNode] of node:%s(%s) failed",
-                            node->GetName().c_str(), node->GetType().c_str());
-                     return FAILED);
-    CHECK_FALSE_EXEC(DealNoOutputRef(node, graph) == SUCCESS,
-                     GELOGE(FAILED, "[Deal][NoOutputRef] for node:%s failed, index:%d",
-                            node->GetName().c_str(), input_index);
-                     return FAILED);
+    CHECK_FALSE_EXEC(
+        DealNoOutputRef(node, graph) == SUCCESS, REPORT_INNER_ERR_MSG("E19999", "Deal RefIdentity node:%s(%s) failed",
+                                                                      node->GetName().c_str(), node->GetType().c_str());
+        GELOGE(FAILED, "[Deal][RefIdentity] node:%s(%s) failed", node->GetName().c_str(), node->GetType().c_str());
+        return FAILED);
   }
   return SUCCESS;
-}
-
-NodePtr RefIdentityDeleteOpPass::GetRefNode(const NodePtr &node, int32_t &input_index) const {
-  OutDataAnchorPtr out_anchor = node->GetOutDataAnchor(0);
-  CHECK_FALSE_EXEC(out_anchor != nullptr, return nullptr);
-  for (const auto &peer_in_anchor : out_anchor->GetPeerInDataAnchors()) {
-    auto peer_node = peer_in_anchor->GetOwnerNode();
-    const auto &peer_op_desc = peer_node->GetOpDesc();
-    CHECK_FALSE_EXEC(peer_op_desc != nullptr, return nullptr);
-    const auto &peer_input_desc = peer_op_desc->GetInputDescPtr(static_cast<uint32_t>(peer_in_anchor->GetIdx()));
-    CHECK_FALSE_EXEC(peer_input_desc != nullptr, return nullptr);
-    if (!peer_input_desc->GetRefPortIndex().empty()) {
-      input_index = peer_in_anchor->GetIdx();
-      return peer_node;
-    }
-  }
-  return nullptr;
 }
 
 Status RefIdentityDeleteOpPass::DealNoOutputRef(const NodePtr &ref_identity, const ComputeGraphPtr &graph) const {
