@@ -26,6 +26,7 @@
 #include "graph/utils/graph_utils_ex.h"
 #include "graph/debug/ge_attr_define.h"
 #include "framework/common/helper/model_helper.h"
+#include "common/context/properties_manager.h"
 #include "framework/omg/parser/parser_factory.h"
 #include "framework/common/debug/ge_log.h"
 #include "graph/passes/graph_builder_utils.h"
@@ -38,6 +39,13 @@
 using namespace std;
 
 namespace ge {
+domi::Status StringToInt(std::string &str, int32_t &value);
+domi::Status ParseOutNodes(const std::string &out_nodes);
+domi::Status CheckOutPutDataTypeSupport(const std::string &output_type);
+domi::Status ParseOutputType(const std::string &output_type,
+                             std::map<std::string, std::vector<std::string>> &output_node_dt_map);
+void GetGroupName(ge::proto::ModelDef &model_def);
+
 class UtestOmg : public testing::Test {
  protected:
   void SetUp() override {}
@@ -1015,5 +1023,419 @@ TEST_F(UtestOmg, ConvertOm_Fail_Om2InvalidVisualJson) {
 
   EXPECT_NE(ConvertOm(om2_path.c_str(), json_path.c_str(), true), SUCCESS);
   system("rm -rf ./ut_om2_bad_visual_json.om2 ./ut_om2_bad_visual_json.json");
+}
+
+namespace {
+void ResetPropertiesManager() {
+  (void)PropertiesManager::Instance().Init("/nonexistent/file/for_reset");
+}
+
+std::shared_ptr<domi::ModelParser> FakeModelParserFuncTest() {
+  std::shared_ptr<domi::ModelParser> ptr = std::make_shared<FakeModelParser>();
+  return ptr;
+}
+
+void RegisterFakeModelParserForOnnx() {
+  domi::FrameworkType type = domi::ONNX;
+  domi::ModelParserFactory::Instance()->creator_map_[type] = FakeModelParserFuncTest;
+  domi::WeightsParserFactory::Instance()->creator_map_[type] = WeightsFuncTest;
+}
+
+void ClearTestParsers() {
+  domi::ModelParserFactory::Instance()->creator_map_.clear();
+  domi::WeightsParserFactory::Instance()->creator_map_.clear();
+}
+
+std::string BuildVisualJsonWithScopeId(uint64_t scope_id) {
+  std::string fusion_op_bytes;
+  if (scope_id == 0x00010000U) {
+    // Use a protobuf-compatible non-minimal varint so the JSON test input remains valid UTF-8.
+    const char prefix[] = {static_cast<char>(0x52), static_cast<char>(0x14), static_cast<char>(0x0A),
+                           static_cast<char>(0x0C)};
+    const char suffix[] = {static_cast<char>(0x12), static_cast<char>(0x04), static_cast<char>(0x18),
+                           static_cast<char>(0xC2), static_cast<char>(0x80), static_cast<char>(0x04)};
+    fusion_op_bytes.assign(prefix, sizeof(prefix));
+    fusion_op_bytes += "fusion_scope";
+    fusion_op_bytes.append(suffix, sizeof(suffix));
+  } else {
+    ge::proto::OpDef fusion_op;
+    (*fusion_op.mutable_attr())["fusion_scope"].set_i(static_cast<int64_t>(scope_id));
+    fusion_op_bytes = fusion_op.SerializeAsString();
+  }
+  nlohmann::json visual_json;
+  visual_json["format"] = "ge_visual_json";
+  visual_json["format_version"] = 1;
+  auto &model = visual_json["model"];
+  model["name"] = "scope_model";
+  model["attr"]["fm"] = {{"type", "list_bytes"}, {"value", nlohmann::json::array({fusion_op_bytes})}};
+  model["graph"] = nlohmann::json::array(
+      {{{"name", "main_graph"},
+        {"op", nlohmann::json::array({{{"name", "scope_op"}, {"type", "ScopeOp"}, {"stream_id", 7}}})}}});
+  return visual_json.dump();
+}
+}  // namespace
+
+TEST_F(UtestOmg, CheckOpNameMapTypeFound) {
+  ResetPropertiesManager();
+  system("echo 'SomeName:Data' > ./ut_op_conf.txt");
+  Graph out_graph;
+  ComputeGraphPtr cgp = BuildComputeGraph();
+  Graph graph = ge::GraphUtilsEx::CreateGraphFromComputeGraph(cgp);
+  graph.SaveToFile("./ut_graph1.txt");
+  graph.SaveToFile("./ut_graph2.txt");
+  RegisterFakeModelParserForOnnx();
+  std::map<std::string, std::string> atc_params = {{"in_nodes", ""}};
+  Status ret = ParseGraph(out_graph, atc_params, "./ut_graph1.txt", "./ut_graph2.txt", domi::ONNX, "./ut_op_conf.txt",
+                          "stub", RunMode::GEN_OM_MODEL, true);
+  EXPECT_EQ(ret, SUCCESS);
+  ClearTestParsers();
+  ResetPropertiesManager();
+  system("rm -rf ./ut_graph1.txt ./ut_graph2.txt ./ut_op_conf.txt");
+}
+
+TEST_F(UtestOmg, CheckOpNameMapTypeNotFound) {
+  ResetPropertiesManager();
+  system("echo 'SomeName:NonExistentType' > ./ut_op_conf.txt");
+  Graph out_graph;
+  ComputeGraphPtr cgp = BuildComputeGraph();
+  Graph graph = ge::GraphUtilsEx::CreateGraphFromComputeGraph(cgp);
+  graph.SaveToFile("./ut_graph1.txt");
+  graph.SaveToFile("./ut_graph2.txt");
+  RegisterFakeModelParserForOnnx();
+  std::map<std::string, std::string> atc_params = {{"in_nodes", ""}};
+  Status ret = ParseGraph(out_graph, atc_params, "./ut_graph1.txt", "./ut_graph2.txt", domi::ONNX, "./ut_op_conf.txt",
+                          "stub", RunMode::GEN_OM_MODEL, true);
+  EXPECT_EQ(ret, PARAM_INVALID);
+  ClearTestParsers();
+  ResetPropertiesManager();
+  system("rm -rf ./ut_graph1.txt ./ut_graph2.txt ./ut_op_conf.txt");
+}
+
+TEST_F(UtestOmg, CheckOpNameMapEmptyMap) {
+  ResetPropertiesManager();
+  system("echo '# only comment' > ./ut_op_conf.txt");
+  Graph out_graph;
+  ComputeGraphPtr cgp = BuildComputeGraph();
+  Graph graph = ge::GraphUtilsEx::CreateGraphFromComputeGraph(cgp);
+  graph.SaveToFile("./ut_graph1.txt");
+  graph.SaveToFile("./ut_graph2.txt");
+  RegisterFakeModelParserForOnnx();
+  std::map<std::string, std::string> atc_params = {{"in_nodes", ""}};
+  Status ret = ParseGraph(out_graph, atc_params, "./ut_graph1.txt", "./ut_graph2.txt", domi::ONNX, "./ut_op_conf.txt",
+                          "stub", RunMode::GEN_OM_MODEL, true);
+  EXPECT_EQ(ret, PARAM_INVALID);
+  ClearTestParsers();
+  ResetPropertiesManager();
+  system("rm -rf ./ut_graph1.txt ./ut_graph2.txt ./ut_op_conf.txt");
+}
+
+TEST_F(UtestOmg, CheckInputFp16NodesWithDataNode) {
+  Graph out_graph;
+  ComputeGraphPtr cgp = BuildComputeGraph();
+  Graph graph = ge::GraphUtilsEx::CreateGraphFromComputeGraph(cgp);
+  graph.SaveToFile("./ut_graph1.txt");
+  graph.SaveToFile("./ut_graph2.txt");
+  RegisterFakeModelParserForOnnx();
+  std::map<std::string, std::string> atc_params = {
+      {"in_nodes", ""}, {"input_fp16_nodes", "Data"}, {"is_input_adjust_hw_layout", "true"}};
+  Status ret = ParseGraph(out_graph, atc_params, "./ut_graph1.txt", "./ut_graph2.txt", domi::ONNX, nullptr, "stub",
+                          RunMode::GEN_OM_MODEL, true);
+  EXPECT_EQ(ret, SUCCESS);
+  ClearTestParsers();
+  system("rm -rf ./ut_graph1.txt ./ut_graph2.txt");
+}
+
+TEST_F(UtestOmg, CheckInputFp16NodesWithNonDataNode) {
+  Graph out_graph;
+  ComputeGraphPtr cgp = BuildComputeGraph();
+  Graph graph = ge::GraphUtilsEx::CreateGraphFromComputeGraph(cgp);
+  graph.SaveToFile("./ut_graph1.txt");
+  graph.SaveToFile("./ut_graph2.txt");
+  RegisterFakeModelParserForOnnx();
+  std::map<std::string, std::string> atc_params = {{"in_nodes", ""}, {"input_fp16_nodes", "NetOutput"}};
+  Status ret = ParseGraph(out_graph, atc_params, "./ut_graph1.txt", "./ut_graph2.txt", domi::ONNX, nullptr, "stub",
+                          RunMode::GEN_OM_MODEL, true);
+  EXPECT_EQ(ret, PARAM_INVALID);
+  ClearTestParsers();
+  system("rm -rf ./ut_graph1.txt ./ut_graph2.txt");
+}
+
+TEST_F(UtestOmg, StringToIntInvalidArgument) {
+  std::string str = "";
+  int32_t value = 0;
+  EXPECT_EQ(StringToInt(str, value), PARAM_INVALID);
+}
+
+TEST_F(UtestOmg, StringToIntOutOfRange) {
+  std::string str = "99999999999";
+  int32_t value = 0;
+  EXPECT_EQ(StringToInt(str, value), PARAM_INVALID);
+}
+
+TEST_F(UtestOmg, ParseOutnodesOutOfRange) {
+  domi::GetContext().out_nodes_map.clear();
+  domi::GetContext().user_out_nodes.clear();
+  domi::GetContext().user_out_tensors.clear();
+  EXPECT_EQ(ParseOutNodes("node1:99999999999"), PARAM_INVALID);
+  domi::GetContext().out_nodes_map.clear();
+  domi::GetContext().user_out_nodes.clear();
+  domi::GetContext().user_out_tensors.clear();
+}
+
+TEST_F(UtestOmg, ParseOutnodesDuplicateNode) {
+  domi::GetContext().out_nodes_map.clear();
+  domi::GetContext().user_out_nodes.clear();
+  domi::GetContext().user_out_tensors.clear();
+  EXPECT_EQ(ParseOutNodes("node1:0;node1:1"), SUCCESS);
+  EXPECT_EQ(domi::GetContext().out_nodes_map["node1"].size(), 2);
+  domi::GetContext().out_nodes_map.clear();
+  domi::GetContext().user_out_nodes.clear();
+  domi::GetContext().user_out_tensors.clear();
+}
+
+TEST_F(UtestOmg, CheckOutPutDataTypeSupportSuccess) {
+  EXPECT_EQ(CheckOutPutDataTypeSupport("FP32"), SUCCESS);
+  EXPECT_EQ(CheckOutPutDataTypeSupport("FP16"), SUCCESS);
+  EXPECT_NE(CheckOutPutDataTypeSupport("INVALID"), SUCCESS);
+}
+
+TEST_F(UtestOmg, ParseOutputTypeDuplicateNode) {
+  domi::GetContext().user_out_nodes.clear();
+  domi::GetContext().final_out_nodes_map.clear();
+  domi::GetContext().user_out_nodes.push_back({"node1", 0});
+  domi::GetContext().user_out_nodes.push_back({"node1", 1});
+  std::map<std::string, std::vector<std::string>> output_node_dt_map;
+  EXPECT_EQ(ParseOutputType("node1:0:FP16;node1:1:FP32", output_node_dt_map), SUCCESS);
+  EXPECT_EQ(output_node_dt_map["node1"].size(), 2);
+  domi::GetContext().user_out_nodes.clear();
+  domi::GetContext().final_out_nodes_map.clear();
+}
+
+TEST_F(UtestOmg, GetDefaultOutInfoOnnxContinue) {
+  ComputeGraphPtr compute_graph = ge::MakeShared<ComputeGraph>("tmp_graph");
+  OpDescPtr data_desc = ge::MakeShared<OpDesc>("data1", DATA);
+  data_desc->AddOutputDesc(GeTensorDesc());
+  OpDescPtr add_desc = ge::MakeShared<OpDesc>("add", ADD);
+  add_desc->AddInputDesc(GeTensorDesc());
+  add_desc->AddOutputDesc(GeTensorDesc());
+  auto data1 = compute_graph->AddNode(data_desc);
+  auto add = compute_graph->AddNode(add_desc);
+  GraphUtils::AddEdge(data1->GetOutDataAnchor(0), add->GetInDataAnchor(0));
+  ge::Graph graph = ge::GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
+  domi::GetContext().user_out_nodes.clear();
+  domi::GetContext().default_out_nodes.clear();
+  domi::GetContext().type = domi::ONNX;
+  domi::GetContext().default_out_nodes.push_back({"nonexistent_node", 0});
+  std::string output_type;
+  EXPECT_EQ(SetOutputNodeInfo(graph, output_type), SUCCESS);
+  domi::GetContext().default_out_nodes.clear();
+  domi::GetContext().type = domi::MINDSPORE;
+}
+
+TEST_F(UtestOmg, CreateOutputNodesInfoTopNameMismatch) {
+  ut::GraphBuilder builder = ut::GraphBuilder("root");
+  auto node1 = builder.AddNode("node1", "Data", 0, 1);
+  auto node2 = builder.AddNode("node2", "Data", 0, 1);
+  std::vector<std::pair<ge::NodePtr, int32_t>> output_nodes_info;
+  output_nodes_info.push_back({node1, 0});
+  output_nodes_info.push_back({node2, 0});
+  std::vector<std::string> output_nodes_name;
+  domi::GetContext().out_tensor_names.clear();
+  domi::GetContext().out_tensor_names.push_back("only_one_name");
+  CreateOutputNodesInfo(output_nodes_info, output_nodes_name);
+  EXPECT_EQ(output_nodes_name.size(), 2);
+  EXPECT_EQ(output_nodes_name[0], "node1:0:only_one_name");
+  EXPECT_EQ(output_nodes_name[1], "node2:0");
+  domi::GetContext().out_tensor_names.clear();
+}
+
+TEST_F(UtestOmg, PrintModelInfoWrongListSize) {
+  ge::proto::ModelDef model_def;
+  auto attrs = model_def.mutable_attr();
+  ge::proto::AttrDef *attr_def = &(*attrs)["om_info_list"];
+  attr_def->mutable_list()->add_i(1);
+  attr_def->mutable_list()->add_i(2);
+  attr_def->mutable_list()->add_i(3);
+  EXPECT_NO_THROW(PrintModelInfo(&model_def, 1));
+}
+
+TEST_F(UtestOmg, FindParserSoNotDirectory) {
+  system("touch ut_not_dir.txt");
+  std::vector<std::string> file_list;
+  std::string caffe_path;
+  FindParserSo("./ut_not_dir.txt", file_list, caffe_path);
+  EXPECT_EQ(caffe_path.empty(), true);
+  EXPECT_EQ(file_list.empty(), true);
+  system("rm -rf ./ut_not_dir.txt");
+}
+
+TEST_F(UtestOmg, FindParserSoWithNonCaffeSo) {
+  system("mkdir so_path2 && touch so_path2/lib_other_parser.so");
+  std::vector<std::string> file_list;
+  std::string caffe_path;
+  FindParserSo("./so_path2", file_list, caffe_path);
+  EXPECT_EQ(file_list.size(), 1);
+  EXPECT_EQ(caffe_path.empty(), true);
+  system("rm -rf ./so_path2");
+}
+
+TEST_F(UtestOmg, FindParserSoRecursive) {
+  system("mkdir so_path3 && mkdir so_path3/subdir && touch so_path3/subdir/lib_caffe_parser.so");
+  std::vector<std::string> file_list;
+  std::string caffe_path;
+  FindParserSo("./so_path3", file_list, caffe_path);
+  EXPECT_EQ(!caffe_path.empty(), true);
+  system("rm -rf ./so_path3");
+}
+
+TEST_F(UtestOmg, GetGroupNameEmptyBt) {
+  ge::proto::ModelDef model_def;
+  auto *graph = model_def.add_graph();
+  graph->add_op()->set_name("op1");
+  (*model_def.mutable_attr())["fm"].mutable_list();
+  EXPECT_NO_THROW(GetGroupName(model_def));
+}
+
+TEST_F(UtestOmg, GetGroupNameNoFusionScope) {
+  ge::proto::ModelDef model_def;
+  auto *graph = model_def.add_graph();
+  graph->add_op()->set_name("op1");
+  ge::proto::OpDef op_def;
+  (*model_def.mutable_attr())["fm"].mutable_list()->add_bt(op_def.SerializeAsString());
+  EXPECT_NO_THROW(GetGroupName(model_def));
+}
+
+TEST_F(UtestOmg, GetGroupNameWithL1Id) {
+  ge::proto::ModelDef model_def;
+  auto *graph = model_def.add_graph();
+  auto *op = graph->add_op();
+  op->set_name("op1");
+  op->set_stream_id(5);
+  ge::proto::OpDef fusion_op;
+  (*fusion_op.mutable_attr())["fusion_scope"].set_i(0x00010000);
+  (*model_def.mutable_attr())["fm"].mutable_list()->add_bt(fusion_op.SerializeAsString());
+  EXPECT_NO_THROW(GetGroupName(model_def));
+}
+
+TEST_F(UtestOmg, GetGroupNameWithUbId) {
+  ge::proto::ModelDef model_def;
+  auto *graph = model_def.add_graph();
+  auto *op = graph->add_op();
+  op->set_name("op1");
+  op->set_stream_id(5);
+  ge::proto::OpDef fusion_op;
+  (*fusion_op.mutable_attr())["fusion_scope"].set_i(0x00000002);
+  (*model_def.mutable_attr())["fm"].mutable_list()->add_bt(fusion_op.SerializeAsString());
+  EXPECT_NO_THROW(GetGroupName(model_def));
+}
+
+TEST_F(UtestOmg, ConvertOm_Om2VisualJsonNotObject) {
+  ASSERT_FALSE(CreateMinimalOm2File("./ut_om2_not_obj.om2", "[]").empty());
+  EXPECT_NE(ConvertOm("./ut_om2_not_obj.om2", "./ut_om2_not_obj.json", true), SUCCESS);
+  system("rm -rf ./ut_om2_not_obj.om2 ./ut_om2_not_obj.json");
+}
+
+TEST_F(UtestOmg, ConvertOm_Om2VisualJsonNoFm) {
+  const std::string visual_json =
+      R"({"format":"ge_visual_json","format_version":1,"model":{"name":"test","attr":{},"graph":[]}})";
+  ASSERT_FALSE(CreateMinimalOm2File("./ut_om2_no_fm.om2", visual_json).empty());
+  EXPECT_EQ(ConvertOm("./ut_om2_no_fm.om2", "./ut_om2_no_fm.json", true), SUCCESS);
+  system("rm -rf ./ut_om2_no_fm.om2 ./ut_om2_no_fm.json");
+}
+
+TEST_F(UtestOmg, ConvertOm_Om2VisualJsonFmWrongType) {
+  const std::string visual_json =
+      R"({"format":"ge_visual_json","format_version":1,"model":{"name":"test","attr":{"fm":{"type":"not_list_bytes","value":[]}},"graph":[]}})";
+  ASSERT_FALSE(CreateMinimalOm2File("./ut_om2_wrong_type.om2", visual_json).empty());
+  EXPECT_EQ(ConvertOm("./ut_om2_wrong_type.om2", "./ut_om2_wrong_type.json", true), SUCCESS);
+  system("rm -rf ./ut_om2_wrong_type.om2 ./ut_om2_wrong_type.json");
+}
+
+TEST_F(UtestOmg, ConvertOm_Om2VisualJsonNoGraph) {
+  const std::string visual_json =
+      R"({"format":"ge_visual_json","format_version":1,"model":{"name":"test","attr":{"fm":{"type":"list_bytes","value":[]}}}})";
+  ASSERT_FALSE(CreateMinimalOm2File("./ut_om2_no_graph.om2", visual_json).empty());
+  EXPECT_EQ(ConvertOm("./ut_om2_no_graph.om2", "./ut_om2_no_graph.json", true), SUCCESS);
+  system("rm -rf ./ut_om2_no_graph.om2 ./ut_om2_no_graph.json");
+}
+
+TEST_F(UtestOmg, ConvertOm_Om2VisualJsonGraphNoOpArray) {
+  const std::string visual_json =
+      R"({"format":"ge_visual_json","format_version":1,"model":{"name":"test","attr":{"fm":{"type":"list_bytes","value":[]}},"graph":[{"name":"no_op"}]}})";
+  ASSERT_FALSE(CreateMinimalOm2File("./ut_om2_no_op.om2", visual_json).empty());
+  EXPECT_EQ(ConvertOm("./ut_om2_no_op.om2", "./ut_om2_no_op.json", true), SUCCESS);
+  system("rm -rf ./ut_om2_no_op.om2 ./ut_om2_no_op.json");
+}
+
+TEST_F(UtestOmg, ConvertOm_Om2VisualJsonKStop) {
+  const std::string visual_json =
+      R"({"format":"ge_visual_json","format_version":1,"model":{"name":"test","attr":{"fm":{"type":"list_bytes","value":[]}},"graph":[{"op":[{"name":"op1","type":"Data"}]}]}})";
+  ASSERT_FALSE(CreateMinimalOm2File("./ut_om2_kstop.om2", visual_json).empty());
+  EXPECT_EQ(ConvertOm("./ut_om2_kstop.om2", "./ut_om2_kstop.json", true), SUCCESS);
+  system("rm -rf ./ut_om2_kstop.om2 ./ut_om2_kstop.json");
+}
+
+TEST_F(UtestOmg, ConvertOm_Om2VisualJsonKSkip) {
+  const std::string visual_json =
+      R"({"format":"ge_visual_json","format_version":1,"model":{"name":"test","attr":{"fm":{"type":"list_bytes","value":["invalid"]}},"graph":[{"op":[{"name":"op1","type":"Data"}]}]}})";
+  ASSERT_FALSE(CreateMinimalOm2File("./ut_om2_kskip.om2", visual_json).empty());
+  EXPECT_EQ(ConvertOm("./ut_om2_kskip.om2", "./ut_om2_kskip.json", true), SUCCESS);
+  system("rm -rf ./ut_om2_kskip.om2 ./ut_om2_kskip.json");
+}
+
+TEST_F(UtestOmg, ConvertOm_Om2VisualJsonL1Id) {
+  ASSERT_FALSE(CreateMinimalOm2File("./ut_om2_l1.om2", BuildVisualJsonWithScopeId(0x00010000)).empty());
+  EXPECT_EQ(ConvertOm("./ut_om2_l1.om2", "./ut_om2_l1.json", true), SUCCESS);
+  std::ifstream f("./ut_om2_l1.json");
+  ASSERT_TRUE(f.good());
+  nlohmann::json json;
+  ASSERT_NO_THROW(f >> json);
+  const auto *group_op_name = FindMapValue(json["graph"][0]["op"][0]["attr"], "group_op_name");
+  ASSERT_NE(group_op_name, nullptr);
+  EXPECT_EQ((*group_op_name)["s"], "group_op_l1_1_7");
+  system("rm -rf ./ut_om2_l1.om2 ./ut_om2_l1.json");
+}
+
+TEST_F(UtestOmg, ConvertOmToJsonSuccess) {
+  const ComputeGraphPtr graph = BuildComputeGraph();
+  const GeModelPtr ge_model = MakeShared<GeModel>();
+  ge_model->SetGraph(graph);
+  const auto model_task_def = MakeShared<domi::ModelTaskDef>();
+  model_task_def->add_task()->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_END_GRAPH));
+  ge_model->SetModelTaskDef(model_task_def);
+  TBEKernelStore tbe_kernel_store;
+  const auto kernel = MakeShared<OpKernelBin>("hello", std::vector<char>(64, 0));
+  tbe_kernel_store.AddTBEKernel(kernel);
+  tbe_kernel_store.Build();
+  ge_model->SetTBEKernelStore(tbe_kernel_store);
+  ModelBufferData model;
+  ModelHelper model_helper;
+  EXPECT_EQ(model_helper.SaveToOmModel(ge_model, "ut_test_model.om", model), SUCCESS);
+  EXPECT_EQ(ConvertOm("ut_test_model.om", "ut_test_model.json", true), SUCCESS);
+  system("rm -rf ut_test_model.om ut_test_model.json");
+}
+
+TEST_F(UtestOmg, ConvertPbtxtToJsonSaveFail) {
+  ge::proto::ModelDef model_def;
+  model_def.set_name("test_model");
+  std::string text;
+  google::protobuf::TextFormat::PrintToString(model_def, &text);
+  std::ofstream ofs("./ut_model.pbtxt");
+  ofs << text;
+  ofs.close();
+  EXPECT_NE(ConvertPbtxtToJson("./ut_model.pbtxt", "./"), SUCCESS);
+  system("rm -rf ./ut_model.pbtxt");
+}
+
+TEST_F(UtestOmg, ConvertPbtxtToJsonSuccess) {
+  ge::proto::ModelDef model_def;
+  model_def.set_name("test_model");
+  std::string text;
+  google::protobuf::TextFormat::PrintToString(model_def, &text);
+  std::ofstream ofs("./ut_model.pbtxt");
+  ofs << text;
+  ofs.close();
+  EXPECT_EQ(ConvertPbtxtToJson("./ut_model.pbtxt", "./ut_model.json"), SUCCESS);
+  system("rm -rf ./ut_model.pbtxt ./ut_model.json");
 }
 }  // namespace ge

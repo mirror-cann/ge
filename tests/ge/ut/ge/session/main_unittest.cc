@@ -12,6 +12,7 @@
 #include "graph/utils/graph_utils_ex.h"
 #include "api/aclgrph/option_utils.h"
 #include "api/atc/main_impl.h"
+#include "api/atc/atc_flags.h"
 #include "framework/omg/parser/parser_factory.h"
 #include "framework/omg/parser/model_parser.h"
 #include "framework/omg/parser/weights_parser.h"
@@ -19,7 +20,9 @@
 #include "graph/types.h"
 #include "graph/ge_global_options.h"
 #include <algorithm>
+#include <climits>
 #include <fstream>
+#include <set>
 
 #include "ge_running_env/atc_utils.h"
 #include "proto/ge_ir.pb.h"
@@ -1627,6 +1630,621 @@ TEST_F(UtestMain, MainImplTest_Om2Mode_StaticAipp_NotBlocked) {
   EXPECT_NE(ret, 0);  // still fails (no real compilation env), but not at ValidateStaticAippOnly
   AtcFileFactory::RemoveFile(AtcFileFactory::Generatefile1("", "tmp_om2_sta.om").c_str());
   AtcFileFactory::RemoveFile(cfg_path.c_str());
+}
+
+namespace ge {
+class GFlagUtils {
+ public:
+  static bool CheckPathWithName(const std::string &fileName);
+  static Status CheckFlags();
+};
+std::set<std::string> &GetRawAppliedFlagNames();
+std::map<std::string, std::string> &GetRawAppliedFlagOptions();
+}  // namespace ge
+
+TEST_F(UtestMain, MainImplTest_report_invalid_run_mode) {
+  std::string om_arg = AtcFileFactory::Generatefile1("--model=", "add.pb");
+  char *argv[] = {"atc", "--mode=99", "--framework=3", const_cast<char *>(om_arg.c_str()), "--soc_version=Ascend910B"};
+  int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_NE(ret, 0);
+}
+
+TEST_F(UtestMain, MainImplTest_convert_json_om_empty) {
+  std::string json_arg = AtcFileFactory::Generatefile1("--json=", "tmp.json");
+  char *argv[] = {"atc", "--mode=1", const_cast<char *>(json_arg.c_str())};
+  int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_NE(ret, 0);
+  AtcFileFactory::RemoveFile(AtcFileFactory::Generatefile1("", "tmp.json").c_str());
+}
+
+TEST_F(UtestMain, MainImplTest_convert_json_json_empty) {
+  std::string om_arg = AtcFileFactory::Generatefile1("--om=", "add.pb");
+  char *argv[] = {"atc", "--mode=1", const_cast<char *>(om_arg.c_str())};
+  int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_NE(ret, 0);
+}
+
+TEST_F(UtestMain, MainImplTest_convert_json_invalid_json_path) {
+  std::string om_arg = AtcFileFactory::Generatefile1("--om=", "add.pb");
+  char *argv[] = {"atc", "--mode=1", const_cast<char *>(om_arg.c_str()), "--json=/nonexistent_dir/tmp.json"};
+  int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_NE(ret, 0);
+}
+
+TEST_F(UtestMain, MainImplTest_display_model_info_om_empty) {
+  char *argv[] = {"atc", "--mode=6"};
+  int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_NE(ret, 0);
+}
+
+TEST_F(UtestMain, MainImplTest_display_model_info_om_invalid) {
+  char *argv[] = {"atc", "--mode=6", "--om=/nonexistent/file.om"};
+  int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_NE(ret, 0);
+}
+
+TEST_F(UtestMain, MainImplTest_display_model_info_convert_om) {
+  std::string om_arg = AtcFileFactory::Generatefile1("--om=", "add.pb");
+  char *argv[] = {"atc", "--mode=6", const_cast<char *>(om_arg.c_str())};
+  int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_NE(ret, 0);
+}
+
+TEST_F(UtestMain, MainImplTest_convert_om_to_json) {
+  std::string om_arg = AtcFileFactory::Generatefile1("--om=", "add.pb");
+  std::string json_arg = AtcFileFactory::Generatefile1("--json=", "tmp.json");
+  char *argv[] = {"atc", "--mode=1", const_cast<char *>(om_arg.c_str()), const_cast<char *>(json_arg.c_str())};
+  int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_NE(ret, 0);
+  AtcFileFactory::RemoveFile(AtcFileFactory::Generatefile1("", "tmp.json").c_str());
+}
+
+TEST_F(UtestMain, MainImplTest_op_precision_mode_not_found) {
+  std::string om_arg = AtcFileFactory::Generatefile1("--model=", "add.pb");
+  std::string output_arg = AtcFileFactory::Generatefile1("--output=", "tmp");
+  char *argv[] = {"atc",
+                  "--mode=0",
+                  "--framework=3",
+                  const_cast<char *>(om_arg.c_str()),
+                  const_cast<char *>(output_arg.c_str()),
+                  "--soc_version=Ascend310",
+                  "--input_format=NCHW",
+                  "--op_precision_mode=/nonexistent/precision.ini"};
+  int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_NE(ret, 0);
+  AtcFileFactory::RemoveFile(AtcFileFactory::Generatefile1("", "tmp.om").c_str());
+}
+
+TEST_F(UtestMain, MainImplTest_cal_conf_not_found) {
+  std::string om_arg = AtcFileFactory::Generatefile1("--model=", "add.pb");
+  std::string output_arg = AtcFileFactory::Generatefile1("--output=", "tmp");
+  char *argv[] = {"atc",
+                  "--mode=0",
+                  "--framework=3",
+                  const_cast<char *>(om_arg.c_str()),
+                  const_cast<char *>(output_arg.c_str()),
+                  "--soc_version=Ascend310",
+                  "--input_format=NCHW",
+                  "--cal_conf=/nonexistent/cal.conf"};
+  int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_NE(ret, 0);
+  AtcFileFactory::RemoveFile(AtcFileFactory::Generatefile1("", "tmp.om").c_str());
+}
+
+TEST_F(UtestMain, MainImplTest_op_name_map_not_found) {
+  std::string om_arg = AtcFileFactory::Generatefile1("--model=", "add.pb");
+  std::string output_arg = AtcFileFactory::Generatefile1("--output=", "tmp");
+  char *argv[] = {"atc",
+                  "--mode=0",
+                  "--framework=3",
+                  const_cast<char *>(om_arg.c_str()),
+                  const_cast<char *>(output_arg.c_str()),
+                  "--soc_version=Ascend310",
+                  "--input_format=NCHW",
+                  "--op_name_map=/nonexistent/op_name_map.txt"};
+  int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_NE(ret, 0);
+  AtcFileFactory::RemoveFile(AtcFileFactory::Generatefile1("", "tmp.om").c_str());
+}
+
+TEST_F(UtestMain, MainImplTest_save_original_model_invalid) {
+  std::string om_arg = AtcFileFactory::Generatefile1("--model=", "add.pb");
+  std::string output_arg = AtcFileFactory::Generatefile1("--output=", "tmp");
+  char *argv[] = {"atc",
+                  "--mode=0",
+                  "--framework=3",
+                  const_cast<char *>(om_arg.c_str()),
+                  const_cast<char *>(output_arg.c_str()),
+                  "--soc_version=Ascend310",
+                  "--input_format=NCHW",
+                  "--save_original_model=invalid"};
+  int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_NE(ret, 0);
+  AtcFileFactory::RemoveFile(AtcFileFactory::Generatefile1("", "tmp.om").c_str());
+}
+
+TEST_F(UtestMain, MainImplTest_output_path_invalid) {
+  std::string om_arg = AtcFileFactory::Generatefile1("--model=", "add.pb");
+  char *argv[] = {"atc",
+                  "--mode=0",
+                  "--framework=3",
+                  const_cast<char *>(om_arg.c_str()),
+                  "--output=/nonexistent_dir/tmp",
+                  "--soc_version=Ascend310",
+                  "--input_format=NCHW"};
+  int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_NE(ret, 0);
+}
+
+TEST_F(UtestMain, MainImplTest_input_format_invalid_tf) {
+  std::string om_arg = AtcFileFactory::Generatefile1("--model=", "add.pb");
+  std::string output_arg = AtcFileFactory::Generatefile1("--output=", "tmp");
+  char *argv[] = {"atc",
+                  "--mode=0",
+                  "--framework=3",
+                  const_cast<char *>(om_arg.c_str()),
+                  const_cast<char *>(output_arg.c_str()),
+                  "--soc_version=Ascend310",
+                  "--input_format=ABCD"};
+  int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_NE(ret, 0);
+  AtcFileFactory::RemoveFile(AtcFileFactory::Generatefile1("", "tmp.om").c_str());
+}
+
+TEST_F(UtestMain, MainImplTest_input_format_invalid_caffe) {
+  std::string om_arg = AtcFileFactory::Generatefile1("--model=", "add.pb");
+  std::string weight_arg = AtcFileFactory::Generatefile1("--weight=", "add.pb");
+  std::string output_arg = AtcFileFactory::Generatefile1("--output=", "tmp");
+  char *argv[] = {"atc",
+                  "--mode=0",
+                  "--framework=0",
+                  const_cast<char *>(om_arg.c_str()),
+                  const_cast<char *>(output_arg.c_str()),
+                  const_cast<char *>(weight_arg.c_str()),
+                  "--soc_version=Ascend310",
+                  "--input_format=ABCD"};
+  int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_NE(ret, 0);
+  AtcFileFactory::RemoveFile(AtcFileFactory::Generatefile1("", "tmp.om").c_str());
+}
+
+TEST_F(UtestMain, MainImplTest_input_format_invalid_onnx) {
+  std::string om_arg = AtcFileFactory::Generatefile1("--model=", "add.pb");
+  std::string output_arg = AtcFileFactory::Generatefile1("--output=", "tmp");
+  char *argv[] = {"atc",
+                  "--mode=0",
+                  "--framework=5",
+                  const_cast<char *>(om_arg.c_str()),
+                  const_cast<char *>(output_arg.c_str()),
+                  "--soc_version=Ascend310",
+                  "--input_format=ABCD"};
+  int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_NE(ret, 0);
+  AtcFileFactory::RemoveFile(AtcFileFactory::Generatefile1("", "tmp.om").c_str());
+}
+
+TEST_F(UtestMain, MainImplTest_pbtxt_to_json_convert_fail) {
+  std::string txt_path = AtcFileFactory::GetFileRealName("invalid_pbtxt.txt");
+  {
+    std::ofstream ofs(txt_path);
+    ofs << "invalid content for pbtxt conversion test";
+  }
+  std::string om_arg = AtcFileFactory::Generatefile1("--om=", "invalid_pbtxt.txt");
+  std::string json_arg = AtcFileFactory::Generatefile1("--json=", "tmp.json");
+  char *argv[] = {"atc", "--mode=5", const_cast<char *>(om_arg.c_str()), const_cast<char *>(json_arg.c_str())};
+  int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_NE(ret, 0);
+  AtcFileFactory::RemoveFile(txt_path.c_str());
+  AtcFileFactory::RemoveFile(AtcFileFactory::Generatefile1("", "tmp.json").c_str());
+}
+
+TEST_F(UtestMain, MainImplTest_display_model_info_nano) {
+  std::string om_arg = AtcFileFactory::Generatefile1("--model=", "add.pb");
+  std::string output_arg = AtcFileFactory::Generatefile1("--output=", "tmp");
+  char *argv[] = {"atc",
+                  "--mode=30",
+                  "--framework=3",
+                  const_cast<char *>(om_arg.c_str()),
+                  const_cast<char *>(output_arg.c_str()),
+                  "--soc_version=Ascend035A",
+                  "--input_format=NCHW",
+                  "--display_model_info=1"};
+  int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_NE(ret, 0);
+  AtcFileFactory::RemoveFile(AtcFileFactory::Generatefile1("", "tmp.exeom").c_str());
+}
+
+TEST_F(UtestMain, MainImplTest_static_model_ops_lower_limit) {
+  std::string om_arg = AtcFileFactory::Generatefile1("--model=", "add.pb");
+  std::string output_arg = AtcFileFactory::Generatefile1("--output=", "tmp");
+  char *argv[] = {"atc",
+                  "--mode=0",
+                  "--framework=3",
+                  const_cast<char *>(om_arg.c_str()),
+                  const_cast<char *>(output_arg.c_str()),
+                  "--soc_version=Ascend310",
+                  "--input_format=NCHW",
+                  "--static_model_ops_lower_limit=10"};
+  int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_NE(ret, 0);
+  AtcFileFactory::RemoveFile(AtcFileFactory::Generatefile1("", "tmp.om").c_str());
+}
+
+TEST_F(UtestMain, MainImplTest_atc_options_with_extra_flags) {
+  std::string om_arg = AtcFileFactory::Generatefile1("--model=", "add.pb");
+  std::string output_arg = AtcFileFactory::Generatefile1("--output=", "tmp");
+  char *argv[] = {"atc",
+                  "--mode=0",
+                  "--framework=3",
+                  const_cast<char *>(om_arg.c_str()),
+                  const_cast<char *>(output_arg.c_str()),
+                  "--soc_version=Ascend310",
+                  "--input_format=NCHW",
+                  "--save_original_model=true",
+                  "--input_fp16_nodes=somenode",
+                  "--optimization_switch=O0",
+                  "--static_model_ops_lower_limit=10"};
+  int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_NE(ret, 0);
+  AtcFileFactory::RemoveFile(AtcFileFactory::Generatefile1("", "tmp.om").c_str());
+  AtcFileFactory::RemoveFile(AtcFileFactory::Generatefile1("", "tmp_original.om").c_str());
+}
+
+TEST_F(UtestMain, MainImplTest_singleop_with_optimization_switch) {
+  std::string singleop_arg = AtcFileFactory::Generatefile1("--singleop=", "add_int.json");
+  std::string output_arg = AtcFileFactory::Generatefile1("--output=", "./");
+  char *argv[] = {"atc", const_cast<char *>(singleop_arg.c_str()), const_cast<char *>(output_arg.c_str()),
+                  "--soc_version=\"Ascend310\"", "--optimization_switch=O0"};
+  int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_NE(ret, 0);
+}
+
+TEST_F(UtestMain, MainImplTest_generate_infershape_json_input_format_fail) {
+  std::string om_arg = AtcFileFactory::Generatefile1("--om=", "add.pb");
+  std::string json_arg = AtcFileFactory::Generatefile1("--json=", "tmp.json");
+  char *argv[] = {"atc",
+                  "--mode=1",
+                  "--framework=3",
+                  const_cast<char *>(om_arg.c_str()),
+                  const_cast<char *>(json_arg.c_str()),
+                  "--dump_mode=1",
+                  "--input_format=ABCD"};
+  int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_NE(ret, 0);
+  AtcFileFactory::RemoveFile(AtcFileFactory::Generatefile1("", "tmp.json").c_str());
+}
+
+TEST_F(UtestMain, MainImplTest_generate_infershape_json_run) {
+  std::string om_arg = AtcFileFactory::Generatefile1("--om=", "add.pb");
+  std::string json_arg = AtcFileFactory::Generatefile1("--json=", "tmp.json");
+  char *argv[] = {"atc",
+                  "--mode=1",
+                  "--framework=3",
+                  const_cast<char *>(om_arg.c_str()),
+                  const_cast<char *>(json_arg.c_str()),
+                  "--dump_mode=1",
+                  "--input_format=NCHW"};
+  int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_NE(ret, 0);
+  AtcFileFactory::RemoveFile(AtcFileFactory::Generatefile1("", "tmp.json").c_str());
+}
+
+TEST_F(UtestMain, MainImplTest_check_report_with_ascend_work_path) {
+  setenv("ASCEND_WORK_PATH", "/tmp", 1);
+  std::string om_arg = AtcFileFactory::Generatefile1("--model=", "add.pb");
+  std::string output_arg = AtcFileFactory::Generatefile1("--output=", "tmp");
+  char *argv[] = {"atc",
+                  "--mode=0",
+                  "--framework=3",
+                  const_cast<char *>(om_arg.c_str()),
+                  const_cast<char *>(output_arg.c_str()),
+                  "--soc_version=Ascend310",
+                  "--input_format=NCHW"};
+  int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_NE(ret, 0);
+  unsetenv("ASCEND_WORK_PATH");
+  AtcFileFactory::RemoveFile(AtcFileFactory::Generatefile1("", "tmp.om").c_str());
+}
+
+TEST_F(UtestMain, MainImplTest_om2_unsupported_flag) {
+  FLAGS_mode = 7;
+  FLAGS_framework = 3;
+  FLAGS_model = AtcFileFactory::GetFileRealName("add.pb");
+  FLAGS_output = "tmp_om2_flag";
+  FLAGS_soc_version = "Ascend310";
+  FLAGS_input_format = "NCHW";
+  FLAGS_save_original_model = "true";
+  GetRawAppliedFlagOptions()["save_original_model"] = "true";
+  GetRawAppliedFlagNames().insert("save_original_model");
+  Status ret = GFlagUtils::CheckFlags();
+  EXPECT_NE(ret, 0);
+  GetRawAppliedFlagOptions().clear();
+  GetRawAppliedFlagNames().clear();
+}
+
+TEST_F(UtestMain, MainImplTest_check_flags_weight_not_found) {
+  FLAGS_mode = 0;
+  FLAGS_framework = 3;
+  FLAGS_model = AtcFileFactory::GetFileRealName("add.pb");
+  FLAGS_output = "tmp_weight";
+  FLAGS_soc_version = "Ascend310";
+  FLAGS_input_format = "NCHW";
+  FLAGS_weight = "/nonexistent/weight_file";
+  Status ret = GFlagUtils::CheckFlags();
+  EXPECT_NE(ret, 0);
+}
+
+TEST_F(UtestMain, MainImplTest_check_flags_transfer_shape_range_failed) {
+  FLAGS_mode = 0;
+  FLAGS_framework = 3;
+  FLAGS_model = AtcFileFactory::GetFileRealName("add.pb");
+  FLAGS_output = "tmp_shape";
+  FLAGS_soc_version = "Ascend310";
+  FLAGS_input_format = "NCHW";
+  FLAGS_input_shape = "data:1,2,3,4";
+  FLAGS_input_shape_range = "data:[invalid_range_format]";
+  Status ret = GFlagUtils::CheckFlags();
+  EXPECT_NE(ret, 0);
+}
+
+TEST_F(UtestMain, MainImplTest_check_flags_dynamic_input_invalid) {
+  FLAGS_mode = 0;
+  FLAGS_framework = 3;
+  FLAGS_model = AtcFileFactory::GetFileRealName("add.pb");
+  FLAGS_output = "tmp_dyn";
+  FLAGS_soc_version = "Ascend310";
+  FLAGS_input_format = "NCHW";
+  FLAGS_dynamic_batch_size = "invalid_batch";
+  Status ret = GFlagUtils::CheckFlags();
+  EXPECT_NE(ret, 0);
+}
+
+TEST_F(UtestMain, MainImplTest_check_flags_dynamic_dims_with_aipp) {
+  FLAGS_mode = 0;
+  FLAGS_framework = 3;
+  FLAGS_model = AtcFileFactory::GetFileRealName("add.pb");
+  FLAGS_output = "tmp_aipp";
+  FLAGS_soc_version = "Ascend310";
+  FLAGS_input_format = "NCHW";
+  FLAGS_input_shape = "data:-1,32,32,3";
+  FLAGS_dynamic_dims = "1;2;4";
+  FLAGS_insert_op_conf = "somefile.cfg";
+  Status ret = GFlagUtils::CheckFlags();
+  EXPECT_NE(ret, 0);
+}
+
+TEST_F(UtestMain, MainImplTest_check_flags_modify_mixlist_failed) {
+  FLAGS_mode = 0;
+  FLAGS_framework = 3;
+  FLAGS_model = AtcFileFactory::GetFileRealName("add.pb");
+  FLAGS_output = "tmp_mix";
+  FLAGS_soc_version = "Ascend310";
+  FLAGS_input_format = "NCHW";
+  FLAGS_modify_mixlist = "/nonexistent/mixlist.txt";
+  Status ret = GFlagUtils::CheckFlags();
+  EXPECT_NE(ret, 0);
+}
+
+TEST_F(UtestMain, MainImplTest_output_path_too_long) {
+  std::string long_path(static_cast<size_t>(PATH_MAX) + 1, 'a');
+  EXPECT_FALSE(GFlagUtils::CheckPathWithName(long_path));
+}
+
+TEST_F(UtestMain, MainImplTest_output_no_filename) {
+  EXPECT_FALSE(GFlagUtils::CheckPathWithName("tmp/"));
+  EXPECT_FALSE(GFlagUtils::CheckPathWithName("tmp\\"));
+}
+
+TEST_F(UtestMain, MainImplTest_check_flags_compress_weight_conf_invalid) {
+  FLAGS_mode = 0;
+  FLAGS_framework = 3;
+  FLAGS_model = AtcFileFactory::GetFileRealName("add.pb");
+  FLAGS_output = "tmp_compress";
+  FLAGS_soc_version = "Ascend310";
+  FLAGS_input_format = "NCHW";
+  FLAGS_enable_compress_weight = "true";
+  FLAGS_compress_weight_conf = "/nonexistent/compress.conf";
+  Status ret = GFlagUtils::CheckFlags();
+  EXPECT_NE(ret, 0);
+}
+
+TEST_F(UtestMain, MainImplTest_check_flags_keep_dtype_invalid) {
+  FLAGS_mode = 0;
+  FLAGS_framework = 3;
+  FLAGS_model = AtcFileFactory::GetFileRealName("add.pb");
+  FLAGS_output = "tmp_dtype";
+  FLAGS_soc_version = "Ascend310";
+  FLAGS_input_format = "NCHW";
+  FLAGS_keep_dtype = "/nonexistent/keep_dtype.txt";
+  Status ret = GFlagUtils::CheckFlags();
+  EXPECT_NE(ret, 0);
+}
+
+TEST_F(UtestMain, MainImplTest_check_flags_insert_op_conf_invalid) {
+  FLAGS_mode = 0;
+  FLAGS_framework = 3;
+  FLAGS_model = AtcFileFactory::GetFileRealName("add.pb");
+  FLAGS_output = "tmp_insert";
+  FLAGS_soc_version = "Ascend310";
+  FLAGS_input_format = "NCHW";
+  FLAGS_insert_op_conf = "/nonexistent/insert_op.cfg";
+  Status ret = GFlagUtils::CheckFlags();
+  EXPECT_NE(ret, 0);
+}
+
+TEST_F(UtestMain, MainImplTest_pyatc_module_command) {
+  char *argv[] = {"python3 -m ge.pyatc", "--mode=99"};
+  int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_NE(ret, 0);
+}
+
+TEST_F(UtestMain, MainImplTest_pyatc_binary_command) {
+  char *argv[] = {"pyatc", "--mode=99"};
+  int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_NE(ret, 0);
+}
+
+TEST_F(UtestMain, MainImplTest_raw_ge_options_file_not_found) {
+  char *argv[] = {"atc", "--raw_ge_options=/nonexistent/options.json"};
+  int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_NE(ret, 0);
+}
+
+TEST_F(UtestMain, MainImplTest_atc_options_with_dynamic_dims) {
+  std::string om_arg = AtcFileFactory::Generatefile1("--model=", "add.pb");
+  std::string output_arg = AtcFileFactory::Generatefile1("--output=", "tmp");
+  char *argv[] = {"atc",
+                  "--mode=0",
+                  "--framework=3",
+                  const_cast<char *>(om_arg.c_str()),
+                  const_cast<char *>(output_arg.c_str()),
+                  "--soc_version=Ascend310",
+                  "--input_format=NCHW",
+                  "--input_shape=data:-1,32,32,3",
+                  "--dynamic_dims=1;2;4"};
+  int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_NE(ret, 0);
+  AtcFileFactory::RemoveFile(AtcFileFactory::Generatefile1("", "tmp.om").c_str());
+}
+
+TEST_F(UtestMain, MainImplTest_atc_options_with_dynamic_image_size) {
+  std::string om_arg = AtcFileFactory::Generatefile1("--model=", "add.pb");
+  std::string output_arg = AtcFileFactory::Generatefile1("--output=", "tmp");
+  char *argv[] = {"atc",
+                  "--mode=0",
+                  "--framework=3",
+                  const_cast<char *>(om_arg.c_str()),
+                  const_cast<char *>(output_arg.c_str()),
+                  "--soc_version=Ascend310",
+                  "--input_format=NCHW",
+                  "--input_shape=data:1,3,-1,-1",
+                  "--dynamic_image_size=32,32;64,64"};
+  int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_NE(ret, 0);
+  AtcFileFactory::RemoveFile(AtcFileFactory::Generatefile1("", "tmp.om").c_str());
+}
+
+TEST_F(UtestMain, MainImplTest_check_flags_buffer_optimize_invalid) {
+  FLAGS_mode = 0;
+  FLAGS_framework = 3;
+  FLAGS_model = AtcFileFactory::GetFileRealName("add.pb");
+  FLAGS_output = "tmp_buffer";
+  FLAGS_soc_version = "Ascend310";
+  FLAGS_input_format = "NCHW";
+  FLAGS_buffer_optimize = "invalid_value";
+  Status ret = GFlagUtils::CheckFlags();
+  EXPECT_NE(ret, 0);
+}
+
+TEST_F(UtestMain, MainImplTest_check_flags_enable_single_stream_invalid) {
+  FLAGS_mode = 0;
+  FLAGS_framework = 3;
+  FLAGS_model = AtcFileFactory::GetFileRealName("add.pb");
+  FLAGS_output = "tmp_stream";
+  FLAGS_soc_version = "Ascend310";
+  FLAGS_input_format = "NCHW";
+  FLAGS_enable_single_stream = "invalid";
+  Status ret = GFlagUtils::CheckFlags();
+  EXPECT_NE(ret, 0);
+}
+
+TEST_F(UtestMain, MainImplTest_check_flags_external_weight_invalid) {
+  FLAGS_mode = 0;
+  FLAGS_framework = 3;
+  FLAGS_model = AtcFileFactory::GetFileRealName("add.pb");
+  FLAGS_output = "tmp_extw";
+  FLAGS_soc_version = "Ascend310";
+  FLAGS_input_format = "NCHW";
+  FLAGS_external_weight = "invalid";
+  Status ret = GFlagUtils::CheckFlags();
+  EXPECT_NE(ret, 0);
+}
+
+TEST_F(UtestMain, MainImplTest_check_flags_ac_parallel_enable_invalid) {
+  FLAGS_mode = 0;
+  FLAGS_framework = 3;
+  FLAGS_model = AtcFileFactory::GetFileRealName("add.pb");
+  FLAGS_output = "tmp_acpar";
+  FLAGS_soc_version = "Ascend310";
+  FLAGS_input_format = "NCHW";
+  FLAGS_ac_parallel_enable = "invalid";
+  Status ret = GFlagUtils::CheckFlags();
+  EXPECT_NE(ret, 0);
+}
+
+TEST_F(UtestMain, MainImplTest_check_flags_tiling_schedule_optimize_invalid) {
+  FLAGS_mode = 0;
+  FLAGS_framework = 3;
+  FLAGS_model = AtcFileFactory::GetFileRealName("add.pb");
+  FLAGS_output = "tmp_tso";
+  FLAGS_soc_version = "Ascend310";
+  FLAGS_input_format = "NCHW";
+  FLAGS_tiling_schedule_optimize = "invalid";
+  Status ret = GFlagUtils::CheckFlags();
+  EXPECT_NE(ret, 0);
+}
+
+TEST_F(UtestMain, MainImplTest_check_flags_attr_compression_invalid) {
+  FLAGS_mode = 0;
+  FLAGS_framework = 3;
+  FLAGS_model = AtcFileFactory::GetFileRealName("add.pb");
+  FLAGS_output = "tmp_attrc";
+  FLAGS_soc_version = "Ascend310";
+  FLAGS_input_format = "NCHW";
+  FLAGS_enable_attr_compression = "invalid";
+  Status ret = GFlagUtils::CheckFlags();
+  EXPECT_NE(ret, 0);
+}
+
+TEST_F(UtestMain, MainImplTest_check_flags_disable_reuse_memory_invalid) {
+  FLAGS_mode = 0;
+  FLAGS_framework = 3;
+  FLAGS_model = AtcFileFactory::GetFileRealName("add.pb");
+  FLAGS_output = "tmp_drm";
+  FLAGS_soc_version = "Ascend310";
+  FLAGS_input_format = "NCHW";
+  FLAGS_disable_reuse_memory = 999;
+  Status ret = GFlagUtils::CheckFlags();
+  EXPECT_NE(ret, 0);
+}
+
+TEST_F(UtestMain, MainImplTest_check_flags_implmode_invalid) {
+  FLAGS_mode = 0;
+  FLAGS_framework = 3;
+  FLAGS_model = AtcFileFactory::GetFileRealName("add.pb");
+  FLAGS_output = "tmp_impl";
+  FLAGS_soc_version = "Ascend310";
+  FLAGS_input_format = "NCHW";
+  FLAGS_op_select_implmode = "invalid";
+  FLAGS_optypelist_for_implmode = "some_op";
+  Status ret = GFlagUtils::CheckFlags();
+  EXPECT_NE(ret, 0);
+}
+
+TEST_F(UtestMain, MainImplTest_convert_fwk_model_to_json) {
+  std::string om_arg = AtcFileFactory::Generatefile1("--om=", "add.pb");
+  std::string json_arg = AtcFileFactory::Generatefile1("--json=", "tmp.json");
+  char *argv[] = {"atc",
+                  "--mode=1",
+                  "--framework=3",
+                  const_cast<char *>(om_arg.c_str()),
+                  const_cast<char *>(json_arg.c_str()),
+                  "--dump_mode=0"};
+  int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_EQ(ret, 0);
+  AtcFileFactory::RemoveFile(AtcFileFactory::Generatefile1("", "tmp.json").c_str());
+}
+
+TEST_F(UtestMain, MainImplTest_check_flags_quant_dumpable_invalid) {
+  FLAGS_mode = 0;
+  FLAGS_framework = 3;
+  FLAGS_model = AtcFileFactory::GetFileRealName("add.pb");
+  FLAGS_output = "tmp_qd";
+  FLAGS_soc_version = "Ascend310";
+  FLAGS_input_format = "NCHW";
+  FLAGS_quant_dumpable = "invalid";
+  Status ret = GFlagUtils::CheckFlags();
+  EXPECT_NE(ret, 0);
 }
 
 namespace ge {
