@@ -1383,4 +1383,770 @@ TEST_F(Om2CodegenUt, Om2CodePrinter_GetFileName_DefaultNames) {
   EXPECT_EQ(printer.GetFileName(GeneratedFileIndex::kLoadingAndRunningFile), model_name + "_load_and_run.cpp");
   EXPECT_EQ(printer.GetFileName(GeneratedFileIndex::kCMakeListsFile), "Makefile");
 }
+
+// ============ TaskCodeBuilderUtil coverage tests ============
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_BuildTaskIoEntries_WithTensorInfo) {
+  AstContext ctx;
+  AstBuildContext ast(ctx);
+
+  AddrSemantic addr;
+  addr.kind = AddrValueKind::kInputInstance;
+  addr.symbol_hint = "input_var";
+  addr.tensor_info = Om2TensorInfo{};
+  addr.tensor_info->args_offset = 16U;
+
+  auto *entries = TaskCodeBuilderUtil::BuildTaskIoEntries(ast, {addr});
+  ASSERT_NE(entries, nullptr);
+  auto output = EmitNode(*entries);
+  ExpectContainsAll(output, {"input_var", "16U"});
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_BuildTaskIoEntries_SkipNoTensorInfo) {
+  AstContext ctx;
+  AstBuildContext ast(ctx);
+
+  AddrSemantic addr;
+  addr.kind = AddrValueKind::kWorkspace;
+  addr.symbol_hint = "ws_var";
+
+  auto *entries = TaskCodeBuilderUtil::BuildTaskIoEntries(ast, {addr});
+  ASSERT_NE(entries, nullptr);
+  auto output = EmitNode(*entries);
+  EXPECT_TRUE(output.find("ws_var") == std::string::npos);
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_BuildTaskIoEntries_MixedAddrs) {
+  AstContext ctx;
+  AstBuildContext ast(ctx);
+
+  AddrSemantic addr_with_tensor;
+  addr_with_tensor.kind = AddrValueKind::kInputInstance;
+  addr_with_tensor.symbol_hint = "with_tensor";
+  addr_with_tensor.tensor_info = Om2TensorInfo{};
+  addr_with_tensor.tensor_info->args_offset = 0U;
+
+  AddrSemantic addr_without_tensor;
+  addr_without_tensor.kind = AddrValueKind::kWorkspace;
+  addr_without_tensor.symbol_hint = "without_tensor";
+
+  auto *entries = TaskCodeBuilderUtil::BuildTaskIoEntries(ast, {addr_with_tensor, addr_without_tensor});
+  ASSERT_NE(entries, nullptr);
+  auto output = EmitNode(*entries);
+  ExpectContainsAll(output, {"with_tensor"});
+  EXPECT_TRUE(output.find("without_tensor") == std::string::npos);
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_BuildTaskIoEntries_EmptyAddrs) {
+  AstContext ctx;
+  AstBuildContext ast(ctx);
+
+  auto *entries = TaskCodeBuilderUtil::BuildTaskIoEntries(ast, {});
+  ASSERT_NE(entries, nullptr);
+  auto output = EmitNode(*entries);
+  EXPECT_FALSE(output.empty());
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_BuildWorkspaceAddrs_Normal) {
+  AstContext ctx;
+  AstBuildContext ast(ctx);
+
+  AddrSemantic addr1;
+  addr1.kind = AddrValueKind::kWorkspace;
+  addr1.symbol_hint = "ws1";
+
+  AddrSemantic addr2;
+  addr2.kind = AddrValueKind::kWorkspace;
+  addr2.symbol_hint = "ws2";
+
+  auto *entries = TaskCodeBuilderUtil::BuildWorkspaceAddrs(ast, {addr1, addr2});
+  ASSERT_NE(entries, nullptr);
+  auto output = EmitNode(*entries);
+  ExpectContainsAll(output, {"PtrToU64", "ws1", "ws2"});
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_BuildWorkspaceAddrs_Empty) {
+  AstContext ctx;
+  AstBuildContext ast(ctx);
+
+  auto *entries = TaskCodeBuilderUtil::BuildWorkspaceAddrs(ast, {});
+  ASSERT_NE(entries, nullptr);
+  auto output = EmitNode(*entries);
+  EXPECT_FALSE(output.empty());
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_BuildWorkspaceSizes_Normal) {
+  AstContext ctx;
+  AstBuildContext ast(ctx);
+
+  AddrSemantic addr1;
+  addr1.kind = AddrValueKind::kWorkspace;
+  addr1.byte_size = 256U;
+
+  AddrSemantic addr2;
+  addr2.kind = AddrValueKind::kWorkspace;
+  addr2.byte_size = 512U;
+
+  auto *entries = TaskCodeBuilderUtil::BuildWorkspaceSizes(ast, {addr1, addr2});
+  ASSERT_NE(entries, nullptr);
+  auto output = EmitNode(*entries);
+  ExpectContainsAll(output, {"256U", "512U"});
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_BuildWorkspaceSizes_Empty) {
+  AstContext ctx;
+  AstBuildContext ast(ctx);
+
+  auto *entries = TaskCodeBuilderUtil::BuildWorkspaceSizes(ast, {});
+  ASSERT_NE(entries, nullptr);
+  auto output = EmitNode(*entries);
+  EXPECT_FALSE(output.empty());
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_BuildL0ArgSlotEntries_AllKinds) {
+  AstContext ctx;
+  AstBuildContext ast(ctx);
+
+  AddrSemantic input_addr;
+  input_addr.kind = AddrValueKind::kInputInstance;
+  input_addr.tensor_info = Om2TensorInfo{};
+  input_addr.tensor_info->args_offset = 0U;
+
+  AddrSemantic output_addr;
+  output_addr.kind = AddrValueKind::kOutputInstance;
+  output_addr.tensor_info = Om2TensorInfo{};
+  output_addr.tensor_info->args_offset = 8U;
+
+  AddrSemantic workspace_addr;
+  workspace_addr.kind = AddrValueKind::kWorkspace;
+
+  AddrSemantic tiling_addr;
+  tiling_addr.kind = AddrValueKind::kTiling;
+  tiling_addr.byte_size = 64U;
+
+  AddrSemantic custom_value_addr;
+  custom_value_addr.kind = AddrValueKind::kCustomValue;
+  custom_value_addr.custom_value = 42U;
+
+  AddrSemantic placeholder_addr;
+  placeholder_addr.kind = AddrValueKind::kPlaceholder;
+
+  AddrSemantic level1_desc_addr;
+  level1_desc_addr.kind = AddrValueKind::kLevel1DescPtr;
+
+  AddrSemantic shape_info_addr;
+  shape_info_addr.kind = AddrValueKind::kShapeInfoBuffer;
+  shape_info_addr.shape_info = std::vector<int64_t>{1, 2, 3};
+
+  AddrSemantic ffts_addr;
+  ffts_addr.kind = AddrValueKind::kFftsAddr;
+
+  AddrSemantic event_addr;
+  event_addr.kind = AddrValueKind::kEventAddr;
+  event_addr.event_id = 7U;
+
+  AddrSemantic overflow_addr;
+  overflow_addr.kind = AddrValueKind::kOverflowAddr;
+
+  AddrSemantic optional_empty_addr;
+  optional_empty_addr.kind = AddrValueKind::kOptionalEmpty;
+
+  AddrSemantic empty_addr;
+  empty_addr.kind = AddrValueKind::kEmptyAddr;
+
+  AddrSemantic const_tensor_addr;
+  const_tensor_addr.kind = AddrValueKind::kConstTensor;
+  const_tensor_addr.tensor_info = Om2TensorInfo{};
+  const_tensor_addr.tensor_info->args_offset = 16U;
+
+  auto *entries = TaskCodeBuilderUtil::BuildL0ArgSlotEntries(
+      ast, {input_addr, output_addr, workspace_addr, tiling_addr, custom_value_addr, placeholder_addr, level1_desc_addr,
+            shape_info_addr, ffts_addr, event_addr, overflow_addr, optional_empty_addr, empty_addr, const_tensor_addr});
+  ASSERT_NE(entries, nullptr);
+  auto output = EmitNode(*entries);
+  ExpectContainsAll(output, {
+                                "OM2_L0_ARG_INPUT",
+                                "OM2_L0_ARG_OUTPUT",
+                                "OM2_L0_ARG_WORKSPACE",
+                                "OM2_L0_ARG_TILING",
+                                "OM2_L0_ARG_CUSTOM_VALUE",
+                                "OM2_L0_ARG_PLACEHOLDER",
+                                "OM2_L0_ARG_LEVEL1_DESC",
+                                "OM2_L0_ARG_SHAPE_INFO",
+                                "OM2_L0_ARG_FFTS_ADDR",
+                                "OM2_L0_ARG_EVENT_ADDR",
+                                "OM2_L0_ARG_OVERFLOW_ADDR",
+                                "OM2_L0_ARG_EMPTY_ADDR",
+                            });
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_RenderDispatchFunc_Normal) {
+  AstContext ctx;
+  AstBuildContext ast(ctx);
+
+  std::vector<BodyItem> body;
+  body.push_back(ast.Call("DoSomething", {}));
+
+  std::vector<DeclNode *> items;
+  auto ret = TaskCodeBuilderUtil::RenderDispatchFunc(ast, "TestDispatch", body, items);
+  EXPECT_EQ(ret, SUCCESS);
+  ASSERT_EQ(items.size(), 1U);
+  auto output = EmitNode(*items[0U]);
+  ExpectContainsAll(output, {"aclError", "TestDispatch", "DoSomething", "ACL_SUCCESS"});
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_RenderDispatchFunc_EmptyBody) {
+  AstContext ctx;
+  AstBuildContext ast(ctx);
+
+  std::vector<BodyItem> body;
+  std::vector<DeclNode *> items;
+  auto ret = TaskCodeBuilderUtil::RenderDispatchFunc(ast, "EmptyDispatch", body, items);
+  EXPECT_EQ(ret, SUCCESS);
+  ASSERT_EQ(items.size(), 1U);
+  auto output = EmitNode(*items[0U]);
+  ExpectContainsAll(output, {"aclError", "EmptyDispatch", "ACL_SUCCESS"});
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_AppendReportLaunchedTaskCall_NoArgsTable) {
+  AstContext ctx;
+  AstBuildContext ast(ctx);
+
+  TaskSemanticHeader header;
+  header.op_name = "test_op";
+  header.op_type = "TestOp";
+  header.op_desc_id = 1;
+
+  AddrSemantic input_addr;
+  input_addr.kind = AddrValueKind::kInputInstance;
+  input_addr.symbol_hint = "input_var";
+  input_addr.tensor_info = Om2TensorInfo{};
+  input_addr.tensor_info->args_offset = 0U;
+
+  AddrSemantic output_addr;
+  output_addr.kind = AddrValueKind::kOutputInstance;
+  output_addr.symbol_hint = "output_var";
+  output_addr.tensor_info = Om2TensorInfo{};
+  output_addr.tensor_info->args_offset = 8U;
+
+  AddrSemantic ws_addr;
+  ws_addr.kind = AddrValueKind::kWorkspace;
+  ws_addr.symbol_hint = "ws_var";
+  ws_addr.byte_size = 128U;
+
+  std::vector<BodyItem> items;
+  auto model_id = ast.Var("uint32_t", "model_id");
+  auto instance_handle = ast.Var("void *", "instance_handle");
+  auto args_table = ast.Var("const ArgsTable *", "args_table");
+  auto stream = ast.Var("void *", "stream");
+
+  auto ret = TaskCodeBuilderUtil::AppendReportLaunchedTaskCall(
+      ast, items, "prefix", header, nullptr, {input_addr}, {output_addr}, {ws_addr}, ModelTaskType::MODEL_TASK_KERNEL,
+      1U, stream, model_id, instance_handle, args_table, false);
+  EXPECT_EQ(ret, SUCCESS);
+  ASSERT_FALSE(items.empty());
+  std::string output;
+  for (auto &item : items) {
+    auto *stmt = item.Resolve(ctx);
+    if (stmt != nullptr) {
+      output += EmitNode(*stmt);
+    }
+  }
+  ExpectContainsAll(output,
+                    {"ReportLaunchedOm2Task", "test_op", "TestOp", "prefix_report_inputs", "prefix_report_outputs",
+                     "prefix_report_workspace_addrs", "prefix_report_workspace_sizes"});
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_AppendReportLaunchedTaskCall_NoInputsOutputsWorkspaces) {
+  AstContext ctx;
+  AstBuildContext ast(ctx);
+
+  TaskSemanticHeader header;
+  header.op_name = "empty_op";
+  header.op_type = "EmptyOp";
+  header.op_desc_id = 0;
+
+  std::vector<BodyItem> items;
+  auto model_id = ast.Var("uint32_t", "model_id");
+  auto instance_handle = ast.Var("void *", "instance_handle");
+  auto args_table = ast.Var("const ArgsTable *", "args_table");
+  auto stream = ast.Var("void *", "stream");
+
+  auto ret = TaskCodeBuilderUtil::AppendReportLaunchedTaskCall(ast, items, "p", header, nullptr, {}, {}, {},
+                                                               ModelTaskType::MODEL_TASK_KERNEL, 1U, stream, model_id,
+                                                               instance_handle, args_table, false);
+  EXPECT_EQ(ret, SUCCESS);
+  ASSERT_FALSE(items.empty());
+  auto *stmt = items[0U].Resolve(ctx);
+  ASSERT_NE(stmt, nullptr);
+  auto output = EmitNode(*stmt);
+  ExpectContainsAll(output, {"ReportLaunchedOm2Task", "nullptr"});
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_AppendReportLaunchedTaskCall_WithRawAddress) {
+  AstContext ctx;
+  AstBuildContext ast(ctx);
+
+  TaskSemanticHeader header;
+  header.op_name = "raw_op";
+  header.op_type = "RawOp";
+  header.op_desc_id = 2;
+
+  std::vector<BodyItem> items;
+  auto model_id = ast.Var("uint32_t", "model_id");
+  auto instance_handle = ast.Var("void *", "instance_handle");
+  auto args_table = ast.Var("const ArgsTable *", "args_table");
+  auto stream = ast.Var("void *", "stream");
+
+  auto ret = TaskCodeBuilderUtil::AppendReportLaunchedTaskCall(ast, items, "raw", header, nullptr, {}, {}, {},
+                                                               ModelTaskType::MODEL_TASK_KERNEL, 1U, stream, model_id,
+                                                               instance_handle, args_table, false, true);
+  EXPECT_EQ(ret, SUCCESS);
+  ASSERT_FALSE(items.empty());
+  auto *stmt = items[0U].Resolve(ctx);
+  ASSERT_NE(stmt, nullptr);
+  auto output = EmitNode(*stmt);
+  ExpectContainsAll(output, {"ReportLaunchedOm2Task"});
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_BuildReportTaskPreprocessCall_NoArgsTable) {
+  AstContext ctx;
+  AstBuildContext ast(ctx);
+
+  TaskSemanticHeader header;
+  header.op_name = "preprocess_op";
+  header.op_type = "PreprocessOp";
+  header.op_desc_id = 3;
+
+  AddrSemantic input_addr;
+  input_addr.kind = AddrValueKind::kInputInstance;
+  input_addr.symbol_hint = "in_var";
+  input_addr.tensor_info = Om2TensorInfo{};
+  input_addr.tensor_info->args_offset = 0U;
+
+  AddrSemantic ws_addr;
+  ws_addr.kind = AddrValueKind::kWorkspace;
+  ws_addr.symbol_hint = "ws_var";
+  ws_addr.byte_size = 64U;
+
+  auto model_id = ast.Var("uint32_t", "model_id");
+  auto instance_handle = ast.Var("void *", "instance_handle");
+  auto args_table = ast.Var("const ArgsTable *", "args_table");
+  auto stream = ast.Var("void *", "stream");
+  auto l0_info = ast.Var("const void *", "l0_info");
+
+  auto result = TaskCodeBuilderUtil::BuildReportTaskPreprocessCall(
+      ast, header, nullptr, {input_addr}, {}, {ws_addr}, ModelTaskType::MODEL_TASK_KERNEL, 2U, stream, model_id,
+      instance_handle, args_table, l0_info, false);
+  auto *result_expr = result.Get();
+  ASSERT_NE(result_expr, nullptr);
+  auto output = EmitNode(*result_expr);
+  ExpectContainsAll(output, {"ReportOm2TaskPreprocess", "preprocess_op", "PreprocessOp"});
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_BuildReportTaskPreprocessCall_WithRawAddress) {
+  AstContext ctx;
+  AstBuildContext ast(ctx);
+
+  TaskSemanticHeader header;
+  header.op_name = "raw_pre_op";
+  header.op_type = "RawPreOp";
+  header.op_desc_id = 4;
+
+  auto model_id = ast.Var("uint32_t", "model_id");
+  auto instance_handle = ast.Var("void *", "instance_handle");
+  auto args_table = ast.Var("const ArgsTable *", "args_table");
+  auto stream = ast.Var("void *", "stream");
+  auto l0_info = ast.Var("const void *", "l0_info");
+
+  auto result = TaskCodeBuilderUtil::BuildReportTaskPreprocessCall(
+      ast, header, nullptr, {}, {}, {}, ModelTaskType::MODEL_TASK_KERNEL, 1U, stream, model_id, instance_handle,
+      args_table, l0_info, false, true);
+  auto *result_expr = result.Get();
+  ASSERT_NE(result_expr, nullptr);
+  auto output = EmitNode(*result_expr);
+  ExpectContainsAll(output, {"ReportOm2TaskPreprocess", "raw_pre_op"});
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_BuildAddrField_Normal) {
+  AstContext ctx;
+  AstBuildContext ast(ctx);
+
+  OpArgDesc desc;
+  desc.mem_src = 1U;
+  desc.offset = 128U;
+
+  auto arg = TaskCodeBuilderUtil::BuildAddrField(ast, desc);
+  auto *arg_expr = arg.Resolve(ctx);
+  ASSERT_NE(arg_expr, nullptr);
+  auto output = EmitNode(*arg_expr);
+  ExpectContainsAll(output, {"mem_src", "offset", "128"});
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_BuildTensorDataField_WithTensorInfo) {
+  AstContext ctx;
+  AstBuildContext ast(ctx);
+
+  OpArgDesc desc;
+  desc.has_tensor_info = true;
+  desc.size = 256U;
+  desc.data_type = 0;
+  desc.format = 1;
+  desc.shape_dims = {1, 3, 224, 224};
+  desc.args_offset = 16U;
+
+  auto arg = TaskCodeBuilderUtil::BuildTensorDataField(ast, desc);
+  auto *arg_expr = arg.Resolve(ctx);
+  ASSERT_NE(arg_expr, nullptr);
+  auto output = EmitNode(*arg_expr);
+  ExpectContainsAll(output, {"tensor", "size", "256", "data_type", "format", "shape", "shape_dims", "args_offset"});
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_BuildTensorDataField_NoTensorInfo) {
+  AstContext ctx;
+  AstBuildContext ast(ctx);
+
+  OpArgDesc desc;
+  desc.has_tensor_info = false;
+
+  auto arg = TaskCodeBuilderUtil::BuildTensorDataField(ast, desc);
+  EXPECT_TRUE(arg.Empty());
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_BuildWorkspaceDataField_Normal) {
+  AstContext ctx;
+  AstBuildContext ast(ctx);
+
+  OpArgDesc desc;
+  desc.size = 512U;
+
+  auto arg = TaskCodeBuilderUtil::BuildWorkspaceDataField(ast, desc);
+  auto *arg_expr = arg.Resolve(ctx);
+  ASSERT_NE(arg_expr, nullptr);
+  auto output = EmitNode(*arg_expr);
+  ExpectContainsAll(output, {"tensor", "size", "512"});
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_BuildCustomValueDataField_Normal) {
+  AstContext ctx;
+  AstBuildContext ast(ctx);
+
+  OpArgDesc desc;
+  desc.custom_value = 99U;
+
+  auto arg = TaskCodeBuilderUtil::BuildCustomValueDataField(ast, desc);
+  auto *arg_expr = arg.Resolve(ctx);
+  ASSERT_NE(arg_expr, nullptr);
+  auto output = EmitNode(*arg_expr);
+  ExpectContainsAll(output, {"custom_value", "99"});
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_BuildTilingDataField_WithRawData) {
+  AstContext ctx;
+  AstBuildContext ast(ctx);
+
+  OpArgDesc desc;
+  desc.raw_data = {0x01, 0x02, 0x03, 0x04};
+
+  auto arg = TaskCodeBuilderUtil::BuildTilingDataField(ast, desc);
+  auto *arg_expr = arg.Resolve(ctx);
+  ASSERT_NE(arg_expr, nullptr);
+  auto output = EmitNode(*arg_expr);
+  ExpectContainsAll(output, {"tiling", "raw_data", "raw_data_len", "4"});
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_BuildTilingDataField_EmptyRawData) {
+  AstContext ctx;
+  AstBuildContext ast(ctx);
+
+  OpArgDesc desc;
+  desc.raw_data = {};
+
+  auto arg = TaskCodeBuilderUtil::BuildTilingDataField(ast, desc);
+  auto *arg_expr = arg.Resolve(ctx);
+  ASSERT_NE(arg_expr, nullptr);
+  auto output = EmitNode(*arg_expr);
+  ExpectContainsAll(output, {"tiling", "raw_data", "raw_data_len", "0"});
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_RenderOpArgDesc_EmptyArgs) {
+  AstContext ctx;
+  AstBuildContext ast(ctx);
+
+  auto arg = TaskCodeBuilderUtil::RenderOpArgDesc(ast, {});
+  auto *expr = arg.Resolve(ctx);
+  ASSERT_NE(expr, nullptr);
+  auto output = EmitNode(*expr);
+  EXPECT_NE(output.find("nullptr"), std::string::npos);
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_RenderOpArgDesc_AllTypes) {
+  AstContext ctx;
+  AstBuildContext ast(ctx);
+
+  OpArgDesc input_desc;
+  input_desc.type = OP_ARG_INPUT;
+  input_desc.has_tensor_info = true;
+  input_desc.size = 128U;
+  input_desc.shape_dims = {1, 2};
+  input_desc.args_offset = 0U;
+  input_desc.mem_src = 0U;
+  input_desc.offset = 0U;
+
+  OpArgDesc output_desc;
+  output_desc.type = OP_ARG_OUTPUT;
+  output_desc.has_tensor_info = true;
+  output_desc.size = 256U;
+  output_desc.shape_dims = {1, 2};
+  output_desc.args_offset = 8U;
+
+  OpArgDesc workspace_desc;
+  workspace_desc.type = OP_ARG_WORKSPACE;
+  workspace_desc.size = 512U;
+
+  OpArgDesc const_tensor_desc;
+  const_tensor_desc.type = OP_ARG_CONST_TENSOR;
+  const_tensor_desc.has_tensor_info = true;
+  const_tensor_desc.size = 64U;
+  const_tensor_desc.shape_dims = {1};
+  const_tensor_desc.args_offset = 16U;
+
+  OpArgDesc level1_desc;
+  level1_desc.type = OP_ARG_LEVEL1_DESC;
+  level1_desc.custom_value = 1U;
+
+  OpArgDesc shape_info_desc;
+  shape_info_desc.type = OP_ARG_SHAPE_INFO;
+  shape_info_desc.custom_value = 2U;
+
+  OpArgDesc custom_value_desc;
+  custom_value_desc.type = OP_ARG_CUSTOM_VALUE;
+  custom_value_desc.custom_value = 3U;
+
+  OpArgDesc event_addr_desc;
+  event_addr_desc.type = OP_ARG_EVENT_ADDR;
+  event_addr_desc.custom_value = 4U;
+
+  OpArgDesc tiling_desc;
+  tiling_desc.type = OP_ARG_TILING;
+  tiling_desc.raw_data = {0xAB, 0xCD};
+
+  OpArgDesc placeholder_desc;
+  placeholder_desc.type = OP_ARG_PLACEHOLDER;
+
+  OpArgDesc optional_empty_desc;
+  optional_empty_desc.type = OP_ARG_OPTIONAL_EMPTY;
+
+  OpArgDesc ffts_addr_desc;
+  ffts_addr_desc.type = OP_ARG_FFTS_ADDR;
+
+  OpArgDesc overflow_addr_desc;
+  overflow_addr_desc.type = OP_ARG_OVERFLOW_ADDR;
+
+  OpArgDesc raw_addr_desc;
+  raw_addr_desc.type = OP_ARG_RAW_ADDR;
+  raw_addr_desc.mem_src = 0U;
+  raw_addr_desc.offset = 32U;
+
+  OpArgDesc unknown_type_desc;
+  unknown_type_desc.type = 999;
+
+  auto arg = TaskCodeBuilderUtil::RenderOpArgDesc(
+      ast, {input_desc, output_desc, workspace_desc, const_tensor_desc, level1_desc, shape_info_desc, custom_value_desc,
+            event_addr_desc, tiling_desc, placeholder_desc, optional_empty_desc, ffts_addr_desc, overflow_addr_desc,
+            raw_addr_desc, unknown_type_desc});
+  auto *arg_expr = arg.Resolve(ctx);
+  ASSERT_NE(arg_expr, nullptr);
+  auto output = EmitNode(*arg_expr);
+  ExpectContainsAll(output, {
+                                "OP_ARG_INPUT",
+                                "OP_ARG_OUTPUT",
+                                "OP_ARG_WORKSPACE",
+                                "OP_ARG_CONST_TENSOR",
+                                "OP_ARG_LEVEL1_DESC",
+                                "OP_ARG_SHAPE_INFO",
+                                "OP_ARG_CUSTOM_VALUE",
+                                "OP_ARG_EVENT_ADDR",
+                                "OP_ARG_TILING",
+                                "OP_ARG_PLACEHOLDER",
+                                "OP_ARG_OPTIONAL_EMPTY",
+                                "OP_ARG_FFTS_ADDR",
+                                "OP_ARG_OVERFLOW_ADDR",
+                                "OP_ARG_RAW_ADDR",
+                            });
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_ConvertAddrDesc_InputInstance) {
+  AddrSemantic addr;
+  addr.kind = AddrValueKind::kInputInstance;
+  addr.tensor_info = Om2TensorInfo{};
+  addr.tensor_info->size = 128U;
+  addr.tensor_info->data_type = 0;
+  addr.tensor_info->format = 1;
+  addr.tensor_info->shape_dims = {1, 2};
+  addr.const_index = 0;
+  addr.mem_offset = 64;
+
+  auto desc = TaskCodeBuilderUtil::ConvertAddrDesc(addr);
+  EXPECT_EQ(desc.type, OP_ARG_INPUT);
+  EXPECT_TRUE(desc.has_tensor_info);
+  EXPECT_EQ(desc.size, 128U);
+  EXPECT_EQ(desc.mem_src, 1U);
+  EXPECT_EQ(desc.offset, 64U);
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_ConvertAddrDesc_OutputInstance) {
+  AddrSemantic addr;
+  addr.kind = AddrValueKind::kOutputInstance;
+  addr.tensor_info = Om2TensorInfo{};
+  addr.mem_offset = 32;
+
+  auto desc = TaskCodeBuilderUtil::ConvertAddrDesc(addr);
+  EXPECT_EQ(desc.type, OP_ARG_OUTPUT);
+  EXPECT_TRUE(desc.has_tensor_info);
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_ConvertAddrDesc_Workspace) {
+  AddrSemantic addr;
+  addr.kind = AddrValueKind::kWorkspace;
+  addr.byte_size = 256U;
+  addr.mem_offset = 128;
+
+  auto desc = TaskCodeBuilderUtil::ConvertAddrDesc(addr);
+  EXPECT_EQ(desc.type, OP_ARG_WORKSPACE);
+  EXPECT_FALSE(desc.has_tensor_info);
+  EXPECT_EQ(desc.size, 256U);
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_ConvertAddrDesc_ConstTensor) {
+  AddrSemantic addr;
+  addr.kind = AddrValueKind::kConstTensor;
+  addr.tensor_info = Om2TensorInfo{};
+  addr.const_index = 2;
+  addr.mem_offset = 16;
+
+  auto desc = TaskCodeBuilderUtil::ConvertAddrDesc(addr);
+  EXPECT_EQ(desc.type, OP_ARG_CONST_TENSOR);
+  EXPECT_TRUE(desc.has_tensor_info);
+  EXPECT_EQ(desc.mem_src, 3U);
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_ConvertAddrDesc_Level1DescPtr) {
+  AddrSemantic addr;
+  addr.kind = AddrValueKind::kLevel1DescPtr;
+  addr.level1_target_offset = 42U;
+  addr.mem_offset = 8;
+
+  auto desc = TaskCodeBuilderUtil::ConvertAddrDesc(addr);
+  EXPECT_EQ(desc.type, OP_ARG_LEVEL1_DESC);
+  EXPECT_EQ(desc.custom_value, 42U);
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_ConvertAddrDesc_CustomValue) {
+  AddrSemantic addr;
+  addr.kind = AddrValueKind::kCustomValue;
+  addr.custom_value = 77U;
+
+  auto desc = TaskCodeBuilderUtil::ConvertAddrDesc(addr);
+  EXPECT_EQ(desc.type, OP_ARG_CUSTOM_VALUE);
+  EXPECT_EQ(desc.custom_value, 77U);
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_ConvertAddrDesc_EventAddr) {
+  AddrSemantic addr;
+  addr.kind = AddrValueKind::kEventAddr;
+  addr.event_id = 5U;
+
+  auto desc = TaskCodeBuilderUtil::ConvertAddrDesc(addr);
+  EXPECT_EQ(desc.type, OP_ARG_EVENT_ADDR);
+  EXPECT_EQ(desc.custom_value, 5U);
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_ConvertAddrDesc_Placeholder) {
+  AddrSemantic addr;
+  addr.kind = AddrValueKind::kPlaceholder;
+
+  auto desc = TaskCodeBuilderUtil::ConvertAddrDesc(addr);
+  EXPECT_EQ(desc.type, OP_ARG_PLACEHOLDER);
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_ConvertAddrDesc_OptionalEmpty) {
+  AddrSemantic addr;
+  addr.kind = AddrValueKind::kOptionalEmpty;
+
+  auto desc = TaskCodeBuilderUtil::ConvertAddrDesc(addr);
+  EXPECT_EQ(desc.type, OP_ARG_OPTIONAL_EMPTY);
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_ConvertAddrDesc_EmptyAddr) {
+  AddrSemantic addr;
+  addr.kind = AddrValueKind::kEmptyAddr;
+
+  auto desc = TaskCodeBuilderUtil::ConvertAddrDesc(addr);
+  EXPECT_EQ(desc.type, OP_ARG_OPTIONAL_EMPTY);
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_ConvertAddrDesc_FftsAddr) {
+  AddrSemantic addr;
+  addr.kind = AddrValueKind::kFftsAddr;
+
+  auto desc = TaskCodeBuilderUtil::ConvertAddrDesc(addr);
+  EXPECT_EQ(desc.type, OP_ARG_FFTS_ADDR);
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_ConvertAddrDesc_OverflowAddr) {
+  AddrSemantic addr;
+  addr.kind = AddrValueKind::kOverflowAddr;
+
+  auto desc = TaskCodeBuilderUtil::ConvertAddrDesc(addr);
+  EXPECT_EQ(desc.type, OP_ARG_OVERFLOW_ADDR);
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_ConvertAddrDesc_Tiling) {
+  AddrSemantic addr;
+  addr.kind = AddrValueKind::kTiling;
+  addr.byte_size = 32U;
+
+  auto desc = TaskCodeBuilderUtil::ConvertAddrDesc(addr);
+  EXPECT_EQ(desc.type, OP_ARG_TILING);
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_ConvertAddrDesc_SessionScopeMemory) {
+  AddrSemantic addr;
+  addr.kind = AddrValueKind::kInputInstance;
+  addr.memory_type = kSessionScopeMemoryMask | RT_MEMORY_HBM;
+  addr.mem_offset = 256;
+
+  auto desc = TaskCodeBuilderUtil::ConvertAddrDesc(addr);
+  EXPECT_EQ(desc.mem_src, 0xFFFFFFFFU);
+  EXPECT_EQ(desc.offset, 256U);
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_ConvertAddrDesc_UnknownKind_DefaultsToRawAddr) {
+  AddrSemantic addr;
+  addr.kind = static_cast<AddrValueKind>(999);
+
+  auto desc = TaskCodeBuilderUtil::ConvertAddrDesc(addr);
+  EXPECT_EQ(desc.type, OP_ARG_RAW_ADDR);
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_ConvertAddrDesc_Level1DescPtrNoOffset) {
+  AddrSemantic addr;
+  addr.kind = AddrValueKind::kLevel1DescPtr;
+
+  auto desc = TaskCodeBuilderUtil::ConvertAddrDesc(addr);
+  EXPECT_EQ(desc.type, OP_ARG_LEVEL1_DESC);
+  EXPECT_EQ(desc.custom_value, 0U);
+}
+
+TEST_F(Om2CodegenUt, TaskCodeBuilderUtil_ConvertAddrDesc_NoConstIndex) {
+  AddrSemantic addr;
+  addr.kind = AddrValueKind::kInputInstance;
+  addr.tensor_info = Om2TensorInfo{};
+  addr.mem_offset = 0;
+
+  auto desc = TaskCodeBuilderUtil::ConvertAddrDesc(addr);
+  EXPECT_EQ(desc.type, OP_ARG_INPUT);
+  EXPECT_EQ(desc.mem_src, 0U);
+}
 }  // namespace ge

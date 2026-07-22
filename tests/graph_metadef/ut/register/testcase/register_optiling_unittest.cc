@@ -115,6 +115,10 @@ bool op_tiling_stub(const Operator &op, const utils::OpCompileInfo &compile_info
   return true;
 }
 
+static bool op_tiling_stub_v1(const TeOpParas &op_paras, const OpCompileInfo &compile_info, OpRunInfo &run_info) {
+  return true;
+}
+
 REGISTER_OP_TILING_V2(ReluV2, op_tiling_stub);
 
 TEST_F(RegisterOpTilingUT, OpFftsPlusCalculate_1) {
@@ -336,5 +340,443 @@ TEST_F(RegisterOpTilingUT, op_run_info_test_local_memory_size) {
   utils::OpRunInfo run_info3(1, 2, 3);
   local_memory_size = run_info3.GetLocalMemorySize();
   EXPECT_EQ(local_memory_size, 0U);  // default value
+}
+
+TEST_F(RegisterOpTilingUT, TeOpVarAttrArgs_GetData_WrongDtype) {
+  OpDescPtr op_desc = make_shared<OpDesc>("relu", "ReluV1");
+  GeShape shape({1, 4, 1, 1});
+  GeTensorDesc tensor_desc(shape);
+  op_desc->AddInputDesc("x", tensor_desc);
+  int32_t attr_value = 1024;
+  AttrUtils::SetInt(op_desc, "some_int_attr", attr_value);
+  TeOpParas op_param;
+  op_param.op_type = op_desc->GetType();
+  VarAttrHelper::InitTeOpVarAttr(op_desc, op_param.var_attrs);
+  size_t size = 0;
+  EXPECT_NO_THROW(op_param.var_attrs.GetData("some_int_attr", "WrongDtype", size););
+  EXPECT_EQ(size, 0U);
+}
+
+TEST_F(RegisterOpTilingUT, TeOpVarAttrArgs_GetData_FloatAttr) {
+  OpDescPtr op_desc = make_shared<OpDesc>("relu", "ReluV1");
+  float attr_value = 3.14F;
+  AttrUtils::SetFloat(op_desc, "some_float_attr", attr_value);
+  TeOpParas op_param;
+  VarAttrHelper::InitTeOpVarAttr(op_desc, op_param.var_attrs);
+  size_t size = 0;
+  EXPECT_NO_THROW(op_param.var_attrs.GetData("some_float_attr", "Float", size););
+  EXPECT_EQ(size, sizeof(float));
+}
+
+TEST_F(RegisterOpTilingUT, TeOpVarAttrArgs_GetData_ListFloatAttr) {
+  OpDescPtr op_desc = make_shared<OpDesc>("relu", "ReluV1");
+  vector<float> attr_vec = {1.1F, 2.2F, 3.3F};
+  AttrUtils::SetListFloat(op_desc, "some_float_vec", attr_vec);
+  TeOpParas op_param;
+  VarAttrHelper::InitTeOpVarAttr(op_desc, op_param.var_attrs);
+  size_t size = 0;
+  EXPECT_NO_THROW(op_param.var_attrs.GetData("some_float_vec", "ListFloat", size););
+  EXPECT_EQ(size, sizeof(float) * attr_vec.size());
+}
+
+TEST_F(RegisterOpTilingUT, TeOpVarAttrArgs_GetData_NotFoundAttr) {
+  OpDescPtr op_desc = make_shared<OpDesc>("relu", "ReluV1");
+  TeOpParas op_param;
+  VarAttrHelper::InitTeOpVarAttr(op_desc, op_param.var_attrs);
+  size_t size = 0;
+  EXPECT_NO_THROW(op_param.var_attrs.GetData("nonexistent_attr", "Int32", size););
+  EXPECT_EQ(size, 0U);
+}
+
+TEST_F(RegisterOpTilingUT, TeOpVarAttrArgs_GetData_AllIntTypes) {
+  OpDescPtr op_desc = make_shared<OpDesc>("relu", "ReluV1");
+  int64_t attr_value = 100;
+  AttrUtils::SetInt(op_desc, "int64_attr", attr_value);
+  vector<int64_t> attr_vec = {10, 20};
+  AttrUtils::SetListInt(op_desc, "list_int64_attr", attr_vec);
+  TeOpParas op_param;
+  VarAttrHelper::InitTeOpVarAttr(op_desc, op_param.var_attrs);
+  const vector<string> int_types = {"Int8", "Int16", "Int32", "Int64", "UInt8", "UInt16", "UInt32", "UInt64"};
+  for (const auto &dtype : int_types) {
+    size_t size = 0;
+    EXPECT_NO_THROW(op_param.var_attrs.GetData("int64_attr", dtype, size););
+  }
+  const vector<string> list_types = {"ListInt8",  "ListInt16",  "ListInt32",  "ListInt64",
+                                     "ListUInt8", "ListUInt16", "ListUInt32", "ListUInt64"};
+  for (const auto &dtype : list_types) {
+    size_t size = 0;
+    EXPECT_NO_THROW(op_param.var_attrs.GetData("list_int64_attr", dtype, size););
+  }
+}
+
+TEST_F(RegisterOpTilingUT, FeedTeOpTensorArg_InvalidDtype) {
+  OpDescPtr op_desc = make_shared<OpDesc>("relu", "ReluV1");
+  GeShape shape({4, 3, 14, 14});
+  GeTensorDesc tensor_desc(shape, FORMAT_NCHW, static_cast<ge::DataType>(999));
+  op_desc->AddInputDesc("x", tensor_desc);
+  ge::OpDesc::Vistor<ge::GeTensorDescPtr> inputs = op_desc->GetAllInputsDescPtr();
+  std::vector<TeOpTensorArg> tensor_arg;
+  EXPECT_EQ(FeedTeOpTensorArg(inputs, tensor_arg, op_desc), false);
+}
+
+TEST_F(RegisterOpTilingUT, FeedTeOpTensorArg_EmptyShape) {
+  OpDescPtr op_desc = make_shared<OpDesc>("relu", "ReluV1");
+  GeShape shape;
+  GeTensorDesc tensor_desc(shape, FORMAT_NCHW, DT_FLOAT);
+  op_desc->AddInputDesc("x", tensor_desc);
+  ge::OpDesc::Vistor<ge::GeTensorDescPtr> inputs = op_desc->GetAllInputsDescPtr();
+  std::vector<TeOpTensorArg> tensor_arg;
+  EXPECT_EQ(FeedTeOpTensorArg(inputs, tensor_arg, op_desc), true);
+  EXPECT_EQ(tensor_arg.size(), 1U);
+  EXPECT_EQ(tensor_arg[0].tensor[0].shape, std::vector<int64_t>({1}));
+}
+
+TEST_F(RegisterOpTilingUT, FeedTeOpTensorArg_NormalShape) {
+  OpDescPtr op_desc = make_shared<OpDesc>("relu", "ReluV1");
+  GeShape shape({4, 3, 14, 14});
+  GeTensorDesc tensor_desc(shape, FORMAT_NCHW, DT_FLOAT);
+  op_desc->AddInputDesc("x", tensor_desc);
+  op_desc->AddOutputDesc("y", tensor_desc);
+  ge::OpDesc::Vistor<ge::GeTensorDescPtr> inputs = op_desc->GetAllInputsDescPtr();
+  std::vector<TeOpTensorArg> tensor_arg;
+  EXPECT_EQ(FeedTeOpTensorArg(inputs, tensor_arg, op_desc), true);
+  EXPECT_EQ(tensor_arg.size(), 1U);
+  EXPECT_EQ(tensor_arg[0].tensor[0].shape, std::vector<int64_t>({4, 3, 14, 14}));
+}
+
+TEST_F(RegisterOpTilingUT, FeedTeOpConstTensor_WithDepends) {
+  OpDescPtr op_desc = make_shared<OpDesc>("relu", "ReluV1");
+  GeShape shape({4, 3, 14, 14});
+  GeTensorDesc tensor_desc(shape, FORMAT_NCHW, DT_FLOAT);
+  op_desc->AddInputDesc("x", tensor_desc);
+  vector<string> depend_names = {"x"};
+  AttrUtils::SetListStr(op_desc, "_op_infer_depends", depend_names);
+  ComputeGraphPtr graph = make_shared<ComputeGraph>("test");
+  NodePtr node = graph->AddNode(op_desc);
+  auto op = OpDescUtils::CreateOperatorFromNode(node);
+  std::map<std::string, TeConstTensorData> const_inputs;
+  EXPECT_NO_THROW(FeedTeOpConstTensor(op, op_desc, const_inputs););
+}
+
+TEST_F(RegisterOpTilingUT, OpParaCalculate_V1_NoCompileInfo) {
+  OpDescPtr op_desc = make_shared<OpDesc>("relu", "ReluV1");
+  GeShape shape({4, 3, 14, 14});
+  GeTensorDesc tensor_desc(shape);
+  op_desc->AddInputDesc("x", tensor_desc);
+  op_desc->AddOutputDesc("y", tensor_desc);
+  ComputeGraphPtr graph = make_shared<ComputeGraph>("test");
+  NodePtr node = graph->AddNode(op_desc);
+  auto op = OpDescUtils::CreateOperatorFromNode(node);
+  OpRunInfo run_info;
+  graphStatus ret = OpParaCalculate(op, run_info, op_tiling_stub_v1);
+  EXPECT_EQ(ret, GRAPH_FAILED);
+}
+
+TEST_F(RegisterOpTilingUT, OpParaCalculate_V1_Success) {
+  OpDescPtr op_desc = make_shared<OpDesc>("relu", "ReluV1");
+  GeShape shape({4, 3, 14, 14});
+  GeTensorDesc tensor_desc(shape);
+  op_desc->AddInputDesc("x", tensor_desc);
+  op_desc->AddOutputDesc("y", tensor_desc);
+  string compile_info_key = "compile_info_key";
+  string compile_info_json = "compile_info_json";
+  AttrUtils::SetStr(op_desc, COMPILE_INFO_KEY, compile_info_key);
+  AttrUtils::SetStr(op_desc, COMPILE_INFO_JSON, compile_info_json);
+  ComputeGraphPtr graph = make_shared<ComputeGraph>("test");
+  NodePtr node = graph->AddNode(op_desc);
+  auto op = OpDescUtils::CreateOperatorFromNode(node);
+  OpRunInfo run_info;
+  graphStatus ret = OpParaCalculate(op, run_info, op_tiling_stub_v1);
+  EXPECT_EQ(ret, GRAPH_SUCCESS);
+}
+
+TEST_F(RegisterOpTilingUT, OpParaCalculate_V1_FeedTensorArgFail) {
+  OpDescPtr op_desc = make_shared<OpDesc>("relu", "ReluV1");
+  GeShape shape({4, 3, 14, 14});
+  GeTensorDesc tensor_desc(shape, FORMAT_NCHW, static_cast<ge::DataType>(999));
+  op_desc->AddInputDesc("x", tensor_desc);
+  string compile_info_key = "compile_info_key";
+  string compile_info_json = "compile_info_json";
+  AttrUtils::SetStr(op_desc, COMPILE_INFO_KEY, compile_info_key);
+  AttrUtils::SetStr(op_desc, COMPILE_INFO_JSON, compile_info_json);
+  ComputeGraphPtr graph = make_shared<ComputeGraph>("test");
+  NodePtr node = graph->AddNode(op_desc);
+  auto op = OpDescUtils::CreateOperatorFromNode(node);
+  OpRunInfo run_info;
+  graphStatus ret = OpParaCalculate(op, run_info, op_tiling_stub_v1);
+  EXPECT_EQ(ret, GRAPH_FAILED);
+}
+
+TEST_F(RegisterOpTilingUT, OpParaCalculate_V1_NoCompileInfoJson) {
+  OpDescPtr op_desc = make_shared<OpDesc>("relu", "ReluV1");
+  GeShape shape({4, 3, 14, 14});
+  GeTensorDesc tensor_desc(shape);
+  op_desc->AddInputDesc("x", tensor_desc);
+  op_desc->AddOutputDesc("y", tensor_desc);
+  string compile_info_key = "compile_info_key";
+  AttrUtils::SetStr(op_desc, COMPILE_INFO_KEY, compile_info_key);
+  ComputeGraphPtr graph = make_shared<ComputeGraph>("test");
+  NodePtr node = graph->AddNode(op_desc);
+  auto op = OpDescUtils::CreateOperatorFromNode(node);
+  OpRunInfo run_info;
+  graphStatus ret = OpParaCalculate(op, run_info, op_tiling_stub_v1);
+  EXPECT_EQ(ret, GRAPH_FAILED);
+}
+
+TEST_F(RegisterOpTilingUT, GenerateCompileInfoKey_BasicTest) {
+  std::vector<int64_t> workspace_size_list = {100, 200, 300};
+  std::string op_compile_info_key;
+  GenerateCompileInfoKey(workspace_size_list, op_compile_info_key);
+  EXPECT_NE(op_compile_info_key.find("100"), std::string::npos);
+  EXPECT_NE(op_compile_info_key.find("200"), std::string::npos);
+  EXPECT_NE(op_compile_info_key.find("300"), std::string::npos);
+}
+
+TEST_F(RegisterOpTilingUT, GenerateCompileInfoKey_EmptyList) {
+  std::vector<int64_t> workspace_size_list;
+  std::string op_compile_info_key = "initial";
+  GenerateCompileInfoKey(workspace_size_list, op_compile_info_key);
+  EXPECT_EQ(op_compile_info_key, "initial");
+}
+
+TEST_F(RegisterOpTilingUT, AssembleCompileInfoJson_ValidJson) {
+  OpDescPtr op_desc = make_shared<OpDesc>("relu", "ReluV1");
+  std::vector<int64_t> workspace_size_list = {100, 200};
+  std::string op_compile_info_json = "{\"_workspace_size_list\":[]}";
+  graphStatus ret = AssembleCompileInfoJson(op_desc, workspace_size_list, op_compile_info_json);
+  EXPECT_EQ(ret, GRAPH_SUCCESS);
+  EXPECT_NE(op_compile_info_json.find("100"), std::string::npos);
+  EXPECT_NE(op_compile_info_json.find("200"), std::string::npos);
+}
+
+TEST_F(RegisterOpTilingUT, AssembleCompileInfoJson_InvalidJson) {
+  OpDescPtr op_desc = make_shared<OpDesc>("relu", "ReluV1");
+  std::vector<int64_t> workspace_size_list = {100, 200};
+  std::string op_compile_info_json = "invalid_json";
+  graphStatus ret = AssembleCompileInfoJson(op_desc, workspace_size_list, op_compile_info_json);
+  EXPECT_EQ(ret, GRAPH_FAILED);
+}
+
+TEST_F(RegisterOpTilingUT, AssembleWorkspaceList_NoAtomicInfo) {
+  OpDescPtr op_desc = make_shared<OpDesc>("relu", OP_TYPE_DYNAMIC_ATOMIC_ADDR_CLEAN);
+  int64_t first_clean_size = 0;
+  std::vector<int64_t> workspace_size_list;
+  graphStatus ret = AssembleWorkspaceList(op_desc, first_clean_size, workspace_size_list);
+  EXPECT_EQ(ret, GRAPH_FAILED);
+}
+
+TEST_F(RegisterOpTilingUT, AssembleWorkspaceList_WithAtomicOutput) {
+  OpDescPtr op_desc = make_shared<OpDesc>("relu", OP_TYPE_DYNAMIC_ATOMIC_ADDR_CLEAN);
+  GeShape shape({4, 3, 14, 14});
+  GeTensorDesc tensor_desc(shape);
+  op_desc->AddOutputDesc("y", tensor_desc);
+  ge::TensorUtils::SetSize(tensor_desc, 128);
+  std::vector<int64_t> atomic_output_indices = {0};
+  AttrUtils::SetListInt(op_desc, ge::ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_indices);
+  int64_t first_clean_size = 0;
+  std::vector<int64_t> workspace_size_list;
+  graphStatus ret = AssembleWorkspaceList(op_desc, first_clean_size, workspace_size_list);
+  EXPECT_EQ(ret, GRAPH_SUCCESS);
+  EXPECT_FALSE(workspace_size_list.empty());
+}
+
+TEST_F(RegisterOpTilingUT, AssembleWorkspaceList_WithInvalidOutputIndex) {
+  OpDescPtr op_desc = make_shared<OpDesc>("relu", OP_TYPE_DYNAMIC_ATOMIC_ADDR_CLEAN);
+  std::vector<int64_t> atomic_output_indices = {5};
+  AttrUtils::SetListInt(op_desc, ge::ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_indices);
+  int64_t first_clean_size = 0;
+  std::vector<int64_t> workspace_size_list;
+  graphStatus ret = AssembleWorkspaceList(op_desc, first_clean_size, workspace_size_list);
+  EXPECT_EQ(ret, GRAPH_FAILED);
+}
+
+TEST_F(RegisterOpTilingUT, AssembleWorkspaceList_V2_NoAtomicInfo) {
+  OpDescPtr op_desc = make_shared<OpDesc>("relu", OP_TYPE_DYNAMIC_ATOMIC_ADDR_CLEAN);
+  std::vector<int64_t> workspace_list;
+  std::vector<int64_t> workspace_size_list;
+  graphStatus ret = AssembleWorkspaceList(op_desc, workspace_list, workspace_size_list);
+  EXPECT_EQ(ret, GRAPH_FAILED);
+}
+
+TEST_F(RegisterOpTilingUT, AssembleWorkspaceList_V2_WithAtomicOutput) {
+  OpDescPtr op_desc = make_shared<OpDesc>("relu", OP_TYPE_DYNAMIC_ATOMIC_ADDR_CLEAN);
+  GeShape shape({4, 3, 14, 14});
+  GeTensorDesc tensor_desc(shape);
+  op_desc->AddOutputDesc("y", tensor_desc);
+  ge::TensorUtils::SetSize(tensor_desc, 256);
+  std::vector<int64_t> atomic_output_indices = {0};
+  AttrUtils::SetListInt(op_desc, ge::ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_indices);
+  std::vector<int64_t> workspace_list;
+  std::vector<int64_t> workspace_size_list;
+  graphStatus ret = AssembleWorkspaceList(op_desc, workspace_list, workspace_size_list);
+  EXPECT_EQ(ret, GRAPH_SUCCESS);
+  EXPECT_FALSE(workspace_list.empty());
+  EXPECT_FALSE(workspace_size_list.empty());
+}
+
+TEST_F(RegisterOpTilingUT, AssembleWorkspaceList_V2_WithInvalidOutputIndex) {
+  OpDescPtr op_desc = make_shared<OpDesc>("relu", OP_TYPE_DYNAMIC_ATOMIC_ADDR_CLEAN);
+  std::vector<int64_t> atomic_output_indices = {10};
+  AttrUtils::SetListInt(op_desc, ge::ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_indices);
+  std::vector<int64_t> workspace_list;
+  std::vector<int64_t> workspace_size_list;
+  graphStatus ret = AssembleWorkspaceList(op_desc, workspace_list, workspace_size_list);
+  EXPECT_EQ(ret, GRAPH_FAILED);
+}
+
+TEST_F(RegisterOpTilingUT, AssembleWorkspaceList_V2_WithAtomicWorkspace) {
+  OpDescPtr op_desc = make_shared<OpDesc>("relu", OP_TYPE_DYNAMIC_ATOMIC_ADDR_CLEAN);
+  op_desc->SetWorkspaceBytes({512, 1024});
+  std::map<int64_t, int64_t> index_2_workspace_size = {{0, 5}};
+  std::map<string, std::map<int64_t, int64_t>> atomic_workspace_info = {{"relu", index_2_workspace_size}};
+  op_desc->SetExtAttr(ge::EXT_ATTR_ATOMIC_WORKSPACE_INFO, atomic_workspace_info);
+  std::vector<int64_t> workspace_list;
+  std::vector<int64_t> workspace_size_list;
+  graphStatus ret = AssembleWorkspaceList(op_desc, workspace_list, workspace_size_list);
+  EXPECT_EQ(ret, GRAPH_SUCCESS);
+  EXPECT_FALSE(workspace_size_list.empty());
+}
+
+TEST_F(RegisterOpTilingUT, parse_tiling_data_BasicTest) {
+  int32_t data[4] = {1, 2, 3, 4};
+  EXPECT_NO_THROW(parse_tiling_data(data, sizeof(data)));
+}
+
+TEST_F(RegisterOpTilingUT, parse_tiling_data_NullPtr) {
+  EXPECT_NO_THROW(parse_tiling_data(nullptr, 0));
+}
+
+TEST_F(RegisterOpTilingUT, parse_tiling_data_SizeNotAligned) {
+  int32_t data[2] = {1, 2};
+  EXPECT_NO_THROW(parse_tiling_data(data, sizeof(data) - 1));
+}
+
+TEST_F(RegisterOpTilingUT, GetOpTilingInfo_NullOpDesc) {
+  OpDescPtr op_desc = nullptr;
+  EXPECT_EQ(GetOpTilingInfo(op_desc), nullptr);
+}
+
+TEST_F(RegisterOpTilingUT, GetOpTilingInfo_NotFoundOpType) {
+  OpDescPtr op_desc = make_shared<OpDesc>("relu", "NonExistentOpType_xyz");
+  EXPECT_EQ(GetOpTilingInfo(op_desc), nullptr);
+}
+
+TEST_F(RegisterOpTilingUT, GetOpAtomicTilingInfo_NullOpDesc) {
+  OpDescPtr op_desc = nullptr;
+  EXPECT_EQ(GetOpAtomicTilingInfo(op_desc), nullptr);
+}
+
+TEST_F(RegisterOpTilingUT, GetOpAtomicTilingInfo_NotFoundOpType) {
+  OpDescPtr op_desc = make_shared<OpDesc>("relu", "NonExistentAtomicOpType_xyz");
+  EXPECT_EQ(GetOpAtomicTilingInfo(op_desc), nullptr);
+}
+
+TEST_F(RegisterOpTilingUT, PostProcCalculateV2_WorkspaceLargerThanAll) {
+  auto root_builder = ut::GraphBuilder("root");
+  const auto &node = root_builder.AddNode("relu", "ReluV2", 1, 1);
+  Operator op = OpDescUtils::CreateOperatorFromNode(node);
+  OpDescPtr op_desc = node->GetOpDesc();
+  std::vector<int64_t> workspaces = {1};
+  OpRunInfoV2 run_info;
+  run_info.SetWorkspaces(workspaces);
+  std::vector<int64_t> all_workspaces;
+  op_desc->SetWorkspaceBytes(all_workspaces);
+  ge::graphStatus ret = PostProcCalculateV2(op, run_info);
+  EXPECT_EQ(ret, ge::GRAPH_SUCCESS);
+}
+
+TEST_F(RegisterOpTilingUT, PostProcCalculateV2_WorkspaceLessThanAll) {
+  auto root_builder = ut::GraphBuilder("root");
+  const auto &node = root_builder.AddNode("relu", "ReluV2", 1, 1);
+  Operator op = OpDescUtils::CreateOperatorFromNode(node);
+  OpDescPtr op_desc = node->GetOpDesc();
+  std::vector<int64_t> run_workspaces = {1, 2};
+  OpRunInfoV2 run_info;
+  run_info.SetWorkspaces(run_workspaces);
+  std::vector<int64_t> all_workspaces = {10, 20, 30, 40};
+  op_desc->SetWorkspaceBytes(all_workspaces);
+  ge::graphStatus ret = PostProcCalculateV2(op, run_info);
+  EXPECT_EQ(ret, ge::GRAPH_SUCCESS);
+}
+
+TEST_F(RegisterOpTilingUT, OpAtomicCalculateV2_EmptyFuncInfo) {
+  auto root_builder = ut::GraphBuilder("root");
+  const auto &node = root_builder.AddNode("relu", "ReluV2", 1, 1);
+  OpDescPtr op_desc = node->GetOpDesc();
+  std::unordered_map<std::string, OpTilingFuncInfo> &tiling_func_map = OpTilingFuncRegistry::RegisteredOpFuncInfo();
+  OpTilingFuncInfo op_func_info(OP_TYPE_DYNAMIC_ATOMIC_ADDR_CLEAN);
+  tiling_func_map.emplace(OP_TYPE_DYNAMIC_ATOMIC_ADDR_CLEAN, op_func_info);
+  OpRunInfoV2 run_info;
+  graphStatus ret = OpAtomicCalculateV2(*node, run_info);
+  EXPECT_EQ(ret, ge::GRAPH_FAILED);
+  tiling_func_map.erase(OP_TYPE_DYNAMIC_ATOMIC_ADDR_CLEAN);
+}
+
+TEST_F(RegisterOpTilingUT, UpDateNodeShapeBack_Success) {
+  auto root_builder = ut::GraphBuilder("root");
+  const auto &node = root_builder.AddNode("relu", "ReluV2", 1, 1);
+  OpDescPtr op_desc = node->GetOpDesc();
+  ThreadSliceMapDyPtr slice_info_ptr = std::make_shared<ThreadSliceMapDy>();
+  slice_info_ptr->input_tensor_indexes.push_back(0);
+  slice_info_ptr->output_tensor_indexes.push_back(0);
+  GeShape shape({4, 1, 3, 4, 16});
+  GeTensorDesc tensor_desc(shape);
+  op_desc->AddInputDesc("x", tensor_desc);
+  op_desc->AddOutputDesc("y", tensor_desc);
+  vector<int64_t> ori_shape = {4, 4};
+  auto ret = UpDateNodeShapeBack(op_desc, slice_info_ptr, ori_shape);
+  EXPECT_EQ(ret, ge::GRAPH_SUCCESS);
+}
+
+TEST_F(RegisterOpTilingUT, UpDateNodeShapeBack_SizeMismatch) {
+  auto root_builder = ut::GraphBuilder("root");
+  const auto &node = root_builder.AddNode("relu", "ReluV2", 1, 1);
+  OpDescPtr op_desc = node->GetOpDesc();
+  ThreadSliceMapDyPtr slice_info_ptr = std::make_shared<ThreadSliceMapDy>();
+  slice_info_ptr->input_tensor_indexes.push_back(0);
+  slice_info_ptr->output_tensor_indexes.push_back(0);
+  GeShape shape({4, 1, 3, 4, 16});
+  GeTensorDesc tensor_desc(shape);
+  op_desc->AddInputDesc("x", tensor_desc);
+  op_desc->AddOutputDesc("y", tensor_desc);
+  vector<int64_t> ori_shape = {4};
+  auto ret = UpDateNodeShapeBack(op_desc, slice_info_ptr, ori_shape);
+  EXPECT_EQ(ret, ge::GRAPH_FAILED);
+}
+
+TEST_F(RegisterOpTilingUT, UpDateNodeShapeBack_NullSliceInfo) {
+  auto root_builder = ut::GraphBuilder("root");
+  const auto &node = root_builder.AddNode("relu", "ReluV2", 1, 1);
+  OpDescPtr op_desc = node->GetOpDesc();
+  ThreadSliceMapDyPtr slice_info_ptr = nullptr;
+  vector<int64_t> ori_shape = {4, 4};
+  auto ret = UpDateNodeShapeBack(op_desc, slice_info_ptr, ori_shape);
+  EXPECT_EQ(ret, ge::GRAPH_FAILED);
+}
+
+TEST_F(RegisterOpTilingUT, PostProcMemoryCheck_MemCheckDisabled) {
+  auto root_builder = ut::GraphBuilder("root");
+  const auto &node = root_builder.AddNode("relu", "ReluV2", 1, 1);
+  Operator op = OpDescUtils::CreateOperatorFromNode(node);
+  OpDescPtr op_desc = node->GetOpDesc();
+  OpRunInfoV2 run_info;
+  (void)ge::AttrUtils::SetBool(op_desc, kMemoryCheck, false);
+  ge::graphStatus ret = PostProcMemoryCheck(op, run_info);
+  EXPECT_EQ(ret, ge::GRAPH_SUCCESS);
+}
+
+TEST_F(RegisterOpTilingUT, PostProcMemoryCheck_AlignOffset) {
+  auto root_builder = ut::GraphBuilder("root");
+  const auto &node = root_builder.AddNode("relu", "ReluV2", 2, 1);
+  GeShape shape({3, 4, 2, 1});
+  GeTensorDesc tensor_desc(shape);
+  OpDescPtr op_desc = node->GetOpDesc();
+  op_desc->AddInputDesc("x", tensor_desc);
+  op_desc->AddOutputDesc("y", tensor_desc);
+  Operator op = OpDescUtils::CreateOperatorFromNode(node);
+  OpRunInfoV2 run_info;
+  (void)ge::AttrUtils::SetBool(op_desc, kMemoryCheck, true);
+  ge::graphStatus ret = PostProcMemoryCheck(op, run_info);
+  EXPECT_EQ(ret, ge::GRAPH_SUCCESS);
 }
 }  // namespace optiling

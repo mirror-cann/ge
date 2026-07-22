@@ -432,3 +432,130 @@ TEST_F(UtestGraphPassesFoldingKernelRangeKernel, RangeError) {
 
   EXPECT_EQ(PARAM_INVALID, status);
 }
+
+TEST_F(UtestGraphPassesFoldingKernelRangeKernel, RangeZeroDelta) {
+  OpDescPtr op_desc_ptr = std::make_shared<OpDesc>("Range", RANGE);
+  AttrUtils::SetInt(op_desc_ptr, ATTR_NAME_T, (int64_t)DT_INT32);
+
+  int32_t start = 1, limit = 10, delta = 0;
+
+  vector<int64_t> dims_vec_0;
+  vector<int32_t> data_vec_0 = {start};
+  GeTensorDesc tensor_desc_0(GeShape(dims_vec_0), FORMAT_NCHW, DT_INT32);
+  ConstGeTensorPtr tensor_0 =
+      std::make_shared<GeTensor>(tensor_desc_0, (uint8_t *)data_vec_0.data(), data_vec_0.size() * sizeof(int32_t));
+
+  vector<int64_t> dims_vec_1;
+  vector<int32_t> data_vec_1 = {limit};
+  GeTensorDesc tensor_desc_1(GeShape(dims_vec_1), FORMAT_NCHW, DT_INT32);
+  ConstGeTensorPtr tensor_1 =
+      std::make_shared<GeTensor>(tensor_desc_1, (uint8_t *)data_vec_1.data(), data_vec_1.size() * sizeof(int32_t));
+
+  vector<int64_t> dims_vec_2;
+  vector<int32_t> data_vec_2 = {delta};
+  GeTensorDesc tensor_desc_2(GeShape(dims_vec_2), FORMAT_NCHW, DT_INT32);
+  ConstGeTensorPtr tensor_2 =
+      std::make_shared<GeTensor>(tensor_desc_2, (uint8_t *)data_vec_2.data(), data_vec_2.size() * sizeof(int32_t));
+
+  vector<ConstGeTensorPtr> input = {tensor_0, tensor_1, tensor_2};
+  vector<GeTensorPtr> outputs;
+
+  shared_ptr<Kernel> kernel = KernelFactory::Instance().Create(RANGE);
+  Status status = kernel->Compute(op_desc_ptr, input, outputs);
+
+  EXPECT_EQ(PARAM_INVALID, status);
+}
+
+TEST_F(UtestGraphPassesFoldingKernelRangeKernel, RangeInputNumberNotMatch) {
+  OpDescPtr op_desc_ptr = std::make_shared<OpDesc>("Range", RANGE);
+  AttrUtils::SetInt(op_desc_ptr, ATTR_NAME_T, (int64_t)DT_INT32);
+
+  int32_t start = 1, limit = 10, delta = 2;
+
+  vector<int64_t> dims_vec_0;
+  vector<int32_t> data_vec_0 = {start};
+  GeTensorDesc tensor_desc_0(GeShape(dims_vec_0), FORMAT_NCHW, DT_INT32);
+  ConstGeTensorPtr tensor_0 =
+      std::make_shared<GeTensor>(tensor_desc_0, (uint8_t *)data_vec_0.data(), data_vec_0.size() * sizeof(int32_t));
+
+  vector<int64_t> dims_vec_1;
+  vector<int32_t> data_vec_1 = {limit};
+  GeTensorDesc tensor_desc_1(GeShape(dims_vec_1), FORMAT_NCHW, DT_INT32);
+  ConstGeTensorPtr tensor_1 =
+      std::make_shared<GeTensor>(tensor_desc_1, (uint8_t *)data_vec_1.data(), data_vec_1.size() * sizeof(int32_t));
+
+  vector<ConstGeTensorPtr> input = {tensor_0, tensor_1};
+  vector<GeTensorPtr> outputs;
+
+  shared_ptr<Kernel> kernel = KernelFactory::Instance().Create(RANGE);
+  Status status = kernel->Compute(op_desc_ptr, input, outputs);
+
+  EXPECT_EQ(NOT_CHANGED, status);
+}
+
+TEST_F(UtestGraphPassesFoldingKernelRangeKernel, RangeStartLessThanLimitNegativeDelta) {
+  OpDescPtr op_desc_ptr = std::make_shared<OpDesc>("Range", RANGE);
+  AttrUtils::SetInt(op_desc_ptr, ATTR_NAME_T, (int64_t)DT_INT32);
+
+  int32_t start = 1, limit = 10, delta = -1;
+
+  vector<int64_t> dims_vec_0;
+  vector<int32_t> data_vec_0 = {start};
+  GeTensorDesc tensor_desc_0(GeShape(dims_vec_0), FORMAT_NCHW, DT_INT32);
+  ConstGeTensorPtr tensor_0 =
+      std::make_shared<GeTensor>(tensor_desc_0, (uint8_t *)data_vec_0.data(), data_vec_0.size() * sizeof(int32_t));
+
+  vector<int64_t> dims_vec_1;
+  vector<int32_t> data_vec_1 = {limit};
+  GeTensorDesc tensor_desc_1(GeShape(dims_vec_1), FORMAT_NCHW, DT_INT32);
+  ConstGeTensorPtr tensor_1 =
+      std::make_shared<GeTensor>(tensor_desc_1, (uint8_t *)data_vec_1.data(), data_vec_1.size() * sizeof(int32_t));
+
+  vector<int64_t> dims_vec_2;
+  vector<int32_t> data_vec_2 = {delta};
+  GeTensorDesc tensor_desc_2(GeShape(dims_vec_2), FORMAT_NCHW, DT_INT32);
+  ConstGeTensorPtr tensor_2 =
+      std::make_shared<GeTensor>(tensor_desc_2, (uint8_t *)data_vec_2.data(), data_vec_2.size() * sizeof(int32_t));
+
+  vector<ConstGeTensorPtr> input = {tensor_0, tensor_1, tensor_2};
+  vector<GeTensorPtr> outputs;
+
+  shared_ptr<Kernel> kernel = KernelFactory::Instance().Create(RANGE);
+  Status status = kernel->Compute(op_desc_ptr, input, outputs);
+
+  EXPECT_EQ(PARAM_INVALID, status);
+}
+
+TEST_F(UtestGraphPassesFoldingKernelRangeKernel, RangeDoubleStartEqualsLimit) {
+  OpDescPtr op_desc_ptr = std::make_shared<OpDesc>("Range", RANGE);
+  AttrUtils::SetInt(op_desc_ptr, ATTR_NAME_T, (int64_t)DT_DOUBLE);
+
+  double start = 5.0, limit = 5.0, delta = 1.0;
+
+  vector<int64_t> dims_vec_0;
+  vector<double> data_vec_0 = {start};
+  GeTensorDesc tensor_desc_0(GeShape(dims_vec_0), FORMAT_NCHW, DT_DOUBLE);
+  ConstGeTensorPtr tensor_0 =
+      std::make_shared<GeTensor>(tensor_desc_0, (uint8_t *)data_vec_0.data(), data_vec_0.size() * sizeof(double));
+
+  vector<int64_t> dims_vec_1;
+  vector<double> data_vec_1 = {limit};
+  GeTensorDesc tensor_desc_1(GeShape(dims_vec_1), FORMAT_NCHW, DT_DOUBLE);
+  ConstGeTensorPtr tensor_1 =
+      std::make_shared<GeTensor>(tensor_desc_1, (uint8_t *)data_vec_1.data(), data_vec_1.size() * sizeof(double));
+
+  vector<int64_t> dims_vec_2;
+  vector<double> data_vec_2 = {delta};
+  GeTensorDesc tensor_desc_2(GeShape(dims_vec_2), FORMAT_NCHW, DT_DOUBLE);
+  ConstGeTensorPtr tensor_2 =
+      std::make_shared<GeTensor>(tensor_desc_2, (uint8_t *)data_vec_2.data(), data_vec_2.size() * sizeof(double));
+
+  vector<ConstGeTensorPtr> input = {tensor_0, tensor_1, tensor_2};
+  vector<GeTensorPtr> outputs;
+
+  shared_ptr<Kernel> kernel = KernelFactory::Instance().Create(RANGE);
+  Status status = kernel->Compute(op_desc_ptr, input, outputs);
+
+  EXPECT_EQ(SUCCESS, status);
+  EXPECT_EQ(outputs[0]->GetTensorDesc().GetShape().GetDimNum(), 0);
+}

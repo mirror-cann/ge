@@ -180,3 +180,36 @@ TEST_F(UtestUnchangedTransposeRemovePass, remove_transpse_failed2) {
   vector<int64_t> result_vec = {4, 3, 2, 2, 8};
   EXPECT_TestChangedTransposeRemove<uint64_t, DT_UINT64, int32_t, DT_INT32>(data_vec, dim_value_vec, result_vec);
 }
+
+TEST_F(UtestUnchangedTransposeRemovePass, run_on_non_transpose_node) {
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("default");
+  OpDescPtr data_op_desc = std::make_shared<OpDesc>("data", DATA);
+  GeTensorDesc tensor_desc(GeShape({1}), FORMAT_NCHW, DT_FLOAT);
+  data_op_desc->AddOutputDesc(tensor_desc);
+  NodePtr data_node = graph->AddNode(data_op_desc);
+  data_node->Init();
+  UnchangedTransposeRemovePass pass;
+  Status ret = pass.Run(data_node);
+  EXPECT_EQ(ret, SUCCESS);
+}
+
+TEST_F(UtestUnchangedTransposeRemovePass, run_with_null_node) {
+  NodePtr node = nullptr;
+  UnchangedTransposeRemovePass pass;
+  Status ret = pass.Run(node);
+  EXPECT_NE(ret, SUCCESS);
+}
+
+TEST_F(UtestUnchangedTransposeRemovePass, remove_transpose_identity_perm) {
+  vector<int64_t> data_vec = {2, 3, 4, 5};
+  vector<int32_t> dim_value_vec = {0, 1, 2, 3};
+  vector<int64_t> result_vec = {2, 3, 4, 5};
+  EXPECT_TestUnchangedTransposeRemove<uint64_t, DT_UINT64, int32_t, DT_INT32>(data_vec, dim_value_vec, result_vec);
+}
+
+TEST_F(UtestUnchangedTransposeRemovePass, remove_transpose_all_dim_one) {
+  vector<int64_t> data_vec = {1, 1, 1, 1};
+  vector<int32_t> dim_value_vec = {3, 2, 1, 0};
+  vector<int64_t> result_vec = {1, 1, 1, 1};
+  EXPECT_TestUnchangedTransposeRemove<uint64_t, DT_UINT64, int32_t, DT_INT32>(data_vec, dim_value_vec, result_vec);
+}

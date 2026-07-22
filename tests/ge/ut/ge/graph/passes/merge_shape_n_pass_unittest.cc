@@ -114,4 +114,51 @@ TEST_F(UtestDataPass, MergeShapeNPassRun) {
   }
   ASSERT_EQ(n, 1);
 }
+
+TEST_F(UtestDataPass, NoShapeNNodesSuccess) {
+  ge::ut::GraphBuilder builder("graph_no_shapen");
+  auto data1 = builder.AddNode("data1", "Data", 0, 1, FORMAT_NCHW, DT_INT32, {});
+  auto netoutput = builder.AddNode("netoutput", "NetOutput", 1, 0, FORMAT_NCHW, DT_INT32, {});
+  builder.AddDataEdge(data1, 0, netoutput, 0);
+  auto graph = builder.GetGraph();
+  MergeUnknownShapeNPass pass;
+  EXPECT_EQ(pass.Run(graph), SUCCESS);
+}
+
+TEST_F(UtestDataPass, SingleShapeNNotMerged) {
+  ge::ut::GraphBuilder builder("graph_single_shapen");
+  auto data1 = builder.AddNode("data1", "Data", 0, 1, FORMAT_NCHW, DT_INT32, {});
+  auto shapeN1 = builder.AddNode("shapeN1", SHAPEN, 1, 1, FORMAT_NCHW, DT_INT32, {});
+  auto netoutput = builder.AddNode("netoutput", "NetOutput", 1, 0, FORMAT_NCHW, DT_INT32, {});
+  builder.AddDataEdge(data1, 0, shapeN1, 0);
+  builder.AddDataEdge(shapeN1, 0, netoutput, 0);
+  auto graph = builder.GetGraph();
+  AttrUtils::SetStr(shapeN1->GetOpDesc(), ATTR_NAME_SPLIT_SHAPEN_ORIGIN_NAME, "origin_a");
+  MergeUnknownShapeNPass pass;
+  EXPECT_EQ(pass.Run(graph), SUCCESS);
+  int n = 0;
+  for (const auto &node : graph->GetDirectNode()) {
+    if (node->GetType() == SHAPEN) {
+      n++;
+    }
+  }
+  EXPECT_EQ(n, 1);
+}
+
+TEST_F(UtestDataPass, ShapeNWithDifferentOriginNamesNotMerged) {
+  ge::ut::GraphBuilder builder("graph_diff_origin");
+  auto data1 = builder.AddNode("data1", "Data", 0, 1, FORMAT_NCHW, DT_INT32, {});
+  auto shapeN1 = builder.AddNode("shapeN1", SHAPEN, 1, 1, FORMAT_NCHW, DT_INT32, {});
+  auto shapeN2 = builder.AddNode("shapeN2", SHAPEN, 1, 1, FORMAT_NCHW, DT_INT32, {});
+  auto netoutput = builder.AddNode("netoutput", "NetOutput", 2, 0, FORMAT_NCHW, DT_INT32, {});
+  builder.AddDataEdge(data1, 0, shapeN1, 0);
+  builder.AddDataEdge(data1, 0, shapeN2, 0);
+  builder.AddDataEdge(shapeN1, 0, netoutput, 0);
+  builder.AddDataEdge(shapeN2, 0, netoutput, 1);
+  auto graph = builder.GetGraph();
+  AttrUtils::SetStr(shapeN1->GetOpDesc(), ATTR_NAME_SPLIT_SHAPEN_ORIGIN_NAME, "origin_a");
+  AttrUtils::SetStr(shapeN2->GetOpDesc(), ATTR_NAME_SPLIT_SHAPEN_ORIGIN_NAME, "origin_b");
+  MergeUnknownShapeNPass pass;
+  EXPECT_EQ(pass.Run(graph), SUCCESS);
+}
 }  // namespace ge

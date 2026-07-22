@@ -252,3 +252,44 @@ TEST_F(UtestFoldingKernelSubKernel, InputCheckFailed) {
   Status status = kernel->Compute(test_op, input, v_output);
   EXPECT_EQ(NOT_CHANGED, status);
 }
+
+TEST_F(UtestFoldingKernelSubKernel, SubNullOpDesc) {
+  vector<ConstGeTensorPtr> input;
+  vector<GeTensorPtr> v_output;
+  ge::GeShape sub_shape({1});
+  GeTensorDesc sub_desc(sub_shape, ge::FORMAT_NCHW, DT_FLOAT);
+  AssembleInput(input, sub_desc, (float)5, (float)3);
+
+  shared_ptr<Kernel> kernel = KernelFactory::Instance().Create(SUB);
+  Status status = kernel->Compute(nullptr, input, v_output);
+  EXPECT_EQ(PARAM_INVALID, status);
+}
+
+TEST_F(UtestFoldingKernelSubKernel, SubOutputSizeMismatch) {
+  OpDescPtr test_op = std::make_shared<OpDesc>("test", "Test");
+  vector<ConstGeTensorPtr> input;
+  vector<GeTensorPtr> v_output;
+  ge::GeShape sub_shape({1});
+  GeTensorDesc sub_desc(sub_shape, ge::FORMAT_NCHW, DT_FLOAT);
+  AssembleInput(input, sub_desc, (float)5, (float)3);
+
+  shared_ptr<Kernel> kernel = KernelFactory::Instance().Create(SUB);
+  test_op->AddOutputDesc(sub_desc);
+  test_op->AddOutputDesc(sub_desc);
+  Status status = kernel->Compute(test_op, input, v_output);
+  EXPECT_EQ(NOT_CHANGED, status);
+}
+
+TEST_F(UtestFoldingKernelSubKernel, SubUnsupportedType) {
+  OpDescPtr test_op = std::make_shared<OpDesc>("test", "Test");
+  vector<ConstGeTensorPtr> input;
+  vector<GeTensorPtr> v_output;
+  ge::GeShape sub_shape({1});
+  GeTensorDesc sub_desc(sub_shape, ge::FORMAT_NCHW, DT_STRING);
+  AssembleInput(input, sub_desc, (int32_t)5, (int32_t)3);
+
+  shared_ptr<Kernel> kernel = KernelFactory::Instance().Create(SUB);
+  test_op->AddOutputDesc(sub_desc);
+  Status status = kernel->Compute(test_op, input, v_output);
+  EXPECT_EQ(NOT_CHANGED, status);
+}

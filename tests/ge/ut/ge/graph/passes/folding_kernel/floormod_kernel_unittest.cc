@@ -188,3 +188,80 @@ TEST_F(UtestGraphPassesFoldingKernelFloormodKernel, FloormodZero) {
   Status status = kernel->Compute(op_desc_ptr, input, outputs);
   EXPECT_EQ(status, NOT_CHANGED);
 }
+
+TEST_F(UtestGraphPassesFoldingKernelFloormodKernel, FloormodSuccessPositive) {
+  OpDescPtr op_desc_ptr = std::make_shared<OpDesc>("floormod", FLOORMOD);
+  vector<bool> is_input_const_vec = {true, true};
+  op_desc_ptr->SetIsInputConst(is_input_const_vec);
+  AttrUtils::SetInt(op_desc_ptr, ATTR_NAME_T, (int64_t)DT_INT32);
+
+  vector<int64_t> dims_vec_0 = {3};
+  vector<int32_t> data_vec_0 = {7, 10, 15};
+  GeTensorDesc tensor_desc_0(GeShape(dims_vec_0), FORMAT_NCHW, DT_INT32);
+  ConstGeTensorPtr tensor_0 =
+      std::make_shared<GeTensor>(tensor_desc_0, (uint8_t *)data_vec_0.data(), data_vec_0.size() * sizeof(int32_t));
+
+  vector<int64_t> dims_vec_1 = {3};
+  vector<int32_t> data_vec_1 = {3, 4, 6};
+  GeTensorDesc tensor_desc_1(GeShape(dims_vec_1), FORMAT_NCHW, DT_INT32);
+  ConstGeTensorPtr tensor_1 =
+      std::make_shared<GeTensor>(tensor_desc_1, (uint8_t *)data_vec_1.data(), data_vec_1.size() * sizeof(int32_t));
+
+  vector<ConstGeTensorPtr> input = {tensor_0, tensor_1};
+  vector<GeTensorPtr> outputs;
+
+  shared_ptr<ge::Kernel> kernel = ge::KernelFactory::Instance().Create(FLOORMOD);
+  Status status = kernel->Compute(op_desc_ptr, input, outputs);
+  EXPECT_EQ(status, SUCCESS);
+  EXPECT_EQ(outputs.size(), 1);
+  int32_t *out_data = (int32_t *)outputs[0]->GetData().data();
+  EXPECT_EQ(out_data[0], 1);
+  EXPECT_EQ(out_data[1], 2);
+  EXPECT_EQ(out_data[2], 3);
+}
+
+TEST_F(UtestGraphPassesFoldingKernelFloormodKernel, FloormodInputNumberNotMatch) {
+  OpDescPtr op_desc_ptr = std::make_shared<OpDesc>("floormod", FLOORMOD);
+  vector<bool> is_input_const_vec = {true, true};
+  op_desc_ptr->SetIsInputConst(is_input_const_vec);
+  AttrUtils::SetInt(op_desc_ptr, ATTR_NAME_T, (int64_t)DT_INT32);
+
+  vector<int64_t> dims_vec_0 = {2};
+  vector<int32_t> data_vec_0 = {4, 4};
+  GeTensorDesc tensor_desc_0(GeShape(dims_vec_0), FORMAT_NCHW, DT_INT32);
+  ConstGeTensorPtr tensor_0 =
+      std::make_shared<GeTensor>(tensor_desc_0, (uint8_t *)data_vec_0.data(), data_vec_0.size() * sizeof(int32_t));
+
+  vector<ConstGeTensorPtr> input = {tensor_0};
+  vector<GeTensorPtr> outputs;
+
+  shared_ptr<ge::Kernel> kernel = ge::KernelFactory::Instance().Create(FLOORMOD);
+  Status status = kernel->Compute(op_desc_ptr, input, outputs);
+  EXPECT_EQ(status, NOT_CHANGED);
+}
+
+TEST_F(UtestGraphPassesFoldingKernelFloormodKernel, FloormodUnsupportedType) {
+  OpDescPtr op_desc_ptr = std::make_shared<OpDesc>("floormod", FLOORMOD);
+  vector<bool> is_input_const_vec = {true, true};
+  op_desc_ptr->SetIsInputConst(is_input_const_vec);
+  AttrUtils::SetInt(op_desc_ptr, ATTR_NAME_T, (int64_t)DT_FLOAT);
+
+  vector<int64_t> dims_vec_0 = {2};
+  vector<float> data_vec_0 = {4.0, 4.0};
+  GeTensorDesc tensor_desc_0(GeShape(dims_vec_0), FORMAT_NCHW, DT_FLOAT);
+  ConstGeTensorPtr tensor_0 =
+      std::make_shared<GeTensor>(tensor_desc_0, (uint8_t *)data_vec_0.data(), data_vec_0.size() * sizeof(float));
+
+  vector<int64_t> dims_vec_1 = {2};
+  vector<float> data_vec_1 = {3.0, 2.0};
+  GeTensorDesc tensor_desc_1(GeShape(dims_vec_1), FORMAT_NCHW, DT_FLOAT);
+  ConstGeTensorPtr tensor_1 =
+      std::make_shared<GeTensor>(tensor_desc_1, (uint8_t *)data_vec_1.data(), data_vec_1.size() * sizeof(float));
+
+  vector<ConstGeTensorPtr> input = {tensor_0, tensor_1};
+  vector<GeTensorPtr> outputs;
+
+  shared_ptr<ge::Kernel> kernel = ge::KernelFactory::Instance().Create(FLOORMOD);
+  Status status = kernel->Compute(op_desc_ptr, input, outputs);
+  EXPECT_EQ(status, NOT_CHANGED);
+}

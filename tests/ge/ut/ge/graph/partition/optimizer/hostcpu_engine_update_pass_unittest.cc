@@ -572,4 +572,71 @@ TEST_F(UtestHostcpuEngineUpdatePass, TestOolevelSucc) {
   unsetenv("ENABLE_RUNTIME_V2");
 }
 
+TEST_F(UtestHostcpuEngineUpdatePass, GetParentNode_UncachedAndCached) {
+  HostcpuEngineUpdatePass pass;
+  ge::OpDescPtr op_desc = std::make_shared<OpDesc>("data", "Data");
+  op_desc->AddInputDesc(GeTensorDesc(GeShape(std::vector<int64_t>{4}), FORMAT_NCHW, DT_INT32));
+  op_desc->AddOutputDesc(GeTensorDesc(GeShape(std::vector<int64_t>{4}), FORMAT_NCHW, DT_INT32));
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("default");
+  ge::NodePtr node = graph->AddNode(op_desc);
+  auto parent1 = pass.GetParentNode(node);
+  auto parent2 = pass.GetParentNode(node);
+  EXPECT_EQ(parent1, parent2);
+}
+
+TEST_F(UtestHostcpuEngineUpdatePass, IsExecOnHost_ConstOp) {
+  HostcpuEngineUpdatePass pass;
+  ge::OpDescPtr op_desc = std::make_shared<OpDesc>("const", "Const");
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("default");
+  ge::NodePtr node = graph->AddNode(op_desc);
+  EXPECT_EQ(pass.IsExecOnHost(node), true);
+}
+
+TEST_F(UtestHostcpuEngineUpdatePass, CheckAndMarkHostExec_AlreadyHost) {
+  HostcpuEngineUpdatePass pass;
+  ge::OpDescPtr op_desc = std::make_shared<OpDesc>("data", "Data");
+  op_desc->AddOutputDesc(GeTensorDesc(GeShape(std::vector<int64_t>{1}), FORMAT_NCHW, DT_INT32));
+  AttrUtils::SetBool(op_desc, ATTR_NAME_HOST_TENSOR, true);
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("default");
+  ge::NodePtr node = graph->AddNode(op_desc);
+  NodeEngineMap atomic_map;
+  NodeEngineMap composite_map;
+  EXPECT_EQ(pass.CheckAndMarkHostExec(node, atomic_map, composite_map), true);
+}
+
+TEST_F(UtestHostcpuEngineUpdatePass, ClearNodeMapSource) {
+  HostcpuEngineUpdatePass pass;
+  ge::OpDescPtr op_desc = std::make_shared<OpDesc>("data", "Data");
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("default");
+  ge::NodePtr node = graph->AddNode(op_desc);
+  (void)pass.IsExecOnHost(node);
+  pass.ClearNodeMapSource();
+  SUCCEED();
+}
+
+TEST_F(UtestHostcpuEngineUpdatePass, Run_WithStaticGraph) {
+  setenv("ENABLE_RUNTIME_V2", "1", 1);
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("static_graph");
+  HostcpuEngineUpdatePass pass;
+  NodeEngineMap node_atomic_engine_map;
+  NodeEngineMap node_composite_engine_map;
+  EXPECT_EQ(pass.Run(graph, node_atomic_engine_map, node_composite_engine_map), SUCCESS);
+  unsetenv("ENABLE_RUNTIME_V2");
+}
+
+TEST_F(UtestHostcpuEngineUpdatePass, Run_RuntimeV2Disabled) {
+  setenv("ENABLE_RUNTIME_V2", "0", 1);
+  std::map<std::string, std::string> ge_options = {{ge::OO_LEVEL, "O1"}};
+  const std::unordered_map<std::string, OoInfo> &registered_opt_table =
+      ge::OptionRegistry::GetInstance().GetRegisteredOptTable();
+  ge::GetThreadLocalContext().GetOo().Initialize(ge_options, registered_opt_table);
+  auto graph = BuildGraph1();
+  EXPECT_NE(graph, nullptr);
+  HostcpuEngineUpdatePass pass;
+  NodeEngineMap node_atomic_engine_map;
+  NodeEngineMap node_composite_engine_map;
+  EXPECT_EQ(pass.Run(graph, node_atomic_engine_map, node_composite_engine_map), SUCCESS);
+  unsetenv("ENABLE_RUNTIME_V2");
+}
+
 }  // namespace ge

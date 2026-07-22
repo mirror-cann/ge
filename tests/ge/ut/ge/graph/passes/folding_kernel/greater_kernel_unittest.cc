@@ -494,3 +494,70 @@ TEST_F(UtestGraphPassesFoldingKernelGreaterKernel, GreaterOptimizerErrorTypeFail
 
   EXPECT_EQ(NOT_CHANGED, status);
 }
+
+TEST_F(UtestGraphPassesFoldingKernelGreaterKernel, GreaterNullOpDesc) {
+  vector<int64_t> dims_vec_0 = {2};
+  vector<int32_t> data_vec_0 = {1, 2};
+  GeTensorDesc tensor_desc_0(GeShape(dims_vec_0), FORMAT_NCHW, DT_INT32);
+  ConstGeTensorPtr tensor_0 =
+      std::make_shared<GeTensor>(tensor_desc_0, (uint8_t *)data_vec_0.data(), data_vec_0.size() * sizeof(int32_t));
+
+  vector<int64_t> dims_vec_1 = {2};
+  vector<int32_t> data_vec_1 = {3, 1};
+  GeTensorDesc tensor_desc_1(GeShape(dims_vec_1), FORMAT_NCHW, DT_INT32);
+  ConstGeTensorPtr tensor_1 =
+      std::make_shared<GeTensor>(tensor_desc_1, (uint8_t *)data_vec_1.data(), data_vec_1.size() * sizeof(int32_t));
+
+  vector<ConstGeTensorPtr> input = {tensor_0, tensor_1};
+  vector<GeTensorPtr> outputs;
+
+  shared_ptr<ge::Kernel> kernel = ge::KernelFactory::Instance().Create(GREATER);
+  Status status = kernel->Compute(nullptr, input, outputs);
+  EXPECT_EQ(PARAM_INVALID, status);
+}
+
+TEST_F(UtestGraphPassesFoldingKernelGreaterKernel, GreaterInputNumberNotMatch) {
+  OpDescPtr op_desc_ptr = std::make_shared<OpDesc>("Greater", GREATER);
+  vector<bool> is_input_const_vec = {true, true};
+  op_desc_ptr->SetIsInputConst(is_input_const_vec);
+  AttrUtils::SetInt(op_desc_ptr, ATTR_NAME_T, (int64_t)DT_INT32);
+
+  vector<int64_t> dims_vec_0 = {2};
+  vector<int32_t> data_vec_0 = {1, 2};
+  GeTensorDesc tensor_desc_0(GeShape(dims_vec_0), FORMAT_NCHW, DT_INT32);
+  ConstGeTensorPtr tensor_0 =
+      std::make_shared<GeTensor>(tensor_desc_0, (uint8_t *)data_vec_0.data(), data_vec_0.size() * sizeof(int32_t));
+
+  vector<ConstGeTensorPtr> input = {tensor_0};
+  vector<GeTensorPtr> outputs;
+
+  shared_ptr<ge::Kernel> kernel = ge::KernelFactory::Instance().Create(GREATER);
+  Status status = kernel->Compute(op_desc_ptr, input, outputs);
+  EXPECT_EQ(NOT_CHANGED, status);
+}
+
+TEST_F(UtestGraphPassesFoldingKernelGreaterKernel, GreaterEmptyData) {
+  OpDescPtr op_desc_ptr = std::make_shared<OpDesc>("Greater", GREATER);
+  vector<bool> is_input_const_vec = {true, true};
+  op_desc_ptr->SetIsInputConst(is_input_const_vec);
+  AttrUtils::SetInt(op_desc_ptr, ATTR_NAME_T, (int64_t)DT_INT32);
+
+  vector<int64_t> dims_vec_0 = {2};
+  vector<int32_t> data_vec_0 = {};
+  GeTensorDesc tensor_desc_0(GeShape(dims_vec_0), FORMAT_NCHW, DT_INT32);
+  ConstGeTensorPtr tensor_0 =
+      std::make_shared<GeTensor>(tensor_desc_0, (uint8_t *)data_vec_0.data(), data_vec_0.size() * sizeof(int32_t));
+
+  vector<int64_t> dims_vec_1 = {2};
+  vector<int32_t> data_vec_1 = {1, 2};
+  GeTensorDesc tensor_desc_1(GeShape(dims_vec_1), FORMAT_NCHW, DT_INT32);
+  ConstGeTensorPtr tensor_1 =
+      std::make_shared<GeTensor>(tensor_desc_1, (uint8_t *)data_vec_1.data(), data_vec_1.size() * sizeof(int32_t));
+
+  vector<ConstGeTensorPtr> input = {tensor_0, tensor_1};
+  vector<GeTensorPtr> outputs;
+
+  shared_ptr<ge::Kernel> kernel = ge::KernelFactory::Instance().Create(GREATER);
+  Status status = kernel->Compute(op_desc_ptr, input, outputs);
+  EXPECT_EQ(NOT_CHANGED, status);
+}

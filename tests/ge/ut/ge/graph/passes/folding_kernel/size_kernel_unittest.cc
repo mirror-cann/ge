@@ -167,3 +167,50 @@ TEST_F(UtestGraphPassesFoldingKernelSizeKernel, OpdescIsNullptr) {
   Status status = kernel_->Compute(node_, outputs);
   EXPECT_EQ(NOT_CHANGED, status);
 }
+
+TEST_F(UtestGraphPassesFoldingKernelSizeKernel, NodeIsNullptr) {
+  NodePtr null_node = nullptr;
+  std::vector<GeTensorPtr> outputs;
+  Status status = kernel_->Compute(null_node, outputs);
+  EXPECT_EQ(FAILED, status);
+}
+
+TEST_F(UtestGraphPassesFoldingKernelSizeKernel, UnknownShapeNotChanged) {
+  vector<int64_t> dims_vec_0 = {UNKNOWN_DIM, 2};
+  GeTensorDesc tensor_desc_0(GeShape(dims_vec_0), FORMAT_NCHW, DT_FLOAT);
+  op_desc_ptr_->AddInputDesc(tensor_desc_0);
+
+  GeTensorDesc tensor_desc_out(GeShape(), FORMAT_NCHW, DT_INT32);
+  op_desc_ptr_->AddOutputDesc(tensor_desc_out);
+
+  std::vector<GeTensorPtr> outputs;
+  Status status = kernel_->Compute(node_, outputs);
+  EXPECT_EQ(NOT_CHANGED, status);
+}
+
+TEST_F(UtestGraphPassesFoldingKernelSizeKernel, SingleDimSuccess) {
+  vector<int64_t> dims_vec_0 = {10};
+  GeTensorDesc tensor_desc_0(GeShape(dims_vec_0), FORMAT_NCHW, DT_FLOAT);
+  op_desc_ptr_->AddInputDesc(tensor_desc_0);
+
+  GeTensorDesc tensor_desc_out(GeShape(), FORMAT_NCHW, DT_INT32);
+  op_desc_ptr_->AddOutputDesc(tensor_desc_out);
+
+  std::vector<GeTensorPtr> outputs;
+  Status status = kernel_->Compute(node_, outputs);
+  EXPECT_EQ(SUCCESS, status);
+  EXPECT_EQ(1U, outputs.size());
+}
+
+TEST_F(UtestGraphPassesFoldingKernelSizeKernel, ScalarShapeSuccess) {
+  GeTensorDesc tensor_desc_0(GeShape(), FORMAT_NCHW, DT_FLOAT);
+  op_desc_ptr_->AddInputDesc(tensor_desc_0);
+
+  GeTensorDesc tensor_desc_out(GeShape(), FORMAT_NCHW, DT_INT32);
+  op_desc_ptr_->AddOutputDesc(tensor_desc_out);
+
+  std::vector<GeTensorPtr> outputs;
+  Status status = kernel_->Compute(node_, outputs);
+  EXPECT_EQ(SUCCESS, status);
+  EXPECT_EQ(1U, outputs.size());
+}

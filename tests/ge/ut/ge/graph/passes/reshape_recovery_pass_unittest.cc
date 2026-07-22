@@ -251,4 +251,39 @@ TEST_F(UtestReshapeRecoveryPass, IfSubgraphWithAllStaticNodes_CheckResultTopoOk)
               "success");
   }
 }
+
+TEST_F(UtestReshapeRecoveryPass, empty_graph_success) {
+  auto graph = std::make_shared<ComputeGraph>("empty");
+  ReshapeRecoveryPass pass;
+  EXPECT_EQ(pass.Run(graph), SUCCESS);
+}
+
+TEST_F(UtestReshapeRecoveryPass, same_shape_no_reshape_inserted) {
+  ut::GraphBuilder builder = ut::GraphBuilder("g_same");
+  auto var1 = builder.AddNode("var1", "Variable", 0, 1, FORMAT_ND, DT_FLOAT, {1, 224, 224});
+  auto transdata1 = builder.AddNode("transdata1", "Transdata", 1, 1, FORMAT_ND, DT_FLOAT, {1, 224, 224});
+  auto netoutput1 = builder.AddNode("netoutput1", "NetOutput", 1, 0, FORMAT_ND, DT_FLOAT, {1, 224, 224});
+  builder.AddDataEdge(var1, 0, transdata1, 0);
+  builder.AddDataEdge(transdata1, 0, netoutput1, 0);
+  auto graph = builder.GetGraph();
+  ReshapeRecoveryPass pass;
+  EXPECT_EQ(pass.Run(graph), SUCCESS);
+  EXPECT_EQ(graph->GetDirectNodesSize(), 3U);
+}
+
+TEST_F(UtestReshapeRecoveryPass, mixed_static_dynamic_shapes_success) {
+  ut::GraphBuilder builder = ut::GraphBuilder("g_mixed");
+  auto var1 = builder.AddNode("var1", "Variable", 0, 1, FORMAT_ND, DT_FLOAT, {1, 224, 224});
+  auto var2 = builder.AddNode("var2", "Variable", 0, 1, FORMAT_ND, DT_FLOAT, {-1, 224});
+  auto transdata1 = builder.AddNode("transdata1", "Transdata", 1, 1, FORMAT_ND, DT_FLOAT, {224, 224});
+  auto transdata2 = builder.AddNode("transdata2", "Transdata", 1, 1, FORMAT_ND, DT_FLOAT, {-1, 224});
+  auto netoutput1 = builder.AddNode("netoutput1", "NetOutput", 2, 0);
+  builder.AddDataEdge(var1, 0, transdata1, 0);
+  builder.AddDataEdge(var2, 0, transdata2, 0);
+  builder.AddDataEdge(transdata1, 0, netoutput1, 0);
+  builder.AddDataEdge(transdata2, 0, netoutput1, 1);
+  auto graph = builder.GetGraph();
+  ReshapeRecoveryPass pass;
+  EXPECT_EQ(pass.Run(graph), SUCCESS);
+}
 }  // namespace ge

@@ -722,4 +722,43 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_ref_io_success_test) {
   EXPECT_TRUE(concat_node->GetOutControlAnchor()->IsLinkedWith(prefetch4_node->GetInControlAnchor()));
   EXPECT_FALSE(split_node->GetOutControlAnchor()->IsLinkedWith(prefetch4_node->GetInControlAnchor()));
 }
+
+TEST_F(UtestBufferPoolMemoryPass, run_with_nullptr_graph_fail_test) {
+  BufferPoolMemoryPass buffer_pool_mem_pass;
+  ComputeGraphPtr graph = nullptr;
+  Status ret = buffer_pool_mem_pass.Run(graph);
+  EXPECT_EQ(ret, PARAM_INVALID);
+}
+
+TEST_F(UtestBufferPoolMemoryPass, run_with_parent_graph_skip_test) {
+  ut::BufferPoolGraphBuilder builder("SubgraphTest");
+  ge::ComputeGraphPtr parent_graph = builder.BuildNormalGraph();
+  ge::ComputeGraphPtr subgraph = std::make_shared<ComputeGraph>("subgraph");
+  subgraph->SetParentGraph(parent_graph);
+  BufferPoolMemoryPass buffer_pool_mem_pass;
+  Status ret = buffer_pool_mem_pass.Run(subgraph);
+  EXPECT_EQ(ret, SUCCESS);
+}
+
+TEST_F(UtestBufferPoolMemoryPass, run_with_unknown_flag_skip_test) {
+  ut::BufferPoolGraphBuilder builder("UnknownGraph");
+  ge::ComputeGraphPtr graph = builder.BuildNormalGraph();
+  graph->SetGraphUnknownFlag(true);
+  BufferPoolMemoryPass buffer_pool_mem_pass;
+  Status ret = buffer_pool_mem_pass.Run(graph);
+  EXPECT_EQ(ret, SUCCESS);
+}
+
+TEST_F(UtestBufferPoolMemoryPass, run_without_buffer_pool_nodes_skip_test) {
+  auto builder = ut::GraphBuilder("NoBufferPoolGraph");
+  auto data = builder.AddNode("data", DATA, 0, 1);
+  auto relu = builder.AddNode("relu", RELU, 1, 1);
+  auto netoutput = builder.AddNode("netoutput", NETOUTPUT, 1, 1);
+  builder.AddDataEdge(data, 0, relu, 0);
+  builder.AddDataEdge(relu, 0, netoutput, 0);
+  auto graph = builder.GetGraph();
+  BufferPoolMemoryPass buffer_pool_mem_pass;
+  Status ret = buffer_pool_mem_pass.Run(graph);
+  EXPECT_EQ(ret, SUCCESS);
+}
 }  // namespace ge

@@ -1789,4 +1789,40 @@ TEST_F(Om2PackageHelperUt, Serialize_OnlineMode_ExternalConst_HasFilePath) {
   EXPECT_NE(constants_json.find("file_path"), std::string::npos);
   EXPECT_NE(constants_json.find("/data/weights/external_weight.bin"), std::string::npos);
 }
+
+TEST_F(Om2PackageHelperUt, Om2CodegenAndCompile_Success) {
+  const auto ge_root_model = CreateGeRootModelWithAicoreOp();
+  ASSERT_NE(ge_root_model, nullptr);
+  SyncKernelNameForAllModels(ge_root_model);
+  const auto &ge_model = ge_root_model->GetSubgraphInstanceNameToModel().begin()->second;
+  ASSERT_NE(ge_model, nullptr);
+
+  Om2CodegenArtifacts artifacts;
+  Om2ConstMetas const_metas;
+  Om2Codegen codegen;
+  ASSERT_EQ(codegen.Om2CodegenAndCompile(ge_model, artifacts, const_metas), SUCCESS);
+  EXPECT_FALSE(artifacts.empty());
+  bool found_so = false;
+  for (const auto &artifact : artifacts) {
+    if (artifact.file_name.find(".so") != std::string::npos) {
+      found_so = true;
+      EXPECT_FALSE(artifact.data.empty());
+    }
+  }
+  EXPECT_TRUE(found_so);
+}
+
+TEST_F(Om2PackageHelperUt, Om2CodegenAndCompile_InvalidModel_Fail) {
+  const auto ge_root_model = CreateInvalidGeRootModel();
+  ASSERT_NE(ge_root_model, nullptr);
+  const auto &name_to_ge_model = ge_root_model->GetSubgraphInstanceNameToModel();
+  ASSERT_FALSE(name_to_ge_model.empty());
+  const auto &ge_model = name_to_ge_model.begin()->second;
+  ASSERT_NE(ge_model, nullptr);
+
+  Om2CodegenArtifacts artifacts;
+  Om2ConstMetas const_metas;
+  Om2Codegen codegen;
+  EXPECT_NE(codegen.Om2CodegenAndCompile(ge_model, artifacts, const_metas), SUCCESS);
+}
 }  // namespace ge

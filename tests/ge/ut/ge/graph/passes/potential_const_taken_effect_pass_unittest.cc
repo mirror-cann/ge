@@ -142,4 +142,32 @@ TEST_F(UtestPotentialConstTakenEffectPass, TestPotentialConstWhichOwnerGraphIsNu
   auto first_input_node_of_add = add_node->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode();
   EXPECT_EQ(first_input_node_of_add->GetType(), SHAPE);
 }
+
+TEST_F(UtestPotentialConstTakenEffectPass, TestRunMethod) {
+  auto graph = BuildGraph1();
+  PotentialConstTakenEffectPass convert_pass;
+  auto node = graph->FindNode("addn1");
+  EXPECT_EQ(convert_pass.Run(node), SUCCESS);
+}
+
+TEST_F(UtestPotentialConstTakenEffectPass, TestEmptyGraph) {
+  auto graph = std::make_shared<ComputeGraph>("empty");
+  vector<NodePtr> repass_node;
+  PotentialConstTakenEffectPass convert_pass;
+  EXPECT_EQ(convert_pass.OnFinishGraph(graph, repass_node), SUCCESS);
+  EXPECT_EQ(repass_node.size(), 0);
+}
+
+TEST_F(UtestPotentialConstTakenEffectPass, TestPotentialConstWithFoldingFailure) {
+  auto graph = BuildAbnormalPotentialConstGraph();
+  auto add_node = graph->FindNode("add");
+  ASSERT_NE(add_node, nullptr);
+  // Force the add node to be a potential const without weight to trigger unmark path
+  AttrUtils::SetBool(add_node->GetOpDesc(), ATTR_NAME_POTENTIAL_CONST, true);
+  PotentialConstTakenEffectPass convert_pass;
+  vector<NodePtr> repass_node;
+  EXPECT_EQ(convert_pass.OnFinishGraph(graph, repass_node), SUCCESS);
+  // add node has potential_const attr but no weight, should be unmarked
+  EXPECT_FALSE(AttrUtils::HasAttr(add_node->GetOpDesc(), ATTR_NAME_POTENTIAL_CONST));
+}
 }  // namespace ge

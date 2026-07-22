@@ -209,3 +209,92 @@ TEST_F(UtestGraphPassesFoldingKernelCastKernel, ComputeShapeEmptySuccess) {
 
   EXPECT_EQ(ge::SUCCESS, status);
 }
+
+TEST_F(UtestGraphPassesFoldingKernelCastKernel, ComputeSuccessFloat16ToFloat) {
+  OpDescPtr op_desc_ptr = std::make_shared<OpDesc>("Cast", "Cast");
+  GeTensorDesc dims_tensor_desc(GeShape({2, 2}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc dims_tensor_desc_in(GeShape({2, 2}), FORMAT_NCHW, DT_FLOAT16);
+  op_desc_ptr->AddInputDesc(dims_tensor_desc_in);
+  op_desc_ptr->AddOutputDesc(dims_tensor_desc);
+
+  vector<int64_t> dims_vec_0 = {2, 2};
+  vector<uint16_t> data_vec_0 = {0x3C00, 0x4000, 0x4200, 0x4400};
+  GeTensorDesc tensor_desc_0(GeShape(dims_vec_0), FORMAT_NCHW, DT_FLOAT16);
+  ConstGeTensorPtr tensor_0 =
+      std::make_shared<GeTensor>(tensor_desc_0, (uint8_t *)data_vec_0.data(), data_vec_0.size() * sizeof(uint16_t));
+
+  vector<ConstGeTensorPtr> input = {tensor_0};
+  vector<GeTensorPtr> outputs;
+
+  shared_ptr<Kernel> kernel = KernelFactory::Instance().Create(CAST);
+  ge::Status status = kernel->Compute(op_desc_ptr, input, outputs);
+
+  EXPECT_EQ(ge::SUCCESS, status);
+  EXPECT_EQ(outputs.size(), 1);
+}
+
+TEST_F(UtestGraphPassesFoldingKernelCastKernel, ComputeFormatMismatch) {
+  OpDescPtr op_desc_ptr = std::make_shared<OpDesc>("Cast", "Cast");
+  GeTensorDesc dims_tensor_desc(GeShape({1, 1, 1, 1}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc dims_tensor_desc_in(GeShape({1, 1, 1, 1}), FORMAT_NHWC, DT_FLOAT);
+  op_desc_ptr->AddInputDesc(dims_tensor_desc_in);
+  op_desc_ptr->AddOutputDesc(dims_tensor_desc);
+
+  vector<int64_t> dims_vec_0 = {1, 1, 1, 1};
+  vector<int32_t> data_vec_0 = {1};
+  GeTensorDesc tensor_desc_0(GeShape(dims_vec_0), FORMAT_NCHW, DT_FLOAT);
+  ConstGeTensorPtr tensor_0 =
+      std::make_shared<GeTensor>(tensor_desc_0, (uint8_t *)data_vec_0.data(), data_vec_0.size() * sizeof(float));
+
+  vector<ConstGeTensorPtr> input = {tensor_0};
+  vector<GeTensorPtr> outputs;
+
+  shared_ptr<Kernel> kernel = KernelFactory::Instance().Create(CAST);
+  ge::Status status = kernel->Compute(op_desc_ptr, input, outputs);
+
+  EXPECT_EQ(ge::NOT_CHANGED, status);
+}
+
+TEST_F(UtestGraphPassesFoldingKernelCastKernel, ComputeShapeMismatch) {
+  OpDescPtr op_desc_ptr = std::make_shared<OpDesc>("Cast", "Cast");
+  GeTensorDesc dims_tensor_desc(GeShape({2, 2}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc dims_tensor_desc_in(GeShape({1, 4}), FORMAT_NCHW, DT_FLOAT);
+  op_desc_ptr->AddInputDesc(dims_tensor_desc_in);
+  op_desc_ptr->AddOutputDesc(dims_tensor_desc);
+
+  vector<int64_t> dims_vec_0 = {1, 4};
+  vector<int32_t> data_vec_0 = {1, 2, 3, 4};
+  GeTensorDesc tensor_desc_0(GeShape(dims_vec_0), FORMAT_NCHW, DT_FLOAT);
+  ConstGeTensorPtr tensor_0 =
+      std::make_shared<GeTensor>(tensor_desc_0, (uint8_t *)data_vec_0.data(), data_vec_0.size() * sizeof(float));
+
+  vector<ConstGeTensorPtr> input = {tensor_0};
+  vector<GeTensorPtr> outputs;
+
+  shared_ptr<Kernel> kernel = KernelFactory::Instance().Create(CAST);
+  ge::Status status = kernel->Compute(op_desc_ptr, input, outputs);
+
+  EXPECT_EQ(ge::NOT_CHANGED, status);
+}
+
+TEST_F(UtestGraphPassesFoldingKernelCastKernel, ComputeSuccessFloatToFloat16MultiDim) {
+  OpDescPtr op_desc_ptr = std::make_shared<OpDesc>("Cast", "Cast");
+  GeTensorDesc dims_tensor_desc(GeShape({2}), FORMAT_NCHW, DT_FLOAT16);
+  GeTensorDesc dims_tensor_desc_in(GeShape({2}), FORMAT_NCHW, DT_FLOAT);
+  op_desc_ptr->AddInputDesc(dims_tensor_desc_in);
+  op_desc_ptr->AddOutputDesc(dims_tensor_desc);
+
+  vector<int64_t> dims_vec_0 = {2};
+  vector<float> data_vec_0 = {1.0f, 2.0f};
+  GeTensorDesc tensor_desc_0(GeShape(dims_vec_0), FORMAT_NCHW, DT_FLOAT);
+  ConstGeTensorPtr tensor_0 =
+      std::make_shared<GeTensor>(tensor_desc_0, (uint8_t *)data_vec_0.data(), data_vec_0.size() * sizeof(float));
+
+  vector<ConstGeTensorPtr> input = {tensor_0};
+  vector<GeTensorPtr> outputs;
+
+  shared_ptr<Kernel> kernel = KernelFactory::Instance().Create(CAST);
+  ge::Status status = kernel->Compute(op_desc_ptr, input, outputs);
+
+  EXPECT_EQ(ge::SUCCESS, status);
+}

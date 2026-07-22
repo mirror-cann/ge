@@ -65,4 +65,43 @@ TEST(UtestGraphPassesStartOfSequencePass, testInsertStartBeforeVar) {
   EXPECT_NE(in_node_before_dst_node, nullptr);
   EXPECT_EQ(in_node_before_dst_node->GetType(), STARTOFSEQUENCE);
 }
+
+TEST(UtestGraphPassesStartOfSequencePass, testProfilingOff) {
+  ComputeGraphPtr graph = BuildGraph();
+  ProfilingProperties::Instance().SetTrainingTrace(false);
+  StartOfSequencePass pass;
+  EXPECT_EQ(pass.Run(graph), SUCCESS);
+  auto start_node = graph->FindFirstNodeMatchType(STARTOFSEQUENCE);
+  EXPECT_EQ(start_node, nullptr);
+}
+
+TEST(UtestGraphPassesStartOfSequencePass, testSubgraphSkip) {
+  ComputeGraphPtr graph = BuildGraph();
+  auto parent_graph = ut::GraphBuilder("parent").GetGraph();
+  graph->SetParentGraph(parent_graph);
+  ProfilingProperties::Instance().SetTrainingTrace(true);
+  StartOfSequencePass pass;
+  EXPECT_EQ(pass.Run(graph), SUCCESS);
+  ProfilingProperties::Instance().SetTrainingTrace(false);
+  auto start_node = graph->FindFirstNodeMatchType(STARTOFSEQUENCE);
+  EXPECT_EQ(start_node, nullptr);
+}
+
+TEST(UtestGraphPassesStartOfSequencePass, testNoInputLessNodes) {
+  auto builder = ut::GraphBuilder("test_no_inputless");
+  auto const1 = builder.AddNode("const1", CONSTANT, 0, 1);
+  auto const2 = builder.AddNode("const2", CONSTANT, 0, 1);
+  auto add1 = builder.AddNode("add1", ADD, 2, 1);
+  auto netoutput = builder.AddNode("netoutput", NETOUTPUT, 1, 0);
+  builder.AddDataEdge(const1, 0, add1, 0);
+  builder.AddDataEdge(const2, 0, add1, 1);
+  builder.AddDataEdge(add1, 0, netoutput, 0);
+  auto graph = builder.GetGraph();
+  ProfilingProperties::Instance().SetTrainingTrace(true);
+  StartOfSequencePass pass;
+  EXPECT_EQ(pass.Run(graph), SUCCESS);
+  ProfilingProperties::Instance().SetTrainingTrace(false);
+  auto start_node = graph->FindFirstNodeMatchType(STARTOFSEQUENCE);
+  EXPECT_NE(start_node, nullptr);
+}
 }  // namespace ge

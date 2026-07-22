@@ -1979,4 +1979,102 @@ TEST_F(UtestGraphPreproces, hccl_offline_option_builder_failed_when_hccl_comm_co
   (void)std::remove(logic_topo_config.c_str());
 }
 // test storage format end
+
+TEST_F(UtestGraphPreproces, hccl_offline_option_builder_double_initialize) {
+  const std::string logic_topo_config = "./hccl_offline_option_builder_double_init_ut.json";
+  ASSERT_TRUE(
+      WriteTextFile(logic_topo_config, R"({"RankTable":[{"rank_id":"0"}],"HcclCommConfig":{"graph_mode":"0"}})"));
+
+  auto &builder = HcclOfflineOptionBuilder::Instance();
+  builder.Finalize();
+  EXPECT_EQ(builder.Initialize("Ascend910B1", logic_topo_config, ""), SUCCESS);
+  EXPECT_TRUE(builder.IsInitialized());
+  EXPECT_EQ(builder.Initialize("Ascend910B1", logic_topo_config, ""), SUCCESS);
+  EXPECT_TRUE(builder.IsInitialized());
+
+  builder.Finalize();
+  (void)std::remove(logic_topo_config.c_str());
+}
+
+TEST_F(UtestGraphPreproces, hccl_offline_option_builder_invalid_file_path) {
+  auto &builder = HcclOfflineOptionBuilder::Instance();
+  builder.Finalize();
+  EXPECT_EQ(builder.Initialize("Ascend910B1", "/nonexistent/path/to/config.json", ""), PARAM_INVALID);
+  EXPECT_FALSE(builder.IsInitialized());
+  builder.Finalize();
+}
+
+TEST_F(UtestGraphPreproces, hccl_offline_option_builder_invalid_sub_comm_config_path) {
+  const std::string logic_topo_config = "./hccl_offline_option_builder_valid_logic_ut.json";
+  ASSERT_TRUE(
+      WriteTextFile(logic_topo_config, R"({"RankTable":[{"rank_id":"0"}],"HcclCommConfig":{"graph_mode":"0"}})"));
+
+  auto &builder = HcclOfflineOptionBuilder::Instance();
+  builder.Finalize();
+  EXPECT_EQ(builder.Initialize("Ascend910B1", logic_topo_config, "/nonexistent/path/to/sub.json"), PARAM_INVALID);
+  EXPECT_FALSE(builder.IsInitialized());
+
+  builder.Finalize();
+  (void)std::remove(logic_topo_config.c_str());
+}
+
+TEST_F(UtestGraphPreproces, hccl_offline_option_builder_finalize_clears_state) {
+  const std::string logic_topo_config = "./hccl_offline_option_builder_finalize_ut.json";
+  const std::string hccl_sub_comm_config = "./hccl_offline_option_builder_finalize_sub_ut.json";
+  ASSERT_TRUE(
+      WriteTextFile(logic_topo_config, R"({"RankTable":[{"rank_id":"0"}],"HcclCommConfig":{"graph_mode":"0"}})"));
+  ASSERT_TRUE(WriteTextFile(hccl_sub_comm_config, R"({"group_list":[{"group_name":"g0","group_rank_list":[0,1]}]})"));
+
+  auto &builder = HcclOfflineOptionBuilder::Instance();
+  builder.Finalize();
+  EXPECT_EQ(builder.Initialize("Ascend910B1", logic_topo_config, hccl_sub_comm_config), SUCCESS);
+  EXPECT_TRUE(builder.IsInitialized());
+  EXPECT_FALSE(builder.GetLogicRankTable().empty());
+  EXPECT_FALSE(builder.GetHcclCommConfig().empty());
+  EXPECT_FALSE(builder.GetHcomGrouplist().empty());
+  EXPECT_EQ(builder.GetSocVersion(), "Ascend910B1");
+
+  builder.Finalize();
+  EXPECT_FALSE(builder.IsInitialized());
+  EXPECT_TRUE(builder.GetLogicRankTable().empty());
+  EXPECT_TRUE(builder.GetHcclCommConfig().empty());
+  EXPECT_TRUE(builder.GetHcomGrouplist().empty());
+  EXPECT_TRUE(builder.GetSocVersion().empty());
+
+  (void)std::remove(logic_topo_config.c_str());
+  (void)std::remove(hccl_sub_comm_config.c_str());
+}
+
+TEST_F(UtestGraphPreproces, graph_prepare_check_graph_empty_nodes) {
+  ge::GraphPrepare graph_prepare;
+  auto empty_graph = std::make_shared<ComputeGraph>("empty_graph");
+  graph_prepare.compute_graph_ = empty_graph;
+  auto ret = graph_prepare.CheckGraphAndUpdateOriginShape();
+  EXPECT_NE(ret, SUCCESS);
+}
+
+TEST_F(UtestGraphPreproces, graph_prepare_set_graph_normalized) {
+  ge::GraphPrepare graph_prepare;
+  graph_prepare.SetGraphNormalized(true);
+  graph_prepare.SetGraphNormalized(false);
+  EXPECT_EQ(SUCCESS, SUCCESS);
+}
+
+TEST_F(UtestGraphPreproces, graph_prepare_update_variable_formats_no_var) {
+  auto builder = ut::GraphBuilder("g_no_var");
+  auto data1 = builder.AddNode("data1", DATA, 1, 1);
+  auto netoutput = builder.AddNode("netoutput", NETOUTPUT, 1, 1);
+  builder.AddDataEdge(data1, 0, netoutput, 0);
+  auto g1 = builder.GetGraph();
+  g1->SetSessionID(999);
+  GraphPrepare graph_prepare;
+  auto ret = graph_prepare.UpdateVariableFormats(g1);
+  EXPECT_EQ(ret, SUCCESS);
+}
+
+TEST_F(UtestGraphPreproces, graph_prepare_update_variable_formats_null_graph) {
+  GraphPrepare graph_prepare;
+  auto ret = graph_prepare.UpdateVariableFormats(nullptr);
+  EXPECT_NE(ret, SUCCESS);
+}
 }  // namespace ge

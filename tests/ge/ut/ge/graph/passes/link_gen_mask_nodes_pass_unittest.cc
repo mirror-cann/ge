@@ -103,4 +103,64 @@ TEST_F(UtestLinkGenMaskNodesPass, link_gen_mask_nodes_pass_success) {
   auto out_ctrl_node = out_ctrl_nodes.at(0);
   EXPECT_EQ(out_ctrl_node->GetName(), "gen_mask1_DropOutGenMask");
 }
+
+TEST_F(UtestLinkGenMaskNodesPass, run_with_empty_graph_success) {
+  auto builder = ut::GraphBuilder("empty_graph");
+  auto data = builder.AddNode("data", "Data", 0, 1);
+  auto relu = builder.AddNode("relu", "Relu", 1, 1);
+  auto netoutput = builder.AddNode("netoutput", "NetOutput", 1, 1);
+  builder.AddDataEdge(data, 0, relu, 0);
+  builder.AddDataEdge(relu, 0, netoutput, 0);
+  auto graph = builder.GetGraph();
+
+  std::map<std::string, int> stream_max_parallel_num;
+  stream_max_parallel_num["DNN_HCCL"] = 1;
+  LinkGenMaskNodesPass link_pass(stream_max_parallel_num);
+  Status ret = link_pass.Run(graph);
+  EXPECT_EQ(ret, SUCCESS);
+}
+
+TEST_F(UtestLinkGenMaskNodesPass, run_with_stream_label_skip_success) {
+  auto builder = ut::GraphBuilder("stream_label_graph");
+  auto const1 = builder.AddNode("const1", "Const", 0, 1);
+  auto const2 = builder.AddNode("const2", "Const", 0, 1);
+  auto gen_mask1 = builder.AddNode("gen_mask1", "DropOutGenMask", 2, 1);
+  auto do_mask1 = builder.AddNode("do_mask1", "DropOutDoMask", 3, 1);
+  auto netoutput = builder.AddNode("netoutput", "NetOutput", 1, 1);
+  AttrUtils::SetStr(do_mask1->GetOpDesc(), ATTR_NAME_STREAM_LABEL, "stream1");
+  builder.AddDataEdge(const1, 0, gen_mask1, 0);
+  builder.AddDataEdge(const2, 0, gen_mask1, 1);
+  builder.AddDataEdge(const1, 0, do_mask1, 0);
+  builder.AddDataEdge(gen_mask1, 0, do_mask1, 1);
+  builder.AddDataEdge(const2, 0, do_mask1, 2);
+  builder.AddDataEdge(do_mask1, 0, netoutput, 0);
+  auto graph = builder.GetGraph();
+
+  std::map<std::string, int> stream_max_parallel_num;
+  LinkGenMaskNodesPass link_pass(stream_max_parallel_num);
+  Status ret = link_pass.Run(graph);
+  EXPECT_EQ(ret, SUCCESS);
+}
+
+TEST_F(UtestLinkGenMaskNodesPass, run_with_non_const_genmask_input_success) {
+  auto builder = ut::GraphBuilder("non_const_graph");
+  auto data1 = builder.AddNode("data1", "Data", 0, 1);
+  auto const2 = builder.AddNode("const2", "Const", 0, 1);
+  auto gen_mask1 = builder.AddNode("gen_mask1", "DropOutGenMask", 2, 1);
+  auto do_mask1 = builder.AddNode("do_mask1", "DropOutDoMask", 3, 1);
+  auto netoutput = builder.AddNode("netoutput", "NetOutput", 1, 1);
+  builder.AddDataEdge(data1, 0, gen_mask1, 0);
+  builder.AddDataEdge(const2, 0, gen_mask1, 1);
+  builder.AddDataEdge(data1, 0, do_mask1, 0);
+  builder.AddDataEdge(gen_mask1, 0, do_mask1, 1);
+  builder.AddDataEdge(const2, 0, do_mask1, 2);
+  builder.AddDataEdge(do_mask1, 0, netoutput, 0);
+  auto graph = builder.GetGraph();
+
+  std::map<std::string, int> stream_max_parallel_num;
+  stream_max_parallel_num["DNN_HCCL"] = 1;
+  LinkGenMaskNodesPass link_pass(stream_max_parallel_num);
+  Status ret = link_pass.Run(graph);
+  EXPECT_EQ(ret, SUCCESS);
+}
 }  // namespace ge

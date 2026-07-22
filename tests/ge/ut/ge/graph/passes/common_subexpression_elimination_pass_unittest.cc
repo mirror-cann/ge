@@ -718,3 +718,34 @@ TEST_F(UTestCommonSubexpressionEliminationPass, SkipGeInsertedNode) {
   EXPECT_EQ(pass.Run(graph), SUCCESS);
   EXPECT_EQ(graph->GetAllNodesSize(), 5);
 }
+
+TEST_F(UTestCommonSubexpressionEliminationPass, EmptyGraph) {
+  ut::GraphBuilder builder("empty");
+  auto graph = builder.GetGraph();
+  CommonSubexpressionEliminationPass pass;
+  EXPECT_EQ(pass.Run(graph), SUCCESS);
+}
+
+TEST_F(UTestCommonSubexpressionEliminationPass, SinglePeerNodeNoCse) {
+  ut::GraphBuilder builder("g1");
+  auto const1 = builder.AddNode("const1", "Const", 0, 1);
+  auto add1 = builder.AddNode("add1", "CseAddYes", 1, 1);
+  auto netoutput1 = builder.AddNode("netoutput1", "NetOutput", 1, 0);
+  builder.AddDataEdge(const1, 0, add1, 0);
+  builder.AddDataEdge(add1, 0, netoutput1, 0);
+  auto graph = builder.GetGraph();
+  CommonSubexpressionEliminationPass pass;
+  EXPECT_EQ(pass.Run(graph), SUCCESS);
+  EXPECT_EQ(graph->GetAllNodesSize(), 3);
+}
+
+TEST_F(UTestCommonSubexpressionEliminationPass, SkipNodeWithNoNeedConstantFoldingTrue) {
+  auto graph = BuildGraph1();
+  auto add1 = graph->FindNode("add1");
+  auto add2 = graph->FindNode("add2");
+  AttrUtils::SetBool(add1->GetOpDesc(), ATTR_NO_NEED_CONSTANT_FOLDING, true);
+  AttrUtils::SetBool(add2->GetOpDesc(), ATTR_NO_NEED_CONSTANT_FOLDING, true);
+  CommonSubexpressionEliminationPass pass;
+  EXPECT_EQ(pass.Run(graph), SUCCESS);
+  EXPECT_EQ(graph->GetAllNodesSize(), 5);
+}

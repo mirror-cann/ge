@@ -353,3 +353,46 @@ TEST_F(UtestGraphPassesCastRemovePass, EndNodeMultiConsumer_SUCCESS) {
   cast1 = compute_graph->FindNode("cast1");
   EXPECT_EQ(cast1, nullptr);
 }
+
+TEST_F(UtestGraphPassesCastRemovePass, RunOnTransOpNodeSuccess) {
+  auto compute_graph = BuildGraph1();
+  compute_graph->SetSessionID(0);
+  auto transdata1 = compute_graph->FindNode("transdata1");
+  CastRemovePass cast_pass;
+  Status ret = cast_pass.Run(transdata1);
+  EXPECT_EQ(ret, SUCCESS);
+  EXPECT_EQ(compute_graph->GetDirectNodesSize(), 9);
+}
+
+TEST_F(UtestGraphPassesCastRemovePass, IsRedundantCastNodeOnNonCast) {
+  auto compute_graph = BuildGraph1();
+  auto data1 = compute_graph->FindNode("data1");
+  CastRemovePass cast_pass;
+  bool ret = cast_pass.IsRedundantCastNode(data1);
+  EXPECT_FALSE(ret);
+}
+
+TEST_F(UtestGraphPassesCastRemovePass, HasSameDataTypeSameNodeReturnsFalse) {
+  auto compute_graph = BuildGraph1();
+  auto cast1 = compute_graph->FindNode("cast1");
+  CastRemovePass cast_pass;
+  DataType type = DT_UNDEFINED;
+  bool ret = cast_pass.HasSameDataType(cast1, cast1, type);
+  EXPECT_FALSE(ret);
+}
+
+TEST_F(UtestGraphPassesCastRemovePass, RunOnNodeWithMultiOutDataNodes) {
+  auto builder = ut::GraphBuilder("g_multi_out");
+  auto data = builder.AddNode("data", DATA, 0, 1);
+  auto relu = builder.AddNode("relu", RELU, 1, 1);
+  auto net1 = builder.AddNode("net1", NETOUTPUT, 1, 1);
+  auto net2 = builder.AddNode("net2", NETOUTPUT, 1, 1);
+  builder.AddDataEdge(data, 0, relu, 0);
+  builder.AddDataEdge(relu, 0, net1, 0);
+  builder.AddDataEdge(relu, 0, net2, 0);
+  auto compute_graph = builder.GetGraph();
+  compute_graph->SetSessionID(0);
+  CastRemovePass cast_pass;
+  Status ret = cast_pass.Run(relu);
+  EXPECT_EQ(ret, SUCCESS);
+}

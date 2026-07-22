@@ -26,4 +26,31 @@ TEST_F(UtestOneNodeSingleBinSelector, do_select_bin_succces) {
   EXPECT_NE(selector->SelectBin(nullptr, nullptr, task_defs), nullptr);
   EXPECT_EQ(selector->SelectBin(nullptr, nullptr, task_defs)->GetCacheItemId(), std::numeric_limits<uint64_t>::max());
 }
+
+TEST_F(UtestOneNodeSingleBinSelector, get_instance_returns_same_reference) {
+  auto &factory1 = NodeBinSelectorFactory::GetInstance();
+  auto &factory2 = NodeBinSelectorFactory::GetInstance();
+  EXPECT_EQ(&factory1, &factory2);
+}
+
+TEST_F(UtestOneNodeSingleBinSelector, get_selector_one_node_multiple_bins_mode) {
+  auto selector = NodeBinSelectorFactory::GetInstance().GetNodeBinSelector(fuzz_compile::kOneNodeMultipleBinsMode);
+  EXPECT_NE(selector, nullptr);
+}
+
+TEST_F(UtestOneNodeSingleBinSelector, get_selector_out_of_range) {
+  auto selector = NodeBinSelectorFactory::GetInstance().GetNodeBinSelector(fuzz_compile::kNodeBinModeEnd);
+  EXPECT_EQ(selector, nullptr);
+}
+
+TEST_F(UtestOneNodeSingleBinSelector, get_selector_invalid_mode) {
+  auto selector = NodeBinSelectorFactory::GetInstance().GetNodeBinSelector(
+      static_cast<fuzz_compile::NodeBinMode>(fuzz_compile::kNodeBinModeEnd + 1));
+  EXPECT_EQ(selector, nullptr);
+}
+
+TEST_F(UtestOneNodeSingleBinSelector, get_selector_valid_mode_one_node_single) {
+  auto selector = NodeBinSelectorFactory::GetInstance().GetNodeBinSelector(fuzz_compile::kOneNodeSingleBinMode);
+  EXPECT_NE(selector, nullptr);
+}
 }  // namespace ge

@@ -83,3 +83,114 @@ TEST_F(UtestGraphRunTest, RunGraphWithStreamAsync1) {
   Status ret = graph_manager.RunGraphWithStreamAsync(1, nullptr, 0, inputs, outputs);
   EXPECT_NE(ret, SUCCESS);
 }
+
+TEST_F(UtestGraphRunTest, GraphNode_LockUnlock) {
+  GraphNodePtr graph_node = std::make_shared<GraphNode>(1);
+  graph_node->Lock();
+  graph_node->Unlock();
+  graph_node->Lock();
+  graph_node->Unlock();
+}
+
+TEST_F(UtestGraphRunTest, GraphNode_IncreaseLoadCount) {
+  GraphNodePtr graph_node = std::make_shared<GraphNode>(1);
+  graph_node->IncreaseLoadCount();
+  graph_node->IncreaseLoadCount();
+  graph_node->SetLoaded();
+}
+
+TEST_F(UtestGraphRunTest, GraphNode_SetGetRunGraphMode) {
+  GraphNodePtr graph_node = std::make_shared<GraphNode>(1);
+  graph_node->SetRunGraphMode(RunGraphMode::kRunGraphAsync);
+  EXPECT_EQ(graph_node->GetRunGraphMode(), RunGraphMode::kRunGraphAsync);
+  graph_node->SetRunGraphMode(RunGraphMode::kRunGraphWithStreamAsync);
+  EXPECT_EQ(graph_node->GetRunGraphMode(), RunGraphMode::kRunGraphWithStreamAsync);
+}
+
+TEST_F(UtestGraphRunTest, GraphNode_SetGetOptions) {
+  GraphNodePtr graph_node = std::make_shared<GraphNode>(1);
+  std::map<std::string, std::string> options = {{"key1", "val1"}, {"key2", "val2"}};
+  graph_node->SetOptions(options);
+  const auto &ret_options = graph_node->GetOptions();
+  EXPECT_EQ(ret_options.at("key1"), "val1");
+  EXPECT_EQ(ret_options.at("key2"), "val2");
+}
+
+TEST_F(UtestGraphRunTest, GraphNode_SetIsSpecificStream) {
+  GraphNodePtr graph_node = std::make_shared<GraphNode>(1);
+  graph_node->SetIsSpecificStream(true);
+  EXPECT_TRUE(graph_node->IsSpecificStream());
+  graph_node->SetIsSpecificStream(false);
+  EXPECT_FALSE(graph_node->IsSpecificStream());
+}
+
+TEST_F(UtestGraphRunTest, GraphNode_SetAsync) {
+  GraphNodePtr graph_node = std::make_shared<GraphNode>(1);
+  graph_node->SetAsync(true);
+  EXPECT_TRUE(graph_node->IsAsync());
+  graph_node->SetAsync(false);
+  EXPECT_FALSE(graph_node->IsAsync());
+}
+
+TEST_F(UtestGraphRunTest, GraphNode_SetCompiledFlag) {
+  GraphNodePtr graph_node = std::make_shared<GraphNode>(1);
+  graph_node->SetCompiledFlag(true);
+  EXPECT_TRUE(graph_node->GetCompiledFlag());
+  graph_node->SetCompiledFlag(false);
+  EXPECT_FALSE(graph_node->GetCompiledFlag());
+}
+
+TEST_F(UtestGraphRunTest, GraphNode_SetBuildFlag) {
+  GraphNodePtr graph_node = std::make_shared<GraphNode>(1);
+  graph_node->SetBuildFlag(true);
+  EXPECT_TRUE(graph_node->GetBuildFlag());
+  graph_node->SetBuildFlag(false);
+  EXPECT_FALSE(graph_node->GetBuildFlag());
+}
+
+TEST_F(UtestGraphRunTest, GraphNode_SetRunFlag) {
+  GraphNodePtr graph_node = std::make_shared<GraphNode>(1);
+  graph_node->SetRunFlag(true);
+  EXPECT_TRUE(graph_node->GetRunFlag());
+  graph_node->SetRunFlag(false);
+  EXPECT_FALSE(graph_node->GetRunFlag());
+}
+
+TEST_F(UtestGraphRunTest, GraphNode_SetLoadFlag) {
+  GraphNodePtr graph_node = std::make_shared<GraphNode>(1);
+  graph_node->SetLoadFlag(true);
+  EXPECT_TRUE(graph_node->GetLoadFlag());
+  graph_node->SetLoadFlag(false);
+  EXPECT_FALSE(graph_node->GetLoadFlag());
+}
+
+TEST_F(UtestGraphRunTest, GraphModelListener_OnComputeDone) {
+  GraphModelListener listener;
+  std::vector<gert::Tensor> outputs;
+  EXPECT_EQ(listener.OnComputeDone(1, 0, 0, outputs), SUCCESS);
+  EXPECT_EQ(listener.GetResultCode(), 0U);
+}
+
+TEST_F(UtestGraphRunTest, GraphModelListener_ResetResult) {
+  GraphModelListener listener;
+  std::vector<gert::Tensor> outputs;
+  EXPECT_EQ(listener.OnComputeDone(1, 0, 42, outputs), SUCCESS);
+  EXPECT_EQ(listener.GetResultCode(), 42U);
+  EXPECT_EQ(listener.ResetResult(), SUCCESS);
+}
+
+TEST_F(UtestGraphRunTest, SubGraphInfo_SetGet) {
+  SubGraphInfo info;
+  info.SetEngineName("test_engine");
+  EXPECT_EQ(info.GetEngineName(), "test_engine");
+  info.SetStreamLabel("stream_1");
+  EXPECT_EQ(info.GetStreamLabel(), "stream_1");
+  info.SetUserStreamLabel("user_stream_1");
+  EXPECT_EQ(info.GetUserStreamLabel(), "user_stream_1");
+  info.SetOutputContext("output_ctx");
+}
+
+TEST_F(UtestGraphRunTest, GraphNode_ParseFrozenInputIndex_Empty) {
+  GraphNodePtr graph_node = std::make_shared<GraphNode>(1);
+  EXPECT_EQ(graph_node->ParseFrozenInputIndex(), SUCCESS);
+}

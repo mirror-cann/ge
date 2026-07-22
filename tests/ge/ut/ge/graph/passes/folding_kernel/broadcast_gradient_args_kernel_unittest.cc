@@ -291,3 +291,56 @@ TEST_F(UtestBroadcastGradientArgsKernel, GenerateBcastInfoFail) {
   status = kernel->Compute(nullptr, input, outputs);
   EXPECT_EQ(ge::PARAM_INVALID, status);
 }
+
+TEST_F(UtestBroadcastGradientArgsKernel, OutputDescSizeMismatch) {
+  OpDescPtr op_desc_ptr = std::make_shared<OpDesc>("BroadcastGradientArgs", BROADCASTGRADIENTARGS);
+  vector<bool> is_input_const_vec = {true, true};
+  op_desc_ptr->SetIsInputConst(is_input_const_vec);
+  AttrUtils::SetInt(op_desc_ptr, ATTR_NAME_T, (int64_t)DT_INT32);
+
+  vector<int64_t> dims_vec_0 = {4};
+  vector<int64_t> data_vec_0 = {2, 1, 5, 3};
+  GeTensorDesc tensor_desc_0(GeShape(dims_vec_0), FORMAT_NCHW, DT_INT32);
+  ConstGeTensorPtr tensor_0 =
+      std::make_shared<GeTensor>(tensor_desc_0, (uint8_t *)data_vec_0.data(), data_vec_0.size() * sizeof(int64_t));
+  op_desc_ptr->AddInputDesc(tensor_desc_0);
+
+  vector<int64_t> dims_vec_1 = {3};
+  vector<int64_t> data_vec_1 = {4, 5, 1};
+  GeTensorDesc tensor_desc_1(GeShape(dims_vec_1), FORMAT_NCHW, DT_INT32);
+  ConstGeTensorPtr tensor_1 =
+      std::make_shared<GeTensor>(tensor_desc_1, (uint8_t *)data_vec_1.data(), data_vec_1.size() * sizeof(int64_t));
+  op_desc_ptr->AddInputDesc(tensor_desc_1);
+  op_desc_ptr->AddOutputDesc(GeTensorDesc());
+
+  vector<ConstGeTensorPtr> input = {tensor_0, tensor_1};
+  vector<GeTensorPtr> outputs;
+
+  shared_ptr<ge::Kernel> kernel = ge::KernelFactory::Instance().Create(BROADCASTGRADIENTARGS);
+  Status status = kernel->Compute(op_desc_ptr, input, outputs);
+  EXPECT_EQ(ge::NOT_CHANGED, status);
+}
+
+TEST_F(UtestBroadcastGradientArgsKernel, InputSizeMismatch) {
+  OpDescPtr op_desc_ptr = std::make_shared<OpDesc>("BroadcastGradientArgs", BROADCASTGRADIENTARGS);
+  vector<bool> is_input_const_vec = {true, true};
+  op_desc_ptr->SetIsInputConst(is_input_const_vec);
+  AttrUtils::SetInt(op_desc_ptr, ATTR_NAME_T, (int64_t)DT_INT32);
+
+  vector<int64_t> dims_vec_0 = {4};
+  vector<int64_t> data_vec_0 = {2, 1, 5, 3};
+  GeTensorDesc tensor_desc_0(GeShape(dims_vec_0), FORMAT_NCHW, DT_INT32);
+  ConstGeTensorPtr tensor_0 =
+      std::make_shared<GeTensor>(tensor_desc_0, (uint8_t *)data_vec_0.data(), data_vec_0.size() * sizeof(int64_t));
+  op_desc_ptr->AddInputDesc(tensor_desc_0);
+  op_desc_ptr->AddInputDesc(tensor_desc_0);
+  op_desc_ptr->AddOutputDesc(GeTensorDesc());
+  op_desc_ptr->AddOutputDesc(GeTensorDesc());
+
+  vector<ConstGeTensorPtr> input = {tensor_0};
+  vector<GeTensorPtr> outputs;
+
+  shared_ptr<ge::Kernel> kernel = ge::KernelFactory::Instance().Create(BROADCASTGRADIENTARGS);
+  Status status = kernel->Compute(op_desc_ptr, input, outputs);
+  EXPECT_EQ(ge::NOT_CHANGED, status);
+}

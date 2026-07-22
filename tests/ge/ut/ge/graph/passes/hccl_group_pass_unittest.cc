@@ -185,4 +185,62 @@ TEST_F(UtestHcclGroupPass, node_is_null) {
   EXPECT_EQ(ret, PARAM_INVALID);
 }
 
+TEST_F(UtestHcclGroupPass, node_not_fused_flag_not_set) {
+  auto g = BuildGraphPass2();
+  auto data1 = g->FindNode("data1");
+  HcclGroupPass hccl_group_pass;
+  Status ret = hccl_group_pass.Run(data1);
+  EXPECT_EQ(ret, SUCCESS);
+}
+
+TEST_F(UtestHcclGroupPass, fused_node_already_has_group) {
+  auto g = BuildGraphPass1();
+  auto hcomallreduce3 = g->FindNode("hcomallreduce3");
+  HcclGroupPass hccl_group_pass;
+  Status ret = hccl_group_pass.Run(hcomallreduce3);
+  EXPECT_EQ(ret, SUCCESS);
+}
+
+TEST_F(UtestHcclGroupPass, no_switch_node_in_graph) {
+  auto builder = ut::GraphBuilder("g_no_switch");
+  auto data1 = builder.AddNode("data1", DATA, 0, 1);
+  auto hcomallreduce1 = builder.AddNode("hcomallreduce1", HCOMALLREDUCE, 1, 1);
+  auto add1 = builder.AddNode("add1", ADD, 1, 1);
+  auto output = builder.AddNode("output", NETOUTPUT, 1, 1);
+  AttrUtils::SetBool(hcomallreduce1->GetOpDesc(), "_hccl_fused_node", true);
+  builder.AddDataEdge(data1, 0, hcomallreduce1, 0);
+  builder.AddDataEdge(hcomallreduce1, 0, add1, 0);
+  builder.AddDataEdge(add1, 0, output, 0);
+  auto graph = builder.GetGraph();
+
+  HcclGroupPass hccl_group_pass;
+  Status ret = hccl_group_pass.Run(hcomallreduce1);
+  EXPECT_EQ(ret, SUCCESS);
+}
+
+TEST_F(UtestHcclGroupPass, mark_group_for_fused_node_success) {
+  auto builder = ut::GraphBuilder("g_mark");
+  auto data1 = builder.AddNode("data1", DATA, 0, 1);
+  auto hcomallreduce1 = builder.AddNode("hcomallreduce1", HCOMALLREDUCE, 1, 1);
+  auto add1 = builder.AddNode("add1", ADD, 1, 1);
+  auto cast1 = builder.AddNode("cast1", CAST, 1, 1);
+  auto output = builder.AddNode("output", NETOUTPUT, 1, 1);
+  AttrUtils::SetBool(hcomallreduce1->GetOpDesc(), "_hccl_fused_node", true);
+  builder.AddDataEdge(data1, 0, hcomallreduce1, 0);
+  builder.AddDataEdge(hcomallreduce1, 0, add1, 0);
+  builder.AddDataEdge(add1, 0, cast1, 0);
+  builder.AddDataEdge(cast1, 0, output, 0);
+  auto graph = builder.GetGraph();
+
+  HcclGroupPass hccl_group_pass;
+  Status ret = hccl_group_pass.Run(hcomallreduce1);
+  EXPECT_EQ(ret, SUCCESS);
+
+  std::string group_id;
+  EXPECT_TRUE(AttrUtils::GetStr(add1->GetOpDesc(), "_hccl_fused_group", group_id));
+  EXPECT_EQ(group_id, "hcomallreduce1");
+  EXPECT_TRUE(AttrUtils::GetStr(cast1->GetOpDesc(), "_hccl_fused_group", group_id));
+  EXPECT_EQ(group_id, "hcomallreduce1");
+}
+
 }  // namespace ge

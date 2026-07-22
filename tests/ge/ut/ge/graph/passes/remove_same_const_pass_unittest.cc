@@ -99,4 +99,64 @@ TEST_F(UtestRemoveSameConstPass, test_unknown_const) {
   ASSERT_EQ(add1->GetInDataNodes().size(), 2);
   EXPECT_NE(add1->GetInDataNodes().at(0)->GetName(), add1->GetInDataNodes().at(1)->GetName());
 }
+
+TEST_F(UtestRemoveSameConstPass, test_no_const_nodes) {
+  DEF_GRAPH(g2) {
+    CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("add1", ADD));
+    CHAIN(NODE("add1", ADD)->EDGE(0, 0)->NODE("net_output", NETOUTPUT));
+  };
+  const auto graph = ToComputeGraph(g2);
+  RemoveSameConstPass pass;
+  auto ret = pass.Run(graph);
+  EXPECT_EQ(ret, SUCCESS);
+  EXPECT_EQ(graph->GetDirectNodesSize(), 3);
+}
+
+TEST_F(UtestRemoveSameConstPass, test_different_weights) {
+  const auto graph = BuildGraph();
+  int32_t weight1[1] = {1};
+  int32_t weight2[2] = {2, 3};
+  GeTensorDesc weight_desc1(GeShape({1}), FORMAT_NHWC, DT_INT32);
+  GeTensorPtr tensor1 = std::make_shared<GeTensor>(weight_desc1, (uint8_t *)weight1, sizeof(weight1));
+  GeTensorDesc weight_desc2(GeShape({2}), FORMAT_NHWC, DT_INT32);
+  GeTensorPtr tensor2 = std::make_shared<GeTensor>(weight_desc2, (uint8_t *)weight2, sizeof(weight2));
+  const auto const1 = graph->FindNode("const1");
+  const auto const2 = graph->FindNode("const2");
+  AttrUtils::SetTensor(const1->GetOpDesc(), ATTR_NAME_WEIGHTS, tensor1);
+  AttrUtils::SetTensor(const2->GetOpDesc(), ATTR_NAME_WEIGHTS, tensor2);
+  RemoveSameConstPass pass;
+  auto ret = pass.Run(graph);
+  EXPECT_EQ(ret, SUCCESS);
+  EXPECT_EQ(graph->GetDirectNodesSize(), 7);
+}
+
+TEST_F(UtestRemoveSameConstPass, test_different_control_inputs) {
+  const auto graph = BuildGraph();
+  int32_t weight[1] = {1};
+  GeTensorDesc weight_desc(GeShape({1}), FORMAT_NHWC, DT_INT32);
+  GeTensorPtr tensor = std::make_shared<GeTensor>(weight_desc, (uint8_t *)weight, sizeof(weight));
+  for (const auto &node : graph->GetDirectNode()) {
+    if (node->GetType() == CONSTANTOP) {
+      AttrUtils::SetTensor(node->GetOpDesc(), ATTR_NAME_WEIGHTS, tensor);
+    }
+  }
+  // Add different control edges to const1 and const2
+  DEF_GRAPH(g_ctrl) {
+    CHAIN(NODE("extra_ctrl1", NOOP)->NODE("extra_target1", ADD));
+    CHAIN(NODE("extra_ctrl2", NOOP)->NODE("extra_target2", ADD));
+  };
+  const auto ctrl_graph = ToComputeGraph(g_ctrl);
+  const auto extra_ctrl1 = ctrl_graph->FindNode("extra_ctrl1");
+  const auto extra_ctrl2 = ctrl_graph->FindNode("extra_ctrl2");
+  const auto const1 = graph->FindNode("const1");
+  const auto const2 = graph->FindNode("const2");
+  // const1 and const2 already have same control from no_op, give one an extra different control
+  GraphUtils::AddEdge(extra_ctrl1->GetOutControlAnchor(), const1->GetInControlAnchor());
+  GraphUtils::AddEdge(extra_ctrl2->GetOutControlAnchor(), const2->GetInControlAnchor());
+  RemoveSameConstPass pass;
+  auto ret = pass.Run(graph);
+  EXPECT_EQ(ret, SUCCESS);
+  // Should not merge because control inputs are different
+  EXPECT_EQ(graph->GetDirectNodesSize(), 7);
+}
 }  // namespace ge

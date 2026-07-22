@@ -194,3 +194,93 @@ TEST_F(UtestGraphPassesFoldingKernelReformatKernel, MismatchDataSize) {
 
   EXPECT_EQ(NOT_CHANGED, status);
 }
+
+TEST_F(UtestGraphPassesFoldingKernelReformatKernel, ComputeSuccessWithInt32) {
+  OpDescPtr op_desc_ptr = std::make_shared<OpDesc>("ReFormat", "ReFormat");
+
+  GeTensorDesc dims_tensor_desc(GeShape({2, 2}), FORMAT_NCHW, DT_INT32);
+  op_desc_ptr->AddOutputDesc(dims_tensor_desc);
+  GeTensorDesc dims_tensor_desc_in(GeShape({2, 2}), FORMAT_ND, DT_INT32);
+  op_desc_ptr->AddInputDesc(dims_tensor_desc_in);
+
+  vector<int64_t> dims_vec_0 = {2, 2};
+  vector<int32_t> data_vec_0 = {1, 2, 3, 4};
+  GeTensorDesc tensor_desc_0(GeShape(dims_vec_0), FORMAT_NCHW, DT_INT32);
+  ConstGeTensorPtr tensor_0 =
+      std::make_shared<GeTensor>(tensor_desc_0, (uint8_t *)data_vec_0.data(), data_vec_0.size() * sizeof(int32_t));
+
+  vector<ConstGeTensorPtr> input = {tensor_0};
+  vector<GeTensorPtr> outputs;
+
+  shared_ptr<Kernel> kernel = KernelFactory::Instance().Create(REFORMAT);
+  ge::Status status = kernel->Compute(op_desc_ptr, input, outputs);
+
+  EXPECT_EQ(ge::SUCCESS, status);
+  EXPECT_EQ(outputs.size(), 1);
+  EXPECT_EQ(outputs[0]->GetData().size(), data_vec_0.size() * sizeof(int32_t));
+}
+
+TEST_F(UtestGraphPassesFoldingKernelReformatKernel, InputFirstIsNullptr) {
+  OpDescPtr op_desc_ptr = std::make_shared<OpDesc>("ReFormat", "ReFormat");
+
+  GeTensorDesc dims_tensor_desc(GeShape({1, 1, 1, 1}), FORMAT_NCHW, DT_FLOAT);
+  op_desc_ptr->AddOutputDesc(dims_tensor_desc);
+  GeTensorDesc dims_tensor_desc_in(GeShape({1, 1, 1, 1}), FORMAT_ND, DT_FLOAT);
+  op_desc_ptr->AddInputDesc(dims_tensor_desc_in);
+
+  vector<ConstGeTensorPtr> input = {nullptr};
+  vector<GeTensorPtr> outputs;
+
+  shared_ptr<Kernel> kernel = KernelFactory::Instance().Create(REFORMAT);
+  ge::Status status = kernel->Compute(op_desc_ptr, input, outputs);
+
+  EXPECT_EQ(ge::NOT_CHANGED, status);
+}
+
+TEST_F(UtestGraphPassesFoldingKernelReformatKernel, ValidateInputTwoInputDescs) {
+  OpDescPtr op_desc_ptr = std::make_shared<OpDesc>("ReFormat", "ReFormat");
+
+  GeTensorDesc dims_tensor_desc(GeShape({1, 1, 1, 1}), FORMAT_NCHW, DT_FLOAT);
+  op_desc_ptr->AddOutputDesc(dims_tensor_desc);
+  GeTensorDesc dims_tensor_desc_in(GeShape({1, 1, 1, 1}), FORMAT_ND, DT_FLOAT);
+  op_desc_ptr->AddInputDesc(dims_tensor_desc_in);
+  op_desc_ptr->AddInputDesc(dims_tensor_desc_in);
+
+  vector<int64_t> dims_vec_0 = {1, 1, 1, 1};
+  vector<int32_t> data_vec_0 = {1, 1, 1, 1};
+  GeTensorDesc tensor_desc_0(GeShape(dims_vec_0), FORMAT_NCHW, DT_FLOAT);
+  ConstGeTensorPtr tensor_0 =
+      std::make_shared<GeTensor>(tensor_desc_0, (uint8_t *)data_vec_0.data(), 1 * sizeof(float));
+
+  vector<ConstGeTensorPtr> input = {tensor_0};
+  vector<GeTensorPtr> outputs;
+
+  shared_ptr<Kernel> kernel = KernelFactory::Instance().Create(REFORMAT);
+  ge::Status status = kernel->Compute(op_desc_ptr, input, outputs);
+
+  EXPECT_EQ(ge::PARAM_INVALID, status);
+}
+
+TEST_F(UtestGraphPassesFoldingKernelReformatKernel, ComputeSuccessScalarShape) {
+  OpDescPtr op_desc_ptr = std::make_shared<OpDesc>("ReFormat", "ReFormat");
+
+  GeTensorDesc dims_tensor_desc(GeShape(), FORMAT_NCHW, DT_FLOAT);
+  op_desc_ptr->AddOutputDesc(dims_tensor_desc);
+  GeTensorDesc dims_tensor_desc_in(GeShape(), FORMAT_ND, DT_FLOAT);
+  op_desc_ptr->AddInputDesc(dims_tensor_desc_in);
+
+  vector<int64_t> dims_vec_0 = {};
+  vector<float> data_vec_0 = {3.14f};
+  GeTensorDesc tensor_desc_0(GeShape(dims_vec_0), FORMAT_NCHW, DT_FLOAT);
+  ConstGeTensorPtr tensor_0 =
+      std::make_shared<GeTensor>(tensor_desc_0, (uint8_t *)data_vec_0.data(), data_vec_0.size() * sizeof(float));
+
+  vector<ConstGeTensorPtr> input = {tensor_0};
+  vector<GeTensorPtr> outputs;
+
+  shared_ptr<Kernel> kernel = KernelFactory::Instance().Create(REFORMAT);
+  ge::Status status = kernel->Compute(op_desc_ptr, input, outputs);
+
+  EXPECT_EQ(ge::SUCCESS, status);
+  EXPECT_EQ(outputs.size(), 1);
+}

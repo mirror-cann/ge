@@ -1201,4 +1201,67 @@ TEST_F(UTESTGraphPassesBasePass, disable_node_passes) {
   EXPECT_EQ(ge_pass.Run(names_to_pass), SUCCESS);
   EXPECT_NE(disabled_pass.GetCount(), 0);
 }
+
+TEST_F(UTESTGraphPassesBasePass, isolate_and_delete_null_node) {
+  NodePtr null_node = nullptr;
+  auto test_pass = UtestTestPass();
+  EXPECT_EQ(test_pass.IsolateAndDeleteNode(null_node, {}), FAILED);
+}
+
+TEST_F(UTESTGraphPassesBasePass, delete_useless_const_axis_node_non_const) {
+  auto graph = BuildGraph1();
+  auto data_node = graph->FindNode("data1");
+  EXPECT_NE(data_node, nullptr);
+  auto test_pass = UtestTestPass();
+  EXPECT_EQ(test_pass.DeleteUselessConstAxisNode(data_node), SUCCESS);
+}
+
+TEST_F(UTESTGraphPassesBasePass, run_with_empty_passes) {
+  auto graph = BuildGraph1();
+  auto ge_pass = GEPass(graph);
+  NamesToPass empty_passes;
+  EXPECT_EQ(ge_pass.Run(empty_passes), INTERNAL_ERROR);
+}
+
+TEST_F(UTESTGraphPassesBasePass, run_with_null_pass_in_list) {
+  auto graph = BuildGraph1();
+  auto ge_pass = GEPass(graph);
+  NamesToPass passes;
+  passes.push_back(std::make_pair("NullPass", nullptr));
+  EXPECT_EQ(ge_pass.Run(passes), INTERNAL_ERROR);
+}
+
+TEST_F(UTESTGraphPassesBasePass, delete_useless_const_axis_node_with_const) {
+  auto builder = ut::GraphBuilder("g1");
+  auto const_node = builder.AddNode("const_axis", CONSTANT, 0, 1);
+  auto add_node = builder.AddNode("add", ADD, 2, 1);
+  builder.AddDataEdge(const_node, 0, add_node, 0);
+  auto graph = builder.GetGraph();
+
+  auto test_pass = UtestTestPass();
+  EXPECT_EQ(test_pass.DeleteUselessConstAxisNode(const_node), SUCCESS);
+}
+
+class TestFilterDisabledPass : public BaseNodePass {
+ public:
+  Status Run(NodePtr &node) override {
+    return SUCCESS;
+  }
+};
+REG_PASS_OPTION("TestFilterDisabledPass").LEVELS(OoLevel::kO3);
+
+TEST_F(UTESTGraphPassesBasePass, run_with_filter_disabled_all) {
+  auto graph = BuildGraph1();
+  auto ge_pass = GEPass(graph);
+  NamesToPass passes;
+  auto test_pass = TestFilterDisabledPass();
+  passes.push_back(std::make_pair("OptimizeStage1::RemoveSameConstPass", &test_pass));
+
+  const auto origin_graph_options = GetThreadLocalContext().GetAllGraphOptions();
+  std::map<std::string, std::string> disable_optimization_option;
+  disable_optimization_option.emplace(OPTION_DISABLE_OPTIMIZATIONS, "RemoveSameConstPass");
+  GetThreadLocalContext().SetGraphOption(disable_optimization_option);
+  EXPECT_EQ(ge_pass.Run(passes, true), SUCCESS);
+  GetThreadLocalContext().SetGraphOption(origin_graph_options);
+}
 }  // namespace ge

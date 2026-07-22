@@ -288,3 +288,33 @@ TEST_F(UtestGraphPassesVariablePreparePass, add_variable_ref_for_refdata) {
   (void)ge::AttrUtils::GetStr(ref_of_refdata->GetOpDesc(), REF_VAR_SRC_VAR_NAME, src_var_name);
   EXPECT_STREQ(src_var_name.c_str(), refdata->GetName().c_str());
 }
+
+TEST_F(UtestGraphPassesVariablePreparePass, has_control_out_check) {
+  auto graph = BuildGraphVariablePreparePass();
+  VariablePrepareOpPass pass;
+  auto assign = graph->FindNode("assign");
+  ASSERT_NE(assign, nullptr);
+  EXPECT_FALSE(pass.HasControlOut(assign));
+  auto variable = graph->FindNode("variable");
+  GraphUtils::AddEdge(assign->GetOutControlAnchor(), variable->GetInControlAnchor());
+  EXPECT_TRUE(pass.HasControlOut(assign));
+}
+
+TEST_F(UtestGraphPassesVariablePreparePass, find_ref_out_index_unknown_type) {
+  VariablePrepareOpPass pass;
+  std::vector<int32_t> output_indexes;
+  std::map<std::string, std::map<int32_t, std::vector<int32_t>>> empty_map;
+  pass.FindRefOutIndex("UnknownType", 0, empty_map, output_indexes);
+  EXPECT_TRUE(output_indexes.empty());
+}
+
+TEST_F(UtestGraphPassesVariablePreparePass, check_stream_label_with_attr) {
+  auto graph = BuildGraphVariablePreparePass();
+  VariablePrepareOpPass pass;
+  auto variable = graph->FindNode("variable");
+  ASSERT_NE(variable, nullptr);
+  AttrUtils::SetStr(variable->GetOpDesc(), ATTR_NAME_STREAM_LABEL, "test_stream");
+  auto var_ref = pass.CreateVariableRef("test_var_ref", variable);
+  ASSERT_NE(var_ref, nullptr);
+  EXPECT_EQ(pass.CheckStreamLabel(var_ref, variable), SUCCESS);
+}

@@ -115,4 +115,44 @@ TEST_F(UtestEnginePlace, select_engine_when_opdesc_confilct_with_attr) {
   ASSERT_EQ(op_desc->GetOpKernelLibName(), op_kernel_name);
 }
 
+TEST_F(UtestEnginePlace, check_when_graph_is_null) {
+  EnginePlacer engine_place(nullptr);
+  EXPECT_EQ(engine_place.Check(), FAILED);
+}
+
+TEST_F(UtestEnginePlace, get_node_engine_map_default) {
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("default");
+  EnginePlacer engine_place(graph);
+  auto &engine_map = engine_place.GetNodeEngineMap(false);
+  EXPECT_TRUE(engine_map.empty());
+  auto &composite_map = engine_place.GetNodeEngineMap(true);
+  EXPECT_TRUE(composite_map.empty());
+}
+
+TEST_F(UtestEnginePlace, select_engine_when_only_kernel_attr) {
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("default");
+  auto op_desc = std::make_shared<OpDesc>("mock_op_name", "mock_op_type");
+  AttrUtils::SetStr(op_desc, ATTR_NAME_KKERNEL_LIB_NAME_FOR_LX, "kernel_only");
+  auto node_ptr = graph->AddNode(op_desc);
+
+  EnginePlacer engine_place(graph);
+  bool is_check_support_success = true;
+  std::set<std::string> exclude_engines;
+  OpInfo op_info;
+  EXPECT_EQ(engine_place.SelectEngine(node_ptr, exclude_engines, is_check_support_success, op_info), FAILED);
+}
+
+TEST_F(UtestEnginePlace, select_engine_when_only_engine_attr) {
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("default");
+  auto op_desc = std::make_shared<OpDesc>("mock_op_name", "mock_op_type");
+  AttrUtils::SetStr(op_desc, ATTR_NAME_ENGINE_NAME_FOR_LX, "engine_only");
+  auto node_ptr = graph->AddNode(op_desc);
+
+  EnginePlacer engine_place(graph);
+  bool is_check_support_success = true;
+  std::set<std::string> exclude_engines;
+  OpInfo op_info;
+  EXPECT_EQ(engine_place.SelectEngine(node_ptr, exclude_engines, is_check_support_success, op_info), FAILED);
+}
+
 }  // namespace ge

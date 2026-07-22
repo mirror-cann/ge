@@ -450,3 +450,65 @@ TEST_F(UtestGraphPassesFoldingKernelExpandDimsKernel, OpdescInvalidCauseFailure)
   Status status = kernel->Compute(null_op_desc, input, outputs);
   EXPECT_EQ(ge::PARAM_INVALID, status);
 }
+
+TEST_F(UtestGraphPassesFoldingKernelExpandDimsKernel, FoldingWrongInputSize) {
+  OpDescPtr op_desc_ptr = std::make_shared<OpDesc>("Expanddims", EXPANDDIMS);
+  GeTensorDesc data_tensor_desc(GeShape({2, 3}), FORMAT_NCHW, DT_FLOAT);
+  op_desc_ptr->AddInputDesc(data_tensor_desc);
+  op_desc_ptr->AddOutputDesc(data_tensor_desc);
+
+  vector<int64_t> dim_data = {0};
+  GeTensorDesc dim_tensor_desc(GeShape(), FORMAT_NCHW, DT_INT64);
+  GeTensorPtr dim_tensor = std::make_shared<GeTensor>(dim_tensor_desc, (uint8_t *)dim_data.data(), sizeof(int64_t));
+  vector<ConstGeTensorPtr> input = {dim_tensor};
+  vector<GeTensorPtr> outputs;
+
+  shared_ptr<Kernel> kernel = KernelFactory::Instance().Create(EXPANDDIMS);
+  Status status = kernel->Compute(op_desc_ptr, input, outputs);
+  EXPECT_EQ(ge::NOT_CHANGED, status);
+}
+
+TEST_F(UtestGraphPassesFoldingKernelExpandDimsKernel, FoldingWrongOutputCount) {
+  OpDescPtr op_desc_ptr = std::make_shared<OpDesc>("Expanddims", EXPANDDIMS);
+  GeTensorDesc data_tensor_desc(GeShape({2, 3}), FORMAT_NCHW, DT_FLOAT);
+  op_desc_ptr->AddInputDesc(data_tensor_desc);
+  op_desc_ptr->AddInputDesc(data_tensor_desc);
+  op_desc_ptr->AddOutputDesc(data_tensor_desc);
+  op_desc_ptr->AddOutputDesc(data_tensor_desc);
+
+  vector<int64_t> data_value = {1, 1, 1, 1, 1, 1};
+  GeTensorPtr data_tensor =
+      std::make_shared<GeTensor>(data_tensor_desc, (uint8_t *)data_value.data(), data_value.size() * sizeof(float));
+  vector<int64_t> dim_data = {0};
+  GeTensorDesc dim_tensor_desc(GeShape(), FORMAT_NCHW, DT_INT64);
+  GeTensorPtr dim_tensor = std::make_shared<GeTensor>(dim_tensor_desc, (uint8_t *)dim_data.data(), sizeof(int64_t));
+  vector<ConstGeTensorPtr> input = {data_tensor, dim_tensor};
+  vector<GeTensorPtr> outputs;
+
+  shared_ptr<Kernel> kernel = KernelFactory::Instance().Create(EXPANDDIMS);
+  Status status = kernel->Compute(op_desc_ptr, input, outputs);
+  EXPECT_EQ(ge::NOT_CHANGED, status);
+}
+
+TEST_F(UtestGraphPassesFoldingKernelExpandDimsKernel, FoldingSuccessWithDataCopy) {
+  OpDescPtr op_desc_ptr = std::make_shared<OpDesc>("Expanddims_success", EXPANDDIMS);
+  GeTensorDesc data_tensor_desc(GeShape({2, 3}), FORMAT_NCHW, DT_FLOAT);
+  op_desc_ptr->AddInputDesc(data_tensor_desc);
+  op_desc_ptr->AddInputDesc(GeTensorDesc(GeShape(), FORMAT_NCHW, DT_INT64));
+  op_desc_ptr->AddOutputDesc(GeTensorDesc(GeShape({1, 2, 3}), FORMAT_NCHW, DT_FLOAT));
+
+  vector<float> data_value(6, 1.0f);
+  GeTensorPtr data_tensor =
+      std::make_shared<GeTensor>(data_tensor_desc, (uint8_t *)data_value.data(), data_value.size() * sizeof(float));
+  vector<int64_t> dim_data = {0};
+  GeTensorDesc dim_tensor_desc(GeShape(), FORMAT_NCHW, DT_INT64);
+  GeTensorPtr dim_tensor = std::make_shared<GeTensor>(dim_tensor_desc, (uint8_t *)dim_data.data(), sizeof(int64_t));
+  vector<ConstGeTensorPtr> input = {data_tensor, dim_tensor};
+  vector<GeTensorPtr> outputs;
+
+  shared_ptr<Kernel> kernel = KernelFactory::Instance().Create(EXPANDDIMS);
+  Status status = kernel->Compute(op_desc_ptr, input, outputs);
+  EXPECT_EQ(ge::SUCCESS, status);
+  EXPECT_EQ(1U, outputs.size());
+  EXPECT_EQ(outputs[0]->GetData().size(), 6U * sizeof(float));
+}

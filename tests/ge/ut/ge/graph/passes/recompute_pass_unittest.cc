@@ -344,4 +344,38 @@ TEST_F(UtestRecomputePass, test_subgraph_not_recompute) {
   subgraph->SetParentGraph(graph);
   EXPECT_EQ(recompute_pass.Run(subgraph), SUCCESS);
 }
+
+TEST_F(UtestRecomputePass, test_null_graph) {
+  RecomputePass recompute_pass;
+  ComputeGraphPtr graph = nullptr;
+  EXPECT_EQ(recompute_pass.Run(graph), PARAM_INVALID);
+}
+
+TEST_F(UtestRecomputePass, test_aoe_no_tuning_path) {
+  map<std::string, std::string> options{{RESOURCE_CONFIG_PATH, "/tmp"}, {BUILD_MODE, BUILD_MODE_TUNING}};
+  GetThreadLocalContext().SetSessionOption(options);
+  map<std::string, std::string> graph_options{{RECOMPUTE, "auto"}};
+  GetThreadLocalContext().SetGraphOption(graph_options);
+  RecomputePass recompute_pass;
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
+  GeTensorDesc scalar_tensor(GeShape(), ge::FORMAT_NCHW, ge::DT_FLOAT);
+  auto x_desc = std::make_shared<OpDesc>("x", DATA);
+  x_desc->AddOutputDesc(scalar_tensor);
+  graph->AddNode(x_desc);
+  EXPECT_EQ(recompute_pass.Run(graph), SUCCESS);
+}
+
+TEST_F(UtestRecomputePass, test_graph_with_no_recompute_nodes) {
+  map<std::string, std::string> options{{RESOURCE_CONFIG_PATH, "/tmp"}};
+  GetThreadLocalContext().SetSessionOption(options);
+  map<std::string, std::string> graph_options{{RECOMPUTE, "manual"}};
+  GetThreadLocalContext().SetGraphOption(graph_options);
+  RecomputePass recompute_pass;
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
+  GeTensorDesc scalar_tensor(GeShape(), ge::FORMAT_NCHW, ge::DT_FLOAT);
+  auto x_desc = std::make_shared<OpDesc>("x", DATA);
+  x_desc->AddOutputDesc(scalar_tensor);
+  graph->AddNode(x_desc);
+  EXPECT_EQ(recompute_pass.Run(graph), SUCCESS);
+}
 }  // namespace ge

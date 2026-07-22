@@ -247,4 +247,238 @@ TEST_F(UtestOmFileHelper, CheckModelCompatibility_IncompatibleDevice_ReturnFaile
   ge::AclRuntimeStub::Reset();
 }
 
+TEST_F(UtestOmFileHelper, CheckPartitionTableNum_invalid) {
+  EXPECT_EQ(OmFileLoadHelper::CheckPartitionTableNum(0U), false);
+  EXPECT_EQ(OmFileLoadHelper::CheckPartitionTableNum(9U), false);
+  EXPECT_EQ(OmFileLoadHelper::CheckPartitionTableNum(100U), false);
+}
+
+TEST_F(UtestOmFileHelper, GetModelPartitions_out_of_range_and_valid) {
+  OmFileLoadHelper loader;
+  loader.model_contexts_.emplace_back(OmFileContext{});
+  auto &partitions = loader.GetModelPartitions(0U);
+  EXPECT_EQ(partitions.empty(), true);
+  const auto &empty = loader.GetModelPartitions(10U);
+  EXPECT_EQ(empty.empty(), true);
+}
+
+TEST_F(UtestOmFileHelper, GetModelPartition_not_found_not_optional) {
+  OmFileLoadHelper loader;
+  loader.is_inited_ = true;
+  loader.model_contexts_.emplace_back(OmFileContext{});
+  ModelPartition partition;
+  EXPECT_EQ(loader.GetModelPartition(MODEL_DEF, partition, 0U), FAILED);
+}
+
+TEST_F(UtestOmFileHelper, LoadModelPartitionTable_data_too_small) {
+  OmFileLoadHelper loader;
+  uint8_t dummy[1] = {0};
+  size_t mem_offset = 0U;
+  EXPECT_EQ(loader.LoadModelPartitionTable(dummy, 1U, 0U, mem_offset, nullptr),
+            ACL_ERROR_GE_EXEC_MODEL_DATA_SIZE_INVALID);
+}
+
+TEST_F(UtestOmFileHelper, LoadModelPartitionTable_invalid_tiny_num) {
+  OmFileLoadHelper loader;
+  uint64_t total_size = sizeof(TinyModelPartitionTable) + sizeof(TinyModelPartitionMemInfo) + 100U;
+  std::vector<uint8_t> data(total_size, 0);
+  TinyModelPartitionTable *tiny_table = reinterpret_cast<TinyModelPartitionTable *>(data.data());
+  tiny_table->num = 100U;
+  size_t mem_offset = 0U;
+  EXPECT_EQ(loader.LoadModelPartitionTable(data.data(), total_size, 0U, mem_offset, nullptr),
+            ACL_ERROR_GE_PARAM_INVALID);
+}
+
+TEST_F(UtestOmFileHelper, LoadModelPartitionTable_model_index_mismatch) {
+  OmFileLoadHelper loader;
+  loader.model_contexts_.emplace_back(OmFileContext{});
+  uint32_t num = 1U;
+  uint32_t partition_data_size = 10U;
+  uint64_t table_size = sizeof(ModelPartitionTable) + sizeof(ModelPartitionMemInfo) * num;
+  uint64_t total_size = table_size + partition_data_size;
+  std::vector<uint8_t> data(total_size, 0);
+  ModelPartitionTable *pt = reinterpret_cast<ModelPartitionTable *>(data.data());
+  pt->num = num;
+  pt->partition[0] = {MODEL_DEF, 0U, partition_data_size};
+  ModelFileHeader header;
+  header.modeltype = MODEL_TYPE_FLOW_MODEL;
+  header.model_length = total_size;
+  size_t mem_offset = 0U;
+  EXPECT_EQ(loader.LoadModelPartitionTable(data.data(), total_size, 0U, mem_offset, &header), FAILED);
+}
+
+TEST_F(UtestOmFileHelper, LoadModelPartitionTable_partition_size_too_large) {
+  OmFileLoadHelper loader;
+  uint32_t num = 1U;
+  uint64_t table_size = sizeof(ModelPartitionTable) + sizeof(ModelPartitionMemInfo) * num;
+  uint64_t total_size = table_size + 10U;
+  std::vector<uint8_t> data(total_size, 0);
+  ModelPartitionTable *pt = reinterpret_cast<ModelPartitionTable *>(data.data());
+  pt->num = num;
+  pt->partition[0] = {MODEL_DEF, 0U, 10000U};
+  ModelFileHeader header;
+  header.modeltype = MODEL_TYPE_FLOW_MODEL;
+  header.model_length = total_size;
+  size_t mem_offset = 0U;
+  EXPECT_EQ(loader.LoadModelPartitionTable(data.data(), total_size, 0U, mem_offset, &header),
+            ACL_ERROR_GE_EXEC_MODEL_DATA_SIZE_INVALID);
+}
+
+TEST_F(UtestOmFileHelper, LoadModelPartitionTableWithNum_success_and_mismatch) {
+  uint32_t num = 1U;
+  uint32_t partition_data_size = 10U;
+  uint64_t table_size = sizeof(ModelPartitionTable) + sizeof(ModelPartitionMemInfo) * num;
+  uint64_t total_size = table_size + partition_data_size;
+  std::vector<uint8_t> data(total_size, 0);
+  ModelPartitionTable *pt = reinterpret_cast<ModelPartitionTable *>(data.data());
+  pt->num = num;
+  pt->partition[0] = {MODEL_DEF, 0U, partition_data_size};
+  ModelFileHeader header;
+  header.modeltype = MODEL_TYPE_FLOW_MODEL;
+  header.model_length = total_size;
+
+  OmFileLoadHelper loader1;
+  EXPECT_EQ(loader1.LoadModelPartitionTable(data.data(), total_size, 1U, &header), SUCCESS);
+
+  OmFileLoadHelper loader2;
+  EXPECT_EQ(loader2.LoadModelPartitionTable(data.data(), total_size + 100U, 1U, &header), FAILED);
+}
+
+TEST_F(UtestOmFileHelper, Init_tiny_model_success) {
+  uint32_t num = 1U;
+  uint32_t partition_data_size = 10U;
+  uint64_t tiny_table_size = sizeof(TinyModelPartitionTable) + sizeof(TinyModelPartitionMemInfo) * num;
+  uint64_t total_size = tiny_table_size + partition_data_size;
+  std::vector<uint8_t> data(total_size, 0);
+  TinyModelPartitionTable *tiny_table = reinterpret_cast<TinyModelPartitionTable *>(data.data());
+  tiny_table->num = num;
+  tiny_table->partition[0] = {MODEL_DEF, 0U, partition_data_size};
+
+  OmFileLoadHelper loader;
+  EXPECT_EQ(loader.Init(data.data(), static_cast<uint32_t>(total_size)), SUCCESS);
+  EXPECT_TRUE(loader.is_inited_);
+}
+
+TEST_F(UtestOmFileHelper, Init_with_model_num_success) {
+  uint32_t num = 1U;
+  uint32_t partition_data_size = 10U;
+  uint64_t table_size = sizeof(ModelPartitionTable) + sizeof(ModelPartitionMemInfo) * num;
+  uint64_t total_size = table_size + partition_data_size;
+  std::vector<uint8_t> data(total_size, 0);
+  ModelPartitionTable *pt = reinterpret_cast<ModelPartitionTable *>(data.data());
+  pt->num = num;
+  pt->partition[0] = {MODEL_DEF, 0U, partition_data_size};
+  ModelFileHeader header;
+  header.modeltype = MODEL_TYPE_FLOW_MODEL;
+  header.model_length = total_size;
+
+  OmFileLoadHelper loader;
+  EXPECT_EQ(loader.Init(data.data(), total_size, 1U, &header), SUCCESS);
+  EXPECT_TRUE(loader.is_inited_);
+}
+
+TEST_F(UtestOmFileHelper, AddPartition_index_overflow_and_size_overflow) {
+  OmFileSaveHelper saver;
+  ModelPartition partition;
+  EXPECT_EQ(saver.AddPartition(partition, 2U), FAILED);
+
+  EXPECT_EQ(saver.AddPartition(partition), SUCCESS);
+  saver.model_contexts_[0U].model_data_len_ = static_cast<uint64_t>(-1);
+  partition.size = 1U;
+  EXPECT_EQ(saver.AddPartition(partition), FAILED);
+}
+
+TEST_F(UtestOmFileHelper, AddOwnedPartition_index_overflow) {
+  OmFileSaveHelper saver;
+  std::vector<uint8_t> payload = {0x12U, 0x34U};
+  EXPECT_EQ(saver.AddOwnedPartition(ModelPartitionType::CUSTOM_OPS, std::move(payload), 2U), FAILED);
+}
+
+TEST_F(UtestOmFileHelper, SaveModel_empty_and_zero_len) {
+  OmFileSaveHelper saver1;
+  ModelBufferData model1;
+  EXPECT_EQ(saver1.SaveModel(nullptr, model1, true), FAILED);
+
+  OmFileSaveHelper saver2;
+  OmFileContext oc;
+  oc.model_data_len_ = 0U;
+  saver2.model_contexts_.push_back(oc);
+  ModelBufferData model2;
+  EXPECT_EQ(saver2.SaveModel(nullptr, model2, true), PARAM_INVALID);
+}
+
+TEST_F(UtestOmFileHelper, SaveModel_save_to_buff_success) {
+  OmFileSaveHelper saver;
+  OmFileContext oc;
+  auto buff = reinterpret_cast<uint8_t *>(malloc(12));
+  ModelPartition partition;
+  partition.type = MODEL_DEF;
+  partition.data = buff;
+  partition.size = 12U;
+  oc.partition_datas_.push_back(partition);
+  oc.model_data_len_ = 12U;
+  saver.model_contexts_.push_back(oc);
+  ModelBufferData model;
+  EXPECT_EQ(saver.SaveModel(nullptr, model, false), SUCCESS);
+  free(buff);
+}
+
+TEST_F(UtestOmFileHelper, SaveModel_save_to_file_success) {
+  OmFileSaveHelper saver;
+  OmFileContext oc;
+  auto buff = reinterpret_cast<uint8_t *>(malloc(12));
+  ModelPartition partition;
+  partition.type = MODEL_DEF;
+  partition.data = buff;
+  partition.size = 12U;
+  oc.partition_datas_.push_back(partition);
+  oc.model_data_len_ = 12U;
+  saver.model_contexts_.push_back(oc);
+  ModelBufferData model;
+  EXPECT_EQ(saver.SaveModel("./test_om_helper.om", model, true), SUCCESS);
+  free(buff);
+  system("rm -rf ./test_om_helper.om");
+}
+
+TEST_F(UtestOmFileHelper, CheckModelCompatibility_compatible) {
+  class MockAclRuntime : public ge::AclRuntimeStub {
+   public:
+    aclError aclrtCheckArchCompatibility(const char *socVersion, int32_t *canCompatible) override {
+      if (canCompatible != nullptr) {
+        *canCompatible = 1;
+      }
+      return ACL_SUCCESS;
+    }
+  };
+  ge::AclRuntimeStub::SetInstance(std::make_shared<MockAclRuntime>());
+
+  OmFileLoadHelper loader;
+  Model model("test_model", "v1");
+  (void)AttrUtils::SetStr(model, "soc_version", "Ascend910A");
+  EXPECT_EQ(loader.CheckModelCompatibility(model), SUCCESS);
+
+  ge::AclRuntimeStub::Reset();
+}
+
+TEST_F(UtestOmFileHelper, GetPartitionTable_no_args) {
+  OmFileSaveHelper saver;
+  OmFileContext oc;
+  oc.partition_datas_.push_back(ModelPartition());
+  saver.model_contexts_.push_back(oc);
+  EXPECT_NE(saver.GetPartitionTable(), nullptr);
+}
+
+TEST_F(UtestOmFileHelper, GetPartitionTable_overflow) {
+  OmFileSaveHelper saver;
+  OmFileContext oc;
+  ModelPartition p1;
+  p1.size = static_cast<uint64_t>(-1);
+  oc.partition_datas_.push_back(p1);
+  ModelPartition p2;
+  p2.size = 1U;
+  oc.partition_datas_.push_back(p2);
+  saver.model_contexts_.push_back(oc);
+  EXPECT_EQ(saver.GetPartitionTable(0U), nullptr);
+}
+
 }  // namespace ge

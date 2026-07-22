@@ -93,3 +93,103 @@ TEST_F(EsCGraphBuilderLLT, Test_AddResource) {
       std::unique_ptr<ge::Tensor>(static_cast<ge::Tensor *>(static_cast<void *>(tensor.release()))));
   EXPECT_NE(req_tensor_stored, nullptr);
 }
+
+TEST_F(EsCGraphBuilderLLT, Test_ConstructorWithName) {
+  EsCGraphBuilder builder("named_graph");
+  EXPECT_NE(builder.GetGraph(), nullptr);
+}
+
+TEST_F(EsCGraphBuilderLLT, Test_DefaultConstructor) {
+  EsCGraphBuilder builder;
+  EXPECT_NE(builder.GetGraph(), nullptr);
+}
+
+TEST_F(EsCGraphBuilderLLT, Test_GenerateNodeName) {
+  EsCGraphBuilder builder;
+  auto name1 = builder.GenerateNodeName("Add");
+  auto name2 = builder.GenerateNodeName("Add");
+  EXPECT_NE(name1.GetString(), name2.GetString());
+}
+
+TEST_F(EsCGraphBuilderLLT, Test_AppendGraphInput) {
+  EsCGraphBuilder builder;
+  auto tensor_holder = builder.AppendGraphInput(nullptr, nullptr);
+  EXPECT_NE(tensor_holder, nullptr);
+}
+
+TEST_F(EsCGraphBuilderLLT, Test_AppendGraphInput_WithName) {
+  EsCGraphBuilder builder;
+  auto tensor_holder = builder.AppendGraphInput("my_input", "Data");
+  EXPECT_NE(tensor_holder, nullptr);
+}
+
+TEST_F(EsCGraphBuilderLLT, Test_SetGraphOutput_NullTensor) {
+  EsCGraphBuilder builder;
+  auto status = builder.SetGraphOutput(nullptr, 0);
+  EXPECT_NE(status, ge::SUCCESS);
+}
+
+TEST_F(EsCGraphBuilderLLT, Test_SetGraphOutput_NegativeIndex) {
+  EsCGraphBuilder builder;
+  auto tensor_holder = builder.AppendGraphInput(nullptr, nullptr);
+  auto status = builder.SetGraphOutput(tensor_holder, -1);
+  EXPECT_NE(status, ge::SUCCESS);
+}
+
+TEST_F(EsCGraphBuilderLLT, Test_SetGraphOutput_DuplicateIndex) {
+  EsCGraphBuilder builder;
+  auto tensor_holder = builder.AppendGraphInput(nullptr, nullptr);
+  EXPECT_EQ(builder.SetGraphOutput(tensor_holder, 0), ge::SUCCESS);
+  EXPECT_NE(builder.SetGraphOutput(tensor_holder, 0), ge::SUCCESS);
+}
+
+TEST_F(EsCGraphBuilderLLT, Test_BuildGraphAndReset_Success) {
+  EsCGraphBuilder builder;
+  auto tensor_holder = builder.AppendGraphInput(nullptr, nullptr);
+  builder.SetGraphOutput(tensor_holder, 0);
+  auto graph = builder.BuildGraphAndReset();
+  EXPECT_NE(graph, nullptr);
+}
+
+TEST_F(EsCGraphBuilderLLT, Test_AddGraphInput_DuplicateIndex) {
+  EsCGraphBuilder builder;
+  int64_t dims[] = {1};
+  auto th1 = builder.AddGraphInput(0, nullptr, nullptr, static_cast<C_DataType>(ge::DT_FLOAT),
+                                   static_cast<C_Format>(ge::FORMAT_ND), dims, 1);
+  EXPECT_NE(th1, nullptr);
+  auto th2 = builder.AddGraphInput(0, nullptr, nullptr, static_cast<C_DataType>(ge::DT_FLOAT),
+                                   static_cast<C_Format>(ge::FORMAT_ND), dims, 1);
+  EXPECT_EQ(th2, nullptr);
+}
+
+TEST_F(EsCGraphBuilderLLT, Test_AddGraphInput_InvalidType) {
+  EsCGraphBuilder builder;
+  int64_t dims[] = {1};
+  auto th = builder.AddGraphInput(0, nullptr, "InvalidType", static_cast<C_DataType>(ge::DT_FLOAT),
+                                  static_cast<C_Format>(ge::FORMAT_ND), dims, 1);
+  EXPECT_EQ(th, nullptr);
+}
+
+TEST_F(EsCGraphBuilderLLT, Test_AddGraphInput_RefDataType) {
+  EsCGraphBuilder builder;
+  int64_t dims[] = {1};
+  auto th = builder.AddGraphInput(0, nullptr, "RefData", static_cast<C_DataType>(ge::DT_FLOAT),
+                                  static_cast<C_Format>(ge::FORMAT_ND), dims, 1);
+  EXPECT_NE(th, nullptr);
+}
+
+TEST_F(EsCGraphBuilderLLT, Test_AddGraphInput_AippDataType) {
+  EsCGraphBuilder builder;
+  int64_t dims[] = {1};
+  auto th = builder.AddGraphInput(0, nullptr, "AippData", static_cast<C_DataType>(ge::DT_FLOAT),
+                                  static_cast<C_Format>(ge::FORMAT_ND), dims, 1);
+  EXPECT_NE(th, nullptr);
+}
+
+TEST_F(EsCGraphBuilderLLT, Test_AddGraphInput_AnyDataType) {
+  EsCGraphBuilder builder;
+  int64_t dims[] = {1};
+  auto th = builder.AddGraphInput(0, nullptr, "AnyData", static_cast<C_DataType>(ge::DT_FLOAT),
+                                  static_cast<C_Format>(ge::FORMAT_ND), dims, 1);
+  EXPECT_NE(th, nullptr);
+}

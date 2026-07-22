@@ -213,4 +213,79 @@ TEST(UtestGraphCreateTransOp, test_check_support_not_found_type) {
   EXPECT_EQ(TransOpCreator::CheckAccuracySupported(type_not_found, is_support), GRAPH_FAILED);
   ge::GELib::GetInstance()->Finalize();
 }
+
+TEST(UtestGraphCreateTransOp, CreateTransDataOp_WithCheckAccuracy) {
+  auto op_desc = std::make_shared<OpDesc>("transdata_test", TRANSDATA);
+  GeTensorDesc input_desc(GeShape({1, 3, 224, 224}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc output_desc(GeShape({1, 14, 224, 224, 16}), FORMAT_NC1HWC0, DT_FLOAT);
+  auto result = TransOpCreator::CreateTransDataOp("td_test", input_desc, output_desc, false);
+  EXPECT_NE(result, nullptr);
+  EXPECT_EQ(result->GetType(), TRANSDATA);
+}
+
+TEST(UtestGraphCreateTransOp, CreateTransPoseDOp_Success) {
+  GeTensorDesc input_desc(GeShape({1, 3, 224, 224}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc output_desc(GeShape({1, 224, 224, 3}), FORMAT_NHWC, DT_FLOAT);
+  auto result = TransOpCreator::CreateTransPoseDOp("tp_test", input_desc, output_desc);
+  EXPECT_NE(result, nullptr);
+  EXPECT_EQ(result->GetType(), TRANSPOSED);
+}
+
+TEST(UtestGraphCreateTransOp, CreateTransPoseDOp_UnsupportedFormat) {
+  GeTensorDesc input_desc(GeShape({1, 3, 224, 224}), FORMAT_ND, DT_FLOAT);
+  GeTensorDesc output_desc(GeShape({1, 224, 224, 3}), FORMAT_ND, DT_FLOAT);
+  auto result = TransOpCreator::CreateTransPoseDOp("tp_unsupported", input_desc, output_desc);
+  EXPECT_NE(result, nullptr);
+}
+
+TEST(UtestGraphCreateTransOp, CreateCastOp_WithCheckAccuracyDisabled) {
+  GeTensorDesc input_desc(GeShape({1, 3}), FORMAT_ND, DT_FLOAT);
+  GeTensorDesc output_desc(GeShape({1, 3}), FORMAT_ND, DT_FLOAT16);
+  auto result = TransOpCreator::CreateCastOp("cast_test", input_desc, output_desc, false);
+  EXPECT_NE(result, nullptr);
+  EXPECT_EQ(result->GetType(), CAST);
+}
+
+TEST(UtestGraphCreateTransOp, CreateOtherTransOp_Success) {
+  GeTensorDesc input_desc(GeShape({1, 3}), FORMAT_ND, DT_FLOAT);
+  GeTensorDesc output_desc(GeShape({1, 3}), FORMAT_ND, DT_FLOAT);
+  auto result = TransOpCreator::CreateOtherTransOp("squeeze_test", "Squeeze", input_desc, output_desc);
+  EXPECT_NE(result, nullptr);
+  EXPECT_EQ(result->GetType(), "Squeeze");
+}
+
+TEST(UtestGraphCreateTransOp, CreateReshapeNodeToGraph_WithCache) {
+  auto compute_graph = std::make_shared<ComputeGraph>("reshape_cache_test");
+  GeTensorDesc input_desc(GeShape({1, 3}), FORMAT_ND, DT_FLOAT);
+  GeTensorDesc output_desc(GeShape({3}), FORMAT_ND, DT_FLOAT);
+  std::unordered_map<GeShape, NodePtr, GeShapeHasher> cache;
+  auto result =
+      TransOpCreator::CreateReshapeNodeToGraph(compute_graph, "reshape_cache", input_desc, output_desc, cache);
+  EXPECT_NE(result, nullptr);
+  auto result2 =
+      TransOpCreator::CreateReshapeNodeToGraph(compute_graph, "reshape_cache2", input_desc, output_desc, cache);
+  EXPECT_NE(result2, nullptr);
+}
+
+TEST(UtestGraphCreateTransOp, CheckAccuracySupported_WithEngineName) {
+  auto op_desc = std::make_shared<OpDesc>("test_op", TRANSDATA);
+  bool is_supported = false;
+  std::string unsupported_reason;
+  auto result =
+      TransOpCreator::CheckAccuracySupported(op_desc, "non_existent_engine", is_supported, unsupported_reason);
+}
+
+TEST(UtestGraphCreateTransOp, GeShapeHasher_SameShapeSameHash) {
+  GeShapeHasher hasher;
+  GeShape shape1({1, 2, 3});
+  GeShape shape2({1, 2, 3});
+  EXPECT_EQ(hasher(shape1), hasher(shape2));
+}
+
+TEST(UtestGraphCreateTransOp, GeShapeHasher_DifferentShapeDifferentHash) {
+  GeShapeHasher hasher;
+  GeShape shape1({1, 2, 3});
+  GeShape shape2({3, 2, 1});
+  EXPECT_NE(hasher(shape1), hasher(shape2));
+}
 }  // namespace ge

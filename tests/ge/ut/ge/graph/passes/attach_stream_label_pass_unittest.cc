@@ -73,4 +73,53 @@ TEST_F(UtestAttachStreamLabelPass, test_UpdateSubgraphStreamLabel_succ) {
     }
   }
 }
+
+TEST_F(UtestAttachStreamLabelPass, test_run_with_empty_graph) {
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("empty_graph");
+  AttachStreamLabelPass pass(false);
+  EXPECT_EQ(pass.Run(graph), SUCCESS);
+}
+
+TEST_F(UtestAttachStreamLabelPass, test_run_with_cmo_node) {
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("data", DATA)->NODE("add", ADD)->NODE("cmo", "Cmo")->NODE("netoutput", NETOUTPUT));
+  };
+  const auto graph = ToComputeGraph(g1);
+  AttachStreamLabelPass pass(false);
+  EXPECT_EQ(pass.Run(graph), SUCCESS);
+  auto cmo_node = graph->FindNode("cmo");
+  ASSERT_NE(cmo_node, nullptr);
+  std::string stream_label;
+  EXPECT_TRUE(AttrUtils::GetStr(cmo_node->GetOpDesc(), ATTR_NAME_STREAM_LABEL, stream_label));
+  EXPECT_EQ(stream_label, "g1_Cmo");
+}
+
+TEST_F(UtestAttachStreamLabelPass, test_run_with_stream_merge) {
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("data", DATA)->NODE("merge", STREAMMERGE)->NODE("netoutput", NETOUTPUT));
+  };
+  const auto graph = ToComputeGraph(g1);
+  AttachStreamLabelPass pass(false);
+  EXPECT_EQ(pass.Run(graph), SUCCESS);
+  auto merge_node = graph->FindNode("merge");
+  ASSERT_NE(merge_node, nullptr);
+  std::string stream_label;
+  EXPECT_TRUE(AttrUtils::GetStr(merge_node->GetOpDesc(), ATTR_NAME_STREAM_LABEL, stream_label));
+  EXPECT_EQ(stream_label, "merge");
+}
+
+TEST_F(UtestAttachStreamLabelPass, test_update_subgraph_stream_label_on_root_graph) {
+  ComputeGraphPtr root_graph = std::make_shared<ComputeGraph>("root");
+  AttachStreamLabelPass pass(true);
+  EXPECT_EQ(pass.Run(root_graph), SUCCESS);
+}
+
+TEST_F(UtestAttachStreamLabelPass, test_run_with_enter_node) {
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("data", DATA)->NODE("enter", ENTER)->NODE("netoutput", NETOUTPUT));
+  };
+  const auto graph = ToComputeGraph(g1);
+  AttachStreamLabelPass pass(false);
+  EXPECT_EQ(pass.Run(graph), SUCCESS);
+}
 }  // namespace ge

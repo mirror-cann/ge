@@ -77,3 +77,31 @@ TEST_F(UtestVarMemAssignUtil, AssignVarMemory_ForConstant_DT_STRING_SUCCESS) {
   TensorUtils::GetSize(*constant->GetOpDesc()->MutableOutputDesc(0), size_temp);
   EXPECT_EQ(size_temp, expect_mem_size);
 }
+
+TEST_F(UtestVarMemAssignUtil, AssignVarMemory_NullGraph) {
+  ASSERT_EQ(ge::VarMemAssignUtil::AssignVarMemory(nullptr), ge::FAILED);
+}
+
+TEST_F(UtestVarMemAssignUtil, AssignConstantOpMemory_NullGraph) {
+  ASSERT_EQ(ge::VarMemAssignUtil::AssignConstantOpMemory(nullptr), ge::FAILED);
+}
+
+TEST_F(UtestVarMemAssignUtil, AssignVarMemory_NoVariableNodes) {
+  auto graph = gert::ShareGraph::SimpleFileConstantGraph();
+  graph->SetSessionID(202311132100);
+  VarManager::Instance(graph->GetSessionID())->Init(0, graph->GetSessionID(), 0, 0);
+  ASSERT_EQ(ge::VarMemAssignUtil::AssignVarMemory(graph), ge::SUCCESS);
+}
+
+TEST_F(UtestVarMemAssignUtil, AssignMemory2HasRefAttrNode_NoRefNodes) {
+  auto graph = gert::ShareGraph::SimpleFileConstantGraph();
+  graph->SetSessionID(202311132102);
+  VarManager::Instance(graph->GetSessionID())->Init(0, graph->GetSessionID(), 0, 0);
+  ASSERT_EQ(ge::VarMemAssignUtil::AssignMemory2HasRefAttrNode(graph), ge::SUCCESS);
+}
+
+TEST_F(UtestVarMemAssignUtil, GetNameForVarManager_EmptySrcConstName) {
+  auto op_desc = std::make_shared<ge::OpDesc>("test_name", "Variable");
+  ge::AttrUtils::SetStr(op_desc, ge::ATTR_NAME_SRC_CONST_NAME, "");
+  ASSERT_EQ(ge::VarMemAssignUtil::GetNameForVarManager(op_desc), "test_name");
+}

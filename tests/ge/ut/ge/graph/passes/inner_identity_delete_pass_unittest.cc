@@ -300,3 +300,69 @@ TEST_F(UtestGraphPassesInnerIdentityDeletePass, NanoCannotDelete2) {
   auto identity_2 = compute_graph->FindNode("identity2");
   EXPECT_NE(identity_2, nullptr);
 }
+
+// Identity input is const, cannot delete
+TEST_F(UtestGraphPassesInnerIdentityDeletePass, InnerIdentityInputIsConst) {
+  DEF_GRAPH(g1) {
+    auto identity = OP_CFG(IDENTITY).InCnt(1).OutCnt(1).Attr("_inner_identity", true).Build("identity");
+    CHAIN(NODE("const1", CONSTANT)->NODE(identity)->NODE("relu", RELU)->NODE("netoutput", NETOUTPUT));
+  };
+  auto compute_graph = ToComputeGraph(g1);
+  InnerIdentityDeletePass pass;
+  ASSERT_EQ(pass.Run(compute_graph), SUCCESS);
+  auto identity = compute_graph->FindFirstNodeMatchType(IDENTITY);
+  EXPECT_NE(identity, nullptr);
+}
+
+// Non-inner identity node, skip
+TEST_F(UtestGraphPassesInnerIdentityDeletePass, NotInnerIdentitySkip) {
+  DEF_GRAPH(g1) {
+    auto identity = OP_CFG(IDENTITY).InCnt(1).OutCnt(1).Build("identity");
+    CHAIN(NODE("data1", DATA)->NODE(identity)->NODE("relu", RELU)->NODE("netoutput", NETOUTPUT));
+  };
+  auto compute_graph = ToComputeGraph(g1);
+  InnerIdentityDeletePass pass;
+  ASSERT_EQ(pass.Run(compute_graph), SUCCESS);
+  auto identity = compute_graph->FindFirstNodeMatchType(IDENTITY);
+  EXPECT_NE(identity, nullptr);
+}
+
+// Data(ioa) -> (ioa)identity(ioa) -> (ioa)ref, can delete
+TEST_F(UtestGraphPassesInnerIdentityDeletePass, NanoCanDelete) {
+  DEF_GRAPH(g1) {
+    auto assign = OP_CFG(ASSIGN)
+                      .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 2})
+                      .InCnt(2)
+                      .OutCnt(1)
+                      .InNames({"ref", "value"})
+                      .OutNames({"ref"})
+                      .Attr(ATTR_NAME_REFERENCE, true)
+                      .Build("assign");
+    auto identity = OP_CFG(IDENTITY)
+                        .InCnt(1)
+                        .OutCnt(1)
+                        .Attr("_inner_identity", true)
+                        .OutputAttr(0, ATTR_NAME_TENSOR_MEMORY_SCOPE, 2)
+                        .Build("identity");
+    CHAIN(NODE("data1", DATA)->NODE(identity)->NODE(assign)->NODE("net_output", NETOUTPUT));
+    CHAIN(NODE("data2", DATA)->EDGE(0, 1)->NODE(assign));
+  };
+  auto compute_graph = ToComputeGraph(g1);
+  InnerIdentityDeletePass pass;
+  ASSERT_EQ(pass.Run(compute_graph), SUCCESS);
+  auto identity = compute_graph->FindNode("identity");
+  EXPECT_EQ(identity, nullptr);
+}
+
+// Identity with no ref output and no tensor memory scope, can be deleted
+TEST_F(UtestGraphPassesInnerIdentityDeletePass, InnerIdentityNoRefOutputDelete) {
+  DEF_GRAPH(g1) {
+    auto identity = OP_CFG(IDENTITY).InCnt(1).OutCnt(1).Attr("_inner_identity", true).Build("identity");
+    CHAIN(NODE("data1", DATA)->NODE("relu1", RELU)->NODE(identity)->NODE("relu2", RELU)->NODE("netoutput", NETOUTPUT));
+  };
+  auto compute_graph = ToComputeGraph(g1);
+  InnerIdentityDeletePass pass;
+  ASSERT_EQ(pass.Run(compute_graph), SUCCESS);
+  auto identity = compute_graph->FindFirstNodeMatchType(IDENTITY);
+  EXPECT_EQ(identity, nullptr);
+}
