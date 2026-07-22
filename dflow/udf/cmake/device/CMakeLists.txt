@@ -90,7 +90,7 @@ if (ENABLE_SIGN)
     else()
         add_custom_command(OUTPUT ${RUNTIME_PACKAGE_TAR_PACK_DIR}/runtime/lib64/librs.so
             COMMAND ${CMAKE_COMMAND} -E make_directory ${RUNTIME_PACKAGE_TAR_PACK_DIR}/runtime
-            COMMAND ${HI_PYTHON} ${GE_DIR}/scripts/signtool/image_extract/ci_img_headler.py -img ${ASCEND_INSTALL_PATH}/compat/cann-hccd-compat.tar.gz -raw ${RUNTIME_PACKAGE_TAR_PACK_DIR}/cann-hccd-compat.tar.gz --rcvr
+            COMMAND ${HI_PYTHON} ${CANN_CMAKE_DIR}/scripts/signtool/image_extract/ci_img_headler.py -img ${ASCEND_INSTALL_PATH}/compat/cann-hccd-compat.tar.gz -raw ${RUNTIME_PACKAGE_TAR_PACK_DIR}/cann-hccd-compat.tar.gz --rcvr
             COMMAND tar -zxf ${RUNTIME_PACKAGE_TAR_PACK_DIR}/cann-hccd-compat.tar.gz -C ${RUNTIME_PACKAGE_TAR_PACK_DIR}/runtime/
         )
     endif()
