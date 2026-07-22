@@ -2683,3 +2683,446 @@ TEST_F(UtestGEExecutorTest, ForDump_StaticTaskSize_Set_Normal) {
   FreeModelData(&modelData);
   GeFinalize();
 }
+
+// Covers ge_executor.c lines 191-192, 200, 226-228:
+// ModelDescInfoDepthCopy dims ReSizeVector fail + GetModelDescInfo output copy fail path
+TEST_F(UtestGEExecutorTest, GeExecutorCaseModelDescInfoDepthCopy_DimsResizeFail) {
+  ExeModelBuilder modelBuilder;
+  std::vector<uint64_t> dims1 = {1, 2, 3};
+  std::vector<uint64_t> dims2 = {};
+  std::vector<std::pair<uint64_t, uint64_t>> shapeRange = {{1, 2}, {2, 5}};
+  modelBuilder
+      .AddPartition(PRE_MODEL_DESC,
+                    [](std::vector<uint8_t> &model) {
+                      ModelDesc desc = {
+                          .task_num = 1,
+                          .workspace_size = 100,
+                          .weight_size = 103,
+                          .weight_type = 0,
+                          .profile_enable = 0,
+                          .model_interrupt = 0,
+                      };
+                      std::copy_n((uint8_t *)(&desc), sizeof(ModelDesc), std::back_inserter(model));
+                    })
+      .AddInputDesc("op1", 10, FORMAT_CHWN, DT_FLOAT, dims1, dims2, shapeRange)
+      .AddOutputDesc("op2", 8, FORMAT_CHWN, DT_FLOAT, dims1, dims2, shapeRange)
+      .Build();
+
+  GeInitialize();
+  uint32_t model_id = 0;
+  ModelData model_data;
+  (void)memset_s(&model_data, sizeof(ModelData), 0, sizeof(ModelData));
+  model_data.modelData = modelBuilder.ModelData();
+  model_data.modelLen = modelBuilder.ModelLen();
+  EXPECT_CALL(RtStubMock::GetInstance(), rtNanoModelLoad(_, _)).Times(1).WillOnce(Return(RT_ERROR_NONE));
+  EXPECT_CALL(RtStubMock::GetInstance(), rtNanoModelDestroy(_)).Times(1).WillOnce(Return(RT_ERROR_NONE));
+  EXPECT_EQ(GeLoadModelFromData(&model_id, &model_data), SUCCESS);
+
+  ModelInOutInfo info;
+  (void)memset_s(&info, sizeof(ModelInOutInfo), 0, sizeof(ModelInOutInfo));
+  // mmMalloc calls: 1=input_desc resize, 2=input name, 3=input dims resize,
+  // 4=output_desc resize, 5=output name, 6=output dims resize (fail)
+  EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_))
+      .Times(AnyNumber())
+      .WillOnce(Invoke(mmMalloc_Normal_Invoke))
+      .WillOnce(Invoke(mmMalloc_Normal_Invoke))
+      .WillOnce(Invoke(mmMalloc_Normal_Invoke))
+      .WillOnce(Invoke(mmMalloc_Normal_Invoke))
+      .WillOnce(Invoke(mmMalloc_Normal_Invoke))
+      .WillOnce(Invoke(mmMalloc_Abnormal_Invoke))
+      .WillRepeatedly(Invoke(mmMalloc_Normal_Invoke));
+  EXPECT_EQ(GetModelDescInfo(model_id, &info), ACL_ERROR_GE_MEMORY_OPERATE_FAILED);
+
+  EXPECT_EQ(UnloadModel(model_id), SUCCESS);
+  GeFinalize();
+}
+
+// Covers model_executor.c lines 25-26:
+// ModelGetIoAddr realloc path when ioa_size < ioa_size && io_addr != NULL
+TEST_F(UtestGEExecutorTest, GeExecutorCaseModelExecIoAddrRealloc) {
+  ExeModelBuilder modelBuilder;
+  std::vector<uint64_t> dims1 = {1, 2, 3};
+  std::vector<uint64_t> dims2 = {};
+  std::vector<std::pair<uint64_t, uint64_t>> shapeRange = {{1, 2}, {2, 5}};
+  modelBuilder
+      .AddPartition(PRE_MODEL_DESC,
+                    [](std::vector<uint8_t> &model) {
+                      ModelDesc desc = {
+                          .task_num = 1,
+                          .workspace_size = 100,
+                          .weight_size = 103,
+                          .weight_type = 0,
+                          .profile_enable = 0,
+                          .model_interrupt = 0,
+                      };
+                      std::copy_n((uint8_t *)(&desc), sizeof(ModelDesc), std::back_inserter(model));
+                    })
+      .AddInputDesc("op1", 10, FORMAT_CHWN, DT_FLOAT, dims1, dims2, shapeRange)
+      .AddOutputDesc("op2", 8, FORMAT_CHWN, DT_FLOAT, dims1, dims2, shapeRange)
+      .Build();
+
+  GeInitialize();
+  uint32_t model_id = 0;
+  uint8_t *workspace = nullptr;
+  uint8_t *weightspace = nullptr;
+  (void)rtMalloc((void **)&workspace, sizeof(uint8_t) * 100, RT_MEMORY_DEFAULT, 0);
+  (void)rtMalloc((void **)&weightspace, sizeof(uint8_t) * 103, RT_MEMORY_DEFAULT, 0);
+  ModelData model_data;
+  (void)memset_s(&model_data, sizeof(ModelData), 0, sizeof(ModelData));
+  model_data.modelData = modelBuilder.ModelData();
+  model_data.modelLen = modelBuilder.ModelLen();
+  EXPECT_CALL(RtStubMock::GetInstance(), rtNanoModelLoad(_, _)).Times(1).WillOnce(Return(RT_ERROR_NONE));
+  EXPECT_CALL(RtStubMock::GetInstance(), rtNanoModelDestroy(_)).Times(1).WillOnce(Return(RT_ERROR_NONE));
+  EXPECT_EQ(GeLoadModelFromData(&model_id, &model_data), SUCCESS);
+
+  ExecHandleDesc execDesc;
+  execDesc.workPtr = workspace;
+  execDesc.workSize = 100;
+  InputData inputData;
+  InitVector(&inputData.blobs, sizeof(DataBuffer));
+  DataBlob inputBlob;
+  DataBuffer input;
+  uint32_t inputAddr = 0x1006;
+  input.data = (void *)(&inputAddr);
+  input.length = 50;
+  inputBlob.dataBuffer = &input;
+  EmplaceBackVector(&inputData.blobs, &inputBlob);
+  OutputData outputData;
+  InitVector(&outputData.blobs, sizeof(DataBuffer));
+  void *dummyIoAddr = nullptr;
+  aclrtMalloc(&dummyIoAddr, 64, ACL_MEM_MALLOC_HUGE_FIRST);
+  outputData.io_addr = (uint64_t *)dummyIoAddr;
+  outputData.io_addr_host = NULL;
+  outputData.ioa_size = 0;
+  DataBlob outputBlob;
+  DataBuffer output;
+  uint32_t outputAddr = 0x1008;
+  output.data = (void *)(&outputAddr);
+  output.length = 100;
+  outputBlob.dataBuffer = &output;
+  EmplaceBackVector(&outputData.blobs, &outputBlob);
+  EXPECT_CALL(RtStubMock::GetInstance(), rtStreamGetSqid(_, _)).Times(1).WillOnce(Return(RT_ERROR_NONE));
+  EXPECT_CALL(RtStubMock::GetInstance(), rtNanoModelExecute(_)).Times(1).WillOnce(Return(RT_ERROR_NONE));
+  EXPECT_EQ(ExecModel(model_id, &execDesc, true, &inputData, &outputData), SUCCESS);
+
+  EXPECT_EQ(UnloadModel(model_id), SUCCESS);
+  aclrtFree(workspace);
+  aclrtFree(weightspace);
+  DeInitVector(&inputData.blobs);
+  DeInitVector(&outputData.blobs);
+  if (outputData.io_addr != NULL) {
+    aclrtFree(outputData.io_addr);
+  }
+  if (outputData.io_addr_host != NULL) {
+    mmFree(outputData.io_addr_host);
+  }
+  outputData.ioa_size = 0;
+  GeFinalize();
+}
+
+// Covers model_loader.c lines 116-118 and model_manager.c lines 114-115:
+// AddModelDescRef fails when EmplaceSortVector returns NULL
+TEST_F(UtestGEExecutorTest, GeExecutorCaseLoadModel_EmplaceSortVectorFail) {
+  ExeModelBuilder modelBuilder;
+  modelBuilder
+      .AddPartition(PRE_MODEL_DESC,
+                    [](std::vector<uint8_t> &model) {
+                      ModelDesc desc = {
+                          .task_num = 1,
+                          .workspace_size = 100,
+                          .weight_size = 103,
+                          .weight_type = 0,
+                          .profile_enable = 0,
+                          .model_interrupt = 0,
+                      };
+                      std::copy_n((uint8_t *)(&desc), sizeof(ModelDesc), std::back_inserter(model));
+                    })
+      .Build();
+
+  GeInitialize();
+  uint32_t model_id = 0;
+  ModelData model_data;
+  (void)memset_s(&model_data, sizeof(ModelData), 0, sizeof(ModelData));
+  model_data.modelData = modelBuilder.ModelData();
+  model_data.modelLen = modelBuilder.ModelLen();
+  EXPECT_CALL(RtStubMock::GetInstance(), rtNanoModelLoad(_, _)).Times(1).WillOnce(Return(RT_ERROR_NONE));
+  EXPECT_CALL(RtStubMock::GetInstance(), rtNanoModelDestroy(_)).Times(1).WillOnce(Return(RT_ERROR_NONE));
+  // mmMalloc calls: 1=CreateModelDescRefObj (succeed), 2=EmplaceSortVector->CapacityVector (fail)
+  EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_))
+      .Times(AnyNumber())
+      .WillOnce(Invoke(mmMalloc_Normal_Invoke))
+      .WillOnce(Invoke(mmMalloc_Abnormal_Invoke))
+      .WillRepeatedly(Invoke(mmMalloc_Normal_Invoke));
+  EXPECT_EQ(GeLoadModelFromData(&model_id, &model_data), ACL_ERROR_GE_INTERNAL_ERROR);
+  GeFinalize();
+}
+
+// Covers model_parse.c line 238:
+// GetModelInOutDesc returns error when size < sizeof(uint32_t) at start
+void StubModelInOutPartitionSmallValue(std::vector<uint8_t> &model) {
+  static uint8_t stub[] = {
+      0x00, 0x00, 0x00, 0x00,  // type 0 (MODEL_INPUT_DESC)
+      0x02, 0x00, 0x00, 0x00,  // len 2
+      0x00, 0x00,              // 2 bytes of value (less than sizeof(uint32_t))
+  };
+  std::copy_n(stub, sizeof(stub), std::back_inserter(model));
+}
+
+TEST_F(UtestGEExecutorTest, ParseModelIoDescInfo_GetModelInOutDesc_SizeTooSmall) {
+  ExeModelBuilder modelBuilder;
+  modelBuilder
+      .AddPartition(PRE_MODEL_DESC,
+                    [](std::vector<uint8_t> &model) {
+                      ModelDesc desc = {
+                          .task_num = 1,
+                          .workspace_size = 100,
+                          .weight_size = 103,
+                          .weight_type = 0,
+                          .profile_enable = 0,
+                          .model_interrupt = 0,
+                      };
+                      std::copy_n((uint8_t *)(&desc), sizeof(ModelDesc), std::back_inserter(model));
+                    })
+      .AddPartition(MODEL_INOUT_INFO, [](std::vector<uint8_t> &model) { StubModelInOutPartitionSmallValue(model); })
+      .Build();
+
+  GeInitialize();
+  ModelData modelData;
+  (void)memset_s(&modelData, sizeof(ModelData), 0, sizeof(ModelData));
+  modelData.modelData = modelBuilder.ModelData();
+  modelData.modelLen = modelBuilder.ModelLen();
+  ModelInOutInfo info;
+  EXPECT_EQ(GetModelDescInfoFromMem(&modelData, &info), ACL_ERROR_GE_INTERNAL_ERROR);
+  GeFinalize();
+}
+
+// Covers model_parse.c line 248:
+// GetModelInOutDesc returns error when ResizeModelInOutTensorDesc fails (VectorSize != desc_num)
+TEST_F(UtestGEExecutorTest, ParseModelIoDescInfo_ResizeModelInOutTensorDescFail) {
+  ExeModelBuilder modelBuilder;
+  std::vector<uint64_t> dims1 = {1, 2, 3};
+  std::vector<uint64_t> dims2 = {};
+  std::vector<std::pair<uint64_t, uint64_t>> shapeRange = {};
+  modelBuilder
+      .AddPartition(PRE_MODEL_DESC,
+                    [](std::vector<uint8_t> &model) {
+                      ModelDesc desc = {
+                          .task_num = 1,
+                          .workspace_size = 100,
+                          .weight_size = 103,
+                          .weight_type = 0,
+                          .profile_enable = 0,
+                          .model_interrupt = 0,
+                      };
+                      std::copy_n((uint8_t *)(&desc), sizeof(ModelDesc), std::back_inserter(model));
+                    })
+      .AddInputDesc("op1", 10, FORMAT_CHWN, DT_FLOAT, dims1, dims2, shapeRange)
+      .Build();
+
+  GeInitialize();
+  ModelData modelData;
+  (void)memset_s(&modelData, sizeof(ModelData), 0, sizeof(ModelData));
+  modelData.modelData = modelBuilder.ModelData();
+  modelData.modelLen = modelBuilder.ModelLen();
+  ModelInOutInfo info;
+  // mmMalloc call 1: ResizeModelInOutTensorDesc -> ReSizeVector -> CapacityVector (fail)
+  EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_))
+      .Times(AnyNumber())
+      .WillOnce(Invoke(mmMalloc_Abnormal_Invoke))
+      .WillRepeatedly(Invoke(mmMalloc_Normal_Invoke));
+  EXPECT_EQ(GetModelDescInfoFromMem(&modelData, &info), ACL_ERROR_GE_DEVICE_MEMORY_OPERATE_FAILED);
+  GeFinalize();
+}
+
+// Covers model_parse.c lines 270-271:
+// GetModelInOutDesc returns error when CheckLenValid fails for tlvLen
+void StubModelInOutPartitionTlvLenExceed(std::vector<uint8_t> &model) {
+  static uint8_t stub[] = {
+      0x00,
+      0x00,
+      0x00,
+      0x00,  // type 0 (MODEL_INPUT_DESC)
+      0x24,
+      0x00,
+      0x00,
+      0x00,  // len 36 (4 + 32 = desc_num + ModelTensorDescBaseInfo)
+      0x01,
+      0x00,
+      0x00,
+      0x00,  // desc_num 1
+      // ModelTensorDescBaseInfo (32 bytes)
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,  // size
+      0x1C,
+      0x00,
+      0x00,
+      0x00,  // format
+      0x10,
+      0x00,
+      0x00,
+      0x00,  // dt
+      0x02,
+      0x00,
+      0x00,
+      0x00,  // name_len 2
+      0x00,
+      0x00,
+      0x00,
+      0x00,  // dims_len 0
+      0x00,
+      0x00,
+      0x00,
+      0x00,  // dimsV2_len 0
+      0x00,
+      0x00,
+      0x00,
+      0x00,  // shape_range_len 0
+  };
+  std::copy_n(stub, sizeof(stub), std::back_inserter(model));
+}
+
+TEST_F(UtestGEExecutorTest, ParseModelIoDescInfo_TlvLenExceed) {
+  ExeModelBuilder modelBuilder;
+  modelBuilder
+      .AddPartition(PRE_MODEL_DESC,
+                    [](std::vector<uint8_t> &model) {
+                      ModelDesc desc = {
+                          .task_num = 1,
+                          .workspace_size = 100,
+                          .weight_size = 103,
+                          .weight_type = 0,
+                          .profile_enable = 0,
+                          .model_interrupt = 0,
+                      };
+                      std::copy_n((uint8_t *)(&desc), sizeof(ModelDesc), std::back_inserter(model));
+                    })
+      .AddPartition(MODEL_INOUT_INFO, [](std::vector<uint8_t> &model) { StubModelInOutPartitionTlvLenExceed(model); })
+      .Build();
+
+  GeInitialize();
+  ModelData modelData;
+  (void)memset_s(&modelData, sizeof(ModelData), 0, sizeof(ModelData));
+  modelData.modelData = modelBuilder.ModelData();
+  modelData.modelLen = modelBuilder.ModelLen();
+  ModelInOutInfo info;
+  EXPECT_EQ(GetModelDescInfoFromMem(&modelData, &info), ACL_ERROR_GE_MEMORY_OPERATE_FAILED);
+  GeFinalize();
+}
+
+// Covers model_parse.c lines 287-288:
+// GetModelInOutDesc returns error when ReSizeVector for dims fails
+TEST_F(UtestGEExecutorTest, ParseModelIoDescInfo_DimsResizeFail) {
+  ExeModelBuilder modelBuilder;
+  std::vector<uint64_t> dims1 = {1, 2, 3};
+  std::vector<uint64_t> dims2 = {};
+  std::vector<std::pair<uint64_t, uint64_t>> shapeRange = {};
+  modelBuilder
+      .AddPartition(PRE_MODEL_DESC,
+                    [](std::vector<uint8_t> &model) {
+                      ModelDesc desc = {
+                          .task_num = 1,
+                          .workspace_size = 100,
+                          .weight_size = 103,
+                          .weight_type = 0,
+                          .profile_enable = 0,
+                          .model_interrupt = 0,
+                      };
+                      std::copy_n((uint8_t *)(&desc), sizeof(ModelDesc), std::back_inserter(model));
+                    })
+      .AddInputDesc("op1", 10, FORMAT_CHWN, DT_FLOAT, dims1, dims2, shapeRange)
+      .Build();
+
+  GeInitialize();
+  ModelData modelData;
+  (void)memset_s(&modelData, sizeof(ModelData), 0, sizeof(ModelData));
+  modelData.modelData = modelBuilder.ModelData();
+  modelData.modelLen = modelBuilder.ModelLen();
+  ModelInOutInfo info;
+  // mmMalloc calls: 1=ResizeModelInOutTensorDesc (succeed), 2=desc name (succeed), 3=dims ReSizeVector (fail)
+  EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_))
+      .Times(AnyNumber())
+      .WillOnce(Invoke(mmMalloc_Normal_Invoke))
+      .WillOnce(Invoke(mmMalloc_Normal_Invoke))
+      .WillOnce(Invoke(mmMalloc_Abnormal_Invoke))
+      .WillRepeatedly(Invoke(mmMalloc_Normal_Invoke));
+  EXPECT_EQ(GetModelDescInfoFromMem(&modelData, &info), ACL_ERROR_GE_MEMORY_OPERATE_FAILED);
+  GeFinalize();
+}
+
+// Covers model_parse.c lines 464-465:
+// ProcFifoInfo returns error when fifoNum > 0 but CheckLenValid for mem_size fails
+void StubExtendPartitionFifoNumExceedLen(std::vector<uint8_t> &model) {
+  static uint8_t stub[] = {
+      // ModelExtendHead
+      0x48,
+      0x4D,
+      0x4F,
+      0x44,  // magic "HMOD"
+      0x14,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,  // len 20
+      // TlvHead
+      0x00,
+      0x00,
+      0x00,
+      0x00,  // type 0
+      0x0C,
+      0x00,
+      0x00,
+      0x00,  // len 12
+      // ModelGlobalDataInfo (12 bytes)
+      0x10,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,  // total_size 16
+      0x02,
+      0x00,
+      0x00,
+      0x00,  // num 2
+  };
+  std::copy_n(stub, sizeof(stub), std::back_inserter(model));
+}
+
+TEST_F(UtestGEExecutorTest, GeExecutorCaseParseModelDescExtendFifoNumExceedLen) {
+  ExeModelBuilder modelBuilder;
+  modelBuilder
+      .AddPartition(PRE_MODEL_DESC,
+                    [](std::vector<uint8_t> &model) {
+                      ModelDesc desc = {
+                          .task_num = 1,
+                          .workspace_size = 100,
+                          .weight_size = 103,
+                          .weight_type = 0,
+                          .profile_enable = 0,
+                          .model_interrupt = 0,
+                      };
+                      std::copy_n((uint8_t *)(&desc), sizeof(ModelDesc), std::back_inserter(model));
+                    })
+      .AddPartition(PRE_MODEL_DESC_EXTEND,
+                    [](std::vector<uint8_t> &model) { StubExtendPartitionFifoNumExceedLen(model); })
+      .Build();
+
+  GeInitialize();
+  uint32_t model_id = 0;
+  ModelData model_data;
+  (void)memset_s(&model_data, sizeof(ModelData), 0, sizeof(ModelData));
+  model_data.modelData = modelBuilder.ModelData();
+  model_data.modelLen = modelBuilder.ModelLen();
+  EXPECT_EQ(GeLoadModelFromData(&model_id, &model_data), ACL_ERROR_GE_LOAD_MODEL);
+  GeFinalize();
+}
