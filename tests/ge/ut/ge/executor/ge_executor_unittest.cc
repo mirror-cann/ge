@@ -663,6 +663,17 @@ TEST_F(UtestGeExeWithDavModel, unload_model) {
   EXPECT_EQ(retStatus, ACL_ERROR_GE_EXEC_MODEL_ID_INVALID);
 }
 
+TEST_F(UtestGeExeWithDavModel, unload_model_with_custom_device_id) {
+  GeExecutor ge_executor;
+  Status retStatus;
+
+  const uint32_t custom_device_id = 128U;
+  model->SetDeviceId(custom_device_id);
+
+  retStatus = ge_executor.UnloadModel(model_id1);
+  EXPECT_EQ(retStatus, SUCCESS);
+}
+
 TEST_F(UtestGeExeWithDavModel, cmd_handler) {
   GeExecutor ge_executor;
   struct Command cmd;

@@ -717,25 +717,24 @@ Status GeExecutor::UnloadModel(const uint32_t model_id) {
   const auto hybrid_davinci_model = ModelManager::GetInstance().GetHybridModel(model_id);
   if (hybrid_davinci_model != nullptr) {
     const uint64_t session_id = hybrid_davinci_model->GetSessionId();
+    const uint32_t device_id = hybrid_davinci_model->GetDeviceId();
     VarManagerPool::Instance().RemoveVarManager(session_id);
     ExternalWeightManagerPool::Instance().RemoveManager(session_id);
-    SessionMemAllocator<ExpandableActiveMemoryAllocator>::Instance().RemoveAllocator(session_id,
-                                                                                     GetContext().DeviceId());
-    SessionMemAllocator<FixedBaseExpandableAllocator>::Instance().RemoveAllocator(session_id, GetContext().DeviceId());
-    SessionMemAllocator<ActiveMemoryAllocator>::Instance().RemoveAllocator(session_id, GetContext().DeviceId());
+    SessionMemAllocator<ExpandableActiveMemoryAllocator>::Instance().RemoveAllocator(session_id, device_id);
+    SessionMemAllocator<FixedBaseExpandableAllocator>::Instance().RemoveAllocator(session_id, device_id);
+    SessionMemAllocator<ActiveMemoryAllocator>::Instance().RemoveAllocator(session_id, device_id);
   } else {
     const auto davinci_model = ModelManager::GetInstance().GetModel(model_id);
     // if session is shared, cannot destroy resource here
     if ((davinci_model != nullptr) && (!ModelManager::GetInstance().IsModelSharedSession(model_id))) {
       const uint64_t session_id = davinci_model->GetSessionId();
+      const uint32_t device_id = davinci_model->GetDeviceId();
       VarManagerPool::Instance().RemoveVarManager(session_id);
       gert::RtVarManagerPool::Instance().RemoveRtVarManager(session_id);
       ExternalWeightManagerPool::Instance().RemoveManager(session_id);
-      SessionMemAllocator<ExpandableActiveMemoryAllocator>::Instance().RemoveAllocator(session_id,
-                                                                                       GetContext().DeviceId());
-      SessionMemAllocator<FixedBaseExpandableAllocator>::Instance().RemoveAllocator(session_id,
-                                                                                    GetContext().DeviceId());
-      SessionMemAllocator<ActiveMemoryAllocator>::Instance().RemoveAllocator(session_id, GetContext().DeviceId());
+      SessionMemAllocator<ExpandableActiveMemoryAllocator>::Instance().RemoveAllocator(session_id, device_id);
+      SessionMemAllocator<FixedBaseExpandableAllocator>::Instance().RemoveAllocator(session_id, device_id);
+      SessionMemAllocator<ActiveMemoryAllocator>::Instance().RemoveAllocator(session_id, device_id);
     }
   }
   ret = GraphLoader::UnloadModel(model_id);
