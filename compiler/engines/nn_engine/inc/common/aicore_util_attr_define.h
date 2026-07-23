@@ -106,6 +106,10 @@ const std::string OP_SLICE_INFO = "_op_slice_info";
 
 const std::string FUSION_OP_SLICE_INFO = "_fusion_op_slice_info";
 
+const std::string DETERMINISTIC = "_deterministic";
+
+const std::string DETERMINISTIC_LEVEL = "_deterministic_level";
+
 const char *const SINGLE_SLICE_INFO = "_op_slice_info";
 
 const char *const FUSION_SLICE_INFO = "_fusion_op_slice_info";

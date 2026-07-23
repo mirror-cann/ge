@@ -144,6 +144,8 @@ class BinaryManager {
   bool MatchStaticKeyWithOptionalInputNull(const OpBuildTaskPtr &opTask, json &binListJson,
                                            GeneralizedResult &generalizedResult) const;
   bool MatchSimplifiedKey(const OpBuildTaskPtr &opTask, std::string &jsonFilePath) const;
+  bool GenerateAndMatchSimpleKey(ge::Node *opNode, const TbeOpInfoPtr &opInfo, BinaryInfoBasePtr &binaryInfoPtr,
+                                 bool &isSuperKernel, std::string &jsonFilePath) const;
   bool ReuseBinKernelBySimpleKey(const OpBuildTaskPtr &opTask);
   bool ReuseKernelBinaryCompileRes(const OpBuildTaskPtr &opTask);
   bool FusionOpReuseOmBinary(const OpBuildTaskPtr &opTask, json &binListJson, std::string &omKeyId) const;
