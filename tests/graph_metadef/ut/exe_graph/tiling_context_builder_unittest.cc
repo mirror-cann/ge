@@ -283,9 +283,7 @@ TEST_F(TilingContextBuilderUT, BuildWithInputConstSuccess) {
   EXPECT_NE(input_tensor1, nullptr);
   EXPECT_EQ(input_tensor1->GetDataType(), ge::DT_INT32);
   EXPECT_EQ(input_tensor1->GetOriginShape().GetDim(0), 1);
-  //  强一致性计算紧急需求上库，ge暂时不能依赖metadef，已于BBIT及本地验证DT通过，后续补上
-  //  auto deterministic_level = tiling_context->GetDeterministicLevel();
-  //  EXPECT_EQ(deterministic_level, 1);
+  EXPECT_EQ(tiling_context->GetDeterministicLevel(), 1);
 
   // deprecated later
   builder.CompileInfo(const_cast<char *>(op_compile_info_json.c_str()))
@@ -554,6 +552,7 @@ TEST_F(TilingContextBuilderUT, BuildDeviceTilingContextSuccess) {
   const gert::Tensor *value_tensor = device_context->GetInputTensor(3);
   EXPECT_EQ(value_tensor, &device_tensor);
   EXPECT_EQ(value_tensor->GetTensorData().GetAddr(), reinterpret_cast<void *>(0x120000));
+  EXPECT_EQ(device_context->GetDeterministicLevel(), 1);
 
   // checkout output chains
   // tiling_data addr
@@ -579,11 +578,6 @@ TEST_F(TilingContextBuilderUT, BuildDeviceTilingContextSuccess) {
   // op type
   char *op_type = reinterpret_cast<char *>(tiling_context_holder.dev_op_type_addr_);
   EXPECT_EQ(op_type, op_desc->GetType());
-
-  // deterministic level
-  //  强一致性计算紧急需求上库，ge暂时不能依赖metadef，已于BBIT及本地验证DT通过，后续补上
-  //  auto deterministic_level = device_context->GetDeterministicLevel();
-  //  EXPECT_EQ(deterministic_level, 1);
 
   EXPECT_EQ(ret, ge::SUCCESS);
 }

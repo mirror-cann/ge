@@ -11,6 +11,7 @@
 #include "graph/compute_graph.h"
 
 #include <deque>
+#include <exception>
 #include "graph/ge_context.h"
 #include "graph/debug/ge_attr_define.h"
 #include "framework/common/debug/ge_log.h"
@@ -23,6 +24,7 @@
 #include "graph/utils/node_utils.h"
 #include "graph/utils/op_desc_utils.h"
 #include "graph/utils/constant_utils.h"
+#include "register/op_tiling/op_tiling_constants.h"
 #include "graph/utils/tensor_utils.h"
 #include "common/ge_common/string_util.h"
 #include "common/ge_common/ge_types.h"
@@ -35,6 +37,8 @@ namespace ge {
 namespace {
 const size_t OUTPUT_PARAM_SIZE = 2UL;
 const std::string kMemoryPriority = "MemoryPriority";
+constexpr const char *kDeterministicAttr = "_deterministic";
+constexpr const char *kDeterministicLevelAttr = "_deterministic_level";
 
 TopoSortingMode GetTopoSortingStrategy() {
   std::string topo_sorting_mode_str;
@@ -350,6 +354,108 @@ std::unordered_set<std::string> GetAttrStringSet(const std::vector<NodePtr> &nod
 std::unordered_set<std::string> GetUserStreamLabels(const std::vector<NodePtr> &nodes) {
   return GetAttrStringSet(nodes, public_attr::USER_STREAM_LABEL);
 }
+
+void AssembleIntAttrFuseFailReason(const NodePtr &node, const std::string &attr_key, const std::string &detail,
+                                   std::string &reason_not_support) {
+  std::stringstream failed_reason;
+  failed_reason << "Fusion is not supported because attr " << attr_key;
+  if (node != nullptr) {
+    failed_reason << " of node [" << node->GetName() << "]";
+  }
+  failed_reason << " " << detail;
+  reason_not_support += failed_reason.str();
+  GELOGI("%s", reason_not_support.c_str());
+}
+
+std::unordered_set<std::string> IntValuesToStrings(const std::unordered_set<int32_t> &values) {
+  std::unordered_set<std::string> value_strings;
+  for (const auto value : values) {
+    value_strings.emplace(std::to_string(value));
+  }
+  return value_strings;
+}
+
+bool CheckNodeAndOpDesc(const NodePtr &node, std::string &reason_not_support, OpDescPtr &op_desc) {
+  if ((node == nullptr) || (node->GetOpDesc() == nullptr)) {
+    reason_not_support += "Fusion is not supported because node or op desc is null.";
+    GELOGI("%s", reason_not_support.c_str());
+    return false;
+  }
+  op_desc = node->GetOpDesc();
+  return true;
+}
+
+bool ParseInt32AttrValue(const std::string &attr_value_str, int32_t &attr_value) {
+  try {
+    size_t pos = 0U;
+    attr_value = std::stoi(attr_value_str, &pos);
+    return pos == attr_value_str.size();
+  } catch (const std::exception &) {
+    return false;
+  }
+}
+
+bool GetExplicitIntAttrValues(const std::vector<NodePtr> &nodes, const std::string &attr_key, const int64_t lower_bound,
+                              const int64_t upper_bound, std::unordered_set<int32_t> &values,
+                              std::string &reason_not_support) {
+  for (const auto &node : nodes) {
+    OpDescPtr op_desc = nullptr;
+    if (!CheckNodeAndOpDesc(node, reason_not_support, op_desc)) {
+      return false;
+    }
+    if (!AttrUtils::HasAttr(op_desc, attr_key)) {
+      continue;
+    }
+    const std::string *const attr_value_str = AttrUtils::GetStr(op_desc, attr_key);
+    if (attr_value_str == nullptr) {
+      AssembleIntAttrFuseFailReason(node, attr_key, "is not string.", reason_not_support);
+      return false;
+    }
+    int32_t attr_value = 0;
+    const bool valid_int = ParseInt32AttrValue(*attr_value_str, attr_value);
+    if (!valid_int || (attr_value < lower_bound) || (attr_value > upper_bound)) {
+      std::stringstream detail;
+      detail << "should be in {" << lower_bound;
+      for (int64_t i = lower_bound + 1; i <= upper_bound; ++i) {
+        detail << "," << i;
+      }
+      detail << "}, but got " << *attr_value_str << ".";
+      AssembleIntAttrFuseFailReason(node, attr_key, detail.str(), reason_not_support);
+      return false;
+    }
+    values.emplace(attr_value);
+  }
+  return true;
+}
+
+graphStatus InheritExplicitIntAttrValuesToFusionOps(const std::unordered_set<int32_t> &values,
+                                                    const std::vector<OpDescPtr> &fusion_ops,
+                                                    const std::string &attr_key,
+                                                    const std::string &failed_reason_prefix) {
+  if (values.empty()) {
+    return GRAPH_SUCCESS;
+  }
+  if (values.size() > 1U) {
+    GELOGW("%s, because origin nodes have multiple %s values.", failed_reason_prefix.c_str(), attr_key.c_str());
+    return GRAPH_FAILED;
+  }
+  const int32_t expected_value = *values.begin();
+  for (const auto &op_desc : fusion_ops) {
+    if (AttrUtils::HasAttr(op_desc, attr_key)) {
+      const std::string *const fusion_value_str = AttrUtils::GetStr(op_desc, attr_key);
+      GE_WARN_ASSERT(fusion_value_str != nullptr, "%s, because fusion op attr is not string.",
+                     failed_reason_prefix.c_str());
+      int32_t fusion_value = 0;
+      GE_WARN_ASSERT(ParseInt32AttrValue(*fusion_value_str, fusion_value), "%s, because fusion op attr is invalid.",
+                     failed_reason_prefix.c_str());
+      GE_WARN_ASSERT(fusion_value == expected_value, "%s, because fusion op has different %s.",
+                     failed_reason_prefix.c_str(), attr_key.c_str());
+      continue;
+    }
+    GE_ASSERT_TRUE(AttrUtils::SetStr(op_desc, attr_key, std::to_string(expected_value)));
+  }
+  return GRAPH_SUCCESS;
+}
 /**
  * 临时方案： 通过开放public属性对用户开放流编排
  * 正式方案： 后续通过属性组方案实现，该方案将属性进行分组，改图的时候由属性组决定属性处理策略。
@@ -426,6 +532,28 @@ graphStatus InheritCoreNumFromOriginNodes(const std::vector<NodePtr> &ori_nodes,
     }
   }
   return GRAPH_SUCCESS;
+}
+
+graphStatus InheritDeterministicFromOriginNodes(const std::vector<NodePtr> &ori_nodes,
+                                                const std::vector<OpDescPtr> &fusion_ops) {
+  std::unordered_set<int32_t> deterministics;
+  std::string reason_not_support;
+  GE_WARN_ASSERT(GetExplicitIntAttrValues(ori_nodes, kDeterministicAttr, 0, optiling::kMaxDeterministic, deterministics,
+                                          reason_not_support),
+                 reason_not_support.c_str());
+  return InheritExplicitIntAttrValuesToFusionOps(deterministics, fusion_ops, kDeterministicAttr,
+                                                 "Inherit deterministic failed");
+}
+
+graphStatus InheritDeterministicLevelFromOriginNodes(const std::vector<NodePtr> &ori_nodes,
+                                                     const std::vector<OpDescPtr> &fusion_ops) {
+  std::unordered_set<int32_t> levels;
+  std::string reason_not_support;
+  GE_WARN_ASSERT(GetExplicitIntAttrValues(ori_nodes, kDeterministicLevelAttr, 0, optiling::kMaxDeterministicLevel,
+                                          levels, reason_not_support),
+                 reason_not_support.c_str());
+  return InheritExplicitIntAttrValuesToFusionOps(levels, fusion_ops, kDeterministicLevelAttr,
+                                                 "Inherit deterministic level failed");
 }
 }  // namespace
 
@@ -841,6 +969,27 @@ bool ComputeGraphImpl::IsSupportFuse(const std::vector<NodePtr> &nodes, std::str
     return false;
   }
 
+  std::unordered_set<int32_t> deterministics;
+  if (!GetExplicitIntAttrValues(nodes, kDeterministicAttr, 0, optiling::kMaxDeterministic, deterministics,
+                                reason_not_support)) {
+    return false;
+  }
+  if (deterministics.size() > 1U) {
+    AssembleFuseFailReason(nodes, IntValuesToStrings(deterministics), kDeterministicAttr, reason_not_support);
+    return false;
+  }
+
+  std::unordered_set<int32_t> deterministic_levels;
+  if (!GetExplicitIntAttrValues(nodes, kDeterministicLevelAttr, 0, optiling::kMaxDeterministicLevel,
+                                deterministic_levels, reason_not_support)) {
+    return false;
+  }
+  if (deterministic_levels.size() > 1U) {
+    AssembleFuseFailReason(nodes, IntValuesToStrings(deterministic_levels), kDeterministicLevelAttr,
+                           reason_not_support);
+    return false;
+  }
+
   return true;
 }
 
@@ -858,6 +1007,12 @@ std::vector<NodePtr> ComputeGraphImpl::FuseNodeKeepTopo(const std::vector<NodePt
     return {};
   }
   if (InheritCoreNumFromOriginNodes(ori_nodes, fusion_ops) != GRAPH_SUCCESS) {
+    return {};
+  }
+  if (InheritDeterministicFromOriginNodes(ori_nodes, fusion_ops) != GRAPH_SUCCESS) {
+    return {};
+  }
+  if (InheritDeterministicLevelFromOriginNodes(ori_nodes, fusion_ops) != GRAPH_SUCCESS) {
     return {};
   }
 

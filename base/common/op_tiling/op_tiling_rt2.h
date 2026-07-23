@@ -13,6 +13,7 @@
 
 #include "graph/operator.h"
 #include "graph/op_desc.h"
+#include "graph/compute_graph.h"
 #include "register/op_tiling_registry.h"
 #include "platform/platform_info.h"
 #include "exe_graph/runtime/kernel_context.h"
@@ -39,7 +40,11 @@ ge::graphStatus SoftSyncOpRtParseAndTiling(const ge::Operator &op, fe::PlatFormI
                                            OpRunInfoV2 &run_info, const gert::OpImplSpaceRegistryV2Ptr &space_registry);
 ge::graphStatus FftsRtParseAndTiling(const ge::Operator &op, const fe::PlatFormInfos &platform_infos,
                                      std::vector<OpRunInfoV2> &op_run_infos);
-ge::graphStatus GetDeterministicLevel(int32_t &deterministic_level);
+ge::graphStatus GetDeterministicLevel(int32_t &deterministic_level, bool &has_deterministic_level);
+ge::graphStatus GetDeterministicConfig(const ge::OpDescPtr &op_desc, int32_t &deterministic,
+                                       int32_t &deterministic_level);
+ge::graphStatus GetDeterministicConfig(const ge::OpDescPtr &op_desc, const ge::ComputeGraphPtr &root_compute_graph,
+                                       int32_t &deterministic, int32_t &deterministic_level);
 const std::string OP_TILING_PARSE_RESULT = "tiling_parse_result";
 }  // namespace optiling
 

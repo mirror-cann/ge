@@ -1693,10 +1693,10 @@ gert::KernelContextHolder BuildTilingContext(ContextComponent &context_com, gert
       reinterpret_cast<void *>(deterministic);
   int32_t deterministic_level = 0;
   (void)ge::AttrUtils::GetInt(context_com.op_desc, "deterministic_level", deterministic_level);
-  if (deterministic_level < 0 || deterministic_level > 2) {
+  if (deterministic_level < 0 || deterministic_level > kMaxDeterministicLevel) {
     std::string readable_name = ge::GEThreadLocalContext().GetReadableName("ge.deterministicLevel");
-    std::string error_msg = "Valid values for " + readable_name + " are {0,1,2}.";
-    GELOGE(ge::FAILED, "Valid values for %s are {0,1,2}, given value is %d", readable_name.c_str(),
+    std::string error_msg = "Valid values for " + readable_name + " are {0,1,2,3}.";
+    GELOGE(ge::FAILED, "Valid values for %s are {0,1,2,3}, given value is %d", readable_name.c_str(),
            deterministic_level);
     (void)REPORT_PREDEFINED_ERR_MSG(
         "E10001", std::vector<const char *>({"parameter", "value", "reason"}),

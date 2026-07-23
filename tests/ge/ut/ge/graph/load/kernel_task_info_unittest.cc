@@ -48,6 +48,8 @@ namespace {
 const std::string kAttrNameAtomicWspMode = "wspMode";
 const std::string kWspFoldedMode = "folded";
 constexpr uint32_t kUBAlignedLen = 32UL;
+int32_t expected_deterministic_level = -1;
+constexpr const char *kDeterministicLevelAttr = "_deterministic_level";
 
 HcclResult InitializeHeterogeneousRuntime(const std::string &group, void *tilingData, void *ccuTaskGroup) {
   return HCCL_SUCCESS;
@@ -60,6 +62,7 @@ class UtestKernelTaskInfo : public testing::Test {
   }
 
   void TearDown() {
+    expected_deterministic_level = -1;
     RTS_STUB_TEARDOWN();
   }
 };
@@ -1889,6 +1892,9 @@ UINT32 StubTiling(gert::TilingContext *context) {
   context->SetNeedAtomic(false);
   context->SetTilingKey(666U);
   context->SetBlockDim(666U);
+  if (expected_deterministic_level >= 0) {
+    EXPECT_EQ(context->GetDeterministicLevel(), expected_deterministic_level);
+  }
   size_t *workspace_size = context->GetWorkspaceSizes(1);
   *workspace_size = 64U;
   return ge::GRAPH_SUCCESS;
@@ -4179,6 +4185,8 @@ TEST_F(UtestKernelTaskInfo, ifa_with_args_format_graph_load_and_success) {
   EXPECT_NE(ifa_node, nullptr);
 
   const auto op_desc = ifa_node->GetOpDescBarePtr();
+  EXPECT_TRUE(AttrUtils::SetStr(op_desc, kDeterministicLevelAttr, "3"));
+  expected_deterministic_level = 3;
   GeShape shape({4, 4, 4, 4});
   GeTensorDesc desc(shape);
   GeShape scalar_shape;
@@ -5012,6 +5020,8 @@ TEST_F(UtestKernelTaskInfo, ifa_with_tiling_sink_graph_load_and_success) {
   EXPECT_NE(ifa_node, nullptr);
 
   const auto op_desc = ifa_node->GetOpDescBarePtr();
+  EXPECT_TRUE(AttrUtils::SetStr(op_desc, kDeterministicLevelAttr, "3"));
+  expected_deterministic_level = 3;
   GeShape shape({4, 4, 4, 4});
   GeTensorDesc desc(shape);
   GeShape scalar_shape;

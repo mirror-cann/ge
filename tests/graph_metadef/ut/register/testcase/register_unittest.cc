@@ -69,6 +69,8 @@ void to_json(nlohmann::json &j, const HcomTopoInfo::TopoInfo &info);
 void from_json(const nlohmann::json &j, HcomTopoInfo::TopoInfo &info);
 }  // namespace ge
 namespace {
+int32_t expected_py_deterministic_level = -1;
+
 REG_OP(AddUt)
     .INPUT(x1, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT32}))
     .INPUT(x2, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT32}))
@@ -281,8 +283,9 @@ UINT32 OpTilingStubV6(gert::TilingContext *kernel_context) {
     EXPECT_EQ((tensor->GetData<uint16_t>())[i], optiling::Float32ToFloat16(real_data[i]));
   }
   //  强一致性计算紧急需求上库，ge暂时不能依赖metadef，已于BBIT及本地验证DT通过，后续补上
-  //  auto deterministic_level = kernel_context->GetDeterministicLevel();
-  //  EXPECT_EQ(deterministic_level, 0);
+  if (expected_py_deterministic_level >= 0) {
+    EXPECT_EQ(kernel_context->GetDeterministicLevel(), expected_py_deterministic_level);
+  }
   return ge::GRAPH_SUCCESS;
 }
 
@@ -325,6 +328,7 @@ class UtestRegister : public testing::Test {
   void SetUp() {}
 
   void TearDown() {
+    expected_py_deterministic_level = -1;
     (void)error_message::GetErrMgrErrorMessage();
   }
 };
@@ -1365,6 +1369,83 @@ TEST_F(UtestRegister, new_optiling_py_interface_ok_with_sub_format) {
                                              attrs.dump().c_str(), const_cast<char *>(runinfo.c_str()), size, elapse,
                                              extra_infos.dump().c_str())),
             "{\"ret_code\":0}");
+  gert::DefaultOpImplSpaceRegistryV2::GetInstance().SetSpaceRegistry(nullptr);
+}
+
+TEST_F(UtestRegister, new_optiling_py_interface_ok_with_deterministic_level) {
+  const nlohmann::json input = R"([
+{"name": "t0", "dtype": "float16","const_value": [1.1,2.1,3.1,4.1] ,"shape": [4,4,4,4], "ori_shape":[4,4,4,4],"format": "FRACTAL_Z", "sub_format" :32},
+{"dtype": "int8", "shape": [4,4,4,4], "ori_shape":[4,4,4,4],"format": "ND"}
+])"_json;
+  std::string input_str = input.dump();
+  const nlohmann::json output = R"([
+{"name": "y_0","dtype": "int8","shape": [9,9,9,9],"ori_shape" :[9,9,9,9],"format": "ND","ori_format":"ND"}])"_json;
+  std::string output_str = output.dump();
+  const char *op_type = "TestReluV2";
+  const char *cmp_info = "";
+  std::string runinfo(161, 'a');
+  size_t size = 161;
+  const char *cmp_info_hash = "";
+  uint64_t *elapse = nullptr;
+  const nlohmann::json attrs = R"([
+{ "name": "op_para_size", "dtype": "int", "value": 50}])"_json;
+  const nlohmann::json extra_infos = R"([
+{ "deterministic": 1, "deterministic_level": 3}])"_json;
+
+  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
+  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+  ASSERT_NE(space_registry, nullptr);
+  auto op_impl_func = space_registry->CreateOrGetOpImpl(op_type);
+  op_impl_func->tiling = OpTilingStubV6;
+  op_impl_func->tiling_parse = OpTilingParseStubV5;
+  op_impl_func->compile_info_creator = CreateCompileInfo;
+  op_impl_func->compile_info_deleter = DeleteCompileInfo;
+  op_impl_func->max_tiling_data_size = 50;
+
+  expected_py_deterministic_level = 3;
+  EXPECT_EQ(std::string(DoOpTilingForCompile(op_type, cmp_info, cmp_info_hash, input_str.c_str(), output_str.c_str(),
+                                             attrs.dump().c_str(), const_cast<char *>(runinfo.c_str()), size, elapse,
+                                             extra_infos.dump().c_str())),
+            "{\"ret_code\":0}");
+  gert::DefaultOpImplSpaceRegistryV2::GetInstance().SetSpaceRegistry(nullptr);
+}
+
+TEST_F(UtestRegister, new_optiling_py_interface_failed_when_deterministic_level_invalid) {
+  const nlohmann::json input = R"([
+{"name": "t0", "dtype": "float16","const_value": [1.1,2.1,3.1,4.1] ,"shape": [4,4,4,4], "ori_shape":[4,4,4,4],"format": "FRACTAL_Z", "sub_format" :32},
+{"dtype": "int8", "shape": [4,4,4,4], "ori_shape":[4,4,4,4],"format": "ND"}
+])"_json;
+  std::string input_str = input.dump();
+  const nlohmann::json output = R"([
+{"name": "y_0","dtype": "int8","shape": [9,9,9,9],"ori_shape" :[9,9,9,9],"format": "ND","ori_format":"ND"}])"_json;
+  std::string output_str = output.dump();
+  const char *op_type = "TestReluV2";
+  const char *cmp_info = "";
+  std::string runinfo(161, 'a');
+  size_t size = 161;
+  const char *cmp_info_hash = "";
+  uint64_t *elapse = nullptr;
+  const nlohmann::json attrs = R"([
+{ "name": "op_para_size", "dtype": "int", "value": 50}])"_json;
+
+  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
+  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+  ASSERT_NE(space_registry, nullptr);
+  auto op_impl_func = space_registry->CreateOrGetOpImpl(op_type);
+  op_impl_func->tiling = OpTilingStubV6;
+  op_impl_func->tiling_parse = OpTilingParseStubV5;
+  op_impl_func->compile_info_creator = CreateCompileInfo;
+  op_impl_func->compile_info_deleter = DeleteCompileInfo;
+  op_impl_func->max_tiling_data_size = 50;
+
+  for (const auto level : {-1, 4}) {
+    const nlohmann::json extra_infos = nlohmann::json::array({{{"deterministic_level", level}}});
+    const auto ret_json_str = std::string(DoOpTilingForCompile(
+        op_type, cmp_info, cmp_info_hash, input_str.c_str(), output_str.c_str(), attrs.dump().c_str(),
+        const_cast<char *>(runinfo.c_str()), size, elapse, extra_infos.dump().c_str()));
+    const auto ret_json = nlohmann::json::parse(ret_json_str);
+    EXPECT_EQ(ret_json.at("ret_code"), 1);
+  }
   gert::DefaultOpImplSpaceRegistryV2::GetInstance().SetSpaceRegistry(nullptr);
 }
 

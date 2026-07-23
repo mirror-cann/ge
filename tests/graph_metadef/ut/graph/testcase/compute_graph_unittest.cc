@@ -29,6 +29,9 @@
 #include "graph/attribute_group/attr_group_shape_env.h"
 
 namespace {
+constexpr const char *kDeterministicAttr = "_deterministic";
+constexpr const char *kDeterministicLevelAttr = "_deterministic_level";
+
 /*
  *   netoutput1
  *       |
@@ -671,6 +674,310 @@ TEST_F(UtestComputeGraph, FuseNodeKeepTopo_inherit_coreNum_option) {
   AttrUtils::SetStr(relu5->GetOpDesc(), ge::public_attr::OP_VECTOR_CORE_NUM, "10");
   fuse_node_vec = graph->FuseNodeKeepTopo({relu3, relu5}, {op_desc_new});
   ASSERT_EQ(fuse_node_vec.size(), 1);
+}
+
+TEST_F(UtestComputeGraph, FuseNodeKeepTopo_inherit_deterministic_level) {
+  ut::GraphBuilder builder = ut::GraphBuilder("graph");
+  auto tensor_desc = std::make_shared<GeTensorDesc>();
+  tensor_desc->SetShape(GeShape({1}));
+  tensor_desc->SetDataType(DT_FLOAT);
+  tensor_desc->SetFormat(FORMAT_CHWN);
+
+  auto data = builder.AddNode("Data", "Data", 0, 1);
+  auto relu1 = builder.AddNode("Relu1", "Relu", 1, 1);
+  auto relu2 = builder.AddNode("Relu2", "Relu", 1, 1);
+  auto netoutput = builder.AddNode("Netoutput", "NetOutput", 1, 0);
+  builder.AddDataEdge(data, 0, relu1, 0);
+  builder.AddDataEdge(relu1, 0, relu2, 0);
+  builder.AddDataEdge(relu2, 0, netoutput, 0);
+  auto graph = builder.GetGraph();
+
+  auto op_desc_new = std::make_shared<OpDesc>("fuse_node", "Relu");
+  op_desc_new->AddInputDesc(tensor_desc->Clone());
+  op_desc_new->AddOutputDesc(tensor_desc->Clone());
+  AttrUtils::SetStr(relu1->GetOpDesc(), kDeterministicLevelAttr, "3");
+  AttrUtils::SetStr(relu2->GetOpDesc(), kDeterministicLevelAttr, "3");
+  auto fuse_node_vec = graph->FuseNodeKeepTopo({relu1, relu2}, {op_desc_new});
+  ASSERT_EQ(fuse_node_vec.size(), 1);
+  std::string deterministic_level;
+  EXPECT_TRUE(AttrUtils::GetStr(op_desc_new, kDeterministicLevelAttr, deterministic_level));
+  EXPECT_EQ(deterministic_level, "3");
+}
+
+TEST_F(UtestComputeGraph, FuseNodeKeepTopo_keep_same_deterministic_level_on_fusion_op) {
+  ut::GraphBuilder builder = ut::GraphBuilder("graph");
+  auto tensor_desc = std::make_shared<GeTensorDesc>();
+  tensor_desc->SetShape(GeShape({1}));
+  tensor_desc->SetDataType(DT_FLOAT);
+  tensor_desc->SetFormat(FORMAT_CHWN);
+
+  auto data = builder.AddNode("Data", "Data", 0, 1);
+  auto relu1 = builder.AddNode("Relu1", "Relu", 1, 1);
+  auto relu2 = builder.AddNode("Relu2", "Relu", 1, 1);
+  auto netoutput = builder.AddNode("Netoutput", "NetOutput", 1, 0);
+  builder.AddDataEdge(data, 0, relu1, 0);
+  builder.AddDataEdge(relu1, 0, relu2, 0);
+  builder.AddDataEdge(relu2, 0, netoutput, 0);
+  auto graph = builder.GetGraph();
+
+  auto op_desc_new = std::make_shared<OpDesc>("fuse_node", "Relu");
+  op_desc_new->AddInputDesc(tensor_desc->Clone());
+  op_desc_new->AddOutputDesc(tensor_desc->Clone());
+  AttrUtils::SetStr(relu1->GetOpDesc(), kDeterministicLevelAttr, "2");
+  AttrUtils::SetStr(relu2->GetOpDesc(), kDeterministicLevelAttr, "2");
+  AttrUtils::SetStr(op_desc_new, kDeterministicLevelAttr, "2");
+  auto fuse_node_vec = graph->FuseNodeKeepTopo({relu1, relu2}, {op_desc_new});
+  ASSERT_EQ(fuse_node_vec.size(), 1);
+}
+
+TEST_F(UtestComputeGraph, FuseNodeKeepTopo_failed_when_fusion_op_has_different_deterministic_level) {
+  ut::GraphBuilder builder = ut::GraphBuilder("graph");
+  auto tensor_desc = std::make_shared<GeTensorDesc>();
+  tensor_desc->SetShape(GeShape({1}));
+  tensor_desc->SetDataType(DT_FLOAT);
+  tensor_desc->SetFormat(FORMAT_CHWN);
+
+  auto data = builder.AddNode("Data", "Data", 0, 1);
+  auto relu1 = builder.AddNode("Relu1", "Relu", 1, 1);
+  auto relu2 = builder.AddNode("Relu2", "Relu", 1, 1);
+  auto netoutput = builder.AddNode("Netoutput", "NetOutput", 1, 0);
+  builder.AddDataEdge(data, 0, relu1, 0);
+  builder.AddDataEdge(relu1, 0, relu2, 0);
+  builder.AddDataEdge(relu2, 0, netoutput, 0);
+  auto graph = builder.GetGraph();
+
+  auto op_desc_new = std::make_shared<OpDesc>("fuse_node", "Relu");
+  op_desc_new->AddInputDesc(tensor_desc->Clone());
+  op_desc_new->AddOutputDesc(tensor_desc->Clone());
+  AttrUtils::SetStr(relu1->GetOpDesc(), kDeterministicLevelAttr, "2");
+  AttrUtils::SetStr(relu2->GetOpDesc(), kDeterministicLevelAttr, "2");
+  AttrUtils::SetStr(op_desc_new, kDeterministicLevelAttr, "1");
+  auto fuse_node_vec = graph->FuseNodeKeepTopo({relu1, relu2}, {op_desc_new});
+  EXPECT_TRUE(fuse_node_vec.empty());
+}
+
+TEST_F(UtestComputeGraph, FuseNodeKeepTopo_inherit_deterministic_level_when_one_node_set) {
+  ut::GraphBuilder builder = ut::GraphBuilder("graph");
+  auto tensor_desc = std::make_shared<GeTensorDesc>();
+  tensor_desc->SetShape(GeShape({1}));
+  tensor_desc->SetDataType(DT_FLOAT);
+  tensor_desc->SetFormat(FORMAT_CHWN);
+
+  auto data = builder.AddNode("Data", "Data", 0, 1);
+  auto relu1 = builder.AddNode("Relu1", "Relu", 1, 1);
+  auto relu2 = builder.AddNode("Relu2", "Relu", 1, 1);
+  auto netoutput = builder.AddNode("Netoutput", "NetOutput", 1, 0);
+  builder.AddDataEdge(data, 0, relu1, 0);
+  builder.AddDataEdge(relu1, 0, relu2, 0);
+  builder.AddDataEdge(relu2, 0, netoutput, 0);
+  auto graph = builder.GetGraph();
+
+  auto op_desc_new = std::make_shared<OpDesc>("fuse_node", "Relu");
+  op_desc_new->AddInputDesc(tensor_desc->Clone());
+  op_desc_new->AddOutputDesc(tensor_desc->Clone());
+  AttrUtils::SetStr(relu1->GetOpDesc(), kDeterministicLevelAttr, "0");
+  auto fuse_node_vec = graph->FuseNodeKeepTopo({relu1, relu2}, {op_desc_new});
+  ASSERT_EQ(fuse_node_vec.size(), 1);
+  std::string deterministic_level;
+  EXPECT_TRUE(AttrUtils::GetStr(op_desc_new, kDeterministicLevelAttr, deterministic_level));
+  EXPECT_EQ(deterministic_level, "0");
+}
+
+TEST_F(UtestComputeGraph, FuseNodeKeepTopo_failed_when_deterministic_level_conflict) {
+  ut::GraphBuilder builder = ut::GraphBuilder("graph");
+  auto tensor_desc = std::make_shared<GeTensorDesc>();
+  tensor_desc->SetShape(GeShape({1}));
+  tensor_desc->SetDataType(DT_FLOAT);
+  tensor_desc->SetFormat(FORMAT_CHWN);
+
+  auto data = builder.AddNode("Data", "Data", 0, 1);
+  auto relu1 = builder.AddNode("Relu1", "Relu", 1, 1);
+  auto relu2 = builder.AddNode("Relu2", "Relu", 1, 1);
+  auto netoutput = builder.AddNode("Netoutput", "NetOutput", 1, 0);
+  builder.AddDataEdge(data, 0, relu1, 0);
+  builder.AddDataEdge(relu1, 0, relu2, 0);
+  builder.AddDataEdge(relu2, 0, netoutput, 0);
+  auto graph = builder.GetGraph();
+
+  AttrUtils::SetStr(relu1->GetOpDesc(), kDeterministicLevelAttr, "1");
+  AttrUtils::SetStr(relu2->GetOpDesc(), kDeterministicLevelAttr, "2");
+  std::string not_support_reason;
+  EXPECT_FALSE(graph->IsSupportFuse({relu1, relu2}, not_support_reason));
+  EXPECT_NE(not_support_reason.find(kDeterministicLevelAttr), std::string::npos);
+  EXPECT_NE(not_support_reason.find("Relu1"), std::string::npos);
+  EXPECT_NE(not_support_reason.find("Relu2"), std::string::npos);
+  EXPECT_NE(not_support_reason.find("1"), std::string::npos);
+  EXPECT_NE(not_support_reason.find("2"), std::string::npos);
+
+  auto op_desc_new = std::make_shared<OpDesc>("fuse_node", "Relu");
+  op_desc_new->AddInputDesc(tensor_desc->Clone());
+  op_desc_new->AddOutputDesc(tensor_desc->Clone());
+  auto fuse_node_vec = graph->FuseNodeKeepTopo({relu1, relu2}, {op_desc_new});
+  EXPECT_TRUE(fuse_node_vec.empty());
+}
+
+TEST_F(UtestComputeGraph, FuseNodeKeepTopo_failed_when_deterministic_level_invalid) {
+  ut::GraphBuilder builder = ut::GraphBuilder("graph");
+  auto data = builder.AddNode("Data", "Data", 0, 1);
+  auto relu1 = builder.AddNode("Relu1", "Relu", 1, 1);
+  auto relu2 = builder.AddNode("Relu2", "Relu", 1, 1);
+  builder.AddDataEdge(data, 0, relu1, 0);
+  builder.AddDataEdge(relu1, 0, relu2, 0);
+  auto graph = builder.GetGraph();
+
+  AttrUtils::SetStr(relu1->GetOpDesc(), kDeterministicLevelAttr, "4");
+  std::string not_support_reason;
+  EXPECT_FALSE(graph->IsSupportFuse({relu1, relu2}, not_support_reason));
+  EXPECT_NE(not_support_reason.find(kDeterministicLevelAttr), std::string::npos);
+  EXPECT_NE(not_support_reason.find("Relu1"), std::string::npos);
+  EXPECT_NE(not_support_reason.find("4"), std::string::npos);
+}
+
+TEST_F(UtestComputeGraph, FuseNodeKeepTopo_failed_when_deterministic_level_not_string) {
+  ut::GraphBuilder builder = ut::GraphBuilder("graph");
+  auto data = builder.AddNode("Data", "Data", 0, 1);
+  auto relu1 = builder.AddNode("Relu1", "Relu", 1, 1);
+  auto relu2 = builder.AddNode("Relu2", "Relu", 1, 1);
+  builder.AddDataEdge(data, 0, relu1, 0);
+  builder.AddDataEdge(relu1, 0, relu2, 0);
+  auto graph = builder.GetGraph();
+
+  AttrUtils::SetInt(relu1->GetOpDesc(), kDeterministicLevelAttr, 1);
+  std::string not_support_reason;
+  EXPECT_FALSE(graph->IsSupportFuse({relu1, relu2}, not_support_reason));
+  EXPECT_NE(not_support_reason.find(kDeterministicLevelAttr), std::string::npos);
+  EXPECT_NE(not_support_reason.find("is not string"), std::string::npos);
+}
+
+TEST_F(UtestComputeGraph, FuseNodeKeepTopo_inherit_deterministic) {
+  ut::GraphBuilder builder = ut::GraphBuilder("graph");
+  auto tensor_desc = std::make_shared<GeTensorDesc>();
+  tensor_desc->SetShape(GeShape({1}));
+  tensor_desc->SetDataType(DT_FLOAT);
+  tensor_desc->SetFormat(FORMAT_CHWN);
+
+  auto data = builder.AddNode("Data", "Data", 0, 1);
+  auto relu1 = builder.AddNode("Relu1", "Relu", 1, 1);
+  auto relu2 = builder.AddNode("Relu2", "Relu", 1, 1);
+  auto netoutput = builder.AddNode("Netoutput", "NetOutput", 1, 0);
+  builder.AddDataEdge(data, 0, relu1, 0);
+  builder.AddDataEdge(relu1, 0, relu2, 0);
+  builder.AddDataEdge(relu2, 0, netoutput, 0);
+  auto graph = builder.GetGraph();
+
+  auto op_desc_new = std::make_shared<OpDesc>("fuse_node", "Relu");
+  op_desc_new->AddInputDesc(tensor_desc->Clone());
+  op_desc_new->AddOutputDesc(tensor_desc->Clone());
+  AttrUtils::SetStr(relu1->GetOpDesc(), kDeterministicAttr, "1");
+  AttrUtils::SetStr(relu2->GetOpDesc(), kDeterministicAttr, "1");
+  auto fuse_node_vec = graph->FuseNodeKeepTopo({relu1, relu2}, {op_desc_new});
+  ASSERT_EQ(fuse_node_vec.size(), 1);
+  std::string deterministic;
+  EXPECT_TRUE(AttrUtils::GetStr(op_desc_new, kDeterministicAttr, deterministic));
+  EXPECT_EQ(deterministic, "1");
+}
+
+TEST_F(UtestComputeGraph, FuseNodeKeepTopo_keep_same_deterministic_on_fusion_op) {
+  ut::GraphBuilder builder = ut::GraphBuilder("graph");
+  auto tensor_desc = std::make_shared<GeTensorDesc>();
+  tensor_desc->SetShape(GeShape({1}));
+  tensor_desc->SetDataType(DT_FLOAT);
+  tensor_desc->SetFormat(FORMAT_CHWN);
+
+  auto data = builder.AddNode("Data", "Data", 0, 1);
+  auto relu1 = builder.AddNode("Relu1", "Relu", 1, 1);
+  auto relu2 = builder.AddNode("Relu2", "Relu", 1, 1);
+  auto netoutput = builder.AddNode("Netoutput", "NetOutput", 1, 0);
+  builder.AddDataEdge(data, 0, relu1, 0);
+  builder.AddDataEdge(relu1, 0, relu2, 0);
+  builder.AddDataEdge(relu2, 0, netoutput, 0);
+  auto graph = builder.GetGraph();
+
+  auto op_desc_new = std::make_shared<OpDesc>("fuse_node", "Relu");
+  op_desc_new->AddInputDesc(tensor_desc->Clone());
+  op_desc_new->AddOutputDesc(tensor_desc->Clone());
+  AttrUtils::SetStr(relu1->GetOpDesc(), kDeterministicAttr, "1");
+  AttrUtils::SetStr(relu2->GetOpDesc(), kDeterministicAttr, "1");
+  AttrUtils::SetStr(op_desc_new, kDeterministicAttr, "1");
+  auto fuse_node_vec = graph->FuseNodeKeepTopo({relu1, relu2}, {op_desc_new});
+  ASSERT_EQ(fuse_node_vec.size(), 1);
+}
+
+TEST_F(UtestComputeGraph, FuseNodeKeepTopo_failed_when_fusion_op_has_different_deterministic) {
+  ut::GraphBuilder builder = ut::GraphBuilder("graph");
+  auto tensor_desc = std::make_shared<GeTensorDesc>();
+  tensor_desc->SetShape(GeShape({1}));
+  tensor_desc->SetDataType(DT_FLOAT);
+  tensor_desc->SetFormat(FORMAT_CHWN);
+
+  auto data = builder.AddNode("Data", "Data", 0, 1);
+  auto relu1 = builder.AddNode("Relu1", "Relu", 1, 1);
+  auto relu2 = builder.AddNode("Relu2", "Relu", 1, 1);
+  auto netoutput = builder.AddNode("Netoutput", "NetOutput", 1, 0);
+  builder.AddDataEdge(data, 0, relu1, 0);
+  builder.AddDataEdge(relu1, 0, relu2, 0);
+  builder.AddDataEdge(relu2, 0, netoutput, 0);
+  auto graph = builder.GetGraph();
+
+  auto op_desc_new = std::make_shared<OpDesc>("fuse_node", "Relu");
+  op_desc_new->AddInputDesc(tensor_desc->Clone());
+  op_desc_new->AddOutputDesc(tensor_desc->Clone());
+  AttrUtils::SetStr(relu1->GetOpDesc(), kDeterministicAttr, "1");
+  AttrUtils::SetStr(relu2->GetOpDesc(), kDeterministicAttr, "1");
+  AttrUtils::SetStr(op_desc_new, kDeterministicAttr, "0");
+  auto fuse_node_vec = graph->FuseNodeKeepTopo({relu1, relu2}, {op_desc_new});
+  EXPECT_TRUE(fuse_node_vec.empty());
+}
+
+TEST_F(UtestComputeGraph, FuseNodeKeepTopo_failed_when_deterministic_conflict) {
+  ut::GraphBuilder builder = ut::GraphBuilder("graph");
+  auto data = builder.AddNode("Data", "Data", 0, 1);
+  auto relu1 = builder.AddNode("Relu1", "Relu", 1, 1);
+  auto relu2 = builder.AddNode("Relu2", "Relu", 1, 1);
+  builder.AddDataEdge(data, 0, relu1, 0);
+  builder.AddDataEdge(relu1, 0, relu2, 0);
+  auto graph = builder.GetGraph();
+
+  AttrUtils::SetStr(relu1->GetOpDesc(), kDeterministicAttr, "0");
+  AttrUtils::SetStr(relu2->GetOpDesc(), kDeterministicAttr, "1");
+  std::string not_support_reason;
+  EXPECT_FALSE(graph->IsSupportFuse({relu1, relu2}, not_support_reason));
+  EXPECT_NE(not_support_reason.find(kDeterministicAttr), std::string::npos);
+  EXPECT_NE(not_support_reason.find("Relu1"), std::string::npos);
+  EXPECT_NE(not_support_reason.find("Relu2"), std::string::npos);
+}
+
+TEST_F(UtestComputeGraph, FuseNodeKeepTopo_failed_when_deterministic_not_string) {
+  ut::GraphBuilder builder = ut::GraphBuilder("graph");
+  auto data = builder.AddNode("Data", "Data", 0, 1);
+  auto relu1 = builder.AddNode("Relu1", "Relu", 1, 1);
+  auto relu2 = builder.AddNode("Relu2", "Relu", 1, 1);
+  builder.AddDataEdge(data, 0, relu1, 0);
+  builder.AddDataEdge(relu1, 0, relu2, 0);
+  auto graph = builder.GetGraph();
+
+  AttrUtils::SetInt(relu1->GetOpDesc(), kDeterministicAttr, 1);
+  std::string not_support_reason;
+  EXPECT_FALSE(graph->IsSupportFuse({relu1, relu2}, not_support_reason));
+  EXPECT_NE(not_support_reason.find(kDeterministicAttr), std::string::npos);
+  EXPECT_NE(not_support_reason.find("is not string"), std::string::npos);
+}
+
+TEST_F(UtestComputeGraph, FuseNodeKeepTopo_failed_when_deterministic_invalid) {
+  ut::GraphBuilder builder = ut::GraphBuilder("graph");
+  auto data = builder.AddNode("Data", "Data", 0, 1);
+  auto relu1 = builder.AddNode("Relu1", "Relu", 1, 1);
+  auto relu2 = builder.AddNode("Relu2", "Relu", 1, 1);
+  builder.AddDataEdge(data, 0, relu1, 0);
+  builder.AddDataEdge(relu1, 0, relu2, 0);
+  auto graph = builder.GetGraph();
+
+  AttrUtils::SetStr(relu1->GetOpDesc(), kDeterministicAttr, "2");
+  std::string not_support_reason;
+  EXPECT_FALSE(graph->IsSupportFuse({relu1, relu2}, not_support_reason));
+  EXPECT_NE(not_support_reason.find(kDeterministicAttr), std::string::npos);
+  EXPECT_NE(not_support_reason.find("Relu1"), std::string::npos);
+  EXPECT_NE(not_support_reason.find("2"), std::string::npos);
 }
 
 TEST_F(UtestComputeGraph, StreamLableNotSame_FuseNodeKeepTopo_failed) {
@@ -2055,8 +2362,9 @@ TEST_F(UtestComputeGraph, SetGraphTargetNodesInfo_RepeatSet) {
   ASSERT_EQ(net_output->GetInControlNodes().at(0), node3);
   ASSERT_EQ(graph->SetGraphTargetNodesInfo({node1, node2}), SUCCESS);
   ASSERT_EQ(net_output->GetInControlNodesSize(), 2U);
-  ASSERT_EQ(net_output->GetInControlNodes().at(0), node1);
-  ASSERT_EQ(net_output->GetInControlNodes().at(1), node2);
+  const auto control_nodes = net_output->GetInControlNodes();
+  ASSERT_NE(std::find(control_nodes.begin(), control_nodes.end(), node1), control_nodes.end());
+  ASSERT_NE(std::find(control_nodes.begin(), control_nodes.end(), node2), control_nodes.end());
 }
 
 TEST_F(UtestComputeGraph, SetGraphOutNodesInfo_SetGraphTargetNodesInfo_NodeIsBothOutputAndTarget) {

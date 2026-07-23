@@ -9,6 +9,8 @@
  */
 
 #include <gtest/gtest.h>
+#include "graph/ge_context.h"
+#include "graph/ge_local_context.h"
 #include "graph/ge_tensor.h"
 #include "graph/compute_graph.h"
 #include "graph/utils/op_desc_utils.h"
@@ -58,11 +60,20 @@ class CompileInfoJson : public CompileInfoBase {
   std::string json_str_;
 };
 
+int32_t expected_deterministic = -1;
+int32_t expected_deterministic_level = -1;
+constexpr const char *kDeterministicAttr = "_deterministic";
+constexpr const char *kDeterministicLevelAttr = "_deterministic_level";
+
 class RegisterOpTilingRT2UT : public testing::Test {
  protected:
   void SetUp() {}
 
-  void TearDown() {}
+  void TearDown() {
+    expected_deterministic = -1;
+    expected_deterministic_level = -1;
+    ge::GetThreadLocalContext().SetGlobalOption({});
+  }
 };
 uint32_t tiling_parse_count = 0;
 struct DummyTilingParams {
@@ -108,9 +119,12 @@ ge::graphStatus DummyTiling(TilingContext *tiling_context) {
     *(workspace_size + i) = i;
   }
 
-  //  强一致性计算紧急需求上库，ge暂时不能依赖metadef，已于BBIT及本地验证DT通过，后续补上
-  //  auto deterministic_level = tiling_context->GetDeterministicLevel();
-  //  EXPECT_EQ(deterministic_level, 0);
+  if (expected_deterministic_level >= 0) {
+    EXPECT_EQ(tiling_context->GetDeterministicLevel(), expected_deterministic_level);
+  }
+  if (expected_deterministic >= 0) {
+    EXPECT_EQ(tiling_context->GetDeterministic(), expected_deterministic);
+  }
   return ge::GRAPH_SUCCESS;
 }
 
@@ -327,6 +341,128 @@ TEST_F(RegisterOpTilingRT2UT, AicoreParseAndTilingSuccessTwice) {
   EXPECT_EQ(workspace[0], 0);
   EXPECT_EQ(workspace[1], 1);
   EXPECT_EQ(workspace[2], 2);
+}
+
+TEST_F(RegisterOpTilingRT2UT, AicoreParseAndTilingWithGraphDeterministicLevel) {
+  SpaceRegistryFaker::UpdateOpImplToDefaultSpaceRegistry();
+  for (const auto level : {0, 1, 2, 3}) {
+    expected_deterministic = level >= 1 ? 1 : 0;
+    expected_deterministic_level = level;
+    ge::GetThreadLocalContext().SetGlobalOption({{"ge.deterministicLevel", std::to_string(level)}});
+    auto graph = ShareGraph::ConcatV2ConstDependencyGraph();
+    auto concatv2_node = graph->FindNode("concatv2");
+    ASSERT_NE(concatv2_node, nullptr);
+    (void)ge::AttrUtils::SetStr(concatv2_node->GetOpDesc(), COMPILE_INFO_JSON, "testst");
+    utils::OpRunInfo run_info;
+    auto op = ge::OpDescUtils::CreateOperatorFromNode(concatv2_node);
+    fe::PlatFormInfos platform_infos;
+    EXPECT_EQ(AicoreRtParseAndTiling(op, platform_infos, run_info), GRAPH_SUCCESS);
+  }
+}
+
+TEST_F(RegisterOpTilingRT2UT, GetDeterministicLevelFailedWhenGraphOptionInvalid) {
+  int32_t deterministic_level = 0;
+  for (const auto &level : {"-1", "4", "abc"}) {
+    ge::GetThreadLocalContext().SetGlobalOption({{"ge.deterministicLevel", level}});
+    bool has_deterministic_level = false;
+    EXPECT_NE(GetDeterministicLevel(deterministic_level, has_deterministic_level), GRAPH_SUCCESS);
+  }
+}
+
+TEST_F(RegisterOpTilingRT2UT, GetDeterministicLevelWithoutGraphOption) {
+  ge::GetThreadLocalContext().SetGraphOption({});
+  ge::GetThreadLocalContext().SetSessionOption({});
+  ge::GetThreadLocalContext().SetGlobalOption({});
+  int32_t deterministic_level = -1;
+  bool has_deterministic_level = true;
+  EXPECT_EQ(GetDeterministicLevel(deterministic_level, has_deterministic_level), GRAPH_SUCCESS);
+  EXPECT_EQ(deterministic_level, 0);
+  EXPECT_FALSE(has_deterministic_level);
+}
+
+TEST_F(RegisterOpTilingRT2UT, AicoreParseAndTilingWithNodeDeterministicLevel) {
+  SpaceRegistryFaker::UpdateOpImplToDefaultSpaceRegistry();
+  ge::GetThreadLocalContext().SetGlobalOption({{"ge.deterministicLevel", "2"}});
+  auto graph = ShareGraph::ConcatV2ConstDependencyGraph();
+  auto concatv2_node = graph->FindNode("concatv2");
+  ASSERT_NE(concatv2_node, nullptr);
+  (void)ge::AttrUtils::SetStr(concatv2_node->GetOpDesc(), COMPILE_INFO_JSON, "testst");
+  (void)ge::AttrUtils::SetStr(concatv2_node->GetOpDesc(), kDeterministicLevelAttr, "0");
+  expected_deterministic = 0;
+  expected_deterministic_level = 0;
+  utils::OpRunInfo run_info;
+  auto op = ge::OpDescUtils::CreateOperatorFromNode(concatv2_node);
+  fe::PlatFormInfos platform_infos;
+  EXPECT_EQ(AicoreRtParseAndTiling(op, platform_infos, run_info), GRAPH_SUCCESS);
+
+  graph = ShareGraph::ConcatV2ConstDependencyGraph();
+  concatv2_node = graph->FindNode("concatv2");
+  ASSERT_NE(concatv2_node, nullptr);
+  (void)ge::AttrUtils::SetStr(concatv2_node->GetOpDesc(), COMPILE_INFO_JSON, "testst");
+  (void)ge::AttrUtils::SetStr(concatv2_node->GetOpDesc(), kDeterministicLevelAttr, "3");
+  expected_deterministic = 1;
+  expected_deterministic_level = 3;
+  utils::OpRunInfo run_info2;
+  op = ge::OpDescUtils::CreateOperatorFromNode(concatv2_node);
+  EXPECT_EQ(AicoreRtParseAndTiling(op, platform_infos, run_info2), GRAPH_SUCCESS);
+}
+
+TEST_F(RegisterOpTilingRT2UT, AicoreParseAndTilingFailedWhenNodeDeterministicLevelInvalid) {
+  SpaceRegistryFaker::UpdateOpImplToDefaultSpaceRegistry();
+  auto graph = ShareGraph::ConcatV2ConstDependencyGraph();
+  auto concatv2_node = graph->FindNode("concatv2");
+  ASSERT_NE(concatv2_node, nullptr);
+  (void)ge::AttrUtils::SetStr(concatv2_node->GetOpDesc(), COMPILE_INFO_JSON, "testst");
+  (void)ge::AttrUtils::SetStr(concatv2_node->GetOpDesc(), kDeterministicLevelAttr, "-1");
+  utils::OpRunInfo run_info;
+  auto op = ge::OpDescUtils::CreateOperatorFromNode(concatv2_node);
+  fe::PlatFormInfos platform_infos;
+  EXPECT_NE(AicoreRtParseAndTiling(op, platform_infos, run_info), GRAPH_SUCCESS);
+}
+
+TEST_F(RegisterOpTilingRT2UT, AicoreParseAndTilingWithoutDeterministicLevelOption) {
+  SpaceRegistryFaker::UpdateOpImplToDefaultSpaceRegistry();
+  ge::GetThreadLocalContext().SetGlobalOption({});
+  auto graph = ShareGraph::ConcatV2ConstDependencyGraph();
+  auto concatv2_node = graph->FindNode("concatv2");
+  ASSERT_NE(concatv2_node, nullptr);
+  (void)ge::AttrUtils::SetStr(concatv2_node->GetOpDesc(), COMPILE_INFO_JSON, "testst");
+  (void)ge::AttrUtils::SetStr(concatv2_node->GetOpDesc(), kDeterministicAttr, "1");
+  expected_deterministic = 1;
+  expected_deterministic_level = 0;
+  utils::OpRunInfo run_info;
+  auto op = ge::OpDescUtils::CreateOperatorFromNode(concatv2_node);
+  fe::PlatFormInfos platform_infos;
+  EXPECT_EQ(AicoreRtParseAndTiling(op, platform_infos, run_info), GRAPH_SUCCESS);
+}
+
+TEST_F(RegisterOpTilingRT2UT, AicoreParseAndTilingWithNodeDeterministicAlignedByLevel) {
+  SpaceRegistryFaker::UpdateOpImplToDefaultSpaceRegistry();
+  auto graph = ShareGraph::ConcatV2ConstDependencyGraph();
+  auto concatv2_node = graph->FindNode("concatv2");
+  ASSERT_NE(concatv2_node, nullptr);
+  (void)ge::AttrUtils::SetStr(concatv2_node->GetOpDesc(), COMPILE_INFO_JSON, "testst");
+  (void)ge::AttrUtils::SetStr(concatv2_node->GetOpDesc(), kDeterministicAttr, "0");
+  (void)ge::AttrUtils::SetStr(concatv2_node->GetOpDesc(), kDeterministicLevelAttr, "2");
+  expected_deterministic = 1;
+  expected_deterministic_level = 2;
+  utils::OpRunInfo run_info;
+  auto op = ge::OpDescUtils::CreateOperatorFromNode(concatv2_node);
+  fe::PlatFormInfos platform_infos;
+  EXPECT_EQ(AicoreRtParseAndTiling(op, platform_infos, run_info), GRAPH_SUCCESS);
+}
+
+TEST_F(RegisterOpTilingRT2UT, AicoreParseAndTilingFailedWhenNodeDeterministicInvalid) {
+  SpaceRegistryFaker::UpdateOpImplToDefaultSpaceRegistry();
+  auto graph = ShareGraph::ConcatV2ConstDependencyGraph();
+  auto concatv2_node = graph->FindNode("concatv2");
+  ASSERT_NE(concatv2_node, nullptr);
+  (void)ge::AttrUtils::SetStr(concatv2_node->GetOpDesc(), COMPILE_INFO_JSON, "testst");
+  (void)ge::AttrUtils::SetStr(concatv2_node->GetOpDesc(), kDeterministicAttr, "2");
+  utils::OpRunInfo run_info;
+  auto op = ge::OpDescUtils::CreateOperatorFromNode(concatv2_node);
+  fe::PlatFormInfos platform_infos;
+  EXPECT_NE(AicoreRtParseAndTiling(op, platform_infos, run_info), GRAPH_SUCCESS);
 }
 
 TEST_F(RegisterOpTilingRT2UT, AicoreParseAndTilingWithOpCoreNumSuccess) {

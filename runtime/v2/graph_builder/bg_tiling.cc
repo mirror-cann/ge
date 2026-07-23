@@ -11,6 +11,7 @@
 #include "bg_tiling.h"
 #include <nlohmann/json.hpp>
 #include "common/checker.h"
+#include "common/util.h"
 #include "kernel/common_kernel_impl/tiling.h"
 #include "aicore/converter/autofuse_node_converter.h"
 #include "exe_graph/runtime/tiling_context.h"
@@ -32,6 +33,7 @@
 #include "graph/utils/op_type_utils.h"
 #include "exe_graph/lowering/data_dependent_interpreter.h"
 #include "graph/ge_context.h"
+#include "common/op_tiling/op_tiling_rt2.h"
 #include "common/op_tiling/tiling_dfx.h"
 #include "rt_external_model.h"
 #include "rt_external_device.h"
@@ -49,6 +51,17 @@ struct TilingAppendDfxInfoInputs {
   ValueHolderPtr workspace_sizes;
   LoweringGlobalData &global_data;
 };
+
+ge::Status GetDeterministicConfig(const ge::NodePtr &node, int32_t &deterministic, int32_t &deterministic_level) {
+  GE_ASSERT_NOTNULL(node);
+  GE_ASSERT_NOTNULL(node->GetOpDesc());
+  const auto compute_graph = node->GetOwnerComputeGraph();
+  GE_ASSERT_NOTNULL(compute_graph);
+  const auto root_compute_graph = ge::GraphUtils::FindRootGraph(compute_graph);
+  GE_ASSERT_NOTNULL(root_compute_graph);
+  return optiling::GetDeterministicConfig(node->GetOpDesc(), root_compute_graph, deterministic, deterministic_level);
+}
+
 // 若算子注册了老tiling, 没注册新tiling话，走兼容模式
 // autotiling自动走新模式
 bool NeedTilingCompatible(const ge::NodePtr &node, const gert::OpImplSpaceRegistryV2Ptr &space_registry_ptr) {
@@ -223,27 +236,36 @@ ge::Status BuildCacheableTilingFwkDataInputs(const ge::NodePtr &node, const Tili
 
 ge::Status BuildTilingDeterministicInput(const ge::NodePtr &node, LoweringGlobalData &global_data,
                                          std::vector<ValueHolderPtr> &tiling_input) {
-  auto builder = [&node]() -> std::vector<ValueHolderPtr> {
-    return bg::FrameSelector::OnInitRoot([&node]() -> std::vector<ValueHolderPtr> {
-      const auto compute_graph = node->GetOwnerComputeGraph();
-      GE_ASSERT_NOTNULL(compute_graph);
-      const auto root_compute_graph = ge::GraphUtils::FindRootGraph(compute_graph);
-      int32_t deterministic = 0;
-      (void)ge::AttrUtils::GetInt(root_compute_graph, ge::DETERMINISTIC, deterministic);
-      GELOGI("Get DETERMINISTIC: %d", deterministic);
-      auto deterministic_holder = bg::HolderOnInit(bg::ValueHolder::CreateConst(&deterministic, sizeof(int32_t)));
+  GE_ASSERT_NOTNULL(node);
+  int32_t deterministic = 0;
+  int32_t deterministic_level = 0;
+  if (GetDeterministicConfig(node, deterministic, deterministic_level) != ge::SUCCESS) {
+    return ge::FAILED;
+  }
+  GELOGI("Get DETERMINISTIC: %d, DETERMINISTIC LEVEL: %d", deterministic, deterministic_level);
 
-      int32_t deterministic_level = 0;
-      (void)ge::AttrUtils::GetInt(root_compute_graph, "ge.deterministicLevel", deterministic_level);
-      GELOGI("Get DETERMINISTIC LEVEL: %d", deterministic_level);
-      auto deterministic_level_holder =
-          bg::HolderOnInit(bg::ValueHolder::CreateConst(&deterministic_level, sizeof(int32_t)));
-      return {deterministic_holder, deterministic_level_holder};
+  auto deterministic_builder = [deterministic]() -> std::vector<ValueHolderPtr> {
+    return bg::FrameSelector::OnInitRoot([deterministic]() -> std::vector<ValueHolderPtr> {
+      auto deterministic_holder = bg::HolderOnInit(bg::ValueHolder::CreateConst(&deterministic, sizeof(int32_t)));
+      return {deterministic_holder};
     });
   };
-  auto deterministic_vec = global_data.GetOrCreateUniqueValueHolder("Deterministic", builder);
-  GE_ASSERT_TRUE(deterministic_vec.size() == 2UL);
-  tiling_input.insert(tiling_input.end(), deterministic_vec.begin(), deterministic_vec.end());
+  auto deterministic_level_builder = [deterministic_level]() -> std::vector<ValueHolderPtr> {
+    return bg::FrameSelector::OnInitRoot([deterministic_level]() -> std::vector<ValueHolderPtr> {
+      auto deterministic_level_holder =
+          bg::HolderOnInit(bg::ValueHolder::CreateConst(&deterministic_level, sizeof(int32_t)));
+      return {deterministic_level_holder};
+    });
+  };
+  const std::string deterministic_key = "Deterministic_" + std::to_string(deterministic);
+  auto deterministic_vec = global_data.GetOrCreateUniqueValueHolder(deterministic_key, deterministic_builder);
+  GE_ASSERT_TRUE(deterministic_vec.size() == 1UL);
+  tiling_input.emplace_back(deterministic_vec[0]);
+  const std::string deterministic_level_key = "DeterministicLevel_" + std::to_string(deterministic_level);
+  auto deterministic_level_vec =
+      global_data.GetOrCreateUniqueValueHolder(deterministic_level_key, deterministic_level_builder);
+  GE_ASSERT_TRUE(deterministic_level_vec.size() == 1UL);
+  tiling_input.emplace_back(deterministic_level_vec[0]);
   return ge::SUCCESS;
 }
 

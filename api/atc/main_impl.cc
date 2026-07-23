@@ -205,6 +205,15 @@ std::map<std::string, std::string> &GetRawAppliedFlagOptions() {
   return raw_applied_flag_options;
 }
 
+void AppendDeterministicLevelOption(std::map<std::string, std::string> &options) {
+  constexpr const char *kDeterministicLevelFlag = "deterministic_level";
+  const bool is_explicitly_set = (flgs::GetUserOptions().count(kDeterministicLevelFlag) > 0U) ||
+                                 (GetRawAppliedFlagNames().count(kDeterministicLevelFlag) > 0U);
+  if (is_explicitly_set) {
+    options.emplace("ge.deterministicLevel", FLAGS_deterministic_level);
+  }
+}
+
 std::string StripCliOptionPrefix(const std::string &cli_name) {
   if (cli_name.compare(0U, strlen(kCliOptionPrefix), kCliOptionPrefix) == 0) {
     return cli_name.substr(strlen(kCliOptionPrefix));
@@ -1741,7 +1750,7 @@ static void SetEnvForSingleOp(std::map<std::string, std::string> &options) {
   options.emplace(ATOMIC_CLEAN_POLICY, FLAGS_atomic_clean_policy);
   options.emplace(EXTERNAL_WEIGHT, FLAGS_external_weight);
   options.emplace(DETERMINISTIC, FLAGS_deterministic);
-  options.emplace("ge.deterministicLevel", FLAGS_deterministic_level);
+  AppendDeterministicLevelOption(options);
   options.emplace(CUSTOMIZE_DTYPES, FLAGS_customize_dtypes);
   options.emplace("ge.is_weight_clip", FLAGS_is_weight_clip);
   // atc do not limit resource ever
@@ -1962,7 +1971,7 @@ void SetAtcEnvironmentOptions(std::map<std::string, std::string> &options) {
   options.insert(std::pair<std::string, std::string>(std::string(ATOMIC_CLEAN_POLICY), FLAGS_atomic_clean_policy));
   options.insert(std::pair<std::string, std::string>(std::string(EXTERNAL_WEIGHT), FLAGS_external_weight));
   options.insert(std::pair<std::string, std::string>(std::string(DETERMINISTIC), FLAGS_deterministic));
-  options.insert(std::pair<std::string, std::string>("ge.deterministicLevel", FLAGS_deterministic_level));
+  AppendDeterministicLevelOption(options);
   options.insert(std::pair<std::string, std::string>(std::string(OPTION_HOST_ENV_OS), FLAGS_host_env_os));
   options.insert(std::pair<std::string, std::string>(std::string(OPTION_HOST_ENV_CPU), FLAGS_host_env_cpu));
   options.insert(std::pair<std::string, std::string>("ge.is_weight_clip", FLAGS_is_weight_clip));
