@@ -358,6 +358,9 @@ PassPluginLoader / ge_compiler.so
 - `PatternMatcherConfigBuilder`
 - `create_pattern`
 - `create_replacement`
+- `FuseCheckResult`
+- `can_fuse`
+- `report_fuse`
 - `load_pass_plugins`
 - `get_registered_passes`
 

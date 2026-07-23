@@ -29,11 +29,21 @@ __all__: list[str] = [
     "SubgraphOutput",
     "SubgraphRewriter",
     "can_fuse",
+    "report_fuse",
 ]
 
 
 def can_fuse(nodes: typing.Iterable[Node]) -> tuple[bool, str]:
     """Check whether nodes can be safely fused into one node."""
+    ...
+
+
+def report_fuse(
+    nodes_before: typing.Iterable[Node],
+    nodes_after: typing.Iterable[Node],
+    context: PassContext,
+) -> None:
+    """Report a completed graph fusion rewrite."""
     ...
 
 
@@ -295,6 +305,7 @@ class SubgraphRewriter:
     """Apply whole-subgraph replacement on the main graph."""
 
     @staticmethod
+    @typing.overload
     def replace(boundary: SubgraphBoundary, replacement: Graph) -> int:
         """Replace the subgraph described by ``boundary`` with ``replacement``.
 
@@ -314,5 +325,14 @@ class SubgraphRewriter:
 
             For more, see https://gitcode.com/cann/ge/tree/master/examples/fusion_pass
 
+        """
+        ...
+
+    @staticmethod
+    @typing.overload
+    def replace(boundary: SubgraphBoundary, replacement: Graph, *, context: PassContext) -> None:
+        """Replace a subgraph with automatic fusion inspection and reporting.
+
+        Raises ``RuntimeError`` when fusion inspection, replacement, or reporting fails.
         """
         ...

@@ -186,6 +186,11 @@ const std::string &GetSharedPybindMarkerFilePath() {
   return path;
 }
 
+const std::string &GetSharedPybindReportFuseMarkerFilePath() {
+  static const std::string path = GetSharedPybindPassDir().CreateFilePath("report_fuse_success_marker.txt");
+  return path;
+}
+
 const std::string &GetSharedPybindPatternPassFilePath() {
   static const std::string path = GetSharedPybindPassDir().CreateFilePath("pybind_pattern_passes.py");
   return path;
@@ -222,13 +227,23 @@ void EnsureSharedPybindPassFile() {
     std::ostringstream pass_code;
     pass_code << "from pathlib import Path\n"
               << "from ge.graph import Graph\n"
-              << "from ge.passes import FusionBasePass, PassStage, register_fusion_pass, PassContext\n\n"
+              << "from ge.passes import (\n"
+              << "    FusionBasePass, PassStage, register_fusion_pass, report_fuse\n"
+              << ")\n\n"
               << "MARKER_FILE = r'" << GetSharedPybindMarkerFilePath() << "'\n\n"
+              << "REPORT_FUSE_MARKER_FILE = r'" << GetSharedPybindReportFuseMarkerFilePath() << "'\n\n"
               << "@register_fusion_pass(name='PythonPybindBridgePass', stage=PassStage.AFTER_INFER_SHAPE)\n"
               << "class PythonPybindBridgePass(FusionBasePass):\n"
               << "    def run(self, graph, context):\n"
               << "        assert isinstance(graph, Graph)\n"
               << "        Path(MARKER_FILE).write_text(f\"{graph.name}|{context.get_pass_name()}\", encoding='utf-8')\n"
+              << "        return 0\n\n"
+              << "@register_fusion_pass(name='PythonPybindReportFusePass', stage=PassStage.AFTER_INFER_SHAPE)\n"
+              << "class PythonPybindReportFusePass(FusionBasePass):\n"
+              << "    def run(self, graph, context):\n"
+              << "        nodes = graph.get_direct_nodes()\n"
+              << "        report_fuse(nodes, [], context)\n"
+              << "        Path(REPORT_FUSE_MARKER_FILE).write_text(context.get_pass_name(), encoding='utf-8')\n"
               << "        return 0\n\n"
               << "@register_fusion_pass(name='PythonPybindBridgeFailedPass', "
                  "stage=PassStage.AFTER_BUILTIN_FUSION_PASS)\n"
@@ -1686,7 +1701,9 @@ TEST_F(UtestFusionPassExecutor, PythonPassBridgeCApi_LoadsConfiguredNativeModule
 TEST_F(UtestFusionPassExecutor, PythonFusionBasePass_PybindBridge_RunSuccess) {
   EnsureSharedPybindPassFile();
   const auto &marker_file = GetSharedPybindMarkerFilePath();
+  const auto &report_fuse_marker_file = GetSharedPybindReportFuseMarkerFilePath();
   (void)remove(marker_file.c_str());
+  (void)remove(report_fuse_marker_file.c_str());
 
   ScopedEnvVar scoped_py_pass_path(kEnvPythonPassPath, GetSharedPybindPassFilePath());
   ASSERT_EQ(RegisterPythonPassesFromPlugin(), SUCCESS);
@@ -1698,6 +1715,7 @@ TEST_F(UtestFusionPassExecutor, PythonFusionBasePass_PybindBridge_RunSuccess) {
   EXPECT_EQ(pass_executor.RunPasses(target_compute_graph, CustomPassStage::kAfterInferShape), SUCCESS);
   EXPECT_EQ(pass_executor.RunPasses(target_compute_graph, CustomPassStage::kAfterInferShape), SUCCESS);
   EXPECT_EQ(ReadFile(marker_file), expected_graph_name + "|PythonPybindBridgePass");
+  EXPECT_EQ(ReadFile(report_fuse_marker_file), "PythonPybindReportFusePass");
 }
 
 TEST_F(UtestFusionPassExecutor, PythonFusionBasePass_PybindBridge_RunFailedOnPythonException) {

@@ -542,6 +542,7 @@ The run package can carry multiple `ge_py_pass_bridge` native sub-wheels, but th
 - `SubgraphRewriter.replace(boundary, replacement)` - Execute subgraph replacement
   - `boundary`: `SubgraphBoundary`
   - `replacement`: `ge.graph.Graph` (the replacement graph is copied and reconnected on the C++ side)
+- `SubgraphRewriter.replace(boundary, replacement, context=context)` - Automatically checks fusion feasibility, replaces the subgraph, and reports the result; returns `None` on success and raises `RuntimeError` on failure
 
 ##### 5. Pattern / NodeIo / PatternMatcherConfig
 
@@ -569,6 +570,7 @@ The run package can carry multiple `ge_py_pass_bridge` native sub-wheels, but th
 
 **Main Interfaces**:
 - `can_fuse(nodes: Iterable[Node]) -> FuseCheckResult` - Checks stream-label and cycle constraints for fusing a node set into one node
+- `report_fuse(nodes_before, nodes_after, context) -> None` - Reports a custom rewrite after graph modification and before old nodes are deleted
 - `FuseCheckResult.ok` - Whether fusion is supported
 - `FuseCheckResult.reason` - Why fusion is not supported; empty on success
 
@@ -577,6 +579,8 @@ The native binding converts the Python `Node` iterable to `std::vector<GNode>`, 
 immutable dataclass.
 Business-level rejection returns `FuseCheckResult(False, reason)`; invalid input types and stale Node handles raise
 Python exceptions.
+`report_fuse` sets the context error message and raises `RuntimeError` on failure. An empty `nodes_after` represents
+a deletion-only rewrite.
 
 ##### 6. FusionBasePass Class
 

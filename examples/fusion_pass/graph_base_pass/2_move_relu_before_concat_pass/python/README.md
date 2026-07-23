@@ -4,7 +4,7 @@
 
 - 扫描 `ConcatV2 -> Relu` 结构
 - 构造 replacement 子图（将 Relu 前移到 Concat 的每个输入上）
-- 使用 `SubgraphBoundary` + `SubgraphRewriter.replace()` 做子图替换
+- 使用 `SubgraphBoundary` + `SubgraphRewriter.replace(..., context=context)` 做子图替换，并自动完成可融合检查和融合结果上报
 
 > **FusionBasePass与PatternFusionPass**
 >

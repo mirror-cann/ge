@@ -4,7 +4,7 @@ This directory provides a **pure Python** version example of `graph_base_pass/2_
 
 - Scan `ConcatV2 -> Relu` structure
 - Build replacement subgraph (move Relu to each input of Concat)
-- Use `SubgraphBoundary` + `SubgraphRewriter.replace()` for subgraph replacement
+- Use `SubgraphBoundary` + `SubgraphRewriter.replace(..., context=context)` for replacement with automatic fusion inspection and reporting
 
 > **FusionBasePass vs PatternFusionPass**
 >

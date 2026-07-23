@@ -18,6 +18,7 @@ from ge.es import GraphBuilder, TensorHolder
 from ge.graph import Graph, Node
 from ge.passes import (
     FusionBasePass,
+    PassContext,
     PassStage,
     SubgraphBoundary,
     SubgraphInput,
@@ -107,9 +108,11 @@ def _build_boundary(concat_node: Node) -> SubgraphBoundary:
     return boundary
 
 
-@register_fusion_pass(name="PythonMoveReluBeforeConcatPass", stage=PassStage.BEFORE_INFER_SHAPE)
+@register_fusion_pass(
+    name="PythonMoveReluBeforeConcatPass", stage=PassStage.BEFORE_INFER_SHAPE
+)
 class PythonMoveReluBeforeConcatPass(FusionBasePass):
-    def run(self, graph: Graph, context) -> bool:
+    def run(self, graph: Graph, context: PassContext) -> bool:
         print("PythonMoveReluBeforeConcatPass")
 
         concat_nodes = _find_concat_nodes(graph)
@@ -119,9 +122,7 @@ class PythonMoveReluBeforeConcatPass(FusionBasePass):
         for concat_node in concat_nodes:
             replacement = _build_replacement_graph(concat_node)
             boundary = _build_boundary(concat_node)
-            ret = SubgraphRewriter.replace(boundary, replacement)
-            if ret != 0:
-                raise RuntimeError(f"SubgraphRewriter.replace failed, ret={ret}")
+            SubgraphRewriter.replace(boundary, replacement, context=context)
             print("Replacement of PythonMoveReluBeforeConcatPass succeeded")
         return True
 
@@ -129,4 +130,6 @@ class PythonMoveReluBeforeConcatPass(FusionBasePass):
 if __name__ == "__main__":
     print("PythonMoveReluBeforeConcatPass 已注册。")
     print("请通过 ASCEND_GE_PY_PASS_PATH 指向本文件，例如：")
-    print("  export ASCEND_GE_PY_PASS_PATH=$PWD/python/src/python_move_relu_before_concat_pass.py")
+    print(
+        "  export ASCEND_GE_PY_PASS_PATH=$PWD/python/src/python_move_relu_before_concat_pass.py"
+    )
