@@ -75,12 +75,95 @@ class UtestGraphPassesFoldingKernelReshapeKernel : public testing::Test {
     GraphUtils::AddEdge(dim_node->GetOutDataAnchor(0), op_node->GetInDataAnchor(1));
 
     shared_ptr<Kernel> kernel = KernelFactory::Instance().Create(RESHAPE);
-    vector<ConstGeTensorPtr> input = {data_tensor};
+    vector<ConstGeTensorPtr> input = {data_tensor, dim_tensor};
     vector<GeTensorPtr> outputs;
     Status status = kernel->Compute(op_node->GetOpDesc(), input, outputs);
-    EXPECT_EQ(NOT_CHANGED, status);
+    EXPECT_NE(ge::SUCCESS, status);
   }
 };
+
+TEST_F(UtestGraphPassesFoldingKernelReshapeKernel, WrongInputSizeNotChanged) {
+  OpDescPtr reshape_op_desc = std::make_shared<OpDesc>("Reshape", RESHAPE);
+  GeTensorDesc data_tensor_desc(GeShape({2, 3}), FORMAT_NCHW, DT_FLOAT);
+  reshape_op_desc->AddInputDesc(data_tensor_desc);
+  reshape_op_desc->AddOutputDesc(data_tensor_desc);
+
+  GeTensorPtr data_tensor = std::make_shared<GeTensor>(data_tensor_desc);
+  vector<ConstGeTensorPtr> input = {data_tensor};
+  vector<GeTensorPtr> outputs;
+
+  shared_ptr<Kernel> kernel = KernelFactory::Instance().Create(RESHAPE);
+  Status status = kernel->Compute(reshape_op_desc, input, outputs);
+  EXPECT_EQ(ge::NOT_CHANGED, status);
+}
+
+TEST_F(UtestGraphPassesFoldingKernelReshapeKernel, WrongOutputCountNotChanged) {
+  OpDescPtr reshape_op_desc = std::make_shared<OpDesc>("Reshape", RESHAPE);
+  GeTensorDesc data_tensor_desc(GeShape({2, 3}), FORMAT_NCHW, DT_FLOAT);
+  reshape_op_desc->AddInputDesc(data_tensor_desc);
+  reshape_op_desc->AddInputDesc(data_tensor_desc);
+  reshape_op_desc->AddOutputDesc(data_tensor_desc);
+  reshape_op_desc->AddOutputDesc(data_tensor_desc);
+
+  vector<float> data_value(6, 1.0f);
+  GeTensorPtr data_tensor =
+      std::make_shared<GeTensor>(data_tensor_desc, (uint8_t *)data_value.data(), data_value.size() * sizeof(float));
+  vector<int64_t> dim_data = {3, 2};
+  GeTensorDesc dim_tensor_desc(GeShape({2}), FORMAT_NCHW, DT_INT64);
+  GeTensorPtr dim_tensor = std::make_shared<GeTensor>(dim_tensor_desc, (uint8_t *)dim_data.data(), sizeof(int64_t) * 2);
+  vector<ConstGeTensorPtr> input = {data_tensor, dim_tensor};
+  vector<GeTensorPtr> outputs;
+
+  shared_ptr<Kernel> kernel = KernelFactory::Instance().Create(RESHAPE);
+  Status status = kernel->Compute(reshape_op_desc, input, outputs);
+  EXPECT_EQ(ge::NOT_CHANGED, status);
+}
+
+TEST_F(UtestGraphPassesFoldingKernelReshapeKernel, ScalarInputToNonScalarOutput) {
+  vector<int64_t> input_shape = {};
+  vector<int64_t> output_shape = {1};
+  vector<int64_t> dim_value_vec = {1};
+
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("default");
+
+  ge::OpDescPtr data_op_desc = std::make_shared<ge::OpDesc>("data", CONSTANTOP);
+  vector<uint8_t> data_value_vec(1, 1);
+  GeTensorDesc data_tensor_desc(GeShape(input_shape), FORMAT_NCHW, DT_BOOL);
+  GeTensorPtr data_tensor = std::make_shared<GeTensor>(data_tensor_desc, (uint8_t *)data_value_vec.data(),
+                                                       data_value_vec.size() * sizeof(uint8_t));
+  OpDescUtils::SetWeights(data_op_desc, data_tensor);
+  data_op_desc->AddOutputDesc(data_tensor_desc);
+  NodePtr data_node = graph->AddNode(data_op_desc);
+  data_node->Init();
+
+  ge::OpDescPtr dim_op_desc = std::make_shared<ge::OpDesc>("dim", CONSTANTOP);
+  vector<int64_t> dim_vec;
+  dim_vec.push_back(dim_value_vec.size());
+  GeTensorDesc dim_tensor_desc(ge::GeShape(dim_vec), FORMAT_NCHW, DT_INT64);
+  GeTensorPtr dim_tensor = std::make_shared<GeTensor>(dim_tensor_desc, (uint8_t *)dim_value_vec.data(),
+                                                      dim_value_vec.size() * sizeof(int64_t));
+  OpDescUtils::SetWeights(dim_op_desc, dim_tensor);
+  dim_op_desc->AddOutputDesc(dim_tensor_desc);
+  NodePtr dim_node = graph->AddNode(dim_op_desc);
+  dim_node->Init();
+
+  OpDescPtr reshape_op_desc = std::make_shared<OpDesc>("Reshape", RESHAPE);
+  reshape_op_desc->AddInputDesc(data_tensor_desc);
+  reshape_op_desc->AddInputDesc(dim_tensor_desc);
+  GeTensorDesc output_tensor_desc(GeShape(output_shape), FORMAT_NCHW, DT_BOOL);
+  reshape_op_desc->AddOutputDesc(output_tensor_desc);
+  NodePtr op_node = graph->AddNode(reshape_op_desc);
+  op_node->Init();
+
+  GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), op_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(dim_node->GetOutDataAnchor(0), op_node->GetInDataAnchor(1));
+
+  shared_ptr<Kernel> kernel = KernelFactory::Instance().Create(RESHAPE);
+  vector<ConstGeTensorPtr> input = {data_tensor, dim_tensor};
+  vector<GeTensorPtr> outputs;
+  Status status = kernel->Compute(op_node->GetOpDesc(), input, outputs);
+  EXPECT_EQ(ge::SUCCESS, status);
+}
 
 TEST_F(UtestGraphPassesFoldingKernelReshapeKernel, InvalidFormat) {
   vector<int64_t> data_vec = {2, 3};

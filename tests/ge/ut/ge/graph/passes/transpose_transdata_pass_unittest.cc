@@ -424,4 +424,42 @@ TEST_F(UtestGraphPassesTransposeTransdataPass, run_failed2) {
   EXPECT_EQ(ret, FAILED);
 }
 
+TEST_F(UtestGraphPassesTransposeTransdataPass, run_on_non_transpose_node) {
+  auto compute_graph = BuildGraphTransposeD();
+  compute_graph->SetSessionID(0);
+  auto transdata1 = compute_graph->FindNode("transdata1");
+  TransposeTransDataPass pass;
+  Status ret = pass.Run(transdata1);
+  EXPECT_EQ(ret, SUCCESS);
+}
+
+TEST_F(UtestGraphPassesTransposeTransdataPass, run_with_same_input_output_format) {
+  auto compute_graph = BuildGraphTransposeD();
+  compute_graph->SetSessionID(0);
+  auto transpose = compute_graph->FindNode("transpose1");
+  transpose->GetOpDesc()->MutableInputDesc(0)->SetFormat(FORMAT_NCHW);
+  transpose->GetOpDesc()->MutableOutputDesc(0)->SetFormat(FORMAT_NCHW);
+  TransposeTransDataPass pass;
+  Status ret = pass.Run(transpose);
+  EXPECT_EQ(ret, SUCCESS);
+}
+
+TEST_F(UtestGraphPassesTransposeTransdataPass, check_in_out_data_anchor_valid_success) {
+  auto compute_graph = BuildGraphTransposeD();
+  compute_graph->SetSessionID(0);
+  auto transpose = compute_graph->FindNode("transpose1");
+  TransposeTransDataPass pass;
+  Status ret = pass.CheckInOutDataAnchorValid(transpose, 1U, 1U);
+  EXPECT_EQ(ret, SUCCESS);
+}
+
+TEST_F(UtestGraphPassesTransposeTransdataPass, check_in_out_data_anchor_valid_failed) {
+  auto compute_graph = BuildGraphTransposeD();
+  compute_graph->SetSessionID(0);
+  auto transpose = compute_graph->FindNode("transpose1");
+  TransposeTransDataPass pass;
+  Status ret = pass.CheckInOutDataAnchorValid(transpose, 2U, 1U);
+  EXPECT_EQ(ret, FAILED);
+}
+
 }  // namespace ge

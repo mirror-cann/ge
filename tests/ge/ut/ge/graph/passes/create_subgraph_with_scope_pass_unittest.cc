@@ -382,4 +382,42 @@ TEST_F(CreateSubgraphWithScopePassTest, global_graph_trans_to_subgraph) {
   EXPECT_EQ(pass_manager.Run(graph), SUCCESS);
   unsetenv("RESOURCE_CONFIG_PATH");
 }
+
+TEST_F(CreateSubgraphWithScopePassTest, run_with_parent_graph_success) {
+  ComputeGraphPtr root = std::make_shared<ComputeGraph>("root");
+  ComputeGraphPtr sub = std::make_shared<ComputeGraph>("sub");
+  sub->SetParentGraph(root);
+  root->AddSubgraph("sub", sub);
+  PassManager pass_manager;
+  pass_manager.AddPass("CreateSubGraphWithScopePass", new (std::nothrow) CreateSubGraphWithScopePass);
+  EXPECT_EQ(pass_manager.Run(sub), SUCCESS);
+}
+
+TEST_F(CreateSubgraphWithScopePassTest, run_no_dynamic_config_success) {
+  std::map<std::string, std::string> options;
+  GetThreadLocalContext().SetGlobalOption(options);
+  PassManager pass_manager;
+  pass_manager.AddPass("CreateSubGraphWithScopePass", new (std::nothrow) CreateSubGraphWithScopePass);
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
+  auto data0 = MakeNode(graph, 0, 1, "data_0", DATA);
+  GeTensorDesc tensor_desc0(GeShape({10}));
+  data0->GetOpDesc()->UpdateOutputDesc(0, tensor_desc0);
+  auto netoutput = MakeNode(graph, 1, 0, "netoutput", NETOUTPUT);
+  netoutput->GetOpDesc()->UpdateInputDesc(0, tensor_desc0);
+  GraphUtils::AddEdge(data0->GetOutDataAnchor(0), netoutput->GetInDataAnchor(0));
+  EXPECT_EQ(pass_manager.Run(graph), SUCCESS);
+}
+
+TEST_F(CreateSubgraphWithScopePassTest, data_node_with_scope_index_failed) {
+  std::map<std::string, std::string> options;
+  GetThreadLocalContext().SetGlobalOption(options);
+  PassManager pass_manager;
+  pass_manager.AddPass("CreateSubGraphWithScopePass", new (std::nothrow) CreateSubGraphWithScopePass);
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
+  auto data0 = MakeNode(graph, 0, 1, "data_0", DATA);
+  GeTensorDesc tensor_desc0(GeShape({10}));
+  data0->GetOpDesc()->UpdateOutputDesc(0, tensor_desc0);
+  AttrUtils::SetInt(data0->GetOpDesc(), ATTR_NAME_SUBGRAPH_MULTI_DIMS_INDEX, 0);
+  EXPECT_EQ(pass_manager.Run(graph), PARAM_INVALID);
+}
 }  // namespace ge

@@ -247,3 +247,65 @@ TEST_F(UTEST_graph_passes_set_input_output_offset_pass, SetOutputOffsetForHcom_H
   Status ret = setInputOutputOffsetPass.Run(graph);
   EXPECT_EQ(ret, ge::SUCCESS);
 }
+
+TEST_F(UTEST_graph_passes_set_input_output_offset_pass, FftsPlusSubGraphSkip) {
+  auto root_graph = std::make_shared<ComputeGraph>("root");
+  auto parent_desc = MakeShared<OpDesc>("PartitionedCall", PARTITIONEDCALL);
+  GeTensorDesc desc(GeShape({1}), FORMAT_ND, DT_FLOAT);
+  parent_desc->AddInputDesc(desc);
+  parent_desc->AddOutputDesc(desc);
+  auto parent_node = root_graph->AddNode(parent_desc);
+  AttrUtils::SetBool(parent_desc, ATTR_NAME_FFTS_PLUS_SUB_GRAPH, true);
+
+  auto sub_graph = std::make_shared<ComputeGraph>("sub");
+  sub_graph->SetParentNode(parent_node);
+  sub_graph->SetParentGraph(root_graph);
+  root_graph->AddSubgraph(sub_graph->GetName(), sub_graph);
+
+  SetInputOutputOffsetPass pass;
+  EXPECT_EQ(pass.Run(sub_graph), ge::SUCCESS);
+}
+
+TEST_F(UTEST_graph_passes_set_input_output_offset_pass, EmptyGraphSuccess) {
+  ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
+  SetInputOutputOffsetPass pass;
+  EXPECT_EQ(pass.Run(graph), ge::SUCCESS);
+}
+
+TEST_F(UTEST_graph_passes_set_input_output_offset_pass, NoConnectAttrsSuccess) {
+  ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
+  auto desc_ptr = MakeShared<ge::GeTensorDesc>();
+  auto desc = *desc_ptr;
+  OpDescPtr op_desc = MakeShared<OpDesc>("Relu", RELU);
+  op_desc->AddInputDesc(desc);
+  op_desc->AddOutputDesc(desc);
+  graph->AddNode(op_desc);
+  graph->TopologicalSorting();
+  SetInputOutputOffsetPass pass;
+  EXPECT_EQ(pass.Run(graph), ge::SUCCESS);
+}
+
+TEST_F(UTEST_graph_passes_set_input_output_offset_pass, SetOutputOffsetNoTaskNotContinuous) {
+  ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
+  auto desc_ptr = MakeShared<ge::GeTensorDesc>();
+  auto desc = *desc_ptr;
+  OpDescPtr op_desc_concat = MakeShared<OpDesc>("Concat", CONCAT);
+  op_desc_concat->AddInputDesc(desc);
+  op_desc_concat->AddOutputDesc(desc);
+  op_desc_concat->SetOutputOffset({0});
+
+  OpDescPtr op_desc_out = MakeShared<OpDesc>("Netoutput", NETOUTPUT);
+  op_desc_out->AddInputDesc(desc);
+
+  vector<int> connect_output = {0};
+  AttrUtils::SetListInt(op_desc_concat, ATTR_NAME_NODE_CONNECT_OUTPUT, connect_output);
+  bool attr_no_task = true;
+  ge::AttrUtils::SetBool(op_desc_concat, ATTR_NAME_NOTASK, attr_no_task);
+
+  NodePtr concat_node = graph->AddNode(op_desc_concat);
+  NodePtr out_node = graph->AddNode(op_desc_out);
+  GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0), out_node->GetInDataAnchor(0));
+  graph->TopologicalSorting();
+  SetInputOutputOffsetPass pass;
+  EXPECT_EQ(pass.Run(graph), ge::SUCCESS);
+}

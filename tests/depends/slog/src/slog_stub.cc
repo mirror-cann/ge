@@ -24,19 +24,7 @@ auto ins = ge::SlogStub::GetInstance();  // 让log提前初始化
 }
 class DefaultSlogStub : public SlogStub {
  public:
-  DefaultSlogStub() : SlogStub() {
-    setenv("ASCEND_SLOG_PRINT_TO_STDOUT", "1", 1);
-    auto log_level = getenv("ASCEND_GLOBAL_LOG_LEVEL");
-    if (log_level != nullptr) {
-      SetLevel(atoi(log_level));
-    } else {
-      SetLevel(DLOG_ERROR);
-    }
-    auto log_event_level = getenv("ASCEND_GLOBAL_EVENT_ENABLE");
-    if (log_event_level != nullptr) {
-      SetEventLevel(atoi(log_event_level));
-    }
-  }
+  DefaultSlogStub() : SlogStub() {}
 
   void Log(int module_id, int level, const char *fmt, va_list args) override {
     if ((!log_init) || (level < GetLevel())) {
@@ -48,6 +36,21 @@ class DefaultSlogStub : public SlogStub {
     }
   }
 };
+
+SlogStub::SlogStub() {
+  setenv("ASCEND_SLOG_PRINT_TO_STDOUT", "1", 1);
+  auto log_level = getenv("ASCEND_GLOBAL_LOG_LEVEL");
+  if (log_level != nullptr) {
+    SetLevel(atoi(log_level));
+  } else {
+    SetLevel(DLOG_ERROR);
+  }
+  auto log_event_level = getenv("ASCEND_GLOBAL_EVENT_ENABLE");
+  if (log_event_level != nullptr) {
+    SetEventLevel(atoi(log_event_level));
+  }
+  log_init = true;
+}
 
 SlogStub::~SlogStub() {
   log_init = false;

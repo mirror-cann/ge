@@ -162,4 +162,42 @@ TEST_F(UtestReshapeRemovePass, keep_reshape_output_of_subgraph) {
   }
   EXPECT_TRUE(has_reshape == true);
 }
+
+TEST_F(UtestReshapeRemovePass, reformat_remove_success) {
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("var1", VARIABLE)->EDGE(0, 0)->NODE("reformat", REFORMAT));
+    CHAIN(NODE("reformat", REFORMAT)->EDGE(0, 0)->NODE("net_output", NETOUTPUT));
+  };
+  auto compute_graph = ToComputeGraph(g1);
+  EXPECT_NE(compute_graph->FindNode("reformat"), nullptr);
+  names_to_pass.push_back({"ReshapeRemovePass", new ReshapeRemovePass});
+  GEPass pass(compute_graph);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+  EXPECT_EQ(compute_graph->FindNode("reformat"), nullptr);
+}
+
+TEST_F(UtestReshapeRemovePass, non_reshape_non_reformat_not_removed) {
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("var1", VARIABLE)->EDGE(0, 0)->NODE("relu", RELU));
+    CHAIN(NODE("relu", RELU)->EDGE(0, 0)->NODE("net_output", NETOUTPUT));
+  };
+  auto compute_graph = ToComputeGraph(g1);
+  names_to_pass.push_back({"ReshapeRemovePass", new ReshapeRemovePass});
+  GEPass pass(compute_graph);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+  EXPECT_NE(compute_graph->FindNode("relu"), nullptr);
+}
+
+TEST_F(UtestReshapeRemovePass, reshape_with_non_const_shape_input) {
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("var1", VARIABLE)->EDGE(0, 0)->NODE("reshape", RESHAPE));
+    CHAIN(NODE("var2", VARIABLE)->EDGE(0, 1)->NODE("reshape", RESHAPE));
+    CHAIN(NODE("reshape", RESHAPE)->EDGE(0, 0)->NODE("net_output", NETOUTPUT));
+  };
+  auto compute_graph = ToComputeGraph(g1);
+  names_to_pass.push_back({"ReshapeRemovePass", new ReshapeRemovePass});
+  GEPass pass(compute_graph);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+  EXPECT_EQ(compute_graph->FindNode("reshape"), nullptr);
+}
 }  // namespace ge

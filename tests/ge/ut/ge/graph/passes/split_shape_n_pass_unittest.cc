@@ -139,4 +139,60 @@ TEST_F(UtestSplitPass, SplitShapeNPass) {
   ASSERT_NE(known_node, nullptr);
   ASSERT_EQ(old_node, nullptr);
 }
+
+TEST_F(UtestSplitPass, SplitShapeNPass_NotShapeNType) {
+  auto graph = BuildForSplitGraph1();
+  auto data1 = graph->FindNode("data1");
+  SplitShapeNPass pass;
+  EXPECT_EQ(pass.Run(data1), SUCCESS);
+}
+
+TEST_F(UtestSplitPass, SplitShapeNPass_AllKnownShape) {
+  ut::GraphBuilder builder("g_all_known");
+  auto data1 = builder.AddNode("data1", "Data", 1, 1, FORMAT_NCHW, DT_FLOAT, {1, 3, 224, 224});
+  auto shapeN = builder.AddNode("shapeN", SHAPEN, 1, 1);
+  auto netoutput1 = builder.AddNode("netoutput1", "NetOutput", 1, 0);
+  builder.AddDataEdge(data1, 0, shapeN, 0);
+  builder.AddDataEdge(shapeN, 0, netoutput1, 0);
+  auto graph = builder.GetGraph();
+  SplitShapeNPass pass;
+  auto node = graph->FindNode("shapeN");
+  EXPECT_EQ(pass.Run(node), SUCCESS);
+  EXPECT_EQ(graph->FindNode("shapeN_unknown"), nullptr);
+  EXPECT_EQ(graph->FindNode("shapeN_known"), nullptr);
+}
+
+TEST_F(UtestSplitPass, SplitShapeNPass_AllUnknownShape) {
+  ut::GraphBuilder builder("g_all_unknown");
+  auto data1 = builder.AddNode("data1", "Data", 1, 2, FORMAT_NCHW, DT_INT32, {});
+  auto shapeN = builder.AddNode("shapeN", SHAPEN, 2, 2);
+  auto netoutput1 = builder.AddNode("netoutput1", "NetOutput", 1, 0);
+  auto netoutput2 = builder.AddNode("netoutput2", "NetOutput", 1, 0);
+
+  auto input_desc0 = shapeN->GetOpDesc()->GetInputDesc(0);
+  auto output_desc0 = shapeN->GetOpDesc()->GetOutputDesc(0);
+  input_desc0.SetShape(GeShape({-1, 1, 2}));
+  output_desc0.SetShape(GeShape({-1, 1, 2}));
+  shapeN->GetOpDesc()->UpdateInputDesc(0, input_desc0);
+  shapeN->GetOpDesc()->UpdateOutputDesc(0, output_desc0);
+
+  auto input_desc1 = shapeN->GetOpDesc()->GetInputDesc(1);
+  auto output_desc1 = shapeN->GetOpDesc()->GetOutputDesc(1);
+  input_desc1.SetShape(GeShape({-1, 3, 4}));
+  output_desc1.SetShape(GeShape({-1, 3, 4}));
+  shapeN->GetOpDesc()->UpdateInputDesc(1, input_desc1);
+  shapeN->GetOpDesc()->UpdateOutputDesc(1, output_desc1);
+
+  builder.AddDataEdge(data1, 0, shapeN, 0);
+  builder.AddDataEdge(data1, 1, shapeN, 1);
+  builder.AddDataEdge(shapeN, 0, netoutput1, 0);
+  builder.AddDataEdge(shapeN, 1, netoutput2, 0);
+  auto graph = builder.GetGraph();
+
+  SplitShapeNPass pass;
+  auto node = graph->FindNode("shapeN");
+  EXPECT_EQ(pass.Run(node), SUCCESS);
+  EXPECT_EQ(graph->FindNode("shapeN_unknown"), nullptr);
+  EXPECT_EQ(graph->FindNode("shapeN_known"), nullptr);
+}
 }  // namespace ge

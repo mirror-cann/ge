@@ -80,7 +80,7 @@ namespace ge{
 
     若算子有多个属性，每个属性需要使用一条REQUIRED\_ATTR\(_d_, Type\)语句进行注册。
 
-- OP\_END\_FACTORY\_REG\(_OpType_\)：结束算子注册。_OpType_与REG\_OP\(_OpType_\)中的_OpType_保持一致。
+- OP\_END\_FACTORY\_REG\(_OpType_\)：结束算子注册。OpType与REG\_OP\(_OpType_\)中的OpType保持一致。
 
 >[!NOTE]说明
 >

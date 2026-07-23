@@ -15,7 +15,7 @@
 
 1. 获取ONNX网络模型。
 
-    单击[Link](https://github.com/onnx/models/blob/main/Computer_Vision/resnet50_Opset16_timm/resnet50_Opset16.onnx)下载该文件，再以CANN软件包运行用户将获取的文件上传至开发环境任意目录，例如上传到$HOME_/module__/_目录下。
+    单击[Link](https://github.com/onnx/models/blob/main/Computer_Vision/resnet50_Opset16_timm/resnet50_Opset16.onnx)下载该文件，再以CANN软件包运行用户将获取的文件上传至开发环境任意目录，例如上传到$HOME/module/目录下。
 
 2. 使用ATC命令行工具进行模型转换（以\*.onnx模型举例）。
 
@@ -26,7 +26,7 @@
 
     - --model：原始网络模型文件路径与文件名。
     - --framework：原始网络模型框架类型，“3”代表TensorFlow模型，“5”代表ONNX模型，“1”代表MindSpore框架\*.air格式的模型文件或TorchAir通过export导出的标准\*.air格式文件
-    - --output：存放转换后的离线模型的路径以及文件名，例如，若配置为“_$HOME__/module__/out/tf\_resnet50_”，则转换后的离线模型存储路径为“_$HOME__/module__/out/_”，转换后的离线模型名称为“_tf\_resnet50_.om”。
+    - --output：存放转换后的离线模型的路径以及文件名，例如，若配置为“$HOME/module/out/tf\_resnet50”，则转换后的离线模型存储路径为“$HOME/module/out/”，转换后的离线模型名称为“tf\_resnet50.om”。
     <!-- npu="950,A3,910b,910,310p,310b" id1 -->
     - --soc\_version：AI处理器的型号。取值查询方法如下：
         <!-- npu="910b,910,310p,310b" id3 -->

@@ -1050,4 +1050,64 @@ TEST_F(UtestGraphPartition, DataShouldClearUserStreamLabel) {
   AttrUtils::GetStr(data->GetOpDesc(), public_attr::USER_STREAM_LABEL, user_stream_label);
   EXPECT_TRUE(user_stream_label.empty());
 }
+
+TEST_F(UtestGraphPartition, IsDataLike_ConstantNode) {
+  EnginePartitioner EnginePartitioner;
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("default");
+  NodePtr const_node = NodeBuilder("const", CONSTANT).AddOutputDesc({1, 1, 224, 224}).Build(graph);
+  EXPECT_EQ(EnginePartitioner.IsDataLike(const_node), true);
+}
+
+TEST_F(UtestGraphPartition, IsDataLike_DataNode) {
+  EnginePartitioner EnginePartitioner;
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("default");
+  NodePtr data_node =
+      NodeBuilder("data", DATA).AddInputDesc({1, 1, 224, 224}).AddOutputDesc({1, 1, 224, 224}).Build(graph);
+  EXPECT_EQ(EnginePartitioner.IsDataLike(data_node), true);
+}
+
+TEST_F(UtestGraphPartition, IsDataLike_NonDataNode) {
+  EnginePartitioner EnginePartitioner;
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("default");
+  NodePtr relu_node =
+      NodeBuilder("relu", RELU).AddInputDesc({1, 1, 224, 224}).AddOutputDesc({1, 1, 224, 224}).Build(graph);
+  EXPECT_EQ(EnginePartitioner.IsDataLike(relu_node), false);
+}
+
+TEST_F(UtestGraphPartition, AddNewGraphToPartition_NullGraph) {
+  EnginePartitioner EnginePartitioner;
+  EnginePartitioner.AddNewGraphToPartition(nullptr, "engine_name");
+  SUCCEED();
+}
+
+TEST_F(UtestGraphPartition, SetMergedGraphId_EmptyRankPartitions) {
+  EnginePartitioner EnginePartitioner;
+  ComputeGraphPtr output_merged_compute_graph = std::make_shared<ComputeGraph>("merged");
+  EnginePartitioner::GraphPartitionInfo graph_info;
+  EXPECT_EQ(EnginePartitioner.SetMergedGraphId(output_merged_compute_graph, graph_info), SUCCESS);
+}
+
+TEST_F(UtestGraphPartition, MergeOverflowAttr_NoAttr) {
+  EnginePartitioner EnginePartitioner;
+  ComputeGraphPtr sub_graph = std::make_shared<ComputeGraph>("sub");
+  ComputeGraphPtr root_graph = std::make_shared<ComputeGraph>("root");
+  EXPECT_EQ(EnginePartitioner.MergeOverflowAttr(sub_graph, root_graph), SUCCESS);
+}
+
+TEST_F(UtestGraphPartition, MergeOverflowAttr_WithAttr) {
+  EnginePartitioner EnginePartitioner;
+  ComputeGraphPtr sub_graph = std::make_shared<ComputeGraph>("sub");
+  ComputeGraphPtr root_graph = std::make_shared<ComputeGraph>("root");
+  AttrUtils::SetInt(sub_graph, GLOBALWORKSPACE_TYPE, 1);
+  EXPECT_EQ(EnginePartitioner.MergeOverflowAttr(sub_graph, root_graph), SUCCESS);
+}
+
+TEST_F(UtestGraphPartition, HasNoInput_WithInput) {
+  EnginePartitioner EnginePartitioner;
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("default");
+  NodePtr data = NodeBuilder("data", DATA).AddInputDesc({1, 1, 224, 224}).AddOutputDesc({1, 1, 224, 224}).Build(graph);
+  NodePtr relu = NodeBuilder("relu", RELU).AddInputDesc({1, 1, 224, 224}).AddOutputDesc({1, 1, 224, 224}).Build(graph);
+  GraphUtils::AddEdge(data->GetOutDataAnchor(0), relu->GetInDataAnchor(0));
+  EXPECT_EQ(EnginePartitioner.HasNoInput(relu), false);
+}
 }  // namespace ge

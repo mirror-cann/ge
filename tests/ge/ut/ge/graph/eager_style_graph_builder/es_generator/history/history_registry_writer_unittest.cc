@@ -280,3 +280,182 @@ TEST_F(HistoryRegistryWriterUT, WriteRegistrySkipsInvalidExistingIndexEntry) {
   EXPECT_EQ(index_json["releases"][0]["release_version"], "7.0.RC1");
   EXPECT_EQ(index_json["releases"][1]["release_version"], "8.0.RC1");
 }
+
+TEST_F(HistoryRegistryWriterUT, ValidateReleaseDateFormat_Valid) {
+  EXPECT_TRUE(ValidateReleaseDateFormat("2024-01-15"));
+  EXPECT_TRUE(ValidateReleaseDateFormat("1900-01-01"));
+  EXPECT_TRUE(ValidateReleaseDateFormat("9999-12-31"));
+}
+
+TEST_F(HistoryRegistryWriterUT, ValidateReleaseDateFormat_Invalid) {
+  EXPECT_FALSE(ValidateReleaseDateFormat("2024-13-01"));
+  EXPECT_FALSE(ValidateReleaseDateFormat("2024-00-01"));
+  EXPECT_FALSE(ValidateReleaseDateFormat("2024-01-32"));
+  EXPECT_FALSE(ValidateReleaseDateFormat("2024-01-00"));
+  EXPECT_FALSE(ValidateReleaseDateFormat("1899-01-01"));
+  EXPECT_FALSE(ValidateReleaseDateFormat("10000-01-01"));
+  EXPECT_FALSE(ValidateReleaseDateFormat("invalid"));
+  EXPECT_FALSE(ValidateReleaseDateFormat(""));
+  EXPECT_FALSE(ValidateReleaseDateFormat("2024/01/15"));
+  EXPECT_FALSE(ValidateReleaseDateFormat("2024-1-1"));
+}
+
+TEST_F(HistoryRegistryWriterUT, ReadJsonFile_NonExistentFile) {
+  nlohmann::json out;
+  std::string error_msg;
+  EXPECT_FALSE(ReadJsonFile("/tmp/nonexistent_file_12345.json", out, error_msg));
+  EXPECT_FALSE(error_msg.empty());
+}
+
+TEST_F(HistoryRegistryWriterUT, ReadJsonFile_InvalidJsonContent) {
+  std::string tmp_path = output_dir_ + "invalid.json";
+  std::ofstream ofs(tmp_path);
+  ofs << "{invalid json content}";
+  ofs.close();
+  nlohmann::json out;
+  std::string error_msg;
+  EXPECT_FALSE(ReadJsonFile(tmp_path, out, error_msg));
+  EXPECT_FALSE(error_msg.empty());
+}
+
+TEST_F(HistoryRegistryWriterUT, ReadJsonFile_EmptyFile) {
+  std::string tmp_path = output_dir_ + "empty.json";
+  std::ofstream ofs(tmp_path);
+  ofs.close();
+  nlohmann::json out;
+  std::string error_msg;
+  EXPECT_FALSE(ReadJsonFile(tmp_path, out, error_msg));
+  EXPECT_FALSE(error_msg.empty());
+}
+
+TEST_F(HistoryRegistryWriterUT, ValidateRequireString_Missing) {
+  nlohmann::json j = nlohmann::json::object();
+  std::string error_msg;
+  EXPECT_FALSE(ValidateRequireString(j, "key", error_msg, ""));
+  EXPECT_FALSE(error_msg.empty());
+}
+
+TEST_F(HistoryRegistryWriterUT, ValidateRequireString_NotString) {
+  nlohmann::json j = {{"key", 123}};
+  std::string error_msg;
+  EXPECT_FALSE(ValidateRequireString(j, "key", error_msg, ""));
+  EXPECT_FALSE(error_msg.empty());
+}
+
+TEST_F(HistoryRegistryWriterUT, ValidateRequireString_Valid) {
+  nlohmann::json j = {{"key", "value"}};
+  std::string error_msg;
+  EXPECT_TRUE(ValidateRequireString(j, "key", error_msg, ""));
+}
+
+TEST_F(HistoryRegistryWriterUT, ValidateRequireArray_Missing) {
+  nlohmann::json j = nlohmann::json::object();
+  std::string error_msg;
+  EXPECT_FALSE(ValidateRequireArray(j, "key", error_msg, ""));
+  EXPECT_FALSE(error_msg.empty());
+}
+
+TEST_F(HistoryRegistryWriterUT, ValidateRequireArray_NotArray) {
+  nlohmann::json j = {{"key", "not_array"}};
+  std::string error_msg;
+  EXPECT_FALSE(ValidateRequireArray(j, "key", error_msg, ""));
+  EXPECT_FALSE(error_msg.empty());
+}
+
+TEST_F(HistoryRegistryWriterUT, ValidateRequireArray_Valid) {
+  nlohmann::json j = {{"key", nlohmann::json::array()}};
+  std::string error_msg;
+  EXPECT_TRUE(ValidateRequireArray(j, "key", error_msg, ""));
+}
+
+TEST_F(HistoryRegistryWriterUT, ValidateOptionalString_Valid) {
+  nlohmann::json j = nlohmann::json::object();
+  std::string error_msg;
+  EXPECT_TRUE(ValidateOptionalString(j, "key", error_msg, ""));
+  j["key"] = "value";
+  EXPECT_TRUE(ValidateOptionalString(j, "key", error_msg, ""));
+}
+
+TEST_F(HistoryRegistryWriterUT, ValidateOptionalString_NotString) {
+  nlohmann::json j = {{"key", 123}};
+  std::string error_msg;
+  EXPECT_FALSE(ValidateOptionalString(j, "key", error_msg, ""));
+  EXPECT_FALSE(error_msg.empty());
+}
+
+TEST_F(HistoryRegistryWriterUT, ValidateIndexJson_NotObject) {
+  nlohmann::json j = nlohmann::json::array();
+  std::string error_msg;
+  EXPECT_FALSE(ValidateIndexJson(j, error_msg));
+}
+
+TEST_F(HistoryRegistryWriterUT, ValidateIndexJson_MissingVersion) {
+  nlohmann::json j = {{"releases", nlohmann::json::array()}};
+  std::string error_msg;
+  EXPECT_FALSE(ValidateIndexJson(j, error_msg));
+}
+
+TEST_F(HistoryRegistryWriterUT, ValidateIndexJson_MissingReleases) {
+  nlohmann::json j = {{"version", "1.0.0"}};
+  std::string error_msg;
+  EXPECT_FALSE(ValidateIndexJson(j, error_msg));
+}
+
+TEST_F(HistoryRegistryWriterUT, ValidateIndexJson_Valid) {
+  nlohmann::json j = {{"version", "1.0.0"}, {"releases", nlohmann::json::array()}};
+  std::string error_msg;
+  EXPECT_TRUE(ValidateIndexJson(j, error_msg));
+}
+
+TEST_F(HistoryRegistryWriterUT, ValidateIndexReleaseEntryJson_NotObject) {
+  nlohmann::json entry = nlohmann::json::array();
+  std::set<std::string> seen;
+  std::string error_msg;
+  EXPECT_FALSE(ValidateIndexReleaseEntryJson(entry, 0, seen, error_msg));
+}
+
+TEST_F(HistoryRegistryWriterUT, ValidateIndexReleaseEntryJson_DuplicateVersion) {
+  nlohmann::json entry = {{"release_version", "1.0"}, {"release_date", "2024-01-01"}};
+  std::set<std::string> seen = {"1.0"};
+  std::string error_msg;
+  EXPECT_FALSE(ValidateIndexReleaseEntryJson(entry, 0, seen, error_msg));
+}
+
+TEST_F(HistoryRegistryWriterUT, ValidateIndexReleaseEntryJson_InvalidDate) {
+  nlohmann::json entry = {{"release_version", "1.0"}, {"release_date", "invalid"}};
+  std::set<std::string> seen;
+  std::string error_msg;
+  EXPECT_FALSE(ValidateIndexReleaseEntryJson(entry, 0, seen, error_msg));
+}
+
+TEST_F(HistoryRegistryWriterUT, ValidateIndexReleaseEntryJson_Valid) {
+  nlohmann::json entry = {{"release_version", "1.0"}, {"release_date", "2024-01-01"}};
+  std::set<std::string> seen;
+  std::string error_msg;
+  EXPECT_TRUE(ValidateIndexReleaseEntryJson(entry, 0, seen, error_msg));
+}
+
+TEST_F(HistoryRegistryWriterUT, GetCurrentDate_ReturnsNonEmpty) {
+  std::string date;
+  EXPECT_TRUE(GetCurrentDate(date));
+  EXPECT_FALSE(date.empty());
+  EXPECT_EQ(date.size(), 10U);
+}
+
+TEST_F(HistoryRegistryWriterUT, WriteRegistry_WithBranchName) {
+  std::vector<OpDescPtr> ops;
+  EXPECT_NO_THROW(HistoryRegistryWriter::WriteRegistry(output_dir_, "9.0.RC1", "2024-03-01", "main_branch", ops));
+  nlohmann::json meta;
+  std::string error_msg;
+  ASSERT_TRUE(ReadJsonFile(output_dir_ + "registry/9.0.RC1/metadata.json", meta, error_msg));
+  EXPECT_EQ(meta["branch_name"], "main_branch");
+}
+
+TEST_F(HistoryRegistryWriterUT, WriteRegistry_EmptyBranchName) {
+  std::vector<OpDescPtr> ops;
+  EXPECT_NO_THROW(HistoryRegistryWriter::WriteRegistry(output_dir_, "10.0.RC1", "2024-04-01", "", ops));
+  nlohmann::json meta;
+  std::string error_msg;
+  ASSERT_TRUE(ReadJsonFile(output_dir_ + "registry/10.0.RC1/metadata.json", meta, error_msg));
+  EXPECT_FALSE(meta.contains("branch_name"));
+}

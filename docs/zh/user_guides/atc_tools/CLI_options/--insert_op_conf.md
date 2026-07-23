@@ -53,7 +53,7 @@ aipp_op {
 }
 ```
 
-将配置好的_insert\_op.cfg_文件上传到ATC工具所在服务器任意目录，例如上传到_$HOME/module_，使用示例如下：
+将配置好的_insert\_op.cfg_文件上传到ATC工具所在服务器任意目录，例如上传到$HOME/module，使用示例如下：
 
 ```bash
 atc --insert_op_conf=$HOME/module/insert_op.cfg ...

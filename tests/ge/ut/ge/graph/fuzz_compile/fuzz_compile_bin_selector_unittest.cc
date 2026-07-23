@@ -72,6 +72,24 @@ class FakeOpsKernelBuilder : public OpsKernelBuilder {
     return SUCCESS;
   };
 };
+
+class FakeFailingOpsKernelInfoStore : public OpsKernelInfoStore {
+ private:
+  Status Initialize(const std::map<std::string, std::string> &options) override {
+    return SUCCESS;
+  };
+  Status Finalize() override {
+    return SUCCESS;
+  };
+  bool CheckSupported(const OpDescPtr &op_desc, std::string &reason) const override {
+    return false;
+  };
+  void GetAllOpsKernelInfo(std::map<std::string, ge::OpInfo> &infos) const override {};
+
+  Status FuzzCompileOp(std::vector<NodePtr> &node_vec) override {
+    return FAILED;
+  };
+};
 }  // namespace
 
 TEST_F(UtestFuzzCompileBinSelector, do_compile_op_succces) {
@@ -149,5 +167,69 @@ TEST_F(UtestFuzzCompileBinSelector, do_select_bin_success_without_kernel_miss) {
   ge::AttrUtils::SetStr(node->GetOpDesc(), "compile_info_key", "op_compile_info_key");
   ge::AttrUtils::SetStr(node->GetOpDesc(), "compile_info_json", "op_compile_info_json");
   EXPECT_NE(bin_selector.SelectBin(node, &ge_context, task_defs), nullptr);
+}
+
+TEST_F(UtestFuzzCompileBinSelector, select_bin_null_node_returns_nullptr) {
+  FuzzCompileBinSelector bin_selector;
+  NodeCompileCacheModule nccm;
+  bin_selector.nccm_ = &nccm;
+  GEThreadLocalContext ge_context;
+  std::vector<domi::TaskDef> task_defs;
+  EXPECT_EQ(bin_selector.SelectBin(nullptr, &ge_context, task_defs), nullptr);
+}
+
+TEST_F(UtestFuzzCompileBinSelector, select_bin_fuzz_compile_op_fails_returns_nullptr) {
+  ut::GraphBuilder builder = ut::GraphBuilder("graph_fail");
+  auto node = builder.AddNode("Data", "Data", 1, 1);
+  FuzzCompileBinSelector bin_selector;
+  node->GetOpDesc()->SetOpKernelLibName("AIcoreEngine");
+  NodeCompileCacheModule nccm;
+  bin_selector.nccm_ = &nccm;
+  bin_selector.aicore_kernel_store_ = std::make_shared<FakeFailingOpsKernelInfoStore>();
+  OpsKernelBuilderRegistry::GetInstance().kernel_builders_["AIcoreEngine"] = std::make_shared<FakeOpsKernelBuilder>();
+  GEThreadLocalContext ge_context;
+  std::vector<domi::TaskDef> task_defs;
+  ge::AttrUtils::SetStr(node->GetOpDesc(), "compile_info_key", "op_compile_info_key");
+  ge::AttrUtils::SetStr(node->GetOpDesc(), "compile_info_json", "op_compile_info_json");
+  EXPECT_EQ(bin_selector.SelectBin(node, &ge_context, task_defs), nullptr);
+  OpsKernelBuilderRegistry::GetInstance().UnregisterAll();
+}
+
+TEST_F(UtestFuzzCompileBinSelector, do_generate_task_success) {
+  ut::GraphBuilder builder = ut::GraphBuilder("graph_gen_task");
+  auto node = builder.AddNode("Data", "Data", 1, 1);
+  FuzzCompileBinSelector bin_selector;
+  node->GetOpDesc()->SetOpKernelLibName("test_gen_task");
+  OpsKernelBuilderRegistry::GetInstance().kernel_builders_["test_gen_task"] = std::make_shared<FakeOpsKernelBuilder>();
+  std::vector<domi::TaskDef> task_defs;
+  EXPECT_EQ(bin_selector.DoGenerateTask(node, task_defs), SUCCESS);
+  EXPECT_FALSE(task_defs.empty());
+  OpsKernelBuilderRegistry::GetInstance().UnregisterAll();
+}
+
+TEST_F(UtestFuzzCompileBinSelector, do_register_bin_stub_func_type) {
+  ut::GraphBuilder builder = ut::GraphBuilder("graph_reg_bin");
+  auto node = builder.AddNode("Data", "Data", 1, 1);
+  FuzzCompileBinSelector bin_selector;
+  const auto &op_desc = *node->GetOpDesc();
+  domi::TaskDef task_def;
+  task_def.set_type(static_cast<int32_t>(ModelTaskType::MODEL_TASK_ALL_KERNEL) + 1);
+  KernelLaunchBinType bin_type = KernelLaunchBinType::kBinTypeEnd;
+  void *handle = nullptr;
+  auto ret = bin_selector.DoRegisterBin(op_desc, task_def, bin_type, handle);
+  EXPECT_EQ(bin_type, KernelLaunchBinType::kStubFunc);
+}
+
+TEST_F(UtestFuzzCompileBinSelector, do_register_bin_with_handle_type) {
+  ut::GraphBuilder builder = ut::GraphBuilder("graph_reg_bin_handle");
+  auto node = builder.AddNode("Data", "Data", 1, 1);
+  FuzzCompileBinSelector bin_selector;
+  const auto &op_desc = *node->GetOpDesc();
+  domi::TaskDef task_def;
+  task_def.set_type(static_cast<int32_t>(ModelTaskType::MODEL_TASK_ALL_KERNEL));
+  KernelLaunchBinType bin_type = KernelLaunchBinType::kBinTypeEnd;
+  void *handle = nullptr;
+  auto ret = bin_selector.DoRegisterBin(op_desc, task_def, bin_type, handle);
+  EXPECT_EQ(bin_type, KernelLaunchBinType::kWithHandle);
 }
 }  // namespace ge

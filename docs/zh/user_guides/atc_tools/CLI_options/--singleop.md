@@ -190,7 +190,7 @@ IPV350：不支持
 
 ## 示例
 
-下面以Add单算子为例进行说明，该单算子对应的描述文件为_add.json_  ，将该文件上传到ATC工具所在服务器任意目录，例如上传到_$HOME/singleop_，使用示例如下：
+下面以Add单算子为例进行说明，该单算子对应的描述文件为_add.json_  ，将该文件上传到ATC工具所在服务器任意目录，例如上传到$HOME/singleop，使用示例如下：
 
 ```bash
 atc --singleop=$HOME/singleop/add.json --output=$HOME/singleop/out/op_model  --soc_version=<soc_version> ...

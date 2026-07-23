@@ -468,3 +468,75 @@ TEST_F(UtestGraphPassesFoldingKernelMaximumKernel, MaximumOptimizerDifferentType
   status = kernel->Compute(nullptr, input, outputs);
   EXPECT_EQ(status, PARAM_INVALID);
 }
+
+TEST_F(UtestGraphPassesFoldingKernelMaximumKernel, MaximumInputNumberNotMatch) {
+  OpDescPtr op_desc_ptr = std::make_shared<OpDesc>("Maximum", MAXIMUM);
+  vector<bool> is_input_const_vec = {true, true};
+  op_desc_ptr->SetIsInputConst(is_input_const_vec);
+  AttrUtils::SetInt(op_desc_ptr, ATTR_NAME_T, (int64_t)DT_INT32);
+
+  vector<int64_t> dims_vec_0 = {2};
+  vector<int32_t> data_vec_0 = {1, 2};
+  GeTensorDesc tensor_desc_0(GeShape(dims_vec_0), FORMAT_NCHW, DT_INT32);
+  ConstGeTensorPtr tensor_0 =
+      std::make_shared<GeTensor>(tensor_desc_0, (uint8_t *)data_vec_0.data(), data_vec_0.size() * sizeof(int32_t));
+
+  vector<ConstGeTensorPtr> input = {tensor_0};
+  vector<GeTensorPtr> outputs;
+
+  shared_ptr<ge::Kernel> kernel = ge::KernelFactory::Instance().Create(MAXIMUM);
+  Status status = kernel->Compute(op_desc_ptr, input, outputs);
+  EXPECT_EQ(status, NOT_CHANGED);
+}
+
+TEST_F(UtestGraphPassesFoldingKernelMaximumKernel, MaximumEmptyData) {
+  OpDescPtr op_desc_ptr = std::make_shared<OpDesc>("Maximum", MAXIMUM);
+  vector<bool> is_input_const_vec = {true, true};
+  op_desc_ptr->SetIsInputConst(is_input_const_vec);
+  AttrUtils::SetInt(op_desc_ptr, ATTR_NAME_T, (int64_t)DT_INT32);
+
+  vector<int64_t> dims_vec_0 = {2};
+  vector<int32_t> data_vec_0 = {};
+  GeTensorDesc tensor_desc_0(GeShape(dims_vec_0), FORMAT_NCHW, DT_INT32);
+  ConstGeTensorPtr tensor_0 =
+      std::make_shared<GeTensor>(tensor_desc_0, (uint8_t *)data_vec_0.data(), data_vec_0.size() * sizeof(int32_t));
+
+  vector<int64_t> dims_vec_1 = {2};
+  vector<int32_t> data_vec_1 = {1, 2};
+  GeTensorDesc tensor_desc_1(GeShape(dims_vec_1), FORMAT_NCHW, DT_INT32);
+  ConstGeTensorPtr tensor_1 =
+      std::make_shared<GeTensor>(tensor_desc_1, (uint8_t *)data_vec_1.data(), data_vec_1.size() * sizeof(int32_t));
+
+  vector<ConstGeTensorPtr> input = {tensor_0, tensor_1};
+  vector<GeTensorPtr> outputs;
+
+  shared_ptr<ge::Kernel> kernel = ge::KernelFactory::Instance().Create(MAXIMUM);
+  Status status = kernel->Compute(op_desc_ptr, input, outputs);
+  EXPECT_EQ(status, NOT_CHANGED);
+}
+
+TEST_F(UtestGraphPassesFoldingKernelMaximumKernel, MaximumUnsupportedType) {
+  OpDescPtr op_desc_ptr = std::make_shared<OpDesc>("Maximum", MAXIMUM);
+  vector<bool> is_input_const_vec = {true, true};
+  op_desc_ptr->SetIsInputConst(is_input_const_vec);
+  AttrUtils::SetInt(op_desc_ptr, ATTR_NAME_T, (int64_t)DT_BOOL);
+
+  vector<int64_t> dims_vec_0 = {2};
+  vector<uint8_t> data_vec_0 = {1, 0};
+  GeTensorDesc tensor_desc_0(GeShape(dims_vec_0), FORMAT_NCHW, DT_BOOL);
+  ConstGeTensorPtr tensor_0 =
+      std::make_shared<GeTensor>(tensor_desc_0, (uint8_t *)data_vec_0.data(), data_vec_0.size() * sizeof(uint8_t));
+
+  vector<int64_t> dims_vec_1 = {2};
+  vector<uint8_t> data_vec_1 = {0, 1};
+  GeTensorDesc tensor_desc_1(GeShape(dims_vec_1), FORMAT_NCHW, DT_BOOL);
+  ConstGeTensorPtr tensor_1 =
+      std::make_shared<GeTensor>(tensor_desc_1, (uint8_t *)data_vec_1.data(), data_vec_1.size() * sizeof(uint8_t));
+
+  vector<ConstGeTensorPtr> input = {tensor_0, tensor_1};
+  vector<GeTensorPtr> outputs;
+
+  shared_ptr<ge::Kernel> kernel = ge::KernelFactory::Instance().Create(MAXIMUM);
+  Status status = kernel->Compute(op_desc_ptr, input, outputs);
+  EXPECT_EQ(status, NOT_CHANGED);
+}

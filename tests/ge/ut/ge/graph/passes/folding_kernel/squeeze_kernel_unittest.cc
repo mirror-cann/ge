@@ -330,3 +330,53 @@ TEST_F(UtestGraphPassesFoldingKernelSqueenzeKernel, ConstFoldingUnsuccess) {
   status = kernel->Compute(graph->FindNode("squeeze1")->GetOpDesc(), inputs_invalid, v_output);
   EXPECT_EQ(PARAM_INVALID, status);
 }
+
+TEST_F(UtestGraphPassesFoldingKernelSqueenzeKernel, NodePtrIsNullptr) {
+  NodePtr null_node = nullptr;
+  shared_ptr<Kernel> kernel = KernelFactory::Instance().Create(SQUEEZE);
+  Status status = kernel->Compute(null_node);
+  EXPECT_EQ(PARAM_INVALID, status);
+}
+
+TEST_F(UtestGraphPassesFoldingKernelSqueenzeKernel, ConstFoldingWrongInputSize) {
+  OpDescPtr op_desc_ptr = std::make_shared<OpDesc>("Squeeze", SQUEEZE);
+  op_desc_ptr->AddInputDesc(GeTensorDesc(GeShape({1, 2}), FORMAT_NCHW, DT_FLOAT));
+  op_desc_ptr->AddInputDesc(GeTensorDesc(GeShape({1, 2}), FORMAT_NCHW, DT_FLOAT));
+  op_desc_ptr->AddOutputDesc(GeTensorDesc(GeShape({2}), FORMAT_NCHW, DT_FLOAT));
+
+  GeTensorPtr tensor = std::make_shared<GeTensor>();
+  vector<ConstGeTensorPtr> input = {tensor};
+  vector<GeTensorPtr> outputs;
+
+  shared_ptr<Kernel> kernel = KernelFactory::Instance().Create(SQUEEZE);
+  Status status = kernel->Compute(op_desc_ptr, input, outputs);
+  EXPECT_EQ(NOT_CHANGED, status);
+}
+
+TEST_F(UtestGraphPassesFoldingKernelSqueenzeKernel, ConstFoldingWrongOutputSize) {
+  OpDescPtr op_desc_ptr = std::make_shared<OpDesc>("Squeeze", SQUEEZE);
+  op_desc_ptr->AddInputDesc(GeTensorDesc(GeShape({1, 2}), FORMAT_NCHW, DT_FLOAT));
+  op_desc_ptr->AddOutputDesc(GeTensorDesc(GeShape({2}), FORMAT_NCHW, DT_FLOAT));
+  op_desc_ptr->AddOutputDesc(GeTensorDesc(GeShape({2}), FORMAT_NCHW, DT_FLOAT));
+
+  GeTensorPtr tensor = std::make_shared<GeTensor>();
+  vector<ConstGeTensorPtr> input = {tensor};
+  vector<GeTensorPtr> outputs;
+
+  shared_ptr<Kernel> kernel = KernelFactory::Instance().Create(SQUEEZE);
+  Status status = kernel->Compute(op_desc_ptr, input, outputs);
+  EXPECT_EQ(NOT_CHANGED, status);
+}
+
+TEST_F(UtestGraphPassesFoldingKernelSqueenzeKernel, SqueezeV2ConstFoldingSuccess) {
+  auto graph = BuildGraph();
+  std::vector<GeTensorPtr> v_output;
+  std::vector<ConstGeTensorPtr> inputs;
+  ConstGeTensorPtr data_tensor = std::make_shared<const GeTensor>();
+
+  inputs.push_back(data_tensor);
+  shared_ptr<Kernel> kernel = KernelFactory::Instance().Create(SQUEEZEV2);
+  Status status = kernel->Compute(graph->FindNode("squeeze1")->GetOpDesc(), inputs, v_output);
+  EXPECT_EQ(ge::SUCCESS, status);
+  EXPECT_EQ(1, v_output.size());
+}

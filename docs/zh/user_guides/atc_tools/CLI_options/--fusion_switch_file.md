@@ -44,7 +44,7 @@
 
 - **场景1：逐条配置待关闭融合规则**
 
-    配置文件样例如下，冒号前面为融合规则名，后面字段表示融合规则是否开启（融合规则开关配置文件名举例为_fusion\_switch.cfg_）：
+    配置文件样例如下，冒号前面为融合规则名，后面字段表示融合规则是否开启（融合规则开关配置文件名举例为fusion\_switch.cfg）：
 
     ```text
     xxxFusionPass:off
@@ -69,7 +69,7 @@
     }
     ```
   <!-- npu="950" id2 -->
-  不支持UB融合时，上述配置文件可以删除UBFusion。
+  **不支持UB融合时，上述配置文件可以删除UBFusion。**
   <!-- end id2 -->
 
     说明：
@@ -95,10 +95,10 @@
         ```
 
         <!-- npu="950" id3 -->
-        不支持UB融合时，上述配置文件可以删除UBFusion。
+        **不支持UB融合时，上述配置文件可以删除UBFusion。**
         <!-- end id3 -->
 
-将上述配置好的_fusion\_switch.cfg_文件上传到ATC工具所在服务器任意目录，例如上传到_$HOME/module_，使用示例如下：
+将上述配置好的_fusion\_switch.cfg_文件上传到ATC工具所在服务器任意目录，例如上传到$HOME/module，使用示例如下：
 
 ```bash
 atc --fusion_switch_file=$HOME/module/fusion_switch.cfg ...
@@ -110,7 +110,7 @@ atc --fusion_switch_file=$HOME/module/fusion_switch.cfg ...
 
 ## 使用约束
 
-- 若网络模型中Convolution算子的“group”属性取值==模型文件prototxt中“num\_output”属性的取值，则上述配置文件中**_Vxxx_RequantFusionPass**必须打开。
+- 若网络模型中Convolution算子的“group”属性取值==模型文件prototxt中“num\_output”属性的取值，则上述配置文件中**VxxxRequantFusionPass**必须打开。
 
 <!-- @ref: ge/res/docs/zh/user_guides/atc_tools/CLI_options/--fusion_switch_file_res.md#id1 -->
 

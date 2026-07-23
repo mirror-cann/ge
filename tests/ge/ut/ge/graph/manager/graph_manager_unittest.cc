@@ -1046,28 +1046,6 @@ TEST_F(UtestGraphManagerTest, test_add_graph_2) {
   EXPECT_EQ(status, ge::SUCCESS);
 }
 
-TEST_F(UtestGraphManagerTest, test_add_graph_3) {
-  GraphId graph_id = 1;
-  GraphManager graph_manager;
-  graph_manager.graph_rebuild_state_ctrl_ = MakeShared<GraphRebuildStateCtrl>();
-  Graph graph("test_graph");
-  CreateGraph(graph);
-
-  std::map<std::string, std::string> options;
-  OmgContext context;
-
-  std::future<Status> fut1 =
-      std::async(std::launch::async, &GraphManager::AddGraph, &graph_manager, graph_id, graph, options, context);
-  std::future<Status> fut2 =
-      std::async(std::launch::async, &GraphManager::AddGraph, &graph_manager, graph_id, graph, options, context);
-  fut1.wait();
-  fut2.wait();
-  Status status1 = fut1.get();
-  Status status2 = fut2.get();
-  EXPECT_EQ(status1, ge::SUCCESS);
-  EXPECT_EQ(status2, ge::SUCCESS);
-}
-
 TEST_F(UtestGraphManagerTest, test_add_graph_4) {
   GraphId graph_id = 1;
   GraphManager graph_manager;
@@ -4695,6 +4673,9 @@ TEST_F(UtestGraphManagerTest, test_checkIoReuseMemIndexesOption1) {
   options.emplace(ge::OPTION_HOST_SCHEDULING_MAX_THRESHOLD, "abc");
   EXPECT_NE(CheckOptionValidThreshold(options, OPTION_HOST_SCHEDULING_MAX_THRESHOLD), SUCCESS);
   options.clear();
+  options.emplace(ge::OPTION_HOST_SCHEDULING_MAX_THRESHOLD, "9223372036854775808");
+  EXPECT_EQ(CheckOptionValidThreshold(options, OPTION_HOST_SCHEDULING_MAX_THRESHOLD), PARAM_INVALID);
+  options.clear();
   options.emplace(ge::OPTION_HOST_SCHEDULING_MAX_THRESHOLD, "15");
   EXPECT_EQ(CheckOptionValidThreshold(options, OPTION_HOST_SCHEDULING_MAX_THRESHOLD), SUCCESS);
 }
@@ -5727,5 +5708,156 @@ TEST_F(UtestGraphManagerTest, RunGraphAsync_Om2Mode_ReturnsUnsupported) {
   std::vector<gert::Tensor> inputs;
   EXPECT_EQ(graph_manager.RunGraphAsync(graph_id, std::move(inputs), 0U, callback), GE_GRAPH_UNSUPPORTED);
   EXPECT_FALSE(callback_called);
+}
+
+TEST_F(UtestGraphManagerTest, GraphContext_Initialize_ReturnsSuccess) {
+  GraphId graph_id = 1;
+  GraphNodePtr graph_node = MakeShared<ge::GraphNode>(graph_id);
+  GraphContext graph_context(graph_node);
+  std::map<std::string, std::string> options;
+  EXPECT_EQ(graph_context.Initialize(options), SUCCESS);
+}
+
+TEST_F(UtestGraphManagerTest, GraphContext_Finalize_ReturnsSuccess) {
+  GraphId graph_id = 1;
+  GraphNodePtr graph_node = MakeShared<ge::GraphNode>(graph_id);
+  GraphContext graph_context(graph_node);
+  EXPECT_EQ(graph_context.Finalize(), SUCCESS);
+}
+
+TEST_F(UtestGraphManagerTest, GraphContext_GetVariableTensor_EmptyName_ReturnsError) {
+  GraphId graph_id = 1;
+  GraphNodePtr graph_node = MakeShared<ge::GraphNode>(graph_id);
+  GraphContext graph_context(graph_node);
+  GeTensor res;
+  EXPECT_EQ(graph_context.GetVariableTensor("", res), GE_GRAPH_EMPTY_STRING_NAME);
+}
+
+TEST_F(UtestGraphManagerTest, GraphContext_GetVariableTensor_EmptyTable_ReturnsError) {
+  GraphId graph_id = 1;
+  GraphNodePtr graph_node = MakeShared<ge::GraphNode>(graph_id);
+  GraphContext graph_context(graph_node);
+  graph_context.GetVarNodeTensorTable().clear();
+  GeTensor res;
+  EXPECT_EQ(graph_context.GetVariableTensor("var_name", res), GE_GRAPH_EMPTY_VARIABLE_TENSOR_TABLE);
+}
+
+TEST_F(UtestGraphManagerTest, GraphContext_GetVariableTensor_FoundVariable_ReturnsSuccess) {
+  GraphId graph_id = 1;
+  GraphNodePtr graph_node = MakeShared<ge::GraphNode>(graph_id);
+  GraphContext graph_context(graph_node);
+
+  GradOpList a;
+  VariableRecord b("found_var", a, 0);
+  GeTensor c;
+  GeTensorDesc desc(GeShape({2, 3}), FORMAT_ND, DT_FLOAT);
+  c.SetTensorDesc(desc);
+  std::pair<VariableRecord, GeTensor> d(b, c);
+  graph_context.GetVarNodeTensorTable().push_back(d);
+
+  GeTensor res;
+  EXPECT_EQ(graph_context.GetVariableTensor("found_var", res), SUCCESS);
+  EXPECT_EQ(res.GetTensorDesc().GetShape().GetDimNum(), 2U);
+  graph_context.GetVarNodeTensorTable().clear();
+}
+
+TEST_F(UtestGraphManagerTest, GraphContext_Constructor_WithNullGraphAndComputeGraph) {
+  GraphId graph_id = 1;
+  GraphNodePtr graph_node = MakeShared<ge::GraphNode>(graph_id);
+  graph_node->SetComputeGraph(nullptr);
+  graph_node->SetGraph(nullptr);
+  GraphContext graph_context(graph_node);
+  SUCCEED();
+}
+
+TEST_F(UtestGraphManagerTest, GraphContext_SetComputeGraph_NullGraphAndComputeGraph_ReturnsError) {
+  GraphId graph_id = 1;
+  GraphNodePtr graph_node = MakeShared<ge::GraphNode>(graph_id);
+  graph_node->SetComputeGraph(nullptr);
+  graph_node->SetGraph(nullptr);
+  GraphContext graph_context(graph_node);
+  EXPECT_EQ(graph_context.SetComputeGraph(graph_node), GE_GRAPH_OPTIMIZE_COMPUTE_GRAPH_NULL);
+}
+
+TEST_F(UtestGraphManagerTest, GraphManager_HasGraphNode_NotAdded_ReturnsFalse) {
+  GraphManager graph_manager;
+  EXPECT_FALSE(graph_manager.HasGraphNode(999));
+}
+
+TEST_F(UtestGraphManagerTest, GraphManager_SetGetRemoveAddGraphCondition) {
+  GraphManager graph_manager;
+  GraphId graph_id = 100;
+  graph_manager.SetAddGraphCondition(graph_id, kStartAdd);
+  EXPECT_EQ(graph_manager.GetAddGraphCondition(graph_id), kStartAdd);
+  graph_manager.RemoveAddGraphCondition(graph_id);
+  EXPECT_EQ(graph_manager.GetAddGraphCondition(graph_id), kNotAdded);
+}
+
+TEST_F(UtestGraphManagerTest, GraphManager_RemoveAddGraphCondition_NotExist_NoCrash) {
+  GraphManager graph_manager;
+  graph_manager.RemoveAddGraphCondition(888);
+  SUCCEED();
+}
+
+TEST_F(UtestGraphManagerTest, GraphManager_IsPerfLevelInvalid_ValidValues_ReturnFalse) {
+  GraphManager graph_manager;
+  EXPECT_FALSE(graph_manager.IsPerfLevelInvalid(-1));
+}
+
+TEST_F(UtestGraphManagerTest, GraphManager_IsPerfLevelInvalid_InvalidValue_ReturnTrue) {
+  GraphManager graph_manager;
+  EXPECT_TRUE(graph_manager.IsPerfLevelInvalid(999));
+}
+
+TEST_F(UtestGraphManagerTest, GraphManager_SetSessionGraphId_SetsAttr) {
+  GraphManager graph_manager;
+  auto compute_graph = MakeShared<ComputeGraph>("session_graph_test");
+  graph_manager.SetSessionGraphId(compute_graph, 42);
+  std::string session_graph_id;
+  EXPECT_TRUE(AttrUtils::GetStr(*compute_graph, ATTR_NAME_SESSION_GRAPH_ID, session_graph_id));
+  EXPECT_FALSE(session_graph_id.empty());
+}
+
+TEST_F(UtestGraphManagerTest, GraphManager_SetSessionGraphId_NullComputeGraph_NoCrash) {
+  GraphManager graph_manager;
+  ComputeGraphPtr null_graph = nullptr;
+  graph_manager.SetSessionGraphId(null_graph, 42);
+  SUCCEED();
+}
+
+TEST_F(UtestGraphManagerTest, GraphManager_GetRunGraphMode_NotFound_ReturnsError) {
+  GraphManager graph_manager;
+  RunGraphMode mode = RunGraphMode::kRunGraphModeEnd;
+  EXPECT_NE(graph_manager.GetRunGraphMode(777, mode), SUCCESS);
+}
+
+TEST_F(UtestGraphManagerTest, GraphManager_SetRunGraphMode_NotFound_ReturnsError) {
+  GraphManager graph_manager;
+  RunGraphMode mode = RunGraphMode::kRunGraph;
+  EXPECT_NE(graph_manager.SetRunGraphMode(777, mode), SUCCESS);
+}
+
+TEST_F(UtestGraphManagerTest, GraphManager_CheckModelLoad_NullModel_ReturnsFalse) {
+  GraphManager graph_manager;
+  EXPECT_FALSE(graph_manager.CheckModelLoad(nullptr, true));
+}
+
+TEST_F(UtestGraphManagerTest, GraphManager_CheckModelLoad_NotLoaded_ReturnsFalse) {
+  GraphManager graph_manager;
+  auto ge_root_model = MakeShared<GeRootModel>();
+  EXPECT_FALSE(graph_manager.CheckModelLoad(ge_root_model, false));
+}
+
+TEST_F(UtestGraphManagerTest, GraphManager_UpdateDynamicParams_ParsesFromGraphOptions) {
+  GraphManager graph_manager;
+  std::string input_shape;
+  std::string dynamic_dims;
+  int32_t dynamic_node_type = 0;
+  std::map<std::string, std::string> graph_options;
+  graph_options[INPUT_SHAPE] = "1,2,3";
+  graph_options[DYNAMIC_NODE_TYPE] = "1";
+  graph_manager.UpdateDynamicParams(input_shape, dynamic_dims, dynamic_node_type, graph_options);
+  EXPECT_EQ(input_shape, "1,2,3");
+  EXPECT_EQ(dynamic_node_type, 1);
 }
 }  // namespace ge

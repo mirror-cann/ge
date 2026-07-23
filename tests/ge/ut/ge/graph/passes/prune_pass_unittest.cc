@@ -508,3 +508,18 @@ TEST_F(UtestGraphPassesPrunePass, RefNodeWithoutOutput_Skip_prune) {
   EXPECT_EQ(ge::SUCCESS, status);
   EXPECT_EQ(size_ori, size);
 }
+
+TEST_F(UtestGraphPassesPrunePass, null_graph) {
+  PrunePass prune_pass;
+  ge::ComputeGraphPtr null_graph = nullptr;
+  EXPECT_EQ(prune_pass.Run(null_graph), GE_GRAPH_ISNULL);
+}
+
+TEST_F(UtestGraphPassesPrunePass, empty_graph_no_nodes) {
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("empty");
+  PrunePass prune_pass;
+  std::vector<std::pair<string, GraphPass *>> passes = {{"PrunePass", &prune_pass}};
+  Status status = PassManager::Run(graph, passes);
+  EXPECT_EQ(ge::SUCCESS, status);
+  EXPECT_EQ(graph->GetDirectNode().size(), 0);
+}

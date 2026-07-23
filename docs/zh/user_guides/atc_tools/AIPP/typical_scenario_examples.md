@@ -9,7 +9,7 @@
 - **该场景下涉及以下AIPP配置**：
   - 开启抠图功能参数crop；
   - 抠图起始位置水平、垂直方向坐标load\_start\_pos\_h、load\_start\_pos\_w为0；
-  - 无需配置crop\_size\_w和crop\_size\_h参数，此时抠图大小（crop\_size\[W|H\]）的宽和高取值来自模型转换时**--input\_shape**参数中的宽和高，将从\(0, 0\)点开始选取220\*220区域的数据；
+  - 无需配置crop\_size\_w和crop\_size\_h参数，此时抠图大小（crop\_size\[W|H\]）的宽和高取值来自模型转换时--input\_shape参数中的宽和高，将从\(0, 0\)点开始选取220\*220区域的数据；
   - 无需配置色域转换开关csc\_switch，并且对于同一个原始网络模型，如果AIPP输入的是YUV420SP\_U8图像，则可以使用同一套AIPP配置，即只取了Y通道的数据。
 
 - **AIPP配置文件示例如下：**
@@ -89,7 +89,7 @@
 - **该场景下涉及以下AIPP配置：**
   - 开启抠图功能参数crop；
   - 抠图起始位置水平、垂直方向坐标load\_start\_pos\_h、load\_start\_pos\_w为0；
-  - 无需配置crop\_size\_w和crop\_size\_h参数，此时抠图大小（crop\_size\[W|H\]）的宽和高取值来自模型转换时**--input\_shape**参数中的宽和高，将从\(0, 0\)点开始选取240\*240区域的数据；
+  - 无需配置crop\_size\_w和crop\_size\_h参数，此时抠图大小（crop\_size\[W|H\]）的宽和高取值来自模型转换时--input\_shape参数中的宽和高，将从\(0, 0\)点开始选取240\*240区域的数据；
   - 无需配置通道交换开关参数rbuv\_swap\_switch、色域转换开关参数csc\_switch和CSC矩阵参数。
 
 - **AIPP配置文件示例如下：**

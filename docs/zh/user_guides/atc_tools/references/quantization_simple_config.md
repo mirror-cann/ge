@@ -74,7 +74,7 @@
 
 ## 配置样例
 
-- 基于该文件构造的**均匀量化简易配置文件**_quant_.cfg样例如下所示：_Optype_需要配置为基于Ascend IR定义的算子类型，详细对应关系请参见[支持量化的层及约束](quantization_layers_constraints.md)。
+- 基于该文件构造的**均匀量化简易配置文件**quant.cfg样例如下所示：Optype需要配置为基于Ascend IR定义的算子类型，详细对应关系请参见[支持量化的层及约束](quantization_layers_constraints.md)。
 
     ```textproto
     # global quantize parameter

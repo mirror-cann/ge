@@ -2,10 +2,6 @@
 
 ## 产品支持情况
 
-<!-- npu="IPV350" id1 -->
-- IPV350：不支持
-<!-- end id1 -->
-
 <!-- npu="950" id2 -->
 - Ascend 950PR/Ascend 950DT：不支持
 <!-- end id2 -->
@@ -29,6 +25,10 @@
 <!-- npu="910" id7 -->
 - Atlas 训练系列产品：支持
 <!-- end id7 -->
+
+<!-- npu="IPV350" id1 -->
+- IPV350：不支持
+<!-- end id1 -->
 
 <!-- @ref: ge/res/docs/zh/user_guides/atc_tools/CLI_options/--compression_optimize_conf_res.md#id1 -->
 
@@ -140,9 +140,6 @@ calibration:
 假设压缩优化功能配置文件名称为compression\_optimize.cfg，文件内容配置示例如下：
 
 ```textproto
-<!-- npu="310p,310b" id11 -->
-enable_first_layer_quantization: true
-<!-- end id11 -->
 calibration:
 {
     input_data_dir: ./data.bin,d2.bin
@@ -157,7 +154,7 @@ calibration:
 }
 ```
 
-将该文件上传到ATC工具所在服务器，例如上传到_$HOME/module_，使用示例如下：
+将该文件上传到ATC工具所在服务器，例如上传到$HOME/module，使用示例如下：
 
 ```bash
 atc --compression_optimize_conf=$HOME/module/compression_optimize.cfg ...

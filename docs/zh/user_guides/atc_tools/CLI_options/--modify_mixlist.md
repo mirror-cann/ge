@@ -8,7 +8,7 @@
 
 混合精度场景下，**修改**算子使用的混合精度黑白灰名单，自行指定哪些算子允许降精度，哪些算子不允许降精度。
 
-黑白灰名单，可从 `${INSTALL_DIR}/opp/built-in/op_impl/ai_core/tbe/config/xxx/aic-xxx-ops-info-*.json`内置优化策略文件中查看“precision\_reduce”参数下的flag参数值：（其中，$\{INSTALL\_DIR\}请替换为CANN软件安装后文件存储路径。以root用户安装为例，安装后文件默认存储路径为：/usr/local/Ascend/cann。*xxx*请根据实际产品进行选择。）
+黑白灰名单，可从`${INSTALL_DIR}/opp/built-in/op_impl/ai_core/tbe/config/xxx/aic-xxx-ops-info-*.json`内置优化策略文件中查看“precision\_reduce”参数下的flag参数值：（其中，$\{INSTALL\_DIR\}请替换为CANN软件安装后文件存储路径。以root用户安装为例，安装后文件默认存储路径为：/usr/local/Ascend/cann。*xxx*请根据实际产品进行选择。）
 
 - 若取值为true（白名单），表示混合精度模式下，**允许**降低精度。
 - 若取值为false（黑名单），表示混合精度模式下，**不允许**降低精度。
@@ -139,7 +139,7 @@
 
     则系统会将该算子从白名单中删除，然后添加到灰名单中，最终该算子在灰名单中。
 
-将配置好的_ops\_info.json_文件上传到ATC工具所在服务器任意目录，例如上传到_$HOME/module_，使用示例如下：
+将配置好的_ops\_info.json_文件上传到ATC工具所在服务器任意目录，例如上传到$HOME/module，使用示例如下：
 
 ```bash
 atc --precision_mode=allow_mix_precision  --modify_mixlist=$HOME/module/ops_info.json ...

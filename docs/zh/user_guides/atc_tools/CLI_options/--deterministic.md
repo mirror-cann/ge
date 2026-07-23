@@ -2,9 +2,6 @@
 
 ## 产品支持情况
 
-<!-- npu="IPV350" id7 -->
-- IPV350：不支持
-<!-- end id7 -->
 <!-- npu="950" id6 -->
 - Ascend 950PR/Ascend 950DT：支持
 <!-- end id6 -->
@@ -23,6 +20,11 @@
 <!-- npu="910" id1 -->
 - Atlas 训练系列产品：支持
 <!-- end id1 -->
+
+<!-- npu="IPV350" id7 -->
+- IPV350：不支持
+<!-- end id7 -->
+
 <!-- @ref: ge/res/docs/zh/user_guides/atc_tools/CLI_options/--deterministic_res.md#id1 -->
 
 ## 功能说明

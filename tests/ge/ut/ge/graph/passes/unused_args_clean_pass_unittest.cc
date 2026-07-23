@@ -237,4 +237,24 @@ TEST_F(UTEST_UnusedArgsCleanPass, Run) {
   }
 }
 
+TEST_F(UTEST_UnusedArgsCleanPass, NoCaseNode) {
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_no_case");
+  auto data1 = MakeNode(graph, 0, 1, "data1", "Data");
+  auto add1 = MakeNode(graph, 1, 1, "add1", "Add");
+  auto netoutput = MakeNode(graph, 1, 0, "netoutput", "NetOutput");
+  GraphUtils::AddEdge(data1->GetOutDataAnchor(0), add1->GetInDataAnchor(0));
+  GraphUtils::AddEdge(add1->GetOutDataAnchor(0), netoutput->GetInDataAnchor(0));
+  UnusedArgsCleanPass pass;
+  EXPECT_EQ(pass.Run(graph), SUCCESS);
+  EXPECT_EQ(graph->GetDirectNode().size(), 3);
+}
+
+TEST_F(UTEST_UnusedArgsCleanPass, SubgraphSkip) {
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_subgraph");
+  auto parent = std::make_shared<ComputeGraph>("parent");
+  graph->SetParentGraph(parent);
+  UnusedArgsCleanPass pass;
+  EXPECT_EQ(pass.Run(graph), SUCCESS);
+}
+
 }  // namespace ge

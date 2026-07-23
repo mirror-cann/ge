@@ -269,4 +269,41 @@ TEST_F(UtestMarkForceUnknownForCondPass, mark_unknown_shape_merge) {
   MarkForceUnknownForCondPass mark_force_unknown_pass;
   EXPECT_EQ(mark_force_unknown_pass.Run(graph), SUCCESS);
 }
+
+TEST_F(UtestMarkForceUnknownForCondPass, empty_graph_success) {
+  auto graph = std::make_shared<ComputeGraph>("test_graph");
+  MarkForceUnknownForCondPass mark_force_unknown_pass;
+  EXPECT_EQ(mark_force_unknown_pass.Run(graph), SUCCESS);
+}
+
+TEST_F(UtestMarkForceUnknownForCondPass, no_merge_node_success) {
+  auto graph = std::make_shared<ComputeGraph>("test_graph");
+  CreateNode(*graph, "data", DATA, 0, 1);
+  CreateNode(*graph, "netoutput", NETOUTPUT, 1, 0);
+  MarkForceUnknownForCondPass mark_force_unknown_pass;
+  EXPECT_EQ(mark_force_unknown_pass.Run(graph), SUCCESS);
+}
+
+TEST_F(UtestMarkForceUnknownForCondPass, switch_not_in_loop) {
+  auto graph = std::make_shared<ComputeGraph>("test_graph");
+  auto data1 = CreateNode(*graph, "data1", DATA, 1, 1);
+  auto switch1 = CreateNode(*graph, "switch1", SWITCH, 2, 2);
+  auto merge1 = CreateNode(*graph, "merge1", MERGE, 2, 1);
+  auto output1 = CreateNode(*graph, "output1", NETOUTPUT, 1, 0);
+
+  GraphUtils::AddEdge(data1->GetOutDataAnchor(0), switch1->GetInDataAnchor(0));
+  GraphUtils::AddEdge(data1->GetOutDataAnchor(0), switch1->GetInDataAnchor(1));
+  GraphUtils::AddEdge(switch1->GetOutDataAnchor(0), merge1->GetInDataAnchor(0));
+  GraphUtils::AddEdge(switch1->GetOutDataAnchor(1), merge1->GetInDataAnchor(1));
+  GraphUtils::AddEdge(merge1->GetOutDataAnchor(0), output1->GetInDataAnchor(0));
+
+  auto tensor_desc = merge1->GetOpDesc()->GetOutputDesc(0);
+  tensor_desc.SetShape(GeShape({-1}));
+  merge1->GetOpDesc()->UpdateOutputDesc(0, tensor_desc);
+
+  MarkForceUnknownForCondPass mark_force_unknown_pass;
+  EXPECT_EQ(mark_force_unknown_pass.Run(graph), SUCCESS);
+  int64_t group_index = -1;
+  EXPECT_TRUE(AttrUtils::GetInt(switch1->GetOpDesc(), ATTR_NAME_CONTROL_FLOW_GROUP, group_index));
+}
 }  // namespace ge

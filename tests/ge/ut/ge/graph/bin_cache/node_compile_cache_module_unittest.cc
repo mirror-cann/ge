@@ -294,3 +294,136 @@ TEST_F(UtestCcm, testGetAttrSizeDatatype) {
   NodeCompileCacheModule ccm;
   ASSERT_EQ(ccm.GetAttrSize(any_value), sizeof(val));
 }
+
+TEST_F(UtestCcm, testGetAttrSizeListString) {
+  std::vector<std::string> val = {"ab", "cd"};
+  auto any_value = ge::GeAttrValue::CreateFrom<std::vector<std::string>>(val);
+  NodeCompileCacheModule ccm;
+  ASSERT_EQ(ccm.GetAttrSize(any_value), 4U);
+}
+
+TEST_F(UtestCcm, testGetAttrSizeListBool) {
+  std::vector<bool> val = {true, false, true};
+  auto any_value = ge::GeAttrValue::CreateFrom<std::vector<bool>>(val);
+  NodeCompileCacheModule ccm;
+  ASSERT_EQ(ccm.GetAttrSize(any_value), sizeof(bool) * val.size());
+}
+
+TEST_F(UtestCcm, testGetAttrSizeListInt) {
+  std::vector<int64_t> val = {1, 2, 3};
+  auto any_value = ge::GeAttrValue::CreateFrom<std::vector<int64_t>>(val);
+  NodeCompileCacheModule ccm;
+  ASSERT_EQ(ccm.GetAttrSize(any_value), sizeof(int64_t) * val.size());
+}
+
+TEST_F(UtestCcm, testGetAttrSizeListFloat) {
+  std::vector<float> val = {1.0, 2.0};
+  auto any_value = ge::GeAttrValue::CreateFrom<std::vector<float>>(val);
+  NodeCompileCacheModule ccm;
+  ASSERT_EQ(ccm.GetAttrSize(any_value), sizeof(float) * val.size());
+}
+
+TEST_F(UtestCcm, testGetAttrSizeListDataType) {
+  std::vector<DataType> val = {DT_FLOAT, DT_INT8};
+  auto any_value = ge::GeAttrValue::CreateFrom<std::vector<DataType>>(val);
+  NodeCompileCacheModule ccm;
+  ASSERT_EQ(ccm.GetAttrSize(any_value), sizeof(DataType) * val.size());
+}
+
+TEST_F(UtestCcm, testGetAttrSizeListListInt) {
+  std::vector<std::vector<int64_t>> val = {{1, 2}, {3, 4, 5}};
+  auto any_value = ge::GeAttrValue::CreateFrom<std::vector<std::vector<int64_t>>>(val);
+  NodeCompileCacheModule ccm;
+  ASSERT_EQ(ccm.GetAttrSize(any_value), sizeof(int64_t) * 5U);
+}
+
+TEST_F(UtestCcm, testGetAttrSizeUnsupported) {
+  NamedAttrs val;
+  auto any_value = ge::GeAttrValue::CreateFrom<NamedAttrs>(val);
+  NodeCompileCacheModule ccm;
+  ASSERT_EQ(ccm.GetAttrSize(any_value), 0U);
+}
+
+TEST_F(UtestCcm, testBuildWithAllAttrs) {
+  ut::GraphBuilder builder = ut::GraphBuilder("graph");
+  auto node = builder.AddNode("Data", "Data", 1, 1);
+  ASSERT_NE(node, nullptr);
+  auto op_desc = node->GetOpDesc();
+  ASSERT_NE(op_desc, nullptr);
+  AttrUtils::SetStr(op_desc, COMPILE_INFO_KEY, "compile_key");
+  AttrUtils::SetStr(op_desc, COMPILE_INFO_JSON, "{\"key\":\"value\"}");
+  AttrUtils::SetStr(op_desc, ATOMIC_COMPILE_INFO_KEY, "atomic_key");
+  AttrUtils::SetStr(op_desc, ATOMIC_COMPILE_INFO_JSON, "{\"atomic\":\"value\"}");
+  AttrUtils::SetInt(op_desc, kAttrOpParamSize, 256);
+  AttrUtils::SetInt(op_desc, kAttrAtomicOpParamSize, 128);
+  AttrUtils::SetBool(op_desc, "support_dynamicshape", true);
+
+  char handle = 'h';
+  NodeCompileCacheItem item;
+  ASSERT_EQ(NodeCompileCacheItem::Build(KernelLaunchBinType::kStubFunc, node, &handle, item), SUCCESS);
+  ASSERT_EQ(item.GetBinHandle(), reinterpret_cast<void *>(&handle));
+  ASSERT_EQ(item.GetBinType(), KernelLaunchBinType::kStubFunc);
+  ASSERT_NE(item.GetCompileInfo(), nullptr);
+  ASSERT_NE(item.GetAtomicCompileInfo(), nullptr);
+  ASSERT_EQ(item.GetMaxTilingSize(), 256);
+  ASSERT_EQ(item.GetAtomicMaxTilingSize(), 128);
+  ASSERT_TRUE(item.IsSupportDynamic());
+}
+
+TEST_F(UtestCcm, testSetAndGetCacheItemId) {
+  NodeCompileCacheItem item;
+  item.SetCacheItemId(42U);
+  ASSERT_EQ(item.GetCacheItemId(), 42U);
+}
+
+TEST_F(UtestCcm, testInitializeAfterFinalize) {
+  ut::GraphBuilder builder = ut::GraphBuilder("graph");
+  auto node = builder.AddNode("Data", "Data", 1, 1);
+  NodeCompileCacheItem item;
+  NodeCompileCacheModule ccm;
+  ccm.Finalize();
+  ccm.Initialize();
+  auto add_item = ccm.AddCompileCache(node, item);
+  ASSERT_NE(add_item, nullptr);
+}
+
+TEST_F(UtestCcm, testFindCompileCacheNullNode) {
+  NodeCompileCacheModule ccm;
+  ASSERT_EQ(ccm.FindCompileCache(nullptr), nullptr);
+}
+
+TEST_F(UtestCcm, testAddCompileCacheNullNode) {
+  NodeCompileCacheItem item;
+  NodeCompileCacheModule ccm;
+  ASSERT_EQ(ccm.AddCompileCache(nullptr, item), nullptr);
+}
+
+TEST_F(UtestCcm, testFindCompileCacheAfterFinalize) {
+  ut::GraphBuilder builder = ut::GraphBuilder("graph");
+  auto node = builder.AddNode("Data", "Data", 1, 1);
+  NodeCompileCacheItem item;
+  NodeCompileCacheModule ccm;
+  auto add_item = ccm.AddCompileCache(node, item);
+  ASSERT_NE(add_item, nullptr);
+  ccm.Finalize();
+  ASSERT_EQ(ccm.FindCompileCache(node), nullptr);
+  ASSERT_EQ(ccm.AddCompileCache(node, item), nullptr);
+}
+
+TEST_F(UtestCcm, testInsertAndGetCompileCacheDesc) {
+  ut::GraphBuilder builder = ut::GraphBuilder("graph");
+  auto node = builder.AddNode("Data", "Data", 1, 1);
+  NodeCompileCacheModule ccm;
+  auto cache_desc = std::make_shared<CompileCacheDesc>();
+  cache_desc->SetOpType("Data");
+  ccm.InsertCompileCacheDesc(node, cache_desc);
+  auto retrieved = ccm.GetCompileCacheDesc(node);
+  ASSERT_NE(retrieved, nullptr);
+}
+
+TEST_F(UtestCcm, testGetCompileCacheDescNotFound) {
+  ut::GraphBuilder builder = ut::GraphBuilder("graph");
+  auto node = builder.AddNode("Data", "Data", 1, 1);
+  NodeCompileCacheModule ccm;
+  ASSERT_EQ(ccm.GetCompileCacheDesc(node), nullptr);
+}

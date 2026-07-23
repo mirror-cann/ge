@@ -1067,4 +1067,49 @@ TEST_F(UtestGraphPassesConstantFoldingPass, IgnoreFolding_Ok_OutputShapeIsUnknow
   EXPECT_EQ(graph->GetAllNodes().size(), 3);
   EXPECT_NE(graph->FindNode("where"), nullptr);
 }
+
+TEST_F(UtestGraphPassesConstantFoldingPass, test_collect_cost_time_Of_GeConstantFolding) {
+  auto builder = ut::GraphBuilder("test");
+  auto const1 = builder.AddNode("const1", CONSTANT, 0, 1);
+  ConstantFoldingPass pass;
+  pass.CollectCostTimeOfGeConstantFolding(const1, 1);
+  pass.CollectCostTimeOfGeConstantFolding(const1, 1);
+  auto map = pass.GetGeConstantFoldingPerfStatistic();
+  EXPECT_EQ(map.empty(), false);
+}
+
+TEST_F(UtestGraphPassesConstantFoldingPass, test_need_fold_default) {
+  ConstantFoldingPass pass;
+  EXPECT_EQ(pass.NeedFold(), true);
+}
+
+TEST_F(UtestGraphPassesConstantFoldingPass, test_get_pass_name) {
+  ConstantFoldingPass pass;
+  EXPECT_EQ(pass.GetPassName(), "ConstantFoldingPass");
+}
+
+TEST_F(UtestGraphPassesConstantFoldingPass, test_need_ignore_pass_empty_output) {
+  auto builder = ut::GraphBuilder("test");
+  auto const1 = builder.AddNode("const1", CONSTANT, 0, 1);
+  SetWeightForConstNode(const1);
+  auto add1 = builder.AddNode("add1", AddYes, 1, 1);
+  auto netoutput1 = builder.AddNode("netoutput", NETOUTPUT, 1, 0);
+  builder.AddDataEdge(const1, 0, add1, 0);
+  builder.AddDataEdge(add1, 0, netoutput1, 0);
+  auto graph = builder.GetGraph();
+  add1->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape({0}));
+  ConstantFoldingPass pass;
+  EXPECT_TRUE(pass.NeedIgnorePass(add1));
+}
+
+TEST_F(UtestGraphPassesConstantFoldingPass, test_potential_folding_skip_constant_fold_attr) {
+  auto graph = BuildPotentialConstGraph();
+  auto add_node = graph->FindNode("add");
+  ASSERT_NE(add_node, nullptr);
+  AttrUtils::SetBool(add_node->GetOpDesc(), ATTR_NAME_DO_NOT_CONSTANT_FOLDING, true);
+  names_to_pass.push_back({"ConstantFoldingPass", new ConstantFoldingPass});
+  GEPass pass(graph);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+  EXPECT_NE(graph->FindNode("add"), nullptr);
+}
 }  // namespace ge

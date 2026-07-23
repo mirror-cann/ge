@@ -2,6 +2,7 @@
 
 - [简介](./cpp/intro.md)
 - [DataFlow构图接口](./cpp/dataflow-build-graph-api.md)
+    - [DataFlow头文件和库文件说明](./cpp/dflow_header_files_and_library_files.md)
     - [DataFlow接口列表](./cpp/dataflow-api-list.md)
     - [构图接口](./cpp/build-graph-api.md)
         - [FlowOperator类](./cpp/flowoperator-class.md)
@@ -61,7 +62,6 @@
             - [CountBatch](./cpp/CountBatch.md)
 
     - [运行接口](./cpp/run-api.md)
-        - [DataFlow运行接口简介](./cpp/dataflow-run-api-intro.md)
         - [Graph运行接口](./cpp/graph-run-api.md)
             - [FeedDataFlowGraph（feed所有输入）](./cpp/feeddataflowgraph-feed-all-input.md)
             - [FeedDataFlowGraph（按索引feed输入）](./cpp/feeddataflowgraph-feed-input-by-index.md)
@@ -114,6 +114,7 @@
             - [ToFlowMsg（raw data）](./cpp/to-flowmsg-raw-data.md)
 
     - [UDF接口](./cpp/udf-api.md)
+        - [UDF头文件和库文件说明](./cpp/udf_header_files_and_library_files.md)
         - [UDF接口列表](./cpp/udf-api-list.md)
         - [AttrValue类](./cpp/attrvalue-class.md)
             - [AttrValue构造函数和析构函数](./cpp/attrvalue-ctor-dtor.md)

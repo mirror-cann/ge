@@ -4,10 +4,6 @@
 
 <!-- @ref: ge/res/docs/zh/user_guides/atc_tools/CLI_options/--weight_res.md#id1 -->
 
-<!-- npu="IPV350" id1 -->
-- IPV350：不支持
-<!-- end id1 -->
-
 <!-- npu="950" id2 -->
 - Ascend 950PR/Ascend 950DT：不支持
 <!-- end id2 -->
@@ -31,6 +27,10 @@
 <!-- npu="910" id7 -->
 - Atlas 训练系列产品：支持
 <!-- end id7 -->
+
+<!-- npu="IPV350" id1 -->
+- IPV350：不支持
+<!-- end id1 -->
 
 ## 功能说明
 

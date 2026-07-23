@@ -2469,4 +2469,269 @@ TEST_F(UtestGeApiV2, GeSessionImpl_AddAndRemoveDumpProperties) {
   }
   EXPECT_EQ(GEFinalizeV2(), SUCCESS);
 }
+
+TEST_F(UtestGeApiV2, AddGraph_AddGraphClone_DefaultOverloads) {
+  std::map<AscendString, AscendString> options;
+  EXPECT_EQ(GEInitializeV2(options), SUCCESS);
+  GeSession session(options);
+  GraphId graph_id1 = 1;
+  GraphId graph_id2 = 2;
+  const auto compute_graph = MakeShared<ComputeGraph>("test_graph");
+  Graph graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
+  const auto clone_compute_graph = MakeShared<ComputeGraph>("clone_graph");
+  Graph clone_graph = GraphUtilsEx::CreateGraphFromComputeGraph(clone_compute_graph);
+  EXPECT_EQ(session.AddGraph(graph_id1, graph), SUCCESS);
+  EXPECT_EQ(session.AddGraphClone(graph_id2, clone_graph), SUCCESS);
+  EXPECT_EQ(GEFinalizeV2(), SUCCESS);
+}
+
+TEST_F(UtestGeApiV2, GraphDebugJSONPrint_WithValidGraph) {
+  std::map<AscendString, AscendString> options;
+  EXPECT_EQ(GEInitializeV2(options), SUCCESS);
+  GeSession session(options);
+  GraphId graph_id = 1;
+  const auto compute_graph = MakeShared<ComputeGraph>("test_graph");
+  Graph graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
+  EXPECT_EQ(session.AddGraph(graph_id, graph), SUCCESS);
+  AscendString json_result;
+  EXPECT_NE(session.GraphDebugJSONPrint(graph_id, 0U, json_result), SUCCESS);
+  EXPECT_EQ(GEFinalizeV2(), SUCCESS);
+}
+
+TEST_F(UtestGeApiV2, GetCompiledModel_NotInitialized) {
+  GEFinalizeV2();
+  std::map<AscendString, AscendString> options;
+  GeSession session(options);
+  ModelBufferData model_buffer;
+  EXPECT_EQ(session.GetCompiledModel(1, model_buffer), FAILED);
+}
+
+TEST_F(UtestGeApiV2, AreOptionsEqual_DifferentOptions) {
+  GEFinalizeV2();
+  std::map<AscendString, AscendString> options1;
+  options1[AscendString("ge.test.key")] = AscendString("value1");
+  EXPECT_EQ(GEInitializeV2(options1), SUCCESS);
+
+  std::map<AscendString, AscendString> options2;
+  options2[AscendString("ge.test.key")] = AscendString("value2");
+  EXPECT_EQ(GEInitializeV2(options2), SUCCESS);
+
+  std::map<AscendString, AscendString> options3;
+  options3[AscendString("ge.test.key")] = AscendString("value1");
+  options3[AscendString("ge.test.key2")] = AscendString("value2");
+  EXPECT_EQ(GEInitializeV2(options3), SUCCESS);
+
+  EXPECT_EQ(GEFinalizeV2(), SUCCESS);
+}
+
+TEST_F(UtestGeApiV2, SliceSchedule_UnsupportedPaths) {
+  EnvValueGuard guard("AUTOFUSE_FLAGS");
+  setenv("AUTOFUSE_FLAGS", "--enable_autofuse=true;--experimental_enable_jit_executor_v2=true", 1);
+
+  std::map<AscendString, AscendString> options;
+  EXPECT_EQ(GEInitializeV2(options), SUCCESS);
+  GeSession session(options);
+
+  GraphId graph_id = 1;
+  const auto compute_graph = MakeShared<ComputeGraph>("test_graph");
+  Graph graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
+  EXPECT_EQ(session.AddGraph(graph_id, graph), SUCCESS);
+
+  EXPECT_EQ(session.SetGraphConstMemoryBase(graph_id, nullptr, 0U), UNSUPPORTED);
+  EXPECT_EQ(session.UpdateGraphFeatureMemoryBase(graph_id, nullptr, 0U), UNSUPPORTED);
+  EXPECT_EQ(session.SetGraphFixedFeatureMemoryBaseWithType(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, nullptr, 0U),
+            UNSUPPORTED);
+  EXPECT_EQ(session.UpdateGraphRefreshableFeatureMemoryBase(graph_id, nullptr, 0U), UNSUPPORTED);
+
+  EXPECT_EQ(GEFinalizeV2(), SUCCESS);
+}
+
+TEST_F(UtestGeApiV2, RunGraphWithStreamAsync_LoadAndRun) {
+  std::map<AscendString, AscendString> options;
+  options[ge::OPTION_HOST_ENV_OS] = "linux";
+  options[ge::OPTION_HOST_ENV_CPU] = "x86_64";
+  options[ge::OPTION_GRAPH_RUN_MODE] = "1";
+  auto init_status = ge::GEInitializeV2(options);
+  if (init_status != SUCCESS) {
+    std::cout << "ge init failed , ret code:" << init_status << std::endl;
+  }
+  OperatorFactoryImpl::operator_infershape_funcs_->erase("Data");
+  OperatorFactoryImpl::operator_infershape_funcs_->erase("Add");
+  OperatorFactoryImpl::operator_infershape_funcs_->erase("NetOutput");
+  auto instance_ptr = ge::GELib::GetInstance();
+  ASSERT_NE(instance_ptr, nullptr);
+  GeRunningEnvFaker ge_env;
+  InitEngines(instance_ptr, ge_env);
+
+  ge_env.InstallDefault();
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("Save", VARIABLE)->NODE("netoutput", NETOUTPUT));
+  };
+
+  auto graph = ToGeGraph(g1);
+
+  GeSession session(options);
+  EXPECT_EQ(session.AddGraph(1, graph, options), SUCCESS);
+
+  std::vector<gert::Tensor> inputs;
+  std::vector<gert::Tensor> outputs;
+  auto ret = session.RunGraphWithStreamAsync(1, nullptr, inputs, outputs);
+  (void)ret;
+  outputs.clear();
+  RuntimeStub::Reset();
+  ge_env.Reset();
+  EXPECT_EQ(GEFinalizeV2(), SUCCESS);
+}
+
+TEST_F(UtestGeApiV2, RunGraphAsync_CallbackWhenModeConflict) {
+  std::map<AscendString, AscendString> options;
+  options[ge::OPTION_HOST_ENV_OS] = "linux";
+  options[ge::OPTION_HOST_ENV_CPU] = "x86_64";
+  options[ge::OPTION_GRAPH_RUN_MODE] = "1";
+  auto init_status = ge::GEInitializeV2(options);
+  if (init_status != SUCCESS) {
+    std::cout << "ge init failed , ret code:" << init_status << std::endl;
+  }
+  OperatorFactoryImpl::operator_infershape_funcs_->erase("Data");
+  OperatorFactoryImpl::operator_infershape_funcs_->erase("Add");
+  OperatorFactoryImpl::operator_infershape_funcs_->erase("NetOutput");
+  auto instance_ptr = ge::GELib::GetInstance();
+  ASSERT_NE(instance_ptr, nullptr);
+  GeRunningEnvFaker ge_env;
+  InitEngines(instance_ptr, ge_env);
+
+  ge_env.InstallDefault();
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("Save", VARIABLE)->NODE("netoutput", NETOUTPUT));
+  };
+
+  auto graph = ToGeGraph(g1);
+
+  GeSession session(options);
+  EXPECT_EQ(session.AddGraph(1, graph, options), SUCCESS);
+
+  std::vector<gert::Tensor> inputs;
+  std::vector<gert::Tensor> outputs;
+  EXPECT_EQ(session.RunGraph(1, inputs, outputs), SUCCESS);
+
+  bool callback_called = false;
+  auto callback = [&callback_called](Status status, std::vector<gert::Tensor> &outputs) {
+    (void)status;
+    (void)outputs;
+    callback_called = true;
+    return SUCCESS;
+  };
+  EXPECT_NE(session.RunGraphAsync(1, inputs, callback), SUCCESS);
+  EXPECT_TRUE(callback_called);
+
+  RuntimeStub::Reset();
+  ge_env.Reset();
+  EXPECT_EQ(GEFinalizeV2(), SUCCESS);
+}
+
+TEST_F(UtestGeApiV2, MemoryBase_SuccessPaths) {
+  gert::GertRuntimeStub rtstub;
+  rtstub.GetRtsRuntimeStub().Clear();
+  rtstub.StubByNodeTypes({"Data", "Add", "NetOutput"});
+  rtstub.GetKernelStub().AllKernelRegisteredAndSuccess();
+
+  OpsKernelBuilderPtr builder = MakeShared<GeFakeOpsKernelBuilder>();
+  OpsKernelBuilderRegistry::GetInstance().Register(kEngineNameAiCore, builder);
+  OpsKernelBuilderRegistry::GetInstance().Register(kEngineNameGeLocal, builder);
+
+  std::map<AscendString, AscendString> options;
+  options[ge::OPTION_GRAPH_RUN_MODE] = "0";
+  options[ge::SOC_VERSION.c_str()] = "Ascend910B";
+  EXPECT_EQ(GEInitializeV2(options), SUCCESS);
+  GeSession session(options);
+  ComputeGraphPtr com_graph = gert::ShareGraph::AicoreGraph();
+  auto graph = GraphUtilsEx::CreateGraphFromComputeGraph(com_graph);
+  (void)ge::AttrUtils::SetBool(com_graph, ge::ATTR_SINGLE_OP_SCENE, true);
+
+  GraphId graph_id = 1;
+  EXPECT_EQ(session.AddGraph(graph_id, graph, options), SUCCESS);
+  EXPECT_EQ(session.CompileGraph(graph_id, {}), SUCCESS);
+
+  (void)session.SetGraphConstMemoryBase(graph_id, (void *)0x3558, 4000000U);
+  (void)session.UpdateGraphFeatureMemoryBase(graph_id, (void *)0x3558, 4000000U);
+  EXPECT_EQ(session.SetGraphFixedFeatureMemoryBaseWithType(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, (void *)0x3558,
+                                                           4000000U),
+            SUCCESS);
+  (void)session.UpdateGraphRefreshableFeatureMemoryBase(graph_id, (void *)0x3558, 4000000U);
+
+  EXPECT_EQ(GEFinalizeV2(), SUCCESS);
+}
+
+TEST_F(UtestGeApiV2, PrintOutputResult_DifferentDataTypes) {
+  std::map<AscendString, AscendString> options;
+  options[ge::OPTION_HOST_ENV_OS] = "linux";
+  options[ge::OPTION_HOST_ENV_CPU] = "x86_64";
+  options[ge::OPTION_GRAPH_RUN_MODE] = "1";
+  auto init_status = ge::GEInitializeV2(options);
+  if (init_status != SUCCESS) {
+    std::cout << "ge init failed , ret code:" << init_status << std::endl;
+  }
+  OperatorFactoryImpl::operator_infershape_funcs_->erase("Data");
+  OperatorFactoryImpl::operator_infershape_funcs_->erase("Add");
+  OperatorFactoryImpl::operator_infershape_funcs_->erase("NetOutput");
+  auto instance_ptr = ge::GELib::GetInstance();
+  ASSERT_NE(instance_ptr, nullptr);
+  GeRunningEnvFaker ge_env;
+  InitEngines(instance_ptr, ge_env);
+  ge_env.InstallDefault();
+
+  GeSession session(options);
+
+  const std::vector<ge::DataType> test_types = {ge::DT_INT8, ge::DT_INT16, ge::DT_INT32, ge::DT_INT64, ge::DT_DOUBLE};
+  for (size_t idx = 0U; idx < test_types.size(); ++idx) {
+    DEF_GRAPH(g1) {
+      CHAIN(NODE("Save", VARIABLE)->NODE("netoutput", NETOUTPUT));
+    };
+    auto graph = ToGeGraph(g1);
+    auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
+    auto save_node = compute_graph->FindNode("Save");
+    if (save_node != nullptr) {
+      auto op_desc = save_node->GetOpDesc();
+      auto output_desc = op_desc->GetOutputDesc(0U);
+      output_desc.SetDataType(test_types[idx]);
+      op_desc->UpdateOutputDesc(0U, output_desc);
+    }
+    auto net_output = compute_graph->FindNode("netoutput");
+    if (net_output != nullptr) {
+      auto net_desc = net_output->GetOpDesc();
+      auto input_desc = net_desc->GetInputDesc(0U);
+      input_desc.SetDataType(test_types[idx]);
+      net_desc->UpdateInputDesc(0U, input_desc);
+    }
+    const auto graph_id = static_cast<uint32_t>(idx + 100U);
+    EXPECT_EQ(session.AddGraph(graph_id, graph, options), SUCCESS);
+    std::vector<gert::Tensor> inputs;
+    std::vector<gert::Tensor> outputs;
+    auto ret = session.RunGraph(graph_id, inputs, outputs);
+    (void)ret;
+  }
+
+  RuntimeStub::Reset();
+  ge_env.Reset();
+  EXPECT_EQ(GEFinalizeV2(), SUCCESS);
+}
+
+TEST_F(UtestGeApiV2, GEInitialize_OpsProtoPathFailed) {
+  EnvValueGuard guard("ASCEND_OPP_PATH");
+  unsetenv("ASCEND_OPP_PATH");
+
+  std::map<AscendString, AscendString> options;
+  auto ret = GEInitializeV2(options);
+  (void)ret;
+  GEFinalizeV2();
+}
+
+TEST_F(UtestGeApiV2, GEInitialize_InvalidSocVersion) {
+  GEFinalizeV2();
+  std::map<AscendString, AscendString> options;
+  options[ge::SOC_VERSION.c_str()] = "InvalidSocVersion";
+  auto ret = GEInitializeV2(options);
+  (void)ret;
+  GEFinalizeV2();
+}
 }  // namespace ge

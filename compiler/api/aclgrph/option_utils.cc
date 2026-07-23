@@ -1686,19 +1686,25 @@ Status CheckOptionValidValues(const std::map<std::string, std::string> &options,
 Status CheckValidValueRange(const std::string &key, const std::string &value, const int64_t min, const int64_t max) {
   std::regex remove_brackets("-?\\b[0-9]+\\b");
   std::smatch match_result;
-  GE_ASSERT_TRUE((!value.empty()) && std::regex_match(value, match_result, remove_brackets), "Invalid value[%s]",
-                 value.c_str());
+  if (value.empty() || !std::regex_match(value, match_result, remove_brackets)) {
+    GELOGE(PARAM_INVALID, "[Check][Parameter] failed, option[%s] value[%s] is invalid", key.c_str(), value.c_str());
+    std::string valid_msg = "The value must be a non-empty integer. The valid range is [" + std::to_string(min) + "," +
+                            std::to_string(max) + "].";
+    REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"parameter", "value", "reason"}),
+                              std::vector<const char *>({key.c_str(), value.c_str(), valid_msg.c_str()}));
+    return PARAM_INVALID;
+  }
   std::istringstream val(value);
   int64_t value_got;
   val >> value_got;
-  if ((value_got < min) || (value_got > max)) {
+  if (val.fail() || (value_got < min) || (value_got > max)) {
     std::string valid_range_msg = "The current value is not within the valid range. The valid range is [" +
                                   std::to_string(min) + "," + std::to_string(max) + "].";
     GELOGE(PARAM_INVALID, "[Check][Parameter] failed, option[%s] value[%s] is invalid, %s", key.c_str(), value.c_str(),
            valid_range_msg.c_str());
     REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"parameter", "value", "reason"}),
                               std::vector<const char *>({key.c_str(), value.c_str(), valid_range_msg.c_str()}));
-    return FAILED;
+    return PARAM_INVALID;
   }
   GELOGI("Get option key[%s] value[%s].", key.c_str(), value.c_str());
   return SUCCESS;

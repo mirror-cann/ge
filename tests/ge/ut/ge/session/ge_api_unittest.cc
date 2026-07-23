@@ -100,13 +100,39 @@ class FakeLabelMaker : public LabelMaker {
 Status InitializeHeterogeneousRuntime(const std::map<std::string, std::string> &options) {
   return SUCCESS;
 }
+
+Status InitializeHeterogeneousRuntimeFailed(const std::map<std::string, std::string> &options) {
+  return FAILED;
+}
+
+int32_t g_so_addr = 0;
 class MockMmpa : public MmpaStubApiGe {
  public:
+  void *DlOpen(const char *file_name, int32_t mode) override {
+    if (string("libmodel_deployer.so") == file_name) {
+      return (void *)&g_so_addr;
+    }
+    return MmpaStubApiGe::DlOpen(file_name, mode);
+  }
+
   void *DlSym(void *handle, const char *func_name) override {
+    if (handle == &g_so_addr) {
+      if (std::string(func_name) == "InitializeHeterogeneousRuntime") {
+        return (void *)&InitializeHeterogeneousRuntimeFailed;
+      }
+      return nullptr;
+    }
     if (std::string(func_name) == "InitializeHeterogeneousRuntime") {
       return (void *)&InitializeHeterogeneousRuntime;
     }
     return dlsym(handle, func_name);
+  }
+
+  int32_t DlClose(void *handle) override {
+    if (handle == &g_so_addr) {
+      return 0;
+    }
+    return MmpaStubApiGe::DlClose(handle);
   }
 };
 
@@ -1989,5 +2015,257 @@ TEST_F(UtestGeApi, ShardAndSaveApis_KeepOriginalFailureInOm2Mode) {
   EXPECT_NE(session.ShardGraphs(), SUCCESS);
   EXPECT_NE(session.SaveGraphsToPb("/tmp/ge_om2_unused.pb"), SUCCESS);
   EXPECT_EQ(GEFinalize(), SUCCESS);
+}
+
+TEST_F(UtestGeApi, NotInitializedExtraApis) {
+  GEFinalize();
+  std::map<std::string, std::string> options;
+  Session session(options);
+  GraphId graph_id = 1;
+  const auto compute_graph = MakeShared<ComputeGraph>("test_graph");
+  Graph graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
+
+  std::map<std::string, std::string> std_options;
+  EXPECT_EQ(session.AddGraph(graph_id, graph, std_options), FAILED);
+
+  std::vector<FlowMsgPtr> flow_inputs;
+  EXPECT_EQ(session.FeedDataFlowGraph(graph_id, flow_inputs, 0), FAILED);
+  std::vector<uint32_t> flow_indexes;
+  std::vector<FlowMsgPtr> flow_outputs;
+  EXPECT_EQ(session.FetchDataFlowGraph(graph_id, flow_indexes, flow_outputs, 0), FAILED);
+  EXPECT_EQ(session.FetchDataFlowGraph(graph_id, flow_outputs, 0), FAILED);
+}
+
+TEST_F(UtestGeApi, CheckAllowParallelCompileFailure) {
+  std::map<std::string, std::string> init_options;
+  EXPECT_EQ(GEInitialize(init_options), SUCCESS);
+
+  std::map<std::string, std::string> session_options;
+  session_options[OPTION_ALLOW_MULTI_GRAPH_PARALLEL_COMPILE] = "1";
+  session_options[OPTION_EXEC_VARIABLE_ACC] = "True";
+  Session session(session_options);
+
+  EXPECT_EQ(GEFinalize(), SUCCESS);
+}
+
+TEST_F(UtestGeApi, ExecuteGraphWithStreamAsyncInitialized) {
+  std::map<std::string, std::string> options;
+  EXPECT_EQ(GEInitialize(options), SUCCESS);
+  Session session(options);
+
+  vector<gert::Tensor> inputs;
+  vector<gert::Tensor> outputs;
+  EXPECT_NE(session.ExecuteGraphWithStreamAsync(10, nullptr, inputs, outputs), SUCCESS);
+
+  EXPECT_EQ(GEFinalize(), SUCCESS);
+}
+
+TEST_F(UtestGeApi, CompiledGraphApiPaths) {
+  gert::GertRuntimeStub rtstub;
+  rtstub.GetRtsRuntimeStub().Clear();
+  rtstub.StubByNodeTypes({"Data", "Add", "NetOutput"});
+  rtstub.GetKernelStub().AllKernelRegisteredAndSuccess();
+
+  OpsKernelBuilderPtr builder = MakeShared<GeFakeOpsKernelBuilder>();
+  OpsKernelBuilderRegistry::GetInstance().Register(kEngineNameAiCore, builder);
+  OpsKernelBuilderRegistry::GetInstance().Register(kEngineNameGeLocal, builder);
+
+  std::map<std::string, std::string> options;
+  options[ge::OPTION_GRAPH_RUN_MODE] = "0";
+  options[ge::SOC_VERSION] = "Ascend910B";
+  ge::GetThreadLocalContext().SetGraphOption(options);
+  EXPECT_EQ(GEInitialize(options), SUCCESS);
+  Session session(options);
+  ComputeGraphPtr com_graph = gert::ShareGraph::AicoreGraph();
+  auto graph = GraphUtilsEx::CreateGraphFromComputeGraph(com_graph);
+  (void)ge::AttrUtils::SetBool(com_graph, ge::ATTR_SINGLE_OP_SCENE, true);
+
+  GraphId graph_id = 1;
+  EXPECT_EQ(session.AddGraph(graph_id, graph, options), SUCCESS);
+  EXPECT_EQ(session.CompileGraph(graph_id), SUCCESS);
+
+  vector<Tensor> inputs;
+  vector<Tensor> outputs;
+  EXPECT_NE(session.RunGraph(graph_id, inputs, outputs), SUCCESS);
+  EXPECT_NE(session.BuildGraph(graph_id, inputs), SUCCESS);
+
+  std::map<AscendString, AscendString> load_options;
+  (void)session.LoadGraph(graph_id, load_options, nullptr);
+
+  (void)session.SetGraphConstMemoryBase(graph_id, nullptr, 0U);
+  (void)session.UpdateGraphFeatureMemoryBase(graph_id, nullptr, 0U);
+  (void)session.UpdateGraphRefreshableFeatureMemoryBase(graph_id, nullptr, 0U);
+
+  vector<gert::Tensor> gert_inputs;
+  vector<gert::Tensor> gert_outputs;
+  (void)session.ExecuteGraphWithStreamAsync(graph_id, nullptr, gert_inputs, gert_outputs);
+
+  EXPECT_EQ(GEFinalize(), SUCCESS);
+}
+
+TEST_F(UtestGeApi, HeterogeneousInitFailure) {
+  EnvValueGuard guard("RESOURCE_CONFIG_PATH");
+  setenv("RESOURCE_CONFIG_PATH", "/tmp/test_resource_config", 1);
+  MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpa>());
+
+  std::map<AscendString, AscendString> options;
+  auto ret = GEInitialize(options);
+  EXPECT_NE(ret, SUCCESS);
+  GEFinalize();
+  MmpaStub::GetInstance().Reset();
+}
+
+TEST_F(UtestGeApi, FullSetupRunGraphForPrintOutput) {
+  gert::GertRuntimeStub rtstub;
+  rtstub.GetRtsRuntimeStub().Clear();
+  rtstub.StubByNodeTypes({"Data", "Add", "NetOutput"});
+  rtstub.GetKernelStub().AllKernelRegisteredAndSuccess();
+  rtstub.GetKernelStub().StubTiling();
+  RuntimeStub::Install(nullptr);
+  AclRuntimeStub::Install(nullptr);
+
+  OpsKernelBuilderPtr builder = MakeShared<GeFakeOpsKernelBuilder>();
+  OpsKernelBuilderRegistry::GetInstance().Register(kEngineNameAiCore, builder);
+  OpsKernelBuilderRegistry::GetInstance().Register(kEngineNameGeLocal, builder);
+
+  vector<Tensor> inputs;
+  vector<Tensor> outputs;
+  ge::Tensor tensor1;
+  TensorDesc tensor_desc1(Shape({3, 3, 3}), FORMAT_NCHW, DT_FLOAT);
+  tensor1.SetTensorDesc(tensor_desc1);
+  std::vector<uint8_t> data(27U * 4U, 1);
+  tensor1.SetData(data);
+  inputs.emplace_back(tensor1);
+  inputs.emplace_back(tensor1);
+
+  ge::Tensor tensor2;
+  TensorDesc tensor_desc2(Shape({3, 3, 3}), FORMAT_NCHW, DT_FLOAT);
+  tensor2.SetTensorDesc(tensor_desc2);
+  std::vector<uint8_t> data2(27U * 4U, 1);
+  tensor2.SetData(data2);
+  outputs.emplace_back(tensor2);
+
+  std::map<std::string, std::string> options;
+  options["ge.inputShape"] = "data1:-1,-1,-1;data2:-1,-1,-1";
+  options["ge.dynamicDims"] = "1,1,1,1,1,1;3,3,3,3,3,3;5,5,5,5,5,5";
+  options["ge.dynamicNodeType"] = "1";
+  options[ge::SOC_VERSION] = "Ascend910B";
+  std::map<std::string, std::string> empty_options;
+  empty_options[ge::SOC_VERSION] = "Ascend910B";
+  EXPECT_EQ(GEInitialize(empty_options), SUCCESS);
+  Session session(empty_options);
+  ComputeGraphPtr com_graph = gert::ShareGraph::AicoreGraph();
+  auto graph = GraphUtilsEx::CreateGraphFromComputeGraph(com_graph);
+
+  GraphId graph_id = 4;
+  OperatorFactoryImpl::operator_infershape_funcs_->erase("Data");
+  OperatorFactoryImpl::operator_infershape_funcs_->erase("Add");
+  OperatorFactoryImpl::operator_infershape_funcs_->erase("NetOutput");
+  auto instance_ptr = ge::GELib::GetInstance();
+  EXPECT_NE(instance_ptr, nullptr);
+  SchedulerConf scheduler_conf;
+  scheduler_conf.cal_engines["DNN_VM_GE_LOCAL"] = std::make_shared<EngineConf>();
+  scheduler_conf.cal_engines["DNN_VM_GE_LOCAL"]->name = "DNN_VM_GE_LOCAL";
+  scheduler_conf.cal_engines["DNN_VM_GE_LOCAL"]->id = "DNN_VM_GE_LOCAL";
+  scheduler_conf.cal_engines["DNN_VM_GE_LOCAL"]->independent = false;
+  scheduler_conf.cal_engines["DNN_VM_GE_LOCAL"]->attach = true;
+  scheduler_conf.cal_engines["DNN_VM_GE_LOCAL"]->skip_assign_stream = true;
+
+  scheduler_conf.cal_engines["AIcoreEngine"] = std::make_shared<EngineConf>();
+  scheduler_conf.cal_engines["AIcoreEngine"]->name = "AIcoreEngine";
+  scheduler_conf.cal_engines["AIcoreEngine"]->id = "AIcoreEngine";
+  scheduler_conf.cal_engines["AIcoreEngine"]->independent = false;
+  scheduler_conf.cal_engines["AIcoreEngine"]->attach = false;
+  scheduler_conf.cal_engines["AIcoreEngine"]->skip_assign_stream = false;
+
+  scheduler_conf.cal_engines["DNN_VM_AICPU"] = std::make_shared<EngineConf>();
+  scheduler_conf.cal_engines["DNN_VM_AICPU"]->name = "DNN_VM_AICPU";
+  scheduler_conf.cal_engines["DNN_VM_AICPU"]->id = "DNN_VM_AICPU";
+  scheduler_conf.cal_engines["DNN_VM_AICPU"]->independent = false;
+  scheduler_conf.cal_engines["DNN_VM_AICPU"]->attach = true;
+  scheduler_conf.cal_engines["DNN_VM_AICPU"]->skip_assign_stream = false;
+
+  scheduler_conf.cal_engines["DNN_VM_GE_LOCAL_OP_STORE"] = std::make_shared<EngineConf>();
+  scheduler_conf.cal_engines["DNN_VM_GE_LOCAL_OP_STORE"]->name = "DNN_VM_GE_LOCAL_OP_STORE";
+  scheduler_conf.cal_engines["DNN_VM_GE_LOCAL_OP_STORE"]->id = "DNN_VM_GE_LOCAL_OP_STORE";
+  scheduler_conf.cal_engines["DNN_VM_GE_LOCAL_OP_STORE"]->independent = false;
+  scheduler_conf.cal_engines["DNN_VM_GE_LOCAL_OP_STORE"]->attach = true;
+  scheduler_conf.cal_engines["DNN_VM_GE_LOCAL_OP_STORE"]->skip_assign_stream = true;
+
+  instance_ptr->DNNEngineManagerObj().schedulers_["multi_batch"] = scheduler_conf;
+
+  GeRunningEnvFaker ge_env;
+  auto multi_dims = MakeShared<FakeMultiDimsOptimizer>();
+  ge_env.Install(FakeEngine("AIcoreEngine")
+                     .KernelInfoStore("AiCoreLib")
+                     .GraphOptimizer("AIcoreEngine")
+                     .Priority(PriorityEnum::COST_0));
+  ge_env.Install(FakeEngine("VectorEngine")
+                     .KernelInfoStore("VectorLib")
+                     .GraphOptimizer("VectorEngine")
+                     .Priority(PriorityEnum::COST_1));
+  ge_env.Install(FakeEngine("DNN_VM_AICPU")
+                     .KernelInfoStore("AicpuLib")
+                     .GraphOptimizer("aicpu_tf_optimizer")
+                     .Priority(PriorityEnum::COST_3));
+  ge_env.Install(FakeEngine("DNN_VM_AICPU_ASCEND")
+                     .KernelInfoStore("AicpuAscendLib")
+                     .GraphOptimizer("aicpu_ascend_optimizer")
+                     .Priority(PriorityEnum::COST_2));
+  ge_env.Install(FakeEngine("DNN_HCCL")
+                     .KernelInfoStore("ops_kernel_info_hccl")
+                     .GraphOptimizer("hccl_graph_optimizer")
+                     .GraphOptimizer("hvd_graph_optimizer")
+                     .Priority(PriorityEnum::COST_1));
+  ge_env.Install(FakeEngine("DNN_VM_RTS")
+                     .KernelInfoStore("RTSLib")
+                     .GraphOptimizer("DNN_VM_RTS_GRAPH_OPTIMIZER_STORE")
+                     .Priority(PriorityEnum::COST_1));
+  ge_env.Install(FakeEngine("DNN_VM_GE_LOCAL")
+                     .KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE")
+                     .GraphOptimizer("DNN_VM_HOST_CPU_OPTIMIZER")
+                     .Priority(PriorityEnum::COST_9));
+  ge_env.Install(FakeEngine("DNN_VM_HOST_CPU")
+                     .KernelInfoStore("DNN_VM_HOST_CPU_OP_STORE")
+                     .GraphOptimizer("DNN_VM_HOST_CPU_OPTIMIZER")
+                     .Priority(PriorityEnum::COST_10));
+  ge_env.Install(FakeEngine("DSAEngine").KernelInfoStore("DSAEngine").Priority(PriorityEnum::COST_1));
+  ge_env.Install(FakeEngine("AIcoreEngine").GraphOptimizer("MultiDims", multi_dims));
+  ge_env.Install(FakeOp(NETOUTPUT).InfoStoreAndBuilder("AicpuLib"));
+  ge_env.Install(FakeOp(CASE).InfoStoreAndBuilder("AiCoreLib"));
+  ge_env.Install(FakeOp(STREAMACTIVE).InfoStoreAndBuilder("RTSLib"));
+  ge_env.Install(FakeOp(EXIT).InfoStoreAndBuilder("RTSLib"));
+  ge_env.Install(FakeOp(SEND).InfoStoreAndBuilder("RTSLib"));
+  ge_env.Install(FakeOp(SENDNOTIFY).InfoStoreAndBuilder("RTSLib"));
+  ge_env.Install(FakeOp(RECV).InfoStoreAndBuilder("RTSLib"));
+  ge_env.Install(FakeOp("MapIndex").InfoStoreAndBuilder("AiCoreLib"));
+  ge_env.Install(FakeOp("UpdateTensorDesc").InfoStoreAndBuilder("AiCoreLib"));
+  ge_env.Install(FakeOp("LabelSet").InfoStoreAndBuilder("RTSLib"));
+  ge_env.Install(FakeOp("LabelSwitchByIndex").InfoStoreAndBuilder("RTSLib"));
+  ge_env.Install(FakeOp("LabelGotoEx").InfoStoreAndBuilder("RTSLib"));
+  ge_env.Install(FakeOp(CONSTANTOP).InfoStoreAndBuilder("AicpuLib"));
+  ge_env.Install(FakeOp(CONSTANT).InfoStoreAndBuilder("AicpuLib"));
+  ge_env.Install(FakeOp(MUL).InferShape(StubInferShape).InfoStoreAndBuilder("AiCoreLib"));
+  ge_env.Install(FakeOp(DATA).InferShape(StubInferShape).InfoStoreAndBuilder("AiCoreLib"));
+  ge_env.Install(FakeOp(ADD).InferShape(StubInferShape).InfoStoreAndBuilder("AiCoreLib"));
+  ge_env.Install(FakeOp(PARTITIONEDCALL).InfoStoreAndBuilder("AiCoreLib"));
+  ge_env.Install(FakeOp("GetShape").InferShape(GetShapeInferShape).InfoStoreAndBuilder("AiCoreLib"));
+  ge_env.Install(FakeOp(CONCAT).InfoStoreAndBuilder("AiCoreLib"));
+  ge_env.Install(FakeOp(CONCATV2).InfoStoreAndBuilder("AiCoreLib"));
+
+  EXPECT_EQ(session.AddGraph(graph_id, graph, options), SUCCESS);
+  auto build_ret = session.BuildGraph(graph_id, inputs);
+  if (build_ret == SUCCESS) {
+    auto run_ret = session.RunGraph(graph_id, inputs, outputs);
+    (void)run_ret;
+  }
+
+  GraphId graph_id2 = 2;
+  (void)session.AddGraphWithCopy(graph_id2, graph);
+
+  EXPECT_EQ(GEFinalize(), SUCCESS);
+  RuntimeStub::Reset();
+  AclRuntimeStub::Reset();
+  ge_env.Reset();
 }
 }  // namespace ge

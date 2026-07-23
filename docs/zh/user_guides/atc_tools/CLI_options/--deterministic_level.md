@@ -2,9 +2,6 @@
 
 ## 产品支持情况
 
-<!-- npu="IPV350" id7 -->
-- IPV350：不支持
-<!-- end id7 -->
 <!-- npu="950" id6 -->
 - Ascend 950PR/Ascend 950DT：支持
 <!-- end id6 -->
@@ -23,11 +20,16 @@
 <!-- npu="910" id1 -->
 - Atlas 训练系列产品：支持
 <!-- end id1 -->
+
+<!-- npu="IPV350" id7 -->
+- IPV350：不支持
+<!-- end id7 -->
+
 <!-- @ref: ge/res/docs/zh/user_guides/atc_tools/CLI_options/--deterministic_level_res.md#id1 -->
 
 ## 功能说明
 
-**该参数为调试参数，当前不支持应用于商用产品中，后续版本会作为正式特性更新发布。**
+**该参数为调试参数，暂不支持应用于生产环境，后续版本会作为正式特性更新发布。**
 
 确定性计算级别。
 

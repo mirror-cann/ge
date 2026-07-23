@@ -240,3 +240,48 @@ TEST_F(EsTensorHolderLLT, ProducerOutIndex) {
   auto out_index = tensor1.GetProducerOutIndex();
   EXPECT_EQ(out_index, 0);
 }
+
+TEST_F(EsTensorHolderLLT, SetOriginFormat) {
+  auto builder = ge::ComGraphMakeUnique<EsCGraphBuilder>();
+  auto tensor1 = builder->AppendGraphInput();
+  EXPECT_EQ(tensor1->SetOriginFormat(ge::FORMAT_NCHW), ge::SUCCESS);
+}
+
+TEST_F(EsTensorHolderLLT, SetStorageFormat) {
+  auto builder = ge::ComGraphMakeUnique<EsCGraphBuilder>();
+  auto tensor1 = builder->AppendGraphInput();
+  EXPECT_EQ(tensor1->SetStorageFormat(ge::FORMAT_NCHW), ge::SUCCESS);
+}
+
+TEST_F(EsTensorHolderLLT, SetOriginShape) {
+  auto builder = ge::ComGraphMakeUnique<EsCGraphBuilder>();
+  auto tensor1 = builder->AppendGraphInput();
+  ge::Shape shape({2, 3});
+  EXPECT_EQ(tensor1->SetOriginShape(shape), ge::SUCCESS);
+}
+
+TEST_F(EsTensorHolderLLT, SetStorageShape) {
+  auto builder = ge::ComGraphMakeUnique<EsCGraphBuilder>();
+  auto tensor1 = builder->AppendGraphInput();
+  ge::Shape shape({2, 3});
+  EXPECT_EQ(tensor1->SetStorageShape(shape), ge::SUCCESS);
+}
+
+TEST_F(EsTensorHolderLLT, GetProducer) {
+  auto builder = ge::ComGraphMakeUnique<EsCGraphBuilder>();
+  auto tensor1 = builder->AppendGraphInput();
+  auto &producer = tensor1->GetProducer();
+}
+
+TEST_F(EsTensorHolderLLT, GetOwnerBuilder) {
+  auto builder = ge::ComGraphMakeUnique<EsCGraphBuilder>();
+  auto tensor1 = builder->AppendGraphInput();
+  auto &owner = tensor1->GetOwnerBuilder();
+}
+
+TEST_F(EsTensorHolderLLT, SetOriginSymbolShape_EmptyShape) {
+  auto builder = ge::ComGraphMakeUnique<EsCGraphBuilder>();
+  auto tensor1 = builder->AppendGraphInput();
+  const char *shape_str[] = {"1", "2"};
+  auto status = tensor1->SetOriginSymbolShape(shape_str, 2);
+}

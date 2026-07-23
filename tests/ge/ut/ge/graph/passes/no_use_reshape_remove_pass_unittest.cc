@@ -167,3 +167,33 @@ TEST_F(UtestGraphNoUseReshapeRemovePass, test_exception) {
     EXPECT_EQ(compute_graph->GetDirectNodesSize(), 1);
   }
 }
+
+TEST_F(UtestGraphNoUseReshapeRemovePass, reshape_same_dims_deleted_no_shape_anchor) {
+  ge::ComputeGraphPtr compute_graph = std::make_shared<ComputeGraph>("test");
+  ge::NodePtr reshape_node = NodeBuilder("reshape", RESHAPE)
+                                 .AddInputDesc({2, 2, 2, 2}, FORMAT_NCHW, DT_FLOAT)
+                                 .AddOutputDesc({2, 2, 2, 2}, FORMAT_NCHW, DT_FLOAT)
+                                 .Build(compute_graph);
+  NoUseReshapeRemovePass no_use_reshape_pass;
+  Status status = no_use_reshape_pass.Run(reshape_node);
+  EXPECT_EQ(status, ge::SUCCESS);
+}
+
+TEST_F(UtestGraphNoUseReshapeRemovePass, reshape_dims_not_equal_keep) {
+  ge::ComputeGraphPtr compute_graph = std::make_shared<ComputeGraph>("test");
+  ge::NodePtr reshape_node = NodeBuilder("reshape", RESHAPE)
+                                 .AddInputDesc({2, 2, 2, 2}, FORMAT_NCHW, DT_FLOAT)
+                                 .AddOutputDesc({4, 2, 2, 2}, FORMAT_NCHW, DT_FLOAT)
+                                 .Build(compute_graph);
+  NoUseReshapeRemovePass no_use_reshape_pass;
+  Status status = no_use_reshape_pass.Run(reshape_node);
+  EXPECT_EQ(status, ge::SUCCESS);
+  EXPECT_EQ(compute_graph->GetDirectNodesSize(), 1);
+}
+
+TEST_F(UtestGraphNoUseReshapeRemovePass, null_node_param_invalid) {
+  ge::NodePtr null_node = nullptr;
+  NoUseReshapeRemovePass no_use_reshape_pass;
+  Status status = no_use_reshape_pass.Run(null_node);
+  EXPECT_EQ(status, ge::PARAM_INVALID);
+}

@@ -1238,4 +1238,109 @@ TEST_F(UtestGeAipp, test_InsertAippInSubGraph) {
   }
   EXPECT_EQ(data_node0->GetName(), is_aipp->GetInNodes().at(0)->GetName());
 }
+
+TEST_F(UtestGeAipp, test_SetDefaultParamsDynamicMode) {
+  auto data_tensor_names_old = domi::GetContext().data_tensor_names;
+  domi::GetContext().data_tensor_names.push_back("data0");
+
+  AippOp aipp_op;
+  domi::AippOpParams params;
+  params.set_aipp_mode(domi::AippOpParams::dynamic);
+  params.set_max_src_image_size(100);
+  auto ret = aipp_op.Init(&params);
+  ASSERT_EQ(ret, SUCCESS);
+  ret = aipp_op.SetDefaultParams();
+  EXPECT_EQ(ret, SUCCESS);
+
+  domi::GetContext().data_tensor_names = data_tensor_names_old;
+}
+
+TEST_F(UtestGeAipp, test_ValidateParamsDynamicMaxSrcImageSizeZero) {
+  auto data_tensor_names_old = domi::GetContext().data_tensor_names;
+  domi::GetContext().data_tensor_names.push_back("data0");
+
+  AippOp aipp_op;
+  domi::AippOpParams params;
+  params.set_aipp_mode(domi::AippOpParams::dynamic);
+  params.set_max_src_image_size(0);
+  auto ret = aipp_op.Init(&params);
+  ASSERT_EQ(ret, SUCCESS);
+  ret = aipp_op.ValidateParams();
+  EXPECT_EQ(ret, PARAM_INVALID);
+
+  domi::GetContext().data_tensor_names = data_tensor_names_old;
+}
+
+TEST_F(UtestGeAipp, test_ValidateParamsStaticNegativeSrcImageSizeW) {
+  auto data_tensor_names_old = domi::GetContext().data_tensor_names;
+  domi::GetContext().data_tensor_names.push_back("data0");
+
+  AippOp aipp_op;
+  domi::AippOpParams params;
+  params.set_aipp_mode(domi::AippOpParams::static_);
+  params.set_input_format(domi::AippOpParams::YUV420SP_U8);
+  params.set_src_image_size_w(-1);
+  auto ret = aipp_op.Init(&params);
+  ASSERT_EQ(ret, SUCCESS);
+  ret = aipp_op.ValidateParams();
+  EXPECT_EQ(ret, PARAM_INVALID);
+
+  domi::GetContext().data_tensor_names = data_tensor_names_old;
+}
+
+TEST_F(UtestGeAipp, test_ValidateParamsStaticNegativeCropSizeW) {
+  auto data_tensor_names_old = domi::GetContext().data_tensor_names;
+  domi::GetContext().data_tensor_names.push_back("data0");
+
+  AippOp aipp_op;
+  domi::AippOpParams params;
+  params.set_aipp_mode(domi::AippOpParams::static_);
+  params.set_input_format(domi::AippOpParams::YUV420SP_U8);
+  params.set_src_image_size_w(10);
+  params.set_src_image_size_h(10);
+  params.set_crop_size_w(-1);
+  auto ret = aipp_op.Init(&params);
+  ASSERT_EQ(ret, SUCCESS);
+  ret = aipp_op.ValidateParams();
+  EXPECT_EQ(ret, PARAM_INVALID);
+
+  domi::GetContext().data_tensor_names = data_tensor_names_old;
+}
+
+TEST_F(UtestGeAipp, test_ConvertParamToJsonWithRawRgbir) {
+  auto data_tensor_names_old = domi::GetContext().data_tensor_names;
+  domi::GetContext().data_tensor_names.push_back("data0");
+
+  AippOp aipp_op;
+  domi::AippOpParams params;
+  params.set_aipp_mode(domi::AippOpParams::static_);
+  params.set_input_format(domi::AippOpParams::YUV420SP_U8);
+  params.set_raw_rgbir_to_f16_n(3);
+  auto ret = aipp_op.Init(&params);
+  ASSERT_EQ(ret, SUCCESS);
+  auto json_str = aipp_op.ConvertParamToJson();
+  ASSERT_NE(json_str.find("raw_rgbir_to_f16_n"), json_str.npos);
+
+  domi::GetContext().data_tensor_names = data_tensor_names_old;
+}
+
+TEST_F(UtestGeAipp, test_SetDefaultParamsStaticWithAllOpsEnabled) {
+  auto data_tensor_names_old = domi::GetContext().data_tensor_names;
+  domi::GetContext().data_tensor_names.push_back("data0");
+
+  AippOp aipp_op;
+  domi::AippOpParams params;
+  params.set_aipp_mode(domi::AippOpParams::static_);
+  params.set_input_format(domi::AippOpParams::YUV420SP_U8);
+  params.set_csc_switch(true);
+  params.set_crop(true);
+  params.set_resize(true);
+  params.set_padding(true);
+  auto ret = aipp_op.Init(&params);
+  ASSERT_EQ(ret, SUCCESS);
+  ret = aipp_op.SetDefaultParams();
+  EXPECT_EQ(ret, SUCCESS);
+
+  domi::GetContext().data_tensor_names = data_tensor_names_old;
+}
 }  // namespace ge

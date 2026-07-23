@@ -52,7 +52,7 @@
 
 ## 示例
 
-将配置文件（文件名为举例为：_cluster\_config.json_）上传到ATC工具所在服务器，例如上传到_$HOME/conf_，使用示例如下：
+将配置文件（文件名为举例为：cluster\_config.json）上传到ATC工具所在服务器，例如上传到$HOME/conf，使用示例如下：
 
 ```bash
 atc --model=xxx.air --framework=1 --soc_version=<soc_version> --output=$HOME/out --cluster_config=$HOME/conf/cluster_config.json ...

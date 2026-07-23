@@ -36,7 +36,7 @@
 - 1：（默认值）程序运行正常退出时，生成算子融合信息结果文件。
 - 2：图编译完成时，生成算子融合信息结果文件。即如果图编译已完成，后续程序提前中断，也会生成算子融合信息结果文件。
 
-若未设置ASCEND\_WORK\_PATH环境变量，结果文件默认生成在执行atc命令的当前路径；若设置了ASCEND\_WORK\_PATH环境变量，则保存路径为：$ASCEND\_WORK\_PATH/FE/$\{进程号\}/fusion\_result.json。环境变量详细说明请参见[《环境变量参考》](https://hiascend.com/document/redirect/CannCommunityEnvRef)。
+若未设置ASCEND\_WORK\_PATH环境变量，结果文件默认生成在执行atc命令的当前路径；若设置了ASCEND\_WORK\_PATH环境变量，则保存路径为：`$ASCEND_WORK_PATH/FE/${进程号}/fusion_result.json`。环境变量详细说明请参见[《环境变量参考》](https://hiascend.com/document/redirect/CannCommunityEnvRef)。
 
 ## 示例
 

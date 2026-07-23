@@ -38,9 +38,7 @@
 <!-- end id3 -->
 
 <!-- npu="IPV350" id4 -->
-- HIF8：不支持该类型。
-- FP8E5M2：不支持该类型。
-- FP8E4M3FN：不支持该类型。
+其中，HIF8、FP8E5M2、FP8E4M3FN：IPV350不支持。
 <!-- end id4 -->
 
 <!-- @ref: ge/res/docs/zh/user_guides/atc_tools/CLI_options/--output_type_res.md#id1 -->

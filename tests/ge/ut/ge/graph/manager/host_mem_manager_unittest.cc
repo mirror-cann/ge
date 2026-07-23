@@ -335,4 +335,44 @@ TEST_F(UtestAclrtMallocHostSharedMemTest, set_domi_context_train_flag) {
   GeApiWrapper_SetDomiContextTrainFlag(true);
 }
 
+TEST_F(UtestAclrtMallocHostSharedMemTest, invalid_param_size_exceeds_int64max) {
+  char name[] = "/test";
+  int32_t fd = -1;
+  void *host_ptr = nullptr;
+  void *dev_ptr = nullptr;
+  EXPECT_EQ(AclrtMallocHostSharedMemory(name, static_cast<uint64_t>(INT64_MAX) + 1, &fd, &host_ptr, &dev_ptr),
+            ACL_ERROR_INVALID_PARAM);
+}
+
+TEST_F(UtestAclrtMallocHostSharedMemTest, advise_and_touch_nullptr) {
+  AdviseAndTouchHugePages(nullptr, 4096U);
+}
+
+TEST_F(UtestAclrtMallocHostSharedMemTest, aclrt_malloc_host_success) {
+  void *ptr = nullptr;
+  EXPECT_EQ(AclrtMallocHost(&ptr, 4096U, 0U), ACL_SUCCESS);
+  EXPECT_NE(ptr, nullptr);
+}
+
+TEST_F(UtestAclrtMallocHostSharedMemTest, aclrt_malloc_for_task_scheduler_success) {
+  void *ptr = nullptr;
+  EXPECT_EQ(AclrtMallocForTaskScheduler(&ptr, 4096U, ACL_MEM_MALLOC_HUGE_FIRST, 0U), ACL_SUCCESS);
+  EXPECT_NE(ptr, nullptr);
+}
+
+TEST_F(UtestAclrtMallocHostSharedMemTest, aclrt_free_host_shared_memory_null_name) {
+  std::string name = MakeShmName();
+  int32_t fd = -1;
+  void *host_ptr = nullptr;
+  void *dev_ptr = nullptr;
+  const uint64_t size = 4096U;
+  EXPECT_EQ(AclrtMallocHostSharedMemory(name.c_str(), size, &fd, &host_ptr, &dev_ptr), ACL_SUCCESS);
+  EXPECT_EQ(AclrtFreeHostSharedMemory(nullptr, size, fd, host_ptr), ACL_SUCCESS);
+  int32_t verify_fd = shm_open(name.c_str(), O_RDWR, 0666);
+  EXPECT_GE(verify_fd, 0);
+  if (verify_fd >= 0) {
+    close(verify_fd);
+  }
+  close(fd);
+}
 }  // namespace ge

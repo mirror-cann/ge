@@ -2,7 +2,7 @@
 
 ## 产品支持情况
 
-全量芯片支持。
+全量芯片支持
 
 ## 功能说明
 
@@ -86,7 +86,7 @@
 <!-- @ref: ge/res/docs/zh/user_guides/atc_tools/CLI_options/--precision_mode_res.md#id1 -->
 
 <!-- npu="IPV350" id7 -->
-- **该版本不支持bfloat16类型，对应选项也不支持。**
+- **IPV350不支持bfloat16类型，对应选项也不支持。**
 <!-- end id7 -->
 
 <!-- npu="950,A3,910b,310b" id6 -->

@@ -19,9 +19,7 @@
 namespace ge {
 class SlogStub {
  public:
-  SlogStub() {
-    log_init = true;
-  }
+  SlogStub();
   static SlogStub *GetInstance();
   static void SetInstance(std::shared_ptr<SlogStub> stub);
   virtual ~SlogStub();

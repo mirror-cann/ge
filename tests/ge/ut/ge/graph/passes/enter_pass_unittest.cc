@@ -194,4 +194,65 @@ TEST_F(UtestGraphPassesEnterPass, test_unknown_root_graph_skip_pass) {
   EnterPass pass;
   EXPECT_EQ(pass.Run(enter_node), SUCCESS);
 }
+
+TEST_F(UtestGraphPassesEnterPass, run_with_non_enter_type) {
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("data", DATA)->NODE("add", ADD)->NODE("netoutput", NETOUTPUT));
+  };
+  const auto compute_graph = ToComputeGraph(g1);
+  auto add_node = compute_graph->FindNode("add");
+  EXPECT_NE(add_node, nullptr);
+  EnterPass pass;
+  EXPECT_EQ(pass.Run(add_node), SUCCESS);
+}
+
+TEST_F(UtestGraphPassesEnterPass, enter_with_in_control_node_skip) {
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("const", CONSTANT)->EDGE(0, 0)->NODE("enter", ENTER));
+    CTRL_CHAIN(NODE("ctrl_src", VARIABLE)->NODE("enter", ENTER));
+  };
+  const auto compute_graph = ToComputeGraph(g1);
+  auto enter_node = compute_graph->FindNode("enter");
+  EXPECT_NE(enter_node, nullptr);
+  EnterPass pass;
+  EXPECT_EQ(pass.Run(enter_node), SUCCESS);
+}
+
+TEST_F(UtestGraphPassesEnterPass, enter_no_out_data_no_out_ctrl) {
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("const", CONSTANT)->EDGE(0, 0)->NODE("enter", ENTER));
+  };
+  const auto compute_graph = ToComputeGraph(g1);
+  auto enter_node = compute_graph->FindNode("enter");
+  EXPECT_NE(enter_node, nullptr);
+  EnterPass pass;
+  EXPECT_EQ(pass.Run(enter_node), SUCCESS);
+}
+
+TEST_F(UtestGraphPassesEnterPass, enter_with_merge_out_ctrl) {
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("const", CONSTANT)->EDGE(0, 0)->NODE("enter", ENTER));
+    CHAIN(NODE("enter", ENTER)->EDGE(0, 0)->NODE("merge", MERGE));
+    CTRL_CHAIN(NODE("enter", ENTER)->NODE("const2", CONSTANT));
+    CHAIN(NODE("const2", CONSTANT)->EDGE(0, 0)->NODE("merge", MERGE));
+  };
+  const auto compute_graph = ToComputeGraph(g1);
+  auto enter_node = compute_graph->FindNode("enter");
+  EXPECT_NE(enter_node, nullptr);
+  EnterPass pass;
+  EXPECT_EQ(pass.Run(enter_node), SUCCESS);
+}
+
+TEST_F(UtestGraphPassesEnterPass, refenter_run_success) {
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("const", CONSTANT)->EDGE(0, 0)->NODE("refenter", REFENTER));
+    CHAIN(NODE("refenter", REFENTER)->EDGE(0, 0)->NODE("add", ADD));
+    CHAIN(NODE("const2", CONSTANT)->EDGE(0, 1)->NODE("add", ADD));
+  };
+  const auto compute_graph = ToComputeGraph(g1);
+  auto refenter_node = compute_graph->FindNode("refenter");
+  EXPECT_NE(refenter_node, nullptr);
+  EnterPass pass;
+  EXPECT_EQ(pass.Run(refenter_node), SUCCESS);
+}
 }  // namespace ge

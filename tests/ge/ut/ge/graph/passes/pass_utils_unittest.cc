@@ -194,3 +194,57 @@ TEST_F(UtestGraphPassesPassUtils, test_remove_switch_direct_link_merge) {
   EXPECT_EQ(end_nodes.size(), 1);
   EXPECT_EQ(end_nodes[0]->GetType(), MERGE);
 }
+
+TEST_F(UtestGraphPassesPassUtils, is_constant_true) {
+  ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
+  ge::NodePtr node_const = NodeBuilder("const", CONSTANT).AddOutputDesc({2, 2, 2, 2}).Build(graph);
+  EXPECT_TRUE(PassUtils::IsConstant(node_const));
+}
+
+TEST_F(UtestGraphPassesPassUtils, set_out_node_weight_non_const) {
+  ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
+  ge::NodePtr node_data = NodeBuilder("data", DATA).AddOutputDesc({2, 2, 2, 2}).Build(graph);
+  ge::NodePtr node_relu = NodeBuilder("relu", RELU).AddInputDesc({2, 2, 2, 2}).AddOutputDesc({2, 2, 2, 2}).Build(graph);
+  GraphUtils::AddEdge(node_data->GetOutDataAnchor(0), node_relu->GetInDataAnchor(0));
+  Status status = PassUtils::SetOutNodeWeight(node_data->GetOutDataAnchor(0), node_data);
+  EXPECT_EQ(status, SUCCESS);
+}
+
+TEST_F(UtestGraphPassesPassUtils, remove_branch_null_node) {
+  std::vector<NodePtr> delete_nodes;
+  std::vector<NodePtr> end_nodes;
+  EXPECT_EQ(PassUtils::RemoveBranch(nullptr, delete_nodes, end_nodes), FAILED);
+}
+
+TEST_F(UtestGraphPassesPassUtils, get_in_data_node_success) {
+  ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
+  ge::NodePtr node_data = NodeBuilder("data", DATA).AddOutputDesc({2, 2, 2, 2}).Build(graph);
+  ge::NodePtr node_relu = NodeBuilder("relu", RELU).AddInputDesc({2, 2, 2, 2}).AddOutputDesc({2, 2, 2, 2}).Build(graph);
+  GraphUtils::AddEdge(node_data->GetOutDataAnchor(0), node_relu->GetInDataAnchor(0));
+  NodePtr in_node = PassUtils::GetInDataNode(node_relu, 0);
+  EXPECT_NE(in_node, nullptr);
+  EXPECT_EQ(in_node->GetType(), DATA);
+}
+
+TEST_F(UtestGraphPassesPassUtils, is_need_train_ite_flow_ctrl_null) {
+  EXPECT_FALSE(PassUtils::IsNeedTrainIteFlowCtrl(nullptr));
+  ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
+  EXPECT_FALSE(PassUtils::IsNeedTrainIteFlowCtrl(graph));
+}
+
+TEST_F(UtestGraphPassesPassUtils, get_disabled_optimizations_empty) {
+  auto disabled = PassUtils::GetDisabledOptimizations();
+  EXPECT_TRUE(disabled.empty());
+}
+
+TEST_F(UtestGraphPassesPassUtils, is_optimization_disabled_with_disabled_set) {
+  std::set<std::string> disabled = {"RemoveSameConstPass"};
+  EXPECT_TRUE(PassUtils::IsOptimizationDisabled(disabled, "xxx:RemoveSameConstPass"));
+}
+
+TEST_F(UtestGraphPassesPassUtils, update_ref_attr_no_ref_nodes) {
+  ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
+  ge::NodePtr node_relu = NodeBuilder("relu", RELU).AddInputDesc({2, 2, 2, 2}).AddOutputDesc({2, 2, 2, 2}).Build(graph);
+  EXPECT_EQ(PassUtils::UpdateRefAttr(graph), SUCCESS);
+  EXPECT_FALSE(node_relu->GetOpDesc()->HasAttr(ATTR_NAME_REFERENCE));
+}

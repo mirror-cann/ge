@@ -366,3 +366,103 @@ TEST_F(UtestGraphPassesFoldingKernelFillKernel, OutputdescUnknown) {
   status = kernel->Compute(nullptr, input, outputs);
   EXPECT_EQ(PARAM_INVALID, status);
 }
+
+TEST_F(UtestGraphPassesFoldingKernelFillKernel, FillNullInput) {
+  ge::OpDescPtr op_dims = std::make_shared<ge::OpDesc>();
+  vector<int64_t> dims_vec = {2};
+  vector<int32_t> dims_value_vec = {2, 3};
+  GeTensorDesc dims_tensor_desc(GeShape(dims_vec), FORMAT_NCHW, DT_INT32);
+  GeTensorPtr dim_tensor = std::make_shared<GeTensor>(dims_tensor_desc, (uint8_t *)dims_value_vec.data(),
+                                                      dims_value_vec.size() * sizeof(int32_t));
+  OpDescUtils::SetWeights(op_dims, dim_tensor);
+
+  GeTensorDesc value_tensor_desc(GeShape(), FORMAT_NCHW, DT_BOOL);
+  op_desc_ptr->AddInputDesc(dims_tensor_desc);
+  op_desc_ptr->AddInputDesc(value_tensor_desc);
+  op_desc_ptr->AddOutputDesc(dims_tensor_desc);
+
+  std::vector<ge::ConstGeTensorPtr> input = {dim_tensor, nullptr};
+  std::vector<GeTensorPtr> outputs;
+  Status status = kernel->Compute(op_desc_ptr, input, outputs);
+  EXPECT_NE(SUCCESS, status);
+}
+
+TEST_F(UtestGraphPassesFoldingKernelFillKernel, FillUnsupportedDataType) {
+  ge::OpDescPtr op_dims = std::make_shared<ge::OpDesc>();
+  vector<int64_t> dims_vec = {2};
+  vector<int32_t> dims_value_vec = {2, 3};
+  GeTensorDesc dims_tensor_desc(GeShape(dims_vec), FORMAT_NCHW, DT_INT32);
+  GeTensorPtr dim_tensor = std::make_shared<GeTensor>(dims_tensor_desc, (uint8_t *)dims_value_vec.data(),
+                                                      dims_value_vec.size() * sizeof(int32_t));
+  OpDescUtils::SetWeights(op_dims, dim_tensor);
+
+  ge::OpDescPtr op_value = std::make_shared<ge::OpDesc>();
+  vector<int32_t> data_vec = {1};
+  GeTensorDesc value_tensor_desc(GeShape(), FORMAT_NCHW, DT_STRING);
+  GeTensorPtr value_tensor =
+      std::make_shared<GeTensor>(value_tensor_desc, (uint8_t *)data_vec.data(), data_vec.size() * sizeof(int32_t));
+  OpDescUtils::SetWeights(op_value, value_tensor);
+
+  op_desc_ptr->AddInputDesc(dims_tensor_desc);
+  op_desc_ptr->AddInputDesc(value_tensor_desc);
+  op_desc_ptr->AddOutputDesc(dims_tensor_desc);
+
+  std::vector<ge::ConstGeTensorPtr> input = {dim_tensor, value_tensor};
+  std::vector<GeTensorPtr> outputs;
+  Status status = kernel->Compute(op_desc_ptr, input, outputs);
+  EXPECT_EQ(NOT_CHANGED, status);
+}
+
+TEST_F(UtestGraphPassesFoldingKernelFillKernel, FillScalarDim) {
+  ge::OpDescPtr op_dims = std::make_shared<ge::OpDesc>();
+  vector<int64_t> dims_vec = {};
+  vector<int32_t> dims_value_vec = {};
+  GeTensorDesc dims_tensor_desc(GeShape(dims_vec), FORMAT_NCHW, DT_INT32);
+  GeTensorPtr dim_tensor = std::make_shared<GeTensor>(dims_tensor_desc, (uint8_t *)dims_value_vec.data(),
+                                                      dims_value_vec.size() * sizeof(int32_t));
+  OpDescUtils::SetWeights(op_dims, dim_tensor);
+
+  ge::OpDescPtr op_value = std::make_shared<ge::OpDesc>();
+  vector<float> data_vec = {3.14f};
+  GeTensorDesc value_tensor_desc(GeShape(), FORMAT_NCHW, DT_FLOAT);
+  GeTensorPtr value_tensor =
+      std::make_shared<GeTensor>(value_tensor_desc, (uint8_t *)data_vec.data(), data_vec.size() * sizeof(float));
+  OpDescUtils::SetWeights(op_value, value_tensor);
+
+  op_desc_ptr->AddInputDesc(dims_tensor_desc);
+  op_desc_ptr->AddInputDesc(value_tensor_desc);
+  op_desc_ptr->AddOutputDesc(dims_tensor_desc);
+
+  std::vector<ge::ConstGeTensorPtr> input = {dim_tensor, value_tensor};
+  std::vector<GeTensorPtr> outputs;
+  Status status = kernel->Compute(op_desc_ptr, input, outputs);
+  EXPECT_EQ(SUCCESS, status);
+  EXPECT_EQ(outputs[0]->GetTensorDesc().GetShape().GetDimNum(), 0);
+}
+
+TEST_F(UtestGraphPassesFoldingKernelFillKernel, FillDimTypeInt64DoubleValue) {
+  ge::OpDescPtr op_dims = std::make_shared<ge::OpDesc>();
+  vector<int64_t> dims_vec = {2};
+  vector<int64_t> dims_value_vec = {2, 3};
+  GeTensorDesc dims_tensor_desc(GeShape(dims_vec), FORMAT_NCHW, DT_INT64);
+  GeTensorPtr dim_tensor = std::make_shared<GeTensor>(dims_tensor_desc, (uint8_t *)dims_value_vec.data(),
+                                                      dims_value_vec.size() * sizeof(int64_t));
+  OpDescUtils::SetWeights(op_dims, dim_tensor);
+
+  ge::OpDescPtr op_value = std::make_shared<ge::OpDesc>();
+  vector<double> data_vec = {2.5};
+  GeTensorDesc value_tensor_desc(GeShape(), FORMAT_NCHW, DT_DOUBLE);
+  GeTensorPtr value_tensor =
+      std::make_shared<GeTensor>(value_tensor_desc, (uint8_t *)data_vec.data(), data_vec.size() * sizeof(double));
+  OpDescUtils::SetWeights(op_value, value_tensor);
+
+  op_desc_ptr->AddInputDesc(dims_tensor_desc);
+  op_desc_ptr->AddInputDesc(value_tensor_desc);
+  op_desc_ptr->AddOutputDesc(dims_tensor_desc);
+
+  std::vector<ge::ConstGeTensorPtr> input = {dim_tensor, value_tensor};
+  std::vector<GeTensorPtr> outputs;
+  Status status = kernel->Compute(op_desc_ptr, input, outputs);
+  EXPECT_EQ(SUCCESS, status);
+  EXPECT_EQ(outputs[0]->GetTensorDesc().GetDataType(), DT_DOUBLE);
+}

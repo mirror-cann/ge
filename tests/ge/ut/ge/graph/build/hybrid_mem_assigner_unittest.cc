@@ -488,4 +488,29 @@ TEST_F(UtestHybridMemAssigner, ReuseCheckerInit_Failed_ReuseCheckerNull) {
   ASSERT_TRUE(assigner.Assign() == SUCCESS);
   EXPECT_EQ(assigner.GetReuseChecker(), nullptr);
 }
+
+TEST_F(UtestHybridMemAssigner, ProcessInplace_empty_graph_no_crash) {
+  auto graph = std::make_shared<ComputeGraph>("empty_inplace_test");
+  MemAssistInfo mem_assist_info;
+  mem_assist_info.compute_graph = graph;
+  EXPECT_EQ(ProcessInplace(mem_assist_info), SUCCESS);
+}
+
+TEST_F(UtestHybridMemAssigner, ProcessInplace_null_graph_no_crash) {
+  MemAssistInfo mem_assist_info;
+  mem_assist_info.compute_graph = nullptr;
+  auto ret = ProcessInplace(mem_assist_info);
+}
+
+TEST_F(UtestHybridMemAssigner, HybridMemAssigner_empty_graph) {
+  auto graph = std::make_shared<ComputeGraph>("empty_hybrid_test");
+  HybridMemAssigner assigner(graph);
+  auto ret = assigner.Assign();
+}
+
+TEST_F(UtestHybridMemAssigner, HybridMemAssigner_GetReuseChecker) {
+  auto graph = std::make_shared<ComputeGraph>("reuse_checker_test");
+  HybridMemAssigner assigner(graph);
+  auto checker = assigner.GetReuseChecker();
+}
 }  // namespace ge

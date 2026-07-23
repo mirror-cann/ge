@@ -23,6 +23,7 @@
 #include "history/history_registry_utils.h"
 #include "ge_running_env/path_utils.h"
 #include "gen_esb_options.h"
+#include "ge_ir_collector.h"
 
 namespace ge {
 namespace es {
@@ -4752,4 +4753,23 @@ TEST_F(GenImplLLTExtractHistory, ExtractHistoryThrowsOnDuplicateReleaseVersion) 
   ExpectInvalidArgumentErrorContains(
       [&]() { ge::es::GenEsImpl(opts); },
       "Given release_version already exists in index, please check index.json or use another version: ");
+}
+
+TEST(GeIrCollectorLLT, CollectAndCreateAllOps_ReturnsNonEmpty) {
+  auto ops = ge::es::GeIrCollector::CollectAndCreateAllOps();
+  EXPECT_FALSE(ops.empty());
+}
+
+TEST(GeIrCollectorLLT, CollectAndCreateAllOps_CallTwice_UsesCache) {
+  auto ops1 = ge::es::GeIrCollector::CollectAndCreateAllOps();
+  auto ops2 = ge::es::GeIrCollector::CollectAndCreateAllOps();
+  EXPECT_FALSE(ops1.empty());
+  EXPECT_FALSE(ops2.empty());
+}
+
+TEST(GeIrCollectorLLT, CollectAndCreateAllOps_AllOpsHaveType) {
+  auto ops = ge::es::GeIrCollector::CollectAndCreateAllOps();
+  for (const auto &op : ops) {
+    EXPECT_FALSE(op->GetType().empty());
+  }
 }

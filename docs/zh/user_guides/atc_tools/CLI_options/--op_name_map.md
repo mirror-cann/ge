@@ -2,9 +2,6 @@
 
 ## 产品支持情况
 
-<!-- npu="IPV350" id7 -->
-- IPV350：不支持
-<!-- end id7 -->
 <!-- npu="950" id6 -->
 - Ascend 950PR/Ascend 950DT：不支持
 <!-- end id6 -->
@@ -23,6 +20,10 @@
 <!-- npu="910" id1 -->
 - Atlas 训练系列产品：支持
 <!-- end id1 -->
+
+<!-- npu="IPV350" id7 -->
+- IPV350：不支持
+<!-- end id7 -->
 
 <!-- @ref: ge/res/docs/zh/user_guides/atc_tools/CLI_options/--op_name_map_res.md#id1 -->
 
@@ -58,7 +59,7 @@ Caffe网络中具有相同类型名但计算功能不同的层，比如Detection
 DetectionOutput:SSDDetectionOutput
 ```
 
-将配置好的_opname\_map.cfg_上传到ATC工具所在服务器任意目录，例如上传到_$HOME/module_，使用示例如下：
+将配置好的_opname\_map.cfg_上传到ATC工具所在服务器任意目录，例如上传到$HOME/module，使用示例如下：
 
 ```bash
 atc --op_name_map=$HOME/module/opname_map.cfg ...

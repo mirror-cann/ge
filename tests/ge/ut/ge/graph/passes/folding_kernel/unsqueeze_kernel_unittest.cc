@@ -174,3 +174,61 @@ TEST_F(UtestGraphPassesFoldingKernelUnsqueezeKernel, KernelCompute3) {
   Status status = kernel.Compute(op_desc_ptr, input, outputs);
   EXPECT_EQ(SUCCESS, status);
 }
+
+TEST_F(UtestGraphPassesFoldingKernelUnsqueezeKernel, NodePtrIsNullCheckFailed) {
+  NodePtr null_node = nullptr;
+  UnsqueezeKernel kernel;
+  Status status = kernel.Compute(null_node);
+  EXPECT_NE(SUCCESS, status);
+}
+
+TEST_F(UtestGraphPassesFoldingKernelUnsqueezeKernel, WrongInputSizeNotChanged) {
+  OpDescPtr op_desc_ptr = std::make_shared<OpDesc>("UNSQUEEZE", UNSQUEEZE);
+  GeTensorDesc input_desc(GeShape({2, 3}), FORMAT_NCHW, DT_FLOAT);
+  op_desc_ptr->AddInputDesc(input_desc);
+  op_desc_ptr->AddOutputDesc(GeTensorDesc(GeShape({1, 2, 3}), FORMAT_NCHW, DT_FLOAT));
+
+  GeTensorPtr tensor1 = std::make_shared<GeTensor>(input_desc);
+  GeTensorPtr tensor2 = std::make_shared<GeTensor>(input_desc);
+  vector<ConstGeTensorPtr> input = {tensor1, tensor2};
+  vector<GeTensorPtr> outputs;
+
+  UnsqueezeKernel kernel;
+  Status status = kernel.Compute(op_desc_ptr, input, outputs);
+  EXPECT_EQ(NOT_CHANGED, status);
+}
+
+TEST_F(UtestGraphPassesFoldingKernelUnsqueezeKernel, WrongOutputCountNotChanged) {
+  OpDescPtr op_desc_ptr = std::make_shared<OpDesc>("UNSQUEEZE", UNSQUEEZE);
+  GeTensorDesc input_desc(GeShape({2, 3}), FORMAT_NCHW, DT_FLOAT);
+  op_desc_ptr->AddInputDesc(input_desc);
+  op_desc_ptr->AddOutputDesc(GeTensorDesc(GeShape({1, 2, 3}), FORMAT_NCHW, DT_FLOAT));
+  op_desc_ptr->AddOutputDesc(GeTensorDesc(GeShape({1, 2, 3}), FORMAT_NCHW, DT_FLOAT));
+
+  GeTensorPtr tensor = std::make_shared<GeTensor>(input_desc);
+  vector<ConstGeTensorPtr> input = {tensor};
+  vector<GeTensorPtr> outputs;
+
+  UnsqueezeKernel kernel;
+  Status status = kernel.Compute(op_desc_ptr, input, outputs);
+  EXPECT_EQ(NOT_CHANGED, status);
+}
+
+TEST_F(UtestGraphPassesFoldingKernelUnsqueezeKernel, Unsqueezev2ComputeSuccess) {
+  OpDescPtr op_desc_ptr = std::make_shared<OpDesc>("UNSQUEEZEV2", UNSQUEEZEV2);
+  GeTensorDesc input_desc(GeShape({2, 3}), FORMAT_NCHW, DT_FLOAT);
+  op_desc_ptr->AddInputDesc(input_desc);
+  op_desc_ptr->AddOutputDesc(GeTensorDesc(GeShape({1, 2, 3}), FORMAT_NCHW, DT_FLOAT));
+
+  vector<float> data_vec(6, 1.0f);
+  GeTensorPtr tensor =
+      std::make_shared<GeTensor>(input_desc, (uint8_t *)data_vec.data(), data_vec.size() * sizeof(float));
+  vector<ConstGeTensorPtr> input = {tensor};
+  vector<GeTensorPtr> outputs;
+
+  UnsqueezeKernel kernel;
+  Status status = kernel.Compute(op_desc_ptr, input, outputs);
+  EXPECT_EQ(SUCCESS, status);
+  EXPECT_EQ(1U, outputs.size());
+  EXPECT_EQ(outputs[0]->GetData().size(), 6U * sizeof(float));
+}

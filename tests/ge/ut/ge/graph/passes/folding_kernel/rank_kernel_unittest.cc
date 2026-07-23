@@ -98,3 +98,29 @@ TEST_F(UtestGraphPassesFoldingKernelRankKernel, InvalidCaseInputSizeIsMoreThanOn
 
   EXPECT_NE(SUCCESS, status);
 }
+
+TEST_F(UtestGraphPassesFoldingKernelRankKernel, RankIsTwo) {
+  vector<int64_t> dims_vec_0 = {3, 5};
+  GeTensorDesc tensor_desc_0(GeShape(dims_vec_0), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc out_tensor_desc_0(GeShape(), FORMAT_NCHW, DT_INT32);
+  op_desc_ptr->AddInputDesc(tensor_desc_0);
+  op_desc_ptr->AddOutputDesc(out_tensor_desc_0);
+  std::vector<GeTensorPtr> v_output;
+
+  Status status = kernel->Compute(node, v_output);
+  EXPECT_EQ(SUCCESS, status);
+  EXPECT_EQ(v_output[0]->GetTensorDesc().GetDataType(), DT_INT32);
+  EXPECT_EQ(*(int32_t *)(v_output[0]->GetData().data()), 2);
+}
+
+TEST_F(UtestGraphPassesFoldingKernelRankKernel, RankScalarShape) {
+  GeTensorDesc tensor_desc_0(GeShape(), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc out_tensor_desc_0(GeShape(), FORMAT_NCHW, DT_INT32);
+  op_desc_ptr->AddInputDesc(tensor_desc_0);
+  op_desc_ptr->AddOutputDesc(out_tensor_desc_0);
+  std::vector<GeTensorPtr> v_output;
+
+  Status status = kernel->Compute(node, v_output);
+  EXPECT_EQ(SUCCESS, status);
+  EXPECT_EQ(*(int32_t *)(v_output[0]->GetData().data()), 0);
+}

@@ -98,4 +98,26 @@ TEST_F(UtestEndOfSequenceAddControlPass, test_no_need_add_ctrl) {
   ret = pass.Run(graph);
   EXPECT_EQ(ret, SUCCESS);
 }
+
+TEST_F(UtestEndOfSequenceAddControlPass, test_no_end_of_sequence) {
+  DEF_GRAPH(g3) {
+    CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("add1", ADD));
+    CHAIN(NODE("add1", ADD)->EDGE(0, 0)->NODE("net_output", NETOUTPUT));
+  };
+  const auto graph = ToComputeGraph(g3);
+  EndOfSequenceAddControlPass pass;
+  auto ret = pass.Run(graph);
+  EXPECT_EQ(ret, SUCCESS);
+}
+
+TEST_F(UtestEndOfSequenceAddControlPass, test_subgraph_skip) {
+  DEF_GRAPH(g4) {
+    CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("net_output", NETOUTPUT));
+  };
+  const auto graph = ToComputeGraph(g4);
+  graph->SetParentGraph(BuildGraph());
+  EndOfSequenceAddControlPass pass;
+  auto ret = pass.Run(graph);
+  EXPECT_EQ(ret, SUCCESS);
+}
 }  // namespace ge

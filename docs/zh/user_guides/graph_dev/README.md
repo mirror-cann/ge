@@ -16,9 +16,9 @@
 
   - [ES构图<a name="sub_menu"></a>](es_graph/README.md)
 
-  - [自定义算子入图](custom_operator_into_graph/README.md)
+  - [自定义算子入图<a name="sub_menu"></a>](custom_operator_into_graph/README.md)
 
-  - [自定义Pass开发](custom_pass_development/README.md)
+  - [自定义Pass开发<a name="sub_menu"></a>](custom_pass_development/README.md)
 
   <!-- npu="950,A3,910b" id6 -->
   - [AutoFuse自动融合<a name="sub_menu"></a>](autofuse/README.md)

@@ -138,6 +138,30 @@ TEST_F(GeApiTest, ge_session_auto_tune_invalid) {
   EXPECT_NE(session.AddGraph(graph_id, graph), SUCCESS);
 }
 
+TEST_F(GeApiTest, ge_session_host_scheduling_max_threshold_invalid_format) {
+  ReInitGe();
+  std::map<AscendString, AscendString> options = {
+      {AscendString(OPTION_HOST_SCHEDULING_MAX_THRESHOLD), AscendString("abc")}};
+  Session session(options);
+  const auto compute_graph = MakeShared<ComputeGraph>("test_graph");
+  const Graph graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
+
+  EXPECT_NE(session.AddGraph(1U, graph), SUCCESS);
+  const std::string err_msg = GEGetErrorMsgV2().GetString();
+  EXPECT_NE(err_msg.find("The value must be a non-empty integer"), std::string::npos);
+}
+
+TEST_F(GeApiTest, ge_session_host_scheduling_max_threshold_int64_overflow) {
+  ReInitGe();
+  std::map<AscendString, AscendString> options = {
+      {AscendString(OPTION_HOST_SCHEDULING_MAX_THRESHOLD), AscendString("9223372036854775808")}};
+  Session session(options);
+  const auto compute_graph = MakeShared<ComputeGraph>("test_graph");
+  const Graph graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
+
+  EXPECT_NE(session.AddGraph(1U, graph), SUCCESS);
+}
+
 TEST_F(GeApiTest, ge_session_session_id_invalid) {
   std::map<std::string, std::string> options;
   EXPECT_EQ(GEInitialize(options), SUCCESS);

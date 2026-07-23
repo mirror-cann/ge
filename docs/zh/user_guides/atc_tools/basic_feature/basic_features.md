@@ -103,7 +103,7 @@ ATC run success, welcome to the next use.
 
 如下转换示例以TensorFlow框架ResNet50网络模型为例进行演示，单击[Link](https://gitee.com/ascend/ModelZoo-TensorFlow/tree/master/TensorFlow/contrib/cv/resnet50_for_TensorFlow)，根据页面提示获取ResNet50网络的模型文件（\*.pb）。
 
-1. 以CANN软件包运行用户登录开发环境，将模型文件（\*.pb）上传到开发环境任意路径，例如上传到$HOME_/module__/_目录下。
+1. 以CANN软件包运行用户登录开发环境，将模型文件（\*.pb）上传到开发环境任意路径，例如上传到$HOME/module/目录下。
 2. 执行如下命令生成离线模型。（如下命令中使用的目录以及文件均为样例，请以实际为准）
 
     - 动态batch\_size
@@ -152,7 +152,7 @@ ATC run success, welcome to the next use.
 
 本章节以TensorFlow框架ResNet50网络模型为例进行演示，单击[Link](https://gitee.com/ascend/ModelZoo-TensorFlow/tree/master/TensorFlow/contrib/cv/resnet50_for_TensorFlow)，根据页面提示获取ResNet50网络模型文件（\*.pb）。
 
-1. 以CANN软件包运行用户登录开发环境，将模型文件上传到开发环境任意路径，例如上传到$HOME_/module__/_目录下。
+1. 以CANN软件包运行用户登录开发环境，将模型文件上传到开发环境任意路径，例如上传到$HOME/module/目录下。
 2. 执行如下命令生成离线模型。（如下命令中使用的目录以及文件均为样例，请以实际为准）
 
     ```bash
@@ -189,13 +189,13 @@ ATC run success, welcome to the next use.
 
 模型转换时支持指定网络的输入节点、输出节点的DataType、Format、模型转换支持精度选择等关键参数。
 
-假如，针对TensorFlow框架ResNet-50网络模型，要求转换后离线模型的输入数据为Float16类型，指定_MaxPoolWithArgmax_算子作为输出算子（对应的节点名称为fp32\_vars/MaxPoolWithArgmax），并且指定该输出节点的数据类型为FP16。该场景下就需要分别使用[--input\_fp16\_nodes](../CLI_options/--input_fp16_nodes.md)、[--out\_nodes](../CLI_options/--out_nodes.md)、[--output\_type](../CLI_options/--output_type.md)等参数来实现上述功能。
+假如，针对TensorFlow框架ResNet-50网络模型，要求转换后离线模型的输入数据为Float16类型，指定MaxPoolWithArgmax算子作为输出算子（对应的节点名称为fp32\_vars/MaxPoolWithArgmax），并且指定该输出节点的数据类型为FP16。该场景下就需要分别使用[--input\_fp16\_nodes](../CLI_options/--input_fp16_nodes.md)、[--out\_nodes](../CLI_options/--out_nodes.md)、[--output\_type](../CLI_options/--output_type.md)等参数来实现上述功能。
 
 ### 转换方法
 
 本章节以TensorFlow框架ResNet50网络模型为例进行演示，单击[Link](https://gitee.com/ascend/ModelZoo-TensorFlow/tree/master/TensorFlow/contrib/cv/resnet50_for_TensorFlow)，根据页面提示获取ResNet50网络模型文件（\*.pb）。
 
-1. 以CANN软件包运行用户登录开发环境，将模型文件（\*.pb）上传到开发环境任意路径，例如上传到$HOME_/module__/_目录下。
+1. 以CANN软件包运行用户登录开发环境，将模型文件（\*.pb）上传到开发环境任意路径，例如上传到$HOME/module/目录下。
 2. 执行如下命令生成离线模型。（如下命令中使用的目录以及文件均为样例，请以实际为准）
 
     ```bash
@@ -219,7 +219,7 @@ ATC run success, welcome to the next use.
     ATC run success, welcome to the next use.
     ```
 
-    成功执行命令后，在output参数指定的路径下，可查看离线模型（如：tf\_resnet50.om）。[图1](#fig3)为_MaxPoolWithArgmax_算子作为模型输出算子的示意图（下图使用Netron可视化软件打开）。
+    成功执行命令后，在output参数指定的路径下，可查看离线模型（如：tf\_resnet50.om）。[图1](#fig3)为MaxPoolWithArgmax算子作为模型输出算子的示意图（下图使用Netron可视化软件打开）。
 
     **图 1**  指定某个算子为离线模型输出<a id="fig3"></a>
     ![](../figures/specify_op_as_offline_model_output.png "指定某个算子为离线模型输出")
@@ -232,17 +232,17 @@ ATC run success, welcome to the next use.
 
 ### 查看方法
 
-1. 获取已经转换好的离线模型，例如_tf\_resnet50.om_，并以CANN软件包运行用户将其上传至开发环境任意目录，例如上传到$HOME_/module__/_目录下。
+1. 获取已经转换好的离线模型，例如tf\_resnet50.om，并以CANN软件包运行用户将其上传至开发环境任意目录，例如上传到$HOME/module/目录下。
 2. 将离线模型转成JSON文件：
 
     ```bash
     atc --mode=1 --om=$HOME/module/tf_resnet50.om  --json=$HOME/module/out/tf_resnet50.json
     ```
 
-    - --om：指定**离线模型文件**_tf\_resnet50.om_所在路径。
+    - --om：指定**离线模型文件**tf\_resnet50.om所在路径。
     - --json：转换为JSON格式的文件路径和文件名。
 
-    在转换后的JSON文件中，可以查看原始模型转换为离线模型时，使用的基础版本号，示例如下（如下为部分JSON片段），_<version\>_即为展示的版本号信息：
+    在转换后的JSON文件中，可以查看原始模型转换为离线模型时，使用的基础版本号，示例如下（如下为部分JSON片段），<version\>即为展示的版本号信息：
 
     ```json
        {

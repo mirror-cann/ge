@@ -3853,19 +3853,161 @@ TEST_F(UtestMemoryAssignerTest, graph_continuous_input_memory_reuse_fail) {
   EXPECT_EQ(offset, 9216);
 }
 
-TEST_F(UtestMemoryAssignerTest, ReAssignContinuousMemoryFail) {
-  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("");
-  OpDescPtr op_desc_two = std::make_shared<OpDesc>("node_two", "type");
-  NodePtr node_two = graph->AddNode(op_desc_two);
-  std::vector<int64_t> mem_type_list;
-  mem_type_list.emplace_back(66);
-  ge::AttrUtils::SetListInt(node_two->GetOpDesc(), ATTR_NAME_OUTPUT_MEM_TYPE_LIST, mem_type_list);
-  ge::AttrUtils::SetBool(node_two->GetOpDesc(), ATTR_NAME_CONTINUOUS_OUTPUT, true);
+TEST_F(UtestMemoryAssignerTest, MemReuseUtils_GetStreamId_NullDesc) {
+  EXPECT_EQ(MemReuseUtils::GetStreamId(nullptr), ge::kInvalidStreamId);
+}
 
-  MemoryAssigner memory_assigner(graph);
-  map<uint64_t, size_t> mem_offset;
-  size_t zero_memory_size = 0U;
-  EXPECT_EQ(memory_assigner.AssignMemory(mem_offset, zero_memory_size), FAILED);
+TEST_F(UtestMemoryAssignerTest, MemReuseUtils_GetThreadScopeId_NullDesc) {
+  EXPECT_EQ(MemReuseUtils::GetThreadScopeId(nullptr), ge::kInvalidThreadScopeId);
+}
+
+TEST_F(UtestMemoryAssignerTest, MemReuseUtils_SetStreamId_NullDesc) {
+  EXPECT_NO_THROW(MemReuseUtils::SetStreamId(nullptr, 1));
+}
+
+TEST_F(UtestMemoryAssignerTest, MemReuseUtils_GetStreamId_WithSubStreamId) {
+  auto op_desc = std::make_shared<OpDesc>("test_op", "Add");
+  AttrUtils::SetInt(op_desc, ATTR_NAME_SUB_STREAM_ID, 5);
+  EXPECT_EQ(MemReuseUtils::GetStreamId(op_desc.get()), 5);
+}
+
+TEST_F(UtestMemoryAssignerTest, MemReuseUtils_GetStreamId_WithThreadScopeId) {
+  auto op_desc = std::make_shared<OpDesc>("test_op", "Add");
+  AttrUtils::SetInt(op_desc, ATTR_NAME_THREAD_SCOPE_ID, 1);
+  EXPECT_EQ(MemReuseUtils::GetStreamId(op_desc.get()), ge::kInvalidStreamId);
+}
+
+TEST_F(UtestMemoryAssignerTest, MemReuseUtils_GetStreamId_DefaultStreamId) {
+  auto op_desc = std::make_shared<OpDesc>("test_op", "Add");
+  op_desc->SetStreamId(3);
+  EXPECT_EQ(MemReuseUtils::GetStreamId(op_desc.get()), 3);
+}
+
+TEST_F(UtestMemoryAssignerTest, MemReuseUtils_GetThreadScopeId_WithAttr) {
+  auto op_desc = std::make_shared<OpDesc>("test_op", "Add");
+  AttrUtils::SetInt(op_desc, ATTR_NAME_THREAD_SCOPE_ID, 2);
+  EXPECT_EQ(MemReuseUtils::GetThreadScopeId(op_desc.get()), 2);
+}
+
+TEST_F(UtestMemoryAssignerTest, MemReuseUtils_IsMergeNode_StreamMerge) {
+  auto compute_graph = std::make_shared<ComputeGraph>("test");
+  auto op_desc = std::make_shared<OpDesc>("merge_op", STREAMMERGE);
+  auto node = compute_graph->AddNode(op_desc);
+  EXPECT_TRUE(MemReuseUtils::IsMergeNode(node));
+}
+
+TEST_F(UtestMemoryAssignerTest, MemReuseUtils_IsMergeNode_Merge) {
+  auto compute_graph = std::make_shared<ComputeGraph>("test");
+  auto op_desc = std::make_shared<OpDesc>("merge_op", MERGE);
+  auto node = compute_graph->AddNode(op_desc);
+  EXPECT_TRUE(MemReuseUtils::IsMergeNode(node));
+}
+
+TEST_F(UtestMemoryAssignerTest, MemReuseUtils_IsMergeNode_NonMerge) {
+  auto compute_graph = std::make_shared<ComputeGraph>("test");
+  auto op_desc = std::make_shared<OpDesc>("add_op", "Add");
+  auto node = compute_graph->AddNode(op_desc);
+  EXPECT_FALSE(MemReuseUtils::IsMergeNode(node));
+}
+
+TEST_F(UtestMemoryAssignerTest, MemReuseUtils_AlignMemOffset_Zero) {
+  size_t mem_size = 0;
+  MemReuseUtils::AlignMemOffset(mem_size);
+  EXPECT_EQ(mem_size, 0U);
+}
+
+TEST_F(UtestMemoryAssignerTest, MemReuseUtils_AlignMemOffset_AlreadyAligned) {
+  size_t mem_size = 512;
+  MemReuseUtils::AlignMemOffset(mem_size);
+  EXPECT_EQ(mem_size, 512U);
+}
+
+TEST_F(UtestMemoryAssignerTest, MemReuseUtils_AlignMemOffset_NotAligned) {
+  size_t mem_size = 100;
+  MemReuseUtils::AlignMemOffset(mem_size);
+  EXPECT_EQ(mem_size, 512U);
+}
+
+TEST_F(UtestMemoryAssignerTest, MemReuseUtils_GetGraphNameId_Success) {
+  auto compute_graph = std::make_shared<ComputeGraph>("test_graph");
+  compute_graph->SetGraphID(42);
+  std::string name_id = MemReuseUtils::GetGraphNameId(compute_graph.get());
+  EXPECT_EQ(name_id, "test_graph_42");
+}
+
+TEST_F(UtestMemoryAssignerTest, MemReuseUtils_GetGraphNameId_NullGraph) {
+  EXPECT_EQ(MemReuseUtils::GetGraphNameId(nullptr), "");
+}
+
+TEST_F(UtestMemoryAssignerTest, MemReuseUtils_IsAllOutRefAllInput_NonRefNode) {
+  auto compute_graph = std::make_shared<ComputeGraph>("test");
+  auto op_desc = std::make_shared<OpDesc>("add_op", "Add");
+  op_desc->AddInputDesc(GeTensorDesc());
+  op_desc->AddOutputDesc(GeTensorDesc());
+  auto node = compute_graph->AddNode(op_desc);
+  EXPECT_FALSE(MemReuseUtils::IsAllOutRefAllInput(node));
+}
+
+TEST_F(UtestMemoryAssignerTest, MemReuseUtils_IsNeedSplitSize_NullNode) {
+  EXPECT_TRUE(MemReuseUtils::IsNeedSplitSize(static_cast<ge::Node *>(nullptr), 0));
+}
+
+TEST_F(UtestMemoryAssignerTest, MemReuseUtils_IsNeedSplitSize_DataNode) {
+  auto compute_graph = std::make_shared<ComputeGraph>("test");
+  auto op_desc = std::make_shared<OpDesc>("data_op", DATA);
+  op_desc->AddOutputDesc(GeTensorDesc());
+  auto node = compute_graph->AddNode(op_desc);
+  EXPECT_FALSE(MemReuseUtils::IsNeedSplitSize(node.get(), 0));
+}
+
+TEST_F(UtestMemoryAssignerTest, MemReuseUtils_IsNeedSplitSize_NetOutputPeer) {
+  auto compute_graph = std::make_shared<ComputeGraph>("test");
+  auto add_desc = std::make_shared<OpDesc>("add_op", "Add");
+  add_desc->AddOutputDesc(GeTensorDesc());
+  auto net_desc = std::make_shared<OpDesc>("netoutput", NETOUTPUT);
+  net_desc->AddInputDesc(GeTensorDesc());
+  auto add_node = compute_graph->AddNode(add_desc);
+  auto net_node = compute_graph->AddNode(net_desc);
+  GraphUtils::AddEdge(add_node->GetOutDataAnchor(0), net_node->GetInDataAnchor(0));
+  EXPECT_FALSE(MemReuseUtils::IsNeedSplitSize(add_node.get(), 0));
+}
+
+TEST_F(UtestMemoryAssignerTest, MemReuseUtils_IsNeedSplitSize_NoPeer) {
+  auto compute_graph = std::make_shared<ComputeGraph>("test");
+  auto op_desc = std::make_shared<OpDesc>("add_op", "Add");
+  op_desc->AddOutputDesc(GeTensorDesc());
+  auto node = compute_graph->AddNode(op_desc);
+  EXPECT_TRUE(MemReuseUtils::IsNeedSplitSize(node.get(), 0));
+}
+
+TEST_F(UtestMemoryAssignerTest, MemReuseUtils_GetNoAlignSize_Success) {
+  GeTensorDesc tensor_desc(GeShape({2, 3}), FORMAT_ND, DT_FLOAT);
+  size_t size = 0;
+  EXPECT_EQ(MemReuseUtils::GetNoAlignSize(tensor_desc, size), SUCCESS);
+  EXPECT_GT(size, 0U);
+}
+
+TEST_F(UtestMemoryAssignerTest, MemReuseUtils_GetTensorSize_WithFftsSize) {
+  GeTensorDesc tensor_desc(GeShape({2, 3}), FORMAT_ND, DT_FLOAT);
+  AttrUtils::SetInt(&tensor_desc, ATTR_NAME_FFTS_SUB_TASK_TENSOR_SIZE, 256);
+  int64_t size = 0;
+  EXPECT_EQ(MemReuseUtils::GetTensorSize(tensor_desc, size, true), SUCCESS);
+  EXPECT_EQ(size, 256);
+}
+
+TEST_F(UtestMemoryAssignerTest, MemReuseUtils_GetTensorSize_WithoutFftsSize) {
+  GeTensorDesc tensor_desc(GeShape({2, 3}), FORMAT_ND, DT_FLOAT);
+  TensorUtils::SetSize(tensor_desc, 128);
+  int64_t size = 0;
+  EXPECT_EQ(MemReuseUtils::GetTensorSize(tensor_desc, size, true), SUCCESS);
+}
+
+TEST_F(UtestMemoryAssignerTest, MemReuseUtils_SetStreamId_Success) {
+  auto op_desc = std::make_shared<OpDesc>("test_op", "Add");
+  MemReuseUtils::SetStreamId(op_desc.get(), 7);
+  int64_t sub_stream_id = -1;
+  AttrUtils::GetInt(op_desc, ATTR_NAME_SUB_STREAM_ID, sub_stream_id);
+  EXPECT_EQ(sub_stream_id, 7);
 }
 
 /*

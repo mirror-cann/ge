@@ -220,3 +220,25 @@ TEST_F(UtestGraphPassesGuaranteeConstPass, ir_infer_shape) {
   EXPECT_NO_THROW(auto guaranteeConst = op::GuaranteeConst("guaranteeconst");
                   TEST_OPERATOR(guaranteeConst, input, output););
 }
+
+TEST_F(UtestGraphPassesGuaranteeConstPass, resource_input_fail) {
+  string type = GUARANTEECONST;
+  vector<int64_t> dims_vec = {6};
+  vector<int32_t> data_vec = {1, 2, 3, 4, 5, 6};
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
+  NodePtr node = init_node(graph, dims_vec, data_vec, false, type);
+  auto in_desc = node->GetOpDesc()->MutableInputDesc(0);
+  in_desc->SetDataType(DT_RESOURCE);
+  ge::Status ret = guarantee_const_op_remove_pass_->Run(node);
+  EXPECT_EQ(ge::FAILED, ret);
+}
+
+TEST_F(UtestGraphPassesGuaranteeConstPass, constantop_type_not_guarantee) {
+  string type = CONSTANTOP;
+  vector<int64_t> dims_vec = {6};
+  vector<int32_t> data_vec = {1, 2, 3, 4, 5, 6};
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
+  NodePtr node = init_node(graph, dims_vec, data_vec, false, type);
+  ge::Status ret = guarantee_const_op_remove_pass_->Run(node);
+  EXPECT_EQ(ge::SUCCESS, ret);
+}

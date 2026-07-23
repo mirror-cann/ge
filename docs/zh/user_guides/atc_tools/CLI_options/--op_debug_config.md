@@ -117,7 +117,7 @@
 op_debug_config=ccec_g,oom
 ```
 
-将该文件上传到ATC工具所在服务器，例如上传到_$HOME/module_，使用示例如下：
+将该文件上传到ATC工具所在服务器，例如上传到$HOME/module，使用示例如下：
 
 ```bash
 atc --op_debug_config=$HOME/module/gm_debug.cfg ...
@@ -140,7 +140,7 @@ op_debug_config=ccec_g,oom
 op_debug_list=GatherV2,OpType::ReduceSum
 ```
 
-将该文件上传到ATC工具所在服务器，例如上传到_$HOME/module_，使用示例如下：
+将该文件上传到ATC工具所在服务器，例如上传到$HOME/module，使用示例如下：
 
 ```bash
 atc --op_debug_config=$HOME/module/gm_debug.cfg ...

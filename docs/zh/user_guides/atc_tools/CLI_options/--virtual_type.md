@@ -7,7 +7,7 @@
 <!-- end id5 -->
 
 <!-- npu="IPV350" id1 -->
-- IPV350：不支持
+IPV350：不支持
 <!-- end id1 -->
 
 <!-- @ref: ge/res/docs/zh/user_guides/atc_tools/CLI_options/--virtual_type_res.md#id1 -->

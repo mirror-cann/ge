@@ -117,3 +117,45 @@ TEST_F(UtestSwitch2StreamSwitchPass, MoveCtrlEdgesFailed) {
   GraphUtils::AddEdge(data0->GetOutControlAnchor(), cast0->GetInControlAnchor());
   EXPECT_NO_THROW(switch2StrPass.MoveCtrlEdges(data0, switch3));
 }
+
+TEST_F(UtestSwitch2StreamSwitchPass, CheckDuplicateNameSuccess) {
+  SwitchToStreamSwitchPass switch2StrPass;
+  auto name1 = switch2StrPass.CheckDuplicateName("test_node");
+  EXPECT_EQ(name1, "test_node");
+  auto name2 = switch2StrPass.CheckDuplicateName("test_node");
+  EXPECT_EQ(name2, "test_node_1");
+  auto name3 = switch2StrPass.CheckDuplicateName("test_node");
+  EXPECT_EQ(name3, "test_node_2");
+}
+
+TEST_F(UtestSwitch2StreamSwitchPass, ModifySwitchOutCtlEdgesNotFound) {
+  SwitchToStreamSwitchPass switch2StrPass;
+  ComputeGraphPtr graph = BuildGraph();
+  auto switch1 = graph->FindNode("switch1");
+  auto switch2 = graph->FindNode("switch2");
+  auto cast0 = graph->FindNode("cast0");
+  auto ret = switch2StrPass.ModifySwitchOutCtlEdges(switch1, switch2, cast0);
+  EXPECT_EQ(ret, INTERNAL_ERROR);
+}
+
+TEST_F(UtestSwitch2StreamSwitchPass, UpdateControlFlowGroupSuccess) {
+  SwitchToStreamSwitchPass switch2StrPass;
+  ComputeGraphPtr graph = BuildGraph();
+  auto ret = switch2StrPass.UpdateControlFlowGroup(graph);
+  EXPECT_EQ(ret, SUCCESS);
+}
+
+TEST_F(UtestSwitch2StreamSwitchPass, ClearStatusClearsAllMembers) {
+  SwitchToStreamSwitchPass switch2StrPass;
+  ComputeGraphPtr graph = BuildGraph();
+  switch2StrPass.Run(graph);
+  auto ret = switch2StrPass.ClearStatus();
+  EXPECT_EQ(ret, SUCCESS);
+  EXPECT_TRUE(switch2StrPass.switch_nodes_.empty());
+  EXPECT_TRUE(switch2StrPass.switch_cyclic_map_.empty());
+  EXPECT_TRUE(switch2StrPass.bypass_nodes_.empty());
+  EXPECT_TRUE(switch2StrPass.stream_switch_nodes_.empty());
+  EXPECT_TRUE(switch2StrPass.cond_node_map_.empty());
+  EXPECT_TRUE(switch2StrPass.switch_node_map_.empty());
+  EXPECT_TRUE(switch2StrPass.node_num_map_.empty());
+}

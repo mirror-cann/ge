@@ -2849,4 +2849,165 @@ TEST_F(UtestModelHelper, SaveAutofuseSoBinWithGuardCheckSoDataPopulatesOpSoStore
   EXPECT_EQ(so_bins[0U]->GetBinDataSize(), guard_bin.size());
 }
 
+TEST_F(UtestModelHelper, SaveCustomOpsPartitionNullRootModelReturnsFailed) {
+  std::shared_ptr<OmFileSaveHelper> om_file_save_helper = std::make_shared<OmFileSaveHelper>();
+  ModelHelper model_helper;
+  EXPECT_NE(model_helper.SaveCustomOpsPartition(om_file_save_helper, nullptr), SUCCESS);
+}
+
+TEST_F(UtestModelHelper, SaveCustomOpsPartitionNullRegistryReturnsSuccess) {
+  auto root_graph = std::make_shared<ComputeGraph>("root_graph_null_registry");
+  auto ge_root_model = std::make_shared<GeRootModel>();
+  ASSERT_EQ(ge_root_model->Initialize(root_graph), SUCCESS);
+
+  std::shared_ptr<OmFileSaveHelper> om_file_save_helper = std::make_shared<OmFileSaveHelper>();
+  ModelHelper model_helper;
+  EXPECT_EQ(model_helper.SaveCustomOpsPartition(om_file_save_helper, ge_root_model), SUCCESS);
+}
+
+TEST_F(UtestModelHelper, SaveCustomOpsPartitionNoCustomOpsUsedReturnsSuccess) {
+  auto root_graph = std::make_shared<ComputeGraph>("root_graph_no_custom_ops");
+  auto op_desc = std::make_shared<OpDesc>("regular_node", "Add");
+  (void)root_graph->AddNode(op_desc);
+  auto ge_root_model = std::make_shared<GeRootModel>();
+  ASSERT_EQ(ge_root_model->Initialize(root_graph), SUCCESS);
+  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
+
+  std::shared_ptr<OmFileSaveHelper> om_file_save_helper = std::make_shared<OmFileSaveHelper>();
+  ModelHelper model_helper;
+  EXPECT_EQ(model_helper.SaveCustomOpsPartition(om_file_save_helper, ge_root_model), SUCCESS);
+}
+
+TEST_F(UtestModelHelper, CollectUsedCustomOpTypesNullRootModelReturnsFailed) {
+  ModelHelper model_helper;
+  std::set<std::string> used_custom_op_types;
+  EXPECT_NE(model_helper.CollectUsedCustomOpTypes(nullptr, used_custom_op_types), SUCCESS);
+}
+
+TEST_F(UtestModelHelper, ValidateCustomOpsDeserializedNullRootModelReturnsFailed) {
+  auto registry = std::make_shared<CustomOpRegistry>();
+  ModelHelper model_helper;
+  EXPECT_NE(model_helper.ValidateCustomOpsDeserialized(nullptr, registry), SUCCESS);
+}
+
+TEST_F(UtestModelHelper, ValidateCustomOpsDeserializedNullRegistryReturnsFailed) {
+  auto root_graph = std::make_shared<ComputeGraph>("root_graph_validate_null_reg");
+  auto ge_root_model = std::make_shared<GeRootModel>();
+  ASSERT_EQ(ge_root_model->Initialize(root_graph), SUCCESS);
+  ModelHelper model_helper;
+  EXPECT_NE(model_helper.ValidateCustomOpsDeserialized(ge_root_model, nullptr), SUCCESS);
+}
+
+TEST_F(UtestModelHelper, LoadCustomOpSoBinsEmptyReturnsSuccess) {
+  ModelHelper model_helper;
+  std::vector<OpSoBinPtr> empty_bins;
+  std::vector<CustomOpSoHandlePtr> loaded_handles;
+  EXPECT_EQ(model_helper.LoadCustomOpSoBins(empty_bins, loaded_handles), SUCCESS);
+  EXPECT_TRUE(loaded_handles.empty());
+}
+
+TEST_F(UtestModelHelper, LoadOpSoBinNoSoBinsPartitionReturnsSuccess) {
+  OmFileLoadHelper load_helper;
+  load_helper.is_inited_ = true;
+  load_helper.model_contexts_.emplace_back(OmFileContext{});
+
+  auto graph = std::make_shared<ComputeGraph>("graph_no_so_bins");
+  GeRootModelPtr ge_root_model = std::make_shared<GeRootModel>();
+  ASSERT_EQ(ge_root_model->Initialize(graph), SUCCESS);
+
+  ModelHelper model_helper;
+  std::vector<CustomOpSoHandlePtr> loaded_handles;
+  EXPECT_EQ(model_helper.LoadOpSoBin(load_helper, ge_root_model, loaded_handles), SUCCESS);
+  EXPECT_TRUE(loaded_handles.empty());
+}
+
+TEST_F(UtestModelHelper, LoadCustomOpsToRegistryNullRegistryReturnsFailed) {
+  std::vector<uint8_t> data = {0x01U, 0x02U};
+  EXPECT_NE(LoadCustomOpsToRegistry(data.data(), data.size(), nullptr), SUCCESS);
+}
+
+TEST_F(UtestModelHelper, ValidateCustomOpsDeserializedSkipsNullSubGraphModel) {
+  auto root_graph = std::make_shared<ComputeGraph>("root_graph_null_sub_model");
+  auto ge_root_model = std::make_shared<GeRootModel>();
+  ASSERT_EQ(ge_root_model->Initialize(root_graph), SUCCESS);
+  ge_root_model->subgraph_instance_name_to_model_["null_sub"] = nullptr;
+
+  auto registry = std::make_shared<CustomOpRegistry>();
+  ModelHelper model_helper;
+  EXPECT_EQ(model_helper.ValidateCustomOpsDeserialized(ge_root_model, registry), SUCCESS);
+}
+
+TEST_F(UtestModelHelper, GetBaseNameFromFileName) {
+  ModelHelper model_helper;
+  std::string base_name;
+
+  EXPECT_EQ(model_helper.GetBaseNameFromFileName("", base_name), FAILED);
+
+  EXPECT_EQ(model_helper.GetBaseNameFromFileName("model.om", base_name), SUCCESS);
+  EXPECT_EQ(base_name, "model");
+
+  EXPECT_EQ(model_helper.GetBaseNameFromFileName("/path/to/model.om", base_name), SUCCESS);
+  EXPECT_EQ(base_name, "model");
+
+  EXPECT_EQ(model_helper.GetBaseNameFromFileName("model.exeom", base_name), SUCCESS);
+  EXPECT_EQ(base_name, "model");
+
+  EXPECT_EQ(model_helper.GetBaseNameFromFileName("model", base_name), SUCCESS);
+  EXPECT_EQ(base_name, "model");
+
+  EXPECT_EQ(model_helper.GetBaseNameFromFileName("/path/to/model", base_name), SUCCESS);
+  EXPECT_EQ(base_name, "model");
+
+  EXPECT_EQ(model_helper.GetBaseNameFromFileName(".om", base_name), FAILED);
+}
+
+TEST_F(UtestModelHelper, GetModelFileHead) {
+  ge::ModelData model_data;
+  model_data.model_data = nullptr;
+  model_data.model_len = 0U;
+  const ModelFileHeader *file_header = nullptr;
+  EXPECT_EQ(ModelHelper::GetModelFileHead(model_data, file_header), ACL_ERROR_GE_PARAM_INVALID);
+
+  std::vector<uint8_t> small_data(10U, 0);
+  model_data.model_data = small_data.data();
+  model_data.model_len = small_data.size();
+  EXPECT_EQ(ModelHelper::GetModelFileHead(model_data, file_header), ACL_ERROR_GE_EXEC_MODEL_DATA_SIZE_INVALID);
+
+  std::vector<uint8_t> valid_data(sizeof(ModelFileHeader) + 100U, 0);
+  auto *header = reinterpret_cast<ModelFileHeader *>(valid_data.data());
+  header->magic = MODEL_FILE_MAGIC_NUM;
+  model_data.model_data = valid_data.data();
+  model_data.model_len = valid_data.size();
+  EXPECT_EQ(ModelHelper::GetModelFileHead(model_data, file_header), SUCCESS);
+  EXPECT_NE(file_header, nullptr);
+  EXPECT_EQ(file_header->magic, MODEL_FILE_MAGIC_NUM);
+}
+
+TEST_F(UtestModelHelper, SaveBundleModelBufferToMem) {
+  std::vector<ModelBufferData> model_buffers;
+  ModelBufferData buf1;
+  buf1.length = 100U;
+  buf1.data = std::shared_ptr<uint8_t>(new uint8_t[100U], std::default_delete<uint8_t[]>());
+  model_buffers.push_back(buf1);
+
+  ModelBufferData buf2;
+  buf2.length = 200U;
+  buf2.data = std::shared_ptr<uint8_t>(new uint8_t[200U], std::default_delete<uint8_t[]>());
+  model_buffers.push_back(buf2);
+
+  const uint64_t var_size = 1024U;
+  ModelBufferData output;
+  EXPECT_EQ(ModelHelper::SaveBundleModelBufferToMem(model_buffers, var_size, output), SUCCESS);
+  EXPECT_GT(output.length, 0U);
+  EXPECT_NE(output.data, nullptr);
+}
+
+TEST_F(UtestModelHelper, ConfigureAttrCompressionMode) {
+  ModelHelper model_helper;
+  EXPECT_EQ(model_helper.ConfigureAttrCompressionMode("true"), SUCCESS);
+  EXPECT_EQ(model_helper.ConfigureAttrCompressionMode("false"), SUCCESS);
+  EXPECT_EQ(model_helper.ConfigureAttrCompressionMode("invalid"), PARAM_INVALID);
+  EXPECT_EQ(model_helper.ConfigureAttrCompressionMode(""), PARAM_INVALID);
+}
+
 }  // namespace ge

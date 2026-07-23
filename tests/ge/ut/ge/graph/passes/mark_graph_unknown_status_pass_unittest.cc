@@ -124,4 +124,37 @@ TEST_F(MarkGraphUnknownStatusPassTest, Run_host_cpu_test) {
   Status ret = mark_graph_unknown_status_pass_.Run(graph_);
   EXPECT_EQ(ret, PARAM_INVALID);
 }
+
+TEST_F(MarkGraphUnknownStatusPassTest, MarkForceUnknownShapeSuccess) {
+  auto node1 = NewNode("Op1", DATA_TYPE, 0, 1);
+  auto node2 = NewNode("Op2", STREAMSWITCH, 1, 1);
+  auto net_output = NewNode("NetOutput", NETOUTPUT, 3, 3);
+  GraphUtils::AddEdge(node1->GetOutDataAnchor(0), node2->GetInDataAnchor(0));
+  GraphUtils::AddEdge(node2->GetOutDataAnchor(0), net_output->GetInDataAnchor(1));
+  (void)AttrUtils::SetBool(node1->GetOpDesc(), ATTR_NAME_FORCE_UNKNOWN_SHAPE, true);
+  Status ret = mark_graph_unknown_status_pass_.Run(graph_);
+  EXPECT_EQ(ret, SUCCESS);
+  EXPECT_TRUE(graph_->GetGraphUnknownFlag());
+}
+
+TEST_F(MarkGraphUnknownStatusPassTest, AllKnownNodesSuccess) {
+  auto node1 = NewNode("Op1", DATA_TYPE, 0, 1);
+  auto net_output = NewNode("NetOutput", NETOUTPUT, 1, 0);
+  GraphUtils::AddEdge(node1->GetOutDataAnchor(0), net_output->GetInDataAnchor(0));
+  Status ret = mark_graph_unknown_status_pass_.Run(graph_);
+  EXPECT_EQ(ret, SUCCESS);
+}
+
+TEST_F(MarkGraphUnknownStatusPassTest, HostCpuEngineNoTilingSuccess) {
+  auto node1 = NewNode("Op1", DATA_TYPE, 0, 1);
+  auto node2 = NewNode("Op2", STREAMSWITCH, 1, 1);
+  OpDescPtr op_desc2 = node2->GetOpDesc();
+  auto net_output = NewNode("NetOutput", NETOUTPUT, 3, 3);
+  op_desc2->SetOpEngineName("DNN_VM_HOST_CPU");
+  GraphUtils::AddEdge(node1->GetOutDataAnchor(0), node2->GetInDataAnchor(0));
+  GraphUtils::AddEdge(node2->GetOutDataAnchor(0), net_output->GetInDataAnchor(1));
+  Status ret = mark_graph_unknown_status_pass_.Run(graph_);
+  EXPECT_EQ(ret, SUCCESS);
+  EXPECT_TRUE(graph_->GetGraphUnknownFlag());
+}
 }  // namespace ge

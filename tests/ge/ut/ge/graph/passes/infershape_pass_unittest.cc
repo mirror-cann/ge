@@ -524,4 +524,57 @@ TEST_F(UtestGraphInfershapePass, infershape_pass_infer_shape_and_type1) {
   InferShapePass infershape_pass;
   EXPECT_EQ(infershape_pass.InferShapeAndType(aipp_op), ge::GRAPH_SUCCESS);
 }
+
+TEST_F(UtestGraphInfershapePass, serial_tensor_info_basic) {
+  GeTensorDesc tensor_desc(GeShape({1, 2, 3, 4}), FORMAT_NCHW, DT_FLOAT);
+  std::vector<std::pair<int64_t, int64_t>> shape_range = {{1, 2}, {2, 2}, {3, 3}, {4, 4}};
+  tensor_desc.SetShapeRange(shape_range);
+  GeTensorDescPtr tensor_desc_ptr = std::make_shared<GeTensorDesc>(tensor_desc);
+  InferShapePass infershape_pass;
+  std::string info = infershape_pass.SerialTensorInfo(tensor_desc_ptr);
+  EXPECT_FALSE(info.empty());
+}
+
+TEST_F(UtestGraphInfershapePass, update_output_from_subgraphs_for_multiDims_empty_src) {
+  GeTensorDesc dst_ge_tensor_desc(GeShape({1, 2, 3, 4}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDescPtr dst_ptr = std::make_shared<GeTensorDesc>(dst_ge_tensor_desc);
+  InferShapePass infershape_pass;
+  EXPECT_EQ(infershape_pass.UpdateOutputFromSubgraphsForMultiDims({}, dst_ptr), SUCCESS);
+}
+
+TEST_F(UtestGraphInfershapePass, update_output_from_subgraphs_for_subgraph_multiDims_empty_src) {
+  GeTensorDesc dst_ge_tensor_desc(GeShape({1, 2, 3, 4}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDescPtr dst_ptr = std::make_shared<GeTensorDesc>(dst_ge_tensor_desc);
+  InferShapePass infershape_pass;
+  EXPECT_EQ(infershape_pass.UpdateOutputFromSubgraphsForSubgraphMultiDims({}, dst_ptr), SUCCESS);
+}
+
+TEST_F(UtestGraphInfershapePass, update_output_from_subgraphs_for_subgraph_multiDims_diff_dim_num) {
+  GeTensorDesc desc1(GeShape({1, 2, 3}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc desc2(GeShape({1, 2, 3, 4}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc dst_desc(GeShape({1, 2, 3, 4}), FORMAT_NCHW, DT_FLOAT);
+  InferShapePass infershape_pass;
+  EXPECT_EQ(infershape_pass.UpdateOutputFromSubgraphsForSubgraphMultiDims(
+                {std::make_shared<GeTensorDesc>(desc1), std::make_shared<GeTensorDesc>(desc2)},
+                std::make_shared<GeTensorDesc>(dst_desc)),
+            GRAPH_FAILED);
+}
+
+TEST_F(UtestGraphInfershapePass, update_tensor_desc_different_shape_range_size) {
+  GeTensorDesc src_desc(GeShape({1, 2, 3, 4}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc dst_desc(GeShape({1, 2, 3, 4}), FORMAT_NCHW, DT_FLOAT);
+  std::vector<std::pair<int64_t, int64_t>> src_range = {{1, 2}, {2, 2}, {3, 3}, {4, 4}};
+  src_desc.SetShapeRange(src_range);
+  InferShapePass infershape_pass;
+  GeTensorDescPtr src_ptr = std::make_shared<GeTensorDesc>(src_desc);
+  GeTensorDescPtr dst_ptr = std::make_shared<GeTensorDesc>(dst_desc);
+  bool changed = false;
+  EXPECT_EQ(infershape_pass.UpdateTensorDesc(src_ptr, dst_ptr, changed), SUCCESS);
+  EXPECT_TRUE(changed);
+}
+
+TEST_F(UtestGraphInfershapePass, on_suspend_nodes_leaked_no_suspend) {
+  InferShapePass infershape_pass;
+  EXPECT_EQ(infershape_pass.OnSuspendNodesLeaked(), SUCCESS);
+}
 }  // namespace ge

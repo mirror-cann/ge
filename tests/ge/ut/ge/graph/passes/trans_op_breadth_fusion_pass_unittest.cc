@@ -533,3 +533,46 @@ TEST_F(UtestGraphPassesTransOpBreadthFusionPass, reshape_with_unknown_input) {
   auto reshape_node1 = compute_graph->FindNode("reshape1");
   EXPECT_NE(reshape_node1, nullptr);
 }
+
+TEST_F(UtestGraphPassesTransOpBreadthFusionPass, run_with_nullptr_graph) {
+  ge::ComputeGraphPtr graph = nullptr;
+  ge::TransOpBreadthFusionPass pass;
+  Status status = pass.Run(graph);
+  EXPECT_EQ(SUCCESS, status);
+}
+
+TEST_F(UtestGraphPassesTransOpBreadthFusionPass, run_with_empty_graph) {
+  ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("empty");
+  ge::TransOpBreadthFusionPass pass;
+  Status status = pass.Run(graph);
+  EXPECT_EQ(SUCCESS, status);
+}
+
+TEST_F(UtestGraphPassesTransOpBreadthFusionPass, cast_fusion_with_same_type) {
+  ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
+
+  ge::NodePtr data1 = NodeBuilder("data1", DATA).AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT).Build(graph);
+
+  ge::NodePtr cast1 = NodeBuilder("cast1", CAST)
+                          .AddInputDesc({1}, FORMAT_NCHW, DT_FLOAT)
+                          .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT16)
+                          .Build(graph);
+
+  ge::NodePtr cast2 = NodeBuilder("cast2", CAST)
+                          .AddInputDesc({1}, FORMAT_NCHW, DT_FLOAT)
+                          .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT16)
+                          .Build(graph);
+
+  ge::NodePtr relu1 = NodeBuilder("relu1", RELU).AddInputDesc({1}, FORMAT_NCHW, DT_FLOAT16).Build(graph);
+  ge::NodePtr relu2 = NodeBuilder("relu2", RELU).AddInputDesc({1}, FORMAT_NCHW, DT_FLOAT16).Build(graph);
+
+  ge::GraphUtils::AddEdge(data1->GetOutDataAnchor(0), cast1->GetInDataAnchor(0));
+  ge::GraphUtils::AddEdge(data1->GetOutDataAnchor(0), cast2->GetInDataAnchor(0));
+  ge::GraphUtils::AddEdge(cast1->GetOutDataAnchor(0), relu1->GetInDataAnchor(0));
+  ge::GraphUtils::AddEdge(cast2->GetOutDataAnchor(0), relu2->GetInDataAnchor(0));
+
+  ge::TransOpBreadthFusionPass pass;
+  Status status = pass.Run(graph);
+  EXPECT_EQ(SUCCESS, status);
+  EXPECT_EQ(graph->GetDirectNodesSize(), 4);
+}

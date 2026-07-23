@@ -376,3 +376,71 @@ TEST_F(UtestCondRemovePass, if_cond_with_scaler_data_types) {
   BuildAndCheckConstScalerIfGraphWithDataType(DT_FLOAT8_E4M3FN, &non_zero, true);
   BuildAndCheckConstScalerIfGraphWithDataType(DT_FLOAT8_E4M3FN, &zero, false);
 }
+
+TEST_F(UtestCondRemovePass, test_get_idx_float16) {
+  CondRemovePass pass;
+  auto value_tensor = ConstructTensorPtr<int16_t>(DT_FLOAT16);
+  auto ret = pass.GetCondIndex(value_tensor.get());
+  EXPECT_EQ(ret, 0);
+}
+
+TEST_F(UtestCondRemovePass, test_get_idx_uint16) {
+  CondRemovePass pass;
+  auto value_tensor = ConstructTensorPtr<int16_t>(DT_UINT16);
+  auto ret = pass.GetCondIndex(value_tensor.get());
+  EXPECT_EQ(ret, 0);
+}
+
+TEST_F(UtestCondRemovePass, test_get_idx_uint64) {
+  CondRemovePass pass;
+  auto value_tensor = ConstructTensorPtr<int64_t>(DT_UINT64);
+  auto ret = pass.GetCondIndex(value_tensor.get());
+  EXPECT_EQ(ret, 0);
+}
+
+TEST_F(UtestCondRemovePass, test_get_idx_hifloat4) {
+  CondRemovePass pass;
+  auto value_tensor = ConstructTensorPtr<uint8_t>(DT_HIFLOAT4);
+  auto ret = pass.GetCondIndex(value_tensor.get());
+  EXPECT_EQ(ret, 0);
+}
+
+TEST_F(UtestCondRemovePass, test_get_idx_uint8) {
+  CondRemovePass pass;
+  auto value_tensor = ConstructTensorPtr<uint8_t>(DT_UINT8);
+  auto ret = pass.GetCondIndex(value_tensor.get());
+  EXPECT_EQ(ret, 0);
+}
+
+TEST_F(UtestCondRemovePass, test_get_idx_small_string) {
+  CondRemovePass pass;
+  vector<uint8_t> data_vec = {1};
+  GeTensorDesc tensor_desc(GeShape({1}), ge::FORMAT_NCHW, DT_STRING);
+  auto value_tensor = std::make_shared<GeTensor>(tensor_desc, data_vec.data(), data_vec.size());
+  auto ret = pass.GetCondIndex(value_tensor.get());
+  EXPECT_EQ(ret, 0);
+}
+
+TEST_F(UtestCondRemovePass, if_cond_not_const_check_if_cond_const_input) {
+  GeTensorDesc tensor_desc(GeShape(), ge::FORMAT_NCHW, ge::DT_INT32);
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("g");
+  NodePtr data_node = graph->AddNode(CreateOpDesc("data", DATA, tensor_desc, 1, tensor_desc, 1));
+  NodePtr if_node = graph->AddNode(CreateOpDesc("if", IF, tensor_desc, 2, tensor_desc, 1));
+  EXPECT_EQ(GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), if_node->GetInDataAnchor(0)), SUCCESS);
+
+  CondRemovePass pass;
+  auto ret = pass.Run(if_node);
+  EXPECT_EQ(ret, SUCCESS);
+}
+
+TEST_F(UtestCondRemovePass, case_cond_not_int32_skip) {
+  GeTensorDesc tensor_desc(GeShape(), ge::FORMAT_NCHW, ge::DT_BOOL);
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("g");
+  NodePtr data_node = graph->AddNode(CreateOpDesc("const", CONSTANTOP, tensor_desc, 1, tensor_desc, 1));
+  NodePtr case_node = graph->AddNode(CreateOpDesc("case", CASE, tensor_desc, 2, tensor_desc, 1));
+  EXPECT_EQ(GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), case_node->GetInDataAnchor(0)), SUCCESS);
+
+  CondRemovePass pass;
+  auto ret = pass.Run(case_node);
+  EXPECT_EQ(ret, SUCCESS);
+}
