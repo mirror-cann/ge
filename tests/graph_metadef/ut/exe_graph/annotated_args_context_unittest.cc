@@ -121,6 +121,10 @@ TEST(AnnotatedArgsContextUT, RejectsInvalidLaunchParameters) {
             ge::GRAPH_SUCCESS);
   EXPECT_NE(context->AddLaunch(AnnotatedKernelLaunchInfo{"kernel", bin, sizeof(bin), 0U, stream_id}, make_args()),
             ge::GRAPH_SUCCESS);
+  EXPECT_NE(
+      context->AddLaunch(
+          AnnotatedKernelLaunchInfo{"kernel", bin, sizeof(bin), 8U, std::numeric_limits<uint32_t>::max()}, make_args()),
+      ge::GRAPH_SUCCESS);
   AnnotatedKernelArgs empty_args;
   EXPECT_NE(
       context->AddLaunch(AnnotatedKernelLaunchInfo{"kernel", bin, sizeof(bin), 8U, stream_id}, std::move(empty_args)),
@@ -190,9 +194,47 @@ TEST(AnnotatedArgsHandlerUT, RuntimeArgsInterfacesAreEmpty) {
 TEST(AnnotatedArgsContextUT, ReturnsDefaultValuesWhenComputeNodeInfoIsMissing) {
   AnnotatedArgsContext context{};
 
-  EXPECT_EQ(context.GetStreamId(), 0U);
+  EXPECT_EQ(context.GetStreamId(), std::numeric_limits<uint32_t>::max());
   EXPECT_EQ(context.GetInputTensor(0U), nullptr);
   EXPECT_EQ(context.GetOutputTensor(0U), nullptr);
+}
+
+TEST(AnnotatedArgsContextUT, ReturnsInvalidStreamIdWhenWorkspaceAllocatorIsMissing) {
+  Tensor input_tensor;
+  Tensor output_tensor;
+  std::vector<GertMemBlock *> workspace_mems;
+  AnnotatedArgsHandler args_handler;
+  auto holder = KernelRunContextBuilder()
+                    .Inputs({&input_tensor, nullptr})
+                    .Outputs({&output_tensor, &workspace_mems, static_cast<ArgsHandler *>(&args_handler)})
+                    .Build(MakeOpDesc());
+  auto *context = reinterpret_cast<AnnotatedArgsContext *>(holder.GetKernelContext());
+  ASSERT_NE(context, nullptr);
+
+  EXPECT_EQ(context->GetStreamId(), std::numeric_limits<uint32_t>::max());
+}
+
+TEST(AnnotatedArgsContextUT, HandlesAllocatorStreamIdBoundaryValues) {
+  AllocatorFaker allocator;
+  Tensor input_tensor;
+  Tensor output_tensor;
+  std::vector<GertMemBlock *> workspace_mems;
+  AnnotatedArgsHandler args_handler;
+  auto holder = KernelRunContextBuilder()
+                    .Inputs({&input_tensor, &allocator})
+                    .Outputs({&output_tensor, &workspace_mems, static_cast<ArgsHandler *>(&args_handler)})
+                    .Build(MakeOpDesc());
+  auto *context = reinterpret_cast<AnnotatedArgsContext *>(holder.GetKernelContext());
+  ASSERT_NE(context, nullptr);
+
+  allocator.SetStreamId(0);
+  EXPECT_EQ(context->GetStreamId(), 0U);
+  allocator.SetStreamId(static_cast<int64_t>(std::numeric_limits<uint32_t>::max()) - 1);
+  EXPECT_EQ(context->GetStreamId(), std::numeric_limits<uint32_t>::max() - 1U);
+  allocator.SetStreamId(-1);
+  EXPECT_EQ(context->GetStreamId(), std::numeric_limits<uint32_t>::max());
+  allocator.SetStreamId(static_cast<int64_t>(std::numeric_limits<uint32_t>::max()));
+  EXPECT_EQ(context->GetStreamId(), std::numeric_limits<uint32_t>::max());
 }
 }  // namespace
 }  // namespace gert

@@ -4,9 +4,11 @@ This directory provides a **pure Python** version example of `graph_base_pass/3_
 
 - Traverse `Conv2D` / `Conv2DV2` in graph, filter nodes with `data_format == NCHW`;
 - Change `data_format` to `NHWC`;
-- BFS from Conv output, match `Transpose` with `perm == [0,2,3,1]` and `[0,3,1,2]` in order, delete corresponding `Transpose` and perm constant output nodes and reconnect data edges.
+- BFS from the Conv output and match `Transpose` nodes with `perm == [0,2,3,1]` and `[0,3,1,2]` in order;
+- Call `can_fuse` before the rewrite, then call `report_fuse` after reconnecting edges and before deleting old nodes;
+- Delete the matching `Transpose` and perm constant nodes.
 
-This example inherits `FusionBasePass` and overrides `run()`, completes modification via `Graph.remove_edge` / `add_data_edge` / `remove_node` and `Node.set_attr`, **does not use** `SubgraphRewriter`.
+This example inherits `FusionBasePass` and overrides `run()`. It performs the rewrite through `Graph.remove_edge` / `add_data_edge` / `remove_node` and `Node.set_attr`. Because it **does not use** `SubgraphRewriter`, it calls `can_fuse` and `report_fuse` explicitly.
 
 ## Differences from C++ Version
 

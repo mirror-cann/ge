@@ -18,6 +18,7 @@
 #include <cstring>
 #include <fstream>
 #include <functional>
+#include <limits>
 #include <map>
 #include <memory>
 #include <string>
@@ -26,6 +27,7 @@
 
 #include "common/opskernel/ops_kernel_info_types.h"
 #include "engines/custom_engine/custom_ops_kernel_builder.h"
+#include "exe_graph/lowering/kernel_run_context_builder.h"
 #include "exe_graph/runtime/annotated_args_context.h"
 #include "faker/space_registry_faker.h"
 #include "framework/common/taskdown_common.h"
@@ -44,6 +46,7 @@
 #include "init_ge.h"
 #include "register/optimization_option_registry.h"
 #include "tests/depends/mmpa/src/mmpa_stub.h"
+#include "tests/graph_metadef/depends/faker/allocator_faker.h"
 #include "utils/bench_env.h"
 #include "utils/mock_ops_kernel_builder.h"
 
@@ -127,6 +130,13 @@ std::map<AscendString, AscendString> MakeAnnotatedArgsMobileInitOptionsForSt() {
   init_options.emplace(ge::OPTION_HOST_ENV_CPU, kAnnotatedArgsMobileTargetCpu);
   init_options.emplace(ge::configure_option::SOC_VERSION, "KirinX90");
   return init_options;
+}
+
+OpDescPtr MakeAnnotatedArgsContextOpDescForSt() {
+  auto op_desc = std::make_shared<OpDesc>("annotated_args_context_st", "AnnotatedArgsContextSt");
+  const GeTensorDesc tensor_desc(GeShape({2, 2}), FORMAT_ND, DT_FLOAT16);
+  (void)op_desc->AddInputDesc("x", tensor_desc);
+  return op_desc;
 }
 
 std::map<std::string, std::string> SnapshotMutableGlobalOptionsForMobileSt() {
@@ -580,6 +590,33 @@ class GeIrBuildAnnotatedArgsTest : public testing::Test {
     ReInitGe();
   }
 };
+
+TEST_F(GeIrBuildAnnotatedArgsTest, GetStreamIdReturnsInvalidWhenComputeNodeInfoMissing) {
+  gert::AnnotatedArgsContext context{};
+
+  EXPECT_EQ(context.GetStreamId(), std::numeric_limits<uint32_t>::max());
+}
+
+TEST_F(GeIrBuildAnnotatedArgsTest, GetStreamIdReturnsInvalidWhenWorkspaceAllocatorMissing) {
+  auto holder = gert::KernelRunContextBuilder().Inputs({nullptr, nullptr}).Build(MakeAnnotatedArgsContextOpDescForSt());
+  auto *context = reinterpret_cast<gert::AnnotatedArgsContext *>(holder.GetKernelContext());
+  ASSERT_NE(context, nullptr);
+
+  EXPECT_EQ(context->GetStreamId(), std::numeric_limits<uint32_t>::max());
+}
+
+TEST_F(GeIrBuildAnnotatedArgsTest, GetStreamIdReturnsInvalidWhenAllocatorStreamIdOutOfRange) {
+  gert::AllocatorFaker allocator;
+  auto holder =
+      gert::KernelRunContextBuilder().Inputs({nullptr, &allocator}).Build(MakeAnnotatedArgsContextOpDescForSt());
+  auto *context = reinterpret_cast<gert::AnnotatedArgsContext *>(holder.GetKernelContext());
+  ASSERT_NE(context, nullptr);
+
+  allocator.SetStreamId(-1);
+  EXPECT_EQ(context->GetStreamId(), std::numeric_limits<uint32_t>::max());
+  allocator.SetStreamId(static_cast<int64_t>(std::numeric_limits<uint32_t>::max()));
+  EXPECT_EQ(context->GetStreamId(), std::numeric_limits<uint32_t>::max());
+}
 
 TEST_F(GeIrBuildAnnotatedArgsTest, AnnotatedArgsMobileBuildDoesNotWriteCustomOpsPartition) {
   PrepareCleanAclgrphBuildForSt();

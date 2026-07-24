@@ -1,5 +1,4 @@
 # dataflow.GraphProcessPoint
 
-- **[GraphProcessPoint](GraphProcessPoint.md)**
-
-- **[fnode](fnode.md)**
+- [GraphProcessPoint](GraphProcessPoint.md)
+- [fnode](fnode.md)

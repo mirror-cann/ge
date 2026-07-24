@@ -11,6 +11,7 @@
 #include "binding_utils.h"
 #include "bindings.h"
 
+#include <string>
 #include <vector>
 
 #include "ge/fusion/graph_fuse_inspector_utils.h"
@@ -18,12 +19,12 @@
 namespace ge {
 namespace python_pass_native {
 namespace {
-py::tuple CanFuse(const py::iterable &node_objects) {
+std::vector<GNode> ParseNodes(const py::iterable &node_objects, const char *const argument_name) {
   const py::object node_type = py::module_::import("ge.graph").attr("Node");
   std::vector<GNode> nodes;
   for (const py::handle node_object : node_objects) {
     if (!py::isinstance(node_object, node_type)) {
-      throw py::type_error("nodes must contain only ge.graph.Node objects");
+      throw py::type_error(std::string(argument_name) + " must contain only ge.graph.Node objects");
     }
     const auto *node = BorrowNodeFromPython(node_object);
     if (node == nullptr) {
@@ -31,16 +32,38 @@ py::tuple CanFuse(const py::iterable &node_objects) {
     }
     nodes.emplace_back(*node);
   }
+  return nodes;
+}
 
+py::tuple CanFuse(const py::iterable &node_objects) {
+  const auto nodes = ParseNodes(node_objects, "nodes");
   AscendString failed_reason;
   const bool ok = fusion::GraphFuseInspectorUtils::CanFuse(nodes, failed_reason);
   const char *const reason = failed_reason.GetString();
   return py::make_tuple(ok, reason == nullptr ? "" : reason);
 }
+
+void ReportFuse(const py::iterable &nodes_before_objects, const py::iterable &nodes_after_objects,
+                CustomPassContext &context) {
+  const auto nodes_before = ParseNodes(nodes_before_objects, "nodes_before");
+  const auto nodes_after = ParseNodes(nodes_after_objects, "nodes_after");
+  const auto status = fusion::GraphFuseInspectorUtils::ReportFuse(nodes_before, nodes_after, context);
+  if (status != SUCCESS) {
+    const auto pass_name = context.GetPassName();
+    const char *const pass_name_str = pass_name.GetString();
+    const std::string message =
+        "Failed to report fusion result, pass_name=" + std::string(pass_name_str == nullptr ? "" : pass_name_str) +
+        ", status=" + std::to_string(static_cast<uint32_t>(status));
+    context.SetErrorMessage(AscendString(message.c_str()));
+    throw std::runtime_error(message);
+  }
+}
 }  // namespace
 
 void BindGraphFuseInspector(py::module_ &m) {
   m.def("can_fuse", &CanFuse, py::arg("nodes"), "Check whether nodes can be safely fused into one node");
+  m.def("report_fuse", &ReportFuse, py::arg("nodes_before"), py::arg("nodes_after"), py::arg("context"),
+        "Report the result of a graph fusion rewrite");
 }
 
 }  // namespace python_pass_native

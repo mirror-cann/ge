@@ -11,6 +11,8 @@
 #include "binding_utils.h"
 #include "bindings.h"
 
+#include <string>
+
 #include "ge/fusion/graph_rewriter.h"
 #include "ge/fusion/subgraph_boundary.h"
 
@@ -29,6 +31,41 @@ NodeIo BuildNodeIo(const py::handle &node_obj, int64_t index) {
     throw std::runtime_error("Node handle is empty");
   }
   return NodeIo{*node_ptr, index};
+}
+
+void ReplaceWithContext(const SubgraphBoundary &boundary, const py::handle &replacement_graph,
+                        CustomPassContext &context) {
+  auto *graph_ptr = BorrowGraphFromPython(replacement_graph);
+  if (graph_ptr == nullptr) {
+    throw std::runtime_error("Graph handle is empty");
+  }
+  const auto status = SubgraphRewriter::Replace(boundary, *graph_ptr, context);
+  if (status != SUCCESS) {
+    const auto pass_name = context.GetPassName();
+    const char *const pass_name_str = pass_name.GetString();
+    const std::string message = "SubgraphRewriter::Replace with context failed, pass_name=" +
+                                std::string(pass_name_str == nullptr ? "" : pass_name_str) +
+                                ", status=" + std::to_string(static_cast<uint32_t>(status));
+    context.SetErrorMessage(AscendString(message.c_str()));
+    throw std::runtime_error(message);
+  }
+}
+
+void BindSubgraphRewriter(py::module_ &m) {
+  py::class_<SubgraphRewriter>(m, "SubgraphRewriter", "Subgraph rewriter")
+      .def_static(
+          "replace",
+          [](const SubgraphBoundary &boundary, const py::handle &replacement_graph) -> uint32_t {
+            auto *graph_ptr = BorrowGraphFromPython(replacement_graph);
+            if (graph_ptr == nullptr) {
+              throw std::runtime_error("Graph handle is empty");
+            }
+            // SubgraphRewriter::Replace(const Graph&) will copy the replacement graph internally.
+            return static_cast<uint32_t>(SubgraphRewriter::Replace(boundary, *graph_ptr));
+          },
+          py::arg("boundary"), py::arg("replacement"), "Execute subgraph replacement")
+      .def_static("replace", &ReplaceWithContext, py::arg("boundary"), py::arg("replacement"), py::kw_only(),
+                  py::arg("context"), "Execute subgraph replacement with fusion inspection and reporting");
 }
 }  // namespace
 
@@ -83,18 +120,7 @@ void BindGraphRewriter(py::module_ &m) {
           },
           py::arg("index"), py::arg("output"), "Bind the index-th boundary output to SubgraphOutput");
 
-  py::class_<SubgraphRewriter>(m, "SubgraphRewriter", "Subgraph rewriter")
-      .def_static(
-          "replace",
-          [](const SubgraphBoundary &boundary, const py::handle &replacement_graph) -> uint32_t {
-            auto *graph_ptr = BorrowGraphFromPython(replacement_graph);
-            if (graph_ptr == nullptr) {
-              throw std::runtime_error("Graph handle is empty");
-            }
-            // SubgraphRewriter::Replace(const Graph&) will copy the replacement graph internally.
-            return static_cast<uint32_t>(SubgraphRewriter::Replace(boundary, *graph_ptr));
-          },
-          py::arg("boundary"), py::arg("replacement"), "Execute subgraph replacement");
+  BindSubgraphRewriter(m);
 }
 
 }  // namespace python_pass_native

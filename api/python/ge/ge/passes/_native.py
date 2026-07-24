@@ -28,6 +28,7 @@ __all__ = [
     "borrow_node",
     "can_fuse",
     "clone_pattern_matcher_config",
+    "report_fuse",
     "release_graph",
 ]
 
@@ -48,4 +49,5 @@ borrow_match_result = _native.borrow_match_result
 borrow_node = _native.borrow_node
 can_fuse = _native.can_fuse
 clone_pattern_matcher_config = _native.clone_pattern_matcher_config
+report_fuse = _native.report_fuse
 release_graph = _native.release_graph

@@ -1,5 +1,4 @@
 ﻿# Tensor
 
-- **[Tensor-constructor](Tensor-constructor.md)**
-
-- **[numpy](numpy.md)**
+- [Tensor-constructor](Tensor-constructor.md)
+- [numpy](numpy.md)

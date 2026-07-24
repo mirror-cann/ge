@@ -104,6 +104,8 @@ constexpr const char *kCubeCoreCnt = "cube_core_cnt";
 constexpr const char *kVectorCoreCnt = "vector_core_cnt";
 constexpr const char *kAicCntKeyOp = "_op_aicore_num";
 constexpr const char *kAivCntKeyOp = "_op_vectorcore_num";
+constexpr const char *kDeterministic = "_deterministic";
+constexpr const char *kDeterministicLevel = "_deterministic_level";
 
 // python api function name
 const std::string FUNC_GET_SPECIFIC_INFO = "get_op_specific_info";

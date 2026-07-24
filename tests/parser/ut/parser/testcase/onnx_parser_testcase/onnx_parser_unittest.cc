@@ -86,6 +86,12 @@ void UtestOnnxParser::RegisterCustomOp() {
       .FrameworkType(domi::ONNX)
       .OriginOpType("ai.onnx::11::Identity")
       .ParseParamsFn(ParseParams);
+
+  REGISTER_CUSTOM_OP("RandomNormal")
+      .FrameworkType(domi::ONNX)
+      .OriginOpType("ai.onnx::11::RandomNormal")
+      .ParseParamsFn(ParseParams);
+
   std::vector<OpRegistrationData> reg_datas = domi::OpRegistry::Instance()->registrationDatas;
   for (auto reg_data : reg_datas) {
     domi::OpRegTbeParserFactory::Instance()->Finalize(reg_data);
@@ -1382,4 +1388,40 @@ TEST_F(UtestOnnxParser, Clear_clears_prechecker) {
   parser.Clear();
 }
 
+TEST_F(UtestOnnxParser, onnx_test_no_input_op_in_root_graph) {
+  ge::onnx::ModelProto model_proto;
+  ge::onnx::OperatorSetIdProto *op_st = model_proto.add_opset_import();
+  op_st->set_domain("ai.onnx");
+  op_st->set_version(11);
+
+  ge::onnx::GraphProto *graph = model_proto.mutable_graph();
+
+  ge::onnx::ValueInfoProto *input_x = graph->add_input();
+  input_x->set_name("X");
+  auto tensor_type_x = input_x->mutable_type()->mutable_tensor_type();
+  tensor_type_x->set_elem_type(1);
+  auto shape_x = tensor_type_x->mutable_shape();
+  shape_x->add_dim()->set_dim_value(2);
+  shape_x->add_dim()->set_dim_value(8);
+
+  ge::onnx::ValueInfoProto *output_y = graph->add_output();
+  output_y->set_name("Y");
+  auto tensor_type_y = output_y->mutable_type()->mutable_tensor_type();
+  tensor_type_y->set_elem_type(1);
+
+  ge::onnx::NodeProto *node = graph->add_node();
+  node->set_name("RandomNormal_0");
+  node->set_op_type("RandomNormal");
+  node->add_output("Y");
+
+  OnnxModelParser model_parser;
+  ge::Graph root_graph("test_no_input_op");
+  Status ret = model_parser.ModelParseToGraph(model_proto, root_graph);
+  EXPECT_EQ(ret, SUCCESS);
+
+  auto compute_graph = ge::GraphUtilsEx::GetComputeGraph(root_graph);
+  ASSERT_NE(compute_graph, nullptr);
+  auto node_found = compute_graph->FindNode("RandomNormal_0");
+  EXPECT_NE(node_found, nullptr);
+}
 }  // namespace ge

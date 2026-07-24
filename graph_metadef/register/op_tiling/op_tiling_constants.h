@@ -11,6 +11,7 @@
 #ifndef REGISTER_OP_TILING_OP_TILING_CONSTANTS_H_
 #define REGISTER_OP_TILING_OP_TILING_CONSTANTS_H_
 
+#include <cstdint>
 #include <string>
 #include <map>
 #include "graph/types.h"
@@ -27,6 +28,8 @@ const std::string OP_TYPE_DYNAMIC_ATOMIC_ADDR_CLEAN = "DynamicAtomicAddrClean";
 const std::string OP_TYPE_AUTO_TILING = "AutoTiling";
 const std::string kMemoryCheck = "_memcheck";
 const std::string kOriOpParaSize = "ori_op_para_size";
+constexpr int32_t kMaxDeterministic = 1;
+constexpr int32_t kMaxDeterministicLevel = 3;
 const std::map<ge::DataType, std::string> DATATYPE_STRING_MAP{{ge::DT_FLOAT, "float32"},
                                                               {ge::DT_FLOAT16, "float16"},
                                                               {ge::DT_INT8, "int8"},

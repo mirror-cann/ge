@@ -17,7 +17,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Iterable
 
-from ._native import can_fuse as _native_can_fuse
+from . import _native
 
 if TYPE_CHECKING:
     from ge.graph.node import Node
@@ -31,12 +31,10 @@ class FuseCheckResult:
     reason: str = ""
 
 
+report_fuse = _native.report_fuse
+
+
 def can_fuse(nodes: Iterable["Node"]) -> FuseCheckResult:
     """Check whether ``nodes`` can be safely fused into one node."""
-    from ge.graph.node import Node
-
-    node_list = list(nodes)
-    if not all(isinstance(node, Node) for node in node_list):
-        raise TypeError("nodes must contain only ge.graph.Node objects")
-    ok, reason = _native_can_fuse(node_list)
+    ok, reason = _native.can_fuse(nodes)
     return FuseCheckResult(ok=ok, reason=reason)

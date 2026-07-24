@@ -115,6 +115,8 @@ class PARSER_FUNC_VISIBILITY OnnxModelParser : public domi::ModelParser {
 
   Status GetGraphInputs(ge::onnx::GraphProto &onnx_graph, std::vector<ge::Operator> &input_ops);
 
+  Status AddNoInputNodesToGraph(ge::onnx::GraphProto &onnx_graph, ge::Graph &graph);
+
   Status GetAllGraphNodes(ge::onnx::GraphProto &onnx_graph, std::vector<ge::Operator> &ops) const;
   Status GetGraphOutputs(std::vector<std::pair<Operator, std::vector<size_t>>> &output_ops,
                          ParserUtils::OutputMapping &out_tensor_to_nodes);

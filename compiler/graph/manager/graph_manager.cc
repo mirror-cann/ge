@@ -4286,8 +4286,11 @@ Status GraphManager::Build(const GraphNodePtr &graph_node, ComputeGraphPtr &comp
   const int32_t deterministic = (deterministic_str == "1") ? 1 : 0;
   GE_ASSERT_TRUE(AttrUtils::SetInt(compute_graph, ge::DETERMINISTIC, deterministic));
   int32_t deterministic_level = 0;
-  GE_ASSERT_SUCCESS(optiling::GetDeterministicLevel(deterministic_level));
-  GE_ASSERT_TRUE(AttrUtils::SetInt(compute_graph, "ge.deterministicLevel", deterministic_level));
+  bool has_deterministic_level = false;
+  GE_ASSERT_SUCCESS(optiling::GetDeterministicLevel(deterministic_level, has_deterministic_level));
+  if (has_deterministic_level) {
+    GE_ASSERT_TRUE(AttrUtils::SetInt(compute_graph, "ge.deterministicLevel", deterministic_level));
+  }
 
   // After recover, the node and the IR definition will not be changed
   GE_TRACE_START(RecoverIrDefinitionAndModifyAippData);

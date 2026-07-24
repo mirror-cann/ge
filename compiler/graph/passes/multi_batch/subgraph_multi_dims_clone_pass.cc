@@ -191,7 +191,8 @@ Status SubgraphMultiDimsClonePass::CreateGetShapeNode(const ComputeGraphPtr &sub
     GE_CHECK_NOTNULL(get_shape_op_desc);
     all_dims_num += input_desc.GetShape().GetDimNum();
     size_t input_dims_num = input_desc.GetShape().GetDimNum();
-    GE_CHK_GRAPH_STATUS_RET(get_shape_op_desc->AddInputDesc(input_desc), "Add input desc fail");
+    // GetShape is dynamic input, so need add inputdesc with name
+    GE_CHK_GRAPH_STATUS_RET(get_shape_op_desc->AddInputDesc("x0", input_desc), "Add input desc fail");
     GeTensorDesc output_tensor_desc(GeShape({static_cast<int64_t>(input_dims_num)}), FORMAT_ND, DT_INT32);
     output_tensor_desc.SetOriginShape(GeShape({static_cast<int64_t>(input_dims_num)}));
     GE_CHK_GRAPH_STATUS_RET(get_shape_op_desc->AddOutputDesc(output_tensor_desc), "Add output desc fail");

@@ -185,6 +185,8 @@ class TeJsonAssemble {
   static void RemoveMultipleReferOutput(const std::vector<std::string> &inputNameVec, nlohmann::json &outputDescVec);
   static void GetUniqueJsonStr(const nlohmann::json &oriJson, std::string &uniqueJsonStr);
   static bool GetJsonDataWithOpList(const nlohmann::json &oriJson, nlohmann::json &jsonData);
+  static void SetCustomCoreCountAndLevel(const ConstTbeOpInfoPtr &firstTbeOpInfo,
+                                         std::map<std::string, std::string> &options);
 };
 }  // namespace fusion
 }  // namespace te

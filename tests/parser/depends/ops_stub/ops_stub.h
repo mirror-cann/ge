@@ -88,6 +88,10 @@ REG_OP(Data)
                            DT_UINT64, DT_BOOL, DT_DOUBLE}))
     .OP_END_FACTORY_REG(Identity)
 
+        REG_OP(RandomNormal)
+    .OUTPUT(y, TensorType::ALL())
+    .OP_END_FACTORY_REG(RandomNormal)
+
         REG_OP(Abs)
     .INPUT(x, TensorType({DT_FLOAT16, DT_FLOAT, DT_DOUBLE, DT_INT32, DT_INT64}))
     .OUTPUT(y, TensorType({DT_FLOAT16, DT_FLOAT, DT_DOUBLE, DT_INT32, DT_INT64}))

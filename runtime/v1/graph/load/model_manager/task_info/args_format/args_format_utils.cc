@@ -136,14 +136,12 @@ Status ArgsFormatUtils::SinkTilingContext(const NodePtr &node, DavinciModel &dav
   uint8_t *context_host_begin = &host_pointer[aligned_tiling_size + workspace_addr_size];
   uint64_t context_dev_begin = PtrToValue(device_addr) + aligned_tiling_size + workspace_addr_size;
 
-  std::string deterministic_str;
-  (void)ge::GetThreadLocalContext().GetOption(ge::DETERMINISTIC, deterministic_str);
-  int32_t deterministic = deterministic_str == "1" ? 1 : 0;
+  int32_t deterministic = 0;
   gert::TiledKernelContextHolder tiling_context_holder;
   tiling_context_holder.compute_node_info_size_ = compute_node_info_size;
   tiling_context_holder.host_compute_node_info_ = compute_node_extend_holder.get();
   int32_t deterministic_level = 0;
-  GE_ASSERT_SUCCESS(optiling::GetDeterministicLevel(deterministic_level));
+  GE_ASSERT_SUCCESS(optiling::GetDeterministicConfig(node->GetOpDesc(), deterministic, deterministic_level));
 
   auto context_builder = gert::DeviceTilingContextBuilder();
   Status ret =

@@ -804,6 +804,17 @@ bool ShapeGeneralization::GenerateNormalizeFusionAttrTmpJson(const ConstTbeOpInf
   }
 
   std::string deterministic = TeContextUtils::GetDeterministic();
+  bool isValidOpInfo =
+      (tbeOpInfo != nullptr) && (tbeOpInfo->GetNode() != nullptr) && (tbeOpInfo->GetNode()->GetOpDesc() != nullptr);
+  if (isValidOpInfo) {
+    std::string deterministicStr;
+    (void)ge::AttrUtils::GetStr(tbeOpInfo->GetNode()->GetOpDesc(), kDeterministic, deterministicStr);
+    if (deterministicStr != "") {
+      TE_DBGLOG("Node[%s] _deterministic attr [%s] is not null.", tbeOpInfo->GetName().c_str(),
+                deterministicStr.c_str());
+      deterministic = (deterministicStr == "1") ? STR_TRUE : STR_FALSE;
+    }
+  }
   if (deterministic == STR_TRUE) {
     generalizedResult.dynamicJson[DETERMINISTIC] = deterministic;
   }

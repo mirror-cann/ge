@@ -213,6 +213,50 @@ FlowMsg 基于昇腾 runtime 的 **rtMbuf** 实现零拷贝：生产者填充 mb
 
 `DataFlowInfo` 携带每次数据交互的元信息：start_time/end_time/flow_flags（EOS/SEG）/transaction_id/user_data（最多 64 字节自定义数据）。
 
+### 3.5 GraphPp 编译配置
+
+GraphPp 支持通过**编译配置 JSON 文件**指定编译期选项，用户通过 C++ `GraphPp::SetCompileConfig(json_path)` 或 Python `GraphProcessPoint(compile_config_path=...)` 传入。JSON 顶层含两个键：
+
+| 键 | 归属 | 作用 |
+|----|------|------|
+| `build_options` | 透传 GE 编译器 | 键值对 map，GE 支持的图编译参数都可以在这里为 GraphPp 子图单独设置 |
+| `inputs_tensor_desc` | dflow 私有 | 输入描述列表，编译期覆盖子图 Data 节点的 dtype/format/shape |
+
+#### build_options
+
+`build_options` 中的键值对**原样透传给 GE 编译器**，作为 GraphPp 子图的编译参数。GE 支持的图编译参数都可以在这里设置，使得每个 GraphPp 子图能独立配置编译行为（如动态 shape、输出内存预分配等）。具体 option 的名称和取值格式请参考 GE 编译参数文档。
+
+#### inputs_tensor_desc
+
+dflow 私有配置，逐个输入描述 tensor 元信息，编译期覆盖子图 Data 节点的 tensor desc。**当原图 Data 节点的 dtype/format/shape 与预期编译不一致时**（例如原图 shape 是静态的但需要改为动态维度、或 dtype 需要修正），通过 `inputs_tensor_desc` 覆盖为正确值。如果原图 Data 节点的描述已经正确，则无需设置。每个元素含：
+
+| 子项 | 含义 | 取值 | 默认值 |
+|------|------|------|--------|
+| `data_type` | tensor 数据类型 | `DataType` 枚举的序列化字符串，如 `"DT_FLOAT"`、`"DT_INT32"` | `DT_FLOAT` |
+| `shape` | tensor shape | 整数列表，动态维度设为 `-1`，如 `[1,3,-1,-1]` | 不设时不覆盖 |
+| `format` | 格式 | `"NCHW"` / `"NHWC"` / `"ND"` | `ND` |
+
+约束：`inputs_tensor_desc` 元素个数需与子图 Data 节点数量一致。当 `build_options` 中设置了 `ge.inputShape` 时，`inputs_tensor_desc` 的 `shape` 中 `-1` 标记的动态维度与 `ge.inputShape` 的范围互补配合：前者标记哪些维度是动态的，后者给出动态维度的取值范围。
+
+#### 配置示例
+
+以下示例为一个 GraphPp 配置动态 shape 编译，`build_options` 透传 GE 编译参数，`inputs_tensor_desc` 将原图静态 shape 覆盖为动态维度：
+
+```json
+{
+    "build_options": {
+        "ge.inputShape": "1,3,1~1728,1~1728;2",
+        "ge.outputMaxSize": "107495424"
+    },
+    "inputs_tensor_desc": [
+      { "data_type": "DT_FLOAT", "shape": [1, 3, -1, -1], "format": "NCHW" },
+      { "data_type": "DT_INT32", "shape": [2], "format": "ND" }
+    ]
+}
+```
+
+GraphPp 是否配置动态 shape 直接决定其走静态还是动态执行路径（详见 [4.3.6 节](#436-模型执行)）：配置了动态 shape（子图 Data 节点 shape 含 unknown 维度）时走 `ProxyDynamicModelExecutor` 动态执行，否则走 `GeExecutor::LoadModelWithQueueParam` 静态 task sink 执行。
+
 ---
 
 ## 4. 具体实现

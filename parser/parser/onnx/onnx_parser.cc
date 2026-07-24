@@ -711,6 +711,26 @@ Status OnnxModelParser::GetGraphInputs(ge::onnx::GraphProto &onnx_graph, std::ve
   return SUCCESS;
 }
 
+Status OnnxModelParser::AddNoInputNodesToGraph(ge::onnx::GraphProto &onnx_graph, ge::Graph &graph) {
+  auto compute_graph = ge::GraphUtilsEx::GetComputeGraph(graph);
+  GE_CHECK_NOTNULL(compute_graph);
+  for (int i = 0; i < onnx_graph.node_size(); i++) {
+    const auto &node = onnx_graph.node(i);
+    if (node.input_size() != 0) {
+      continue;
+    }
+    if (compute_graph->FindNode(node.name()) != nullptr) {
+      continue;
+    }
+    const auto iter = name_operator_.find(node.name());
+    if (iter == name_operator_.end()) {
+      continue;
+    }
+    (void)graph.AddNodeByOp(iter->second);
+  }
+  return SUCCESS;
+}
+
 Status OnnxModelParser::GetAllGraphNodes(ge::onnx::GraphProto &onnx_graph, std::vector<ge::Operator> &ops) const {
   for (int i = 0; i < onnx_graph.node_size(); i++) {
     ge::onnx::NodeProto *node = onnx_graph.mutable_node(i);
@@ -1089,6 +1109,7 @@ Status OnnxModelParser::ModelParseToGraphImpl(bool is_subgraph, ge::onnx::GraphP
     GE_ASSERT_SUCCESS(GraphUtilsEx::CreateGraphFromOperatorWithStableTopo(graph, ops));
   } else {
     graph.SetInputs(input_ops);
+    GE_ASSERT_SUCCESS(AddNoInputNodesToGraph(onnx_graph, graph));
   }
 
   // 10. Get output info and set outputs for subgraph

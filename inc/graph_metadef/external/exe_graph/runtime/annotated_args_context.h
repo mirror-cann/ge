@@ -205,7 +205,7 @@ class AnnotatedArgsContext : public ExtendedKernelContext {
 
   /**
    * 获取当前上下文所属的逻辑 stream ID。
-   * @return stream ID，异常时返回 0
+   * @return 上下文所属的逻辑 stream ID；异常时返回 UINT32_MAX。
    * @since 9.2.0(2026-07)
    */
   uint32_t GetStreamId() const;

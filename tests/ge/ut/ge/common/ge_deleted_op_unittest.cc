@@ -30,7 +30,11 @@ namespace ge_local {
 class UtestGeDeletedOp : public testing::Test {
  protected:
   void SetUp() {}
-  void TearDown() {}
+  // 用例可能改写线程局部的 option 状态，结束后恢复默认，避免污染同进程后续用例
+  void TearDown() {
+    GetThreadLocalContext().SetGlobalOption({});
+    GetThreadLocalContext().GetOo().Initialize({}, OptionRegistry::GetInstance().GetRegisteredOptTable());
+  }
 };
 
 TEST_F(UtestGeDeletedOp, Normal) {
@@ -156,6 +160,69 @@ TEST_F(UtestGeDeletedOp, FactoryCreateAndRun_OptMapTypes_OptionOff) {
     EXPECT_EQ(op->Run(), FAILED) << "Run should fail for type: " << type;
   }
   GetThreadLocalContext().SetGlobalOption({});
+}
+
+// 优化选项未注册也未配置，取值失败，按 GE 内部错误上报
+TEST_F(UtestGeDeletedOp, Shape_OptionNotConfigured) {
+  RunContext runContext;
+  GetThreadLocalContext().SetGlobalOption({});
+  GetThreadLocalContext().GetOo().Initialize({}, {});
+  OpDescPtr opdesc = std::make_shared<OpDesc>("test", "Shape");
+  ComputeGraphPtr graph;
+  const NodePtr node = std::make_shared<Node>(opdesc, graph);
+  std::shared_ptr<GeDeletedOp> op = std::make_shared<GeDeletedOp>(*node, runContext);
+  EXPECT_EQ(op->Run(), FAILED);
+}
+
+// 优化选项取值为空串，按外部错误上报且不产生空占位文案
+TEST_F(UtestGeDeletedOp, Shape_OptionValueEmpty) {
+  RunContext runContext;
+  GetThreadLocalContext().GetOo().Initialize({}, {});
+  GetThreadLocalContext().SetGlobalOption({{ge::OO_CONSTANT_FOLDING, ""}});
+  OpDescPtr opdesc = std::make_shared<OpDesc>("test", "Shape");
+  ComputeGraphPtr graph;
+  const NodePtr node = std::make_shared<Node>(opdesc, graph);
+  std::shared_ptr<GeDeletedOp> op = std::make_shared<GeDeletedOp>(*node, runContext);
+  EXPECT_EQ(op->Run(), FAILED);
+}
+
+// 用户通过全局 option 关闭了优化选项，按外部错误上报
+TEST_F(UtestGeDeletedOp, Shape_OptionDisabledByGlobalOption) {
+  RunContext runContext;
+  GetThreadLocalContext().GetOo().Initialize({}, {});
+  GetThreadLocalContext().SetGlobalOption({{ge::OO_CONSTANT_FOLDING, "false"}});
+  OpDescPtr opdesc = std::make_shared<OpDesc>("test", "Shape");
+  ComputeGraphPtr graph;
+  const NodePtr node = std::make_shared<Node>(opdesc, graph);
+  std::shared_ptr<GeDeletedOp> op = std::make_shared<GeDeletedOp>(*node, runContext);
+  EXPECT_EQ(op->Run(), FAILED);
+}
+
+// 优化选项已开启但节点仍残留，按 GE 内部错误上报
+TEST_F(UtestGeDeletedOp, OptMapTypes_OptionEnabledButNodeRemains) {
+  RunContext runContext;
+  GetThreadLocalContext().GetOo().Initialize({{ge::OO_LEVEL, "O3"}, {ge::OO_CONSTANT_FOLDING, "true"}},
+                                             OptionRegistry::GetInstance().GetRegisteredOptTable());
+  const std::vector<std::string> types = {"Size", "Shape", "ShapeN", "Rank"};
+  for (const auto &type : types) {
+    OpDescPtr opdesc = std::make_shared<OpDesc>("test_" + type, type);
+    ComputeGraphPtr graph;
+    const NodePtr node = std::make_shared<Node>(opdesc, graph);
+    std::shared_ptr<GeDeletedOp> op = std::make_shared<GeDeletedOp>(*node, runContext);
+    EXPECT_EQ(op->Run(), FAILED) << "Run should fail for type: " << type;
+  }
+}
+
+// 不在优化选项映射表中的类型，按 GE 内部错误上报，且不依赖 option 状态
+TEST_F(UtestGeDeletedOp, NonOptMapType_NoOptionDependency) {
+  RunContext runContext;
+  GetThreadLocalContext().SetGlobalOption({});
+  GetThreadLocalContext().GetOo().Initialize({}, {});
+  OpDescPtr opdesc = std::make_shared<OpDesc>("test", "Identity");
+  ComputeGraphPtr graph;
+  const NodePtr node = std::make_shared<Node>(opdesc, graph);
+  std::shared_ptr<GeDeletedOp> op = std::make_shared<GeDeletedOp>(*node, runContext);
+  EXPECT_EQ(op->Run(), FAILED);
 }
 
 TEST_F(UtestGeDeletedOp, FactoryGetAllOps_ContainsDeletedTypes) {

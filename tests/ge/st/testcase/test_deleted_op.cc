@@ -24,7 +24,11 @@ namespace ge {
 class NoOpTest : public testing::Test {
  protected:
   void SetUp() {}
-  void TearDown() {}
+  // 用例可能改写线程局部的 option 状态，结束后恢复默认，避免污染同进程后续用例
+  void TearDown() {
+    GetThreadLocalContext().SetGlobalOption({});
+    GetThreadLocalContext().GetOo().Initialize({}, OptionRegistry::GetInstance().GetRegisteredOptTable());
+  }
 };
 
 TEST_F(NoOpTest, Normal) {
@@ -64,6 +68,42 @@ TEST_F(NoOpTest, Shape_ConsantFoling_On) {
   OpDescPtr opdesc = std::make_shared<OpDesc>("test", "Shape");
   GetThreadLocalContext().GetOo().Initialize({{ge::OO_LEVEL, "O3"}},
                                              OptionRegistry::GetInstance().GetRegisteredOptTable());
+  ComputeGraphPtr graph;
+  const NodePtr node = std::make_shared<Node>(opdesc, graph);
+  std::shared_ptr<ge_local::GeDeletedOp> op = std::make_shared<ge_local::GeDeletedOp>(*node, runContext);
+  EXPECT_EQ(op->Run(), FAILED);
+}
+
+// 优化选项未注册也未配置，取值失败，按 GE 内部错误上报
+TEST_F(NoOpTest, Shape_OptionNotConfigured) {
+  RunContext runContext;
+  GetThreadLocalContext().SetGlobalOption({});
+  GetThreadLocalContext().GetOo().Initialize({}, {});
+  OpDescPtr opdesc = std::make_shared<OpDesc>("test", "Shape");
+  ComputeGraphPtr graph;
+  const NodePtr node = std::make_shared<Node>(opdesc, graph);
+  std::shared_ptr<ge_local::GeDeletedOp> op = std::make_shared<ge_local::GeDeletedOp>(*node, runContext);
+  EXPECT_EQ(op->Run(), FAILED);
+}
+
+// 用户通过全局 option 关闭了优化选项，按外部错误上报
+TEST_F(NoOpTest, Shape_OptionDisabledByGlobalOption) {
+  RunContext runContext;
+  GetThreadLocalContext().GetOo().Initialize({}, {});
+  GetThreadLocalContext().SetGlobalOption({{ge::OO_CONSTANT_FOLDING, "false"}});
+  OpDescPtr opdesc = std::make_shared<OpDesc>("test", "Shape");
+  ComputeGraphPtr graph;
+  const NodePtr node = std::make_shared<Node>(opdesc, graph);
+  std::shared_ptr<ge_local::GeDeletedOp> op = std::make_shared<ge_local::GeDeletedOp>(*node, runContext);
+  EXPECT_EQ(op->Run(), FAILED);
+}
+
+// 不在优化选项映射表中的类型，按 GE 内部错误上报，且不依赖 option 状态
+TEST_F(NoOpTest, NonOptMapType_NoOptionDependency) {
+  RunContext runContext;
+  GetThreadLocalContext().SetGlobalOption({});
+  GetThreadLocalContext().GetOo().Initialize({}, {});
+  OpDescPtr opdesc = std::make_shared<OpDesc>("test", "Identity");
   ComputeGraphPtr graph;
   const NodePtr node = std::make_shared<Node>(opdesc, graph);
   std::shared_ptr<ge_local::GeDeletedOp> op = std::make_shared<ge_local::GeDeletedOp>(*node, runContext);

@@ -18,7 +18,14 @@ from collections import deque
 
 from ge.graph import Graph, Node
 from ge.graph.types import DataType
-from ge.passes import FusionBasePass, PassStage, register_fusion_pass
+from ge.passes import (
+    FusionBasePass,
+    PassContext,
+    PassStage,
+    can_fuse,
+    register_fusion_pass,
+    report_fuse,
+)
 
 TARGET_TYPES = frozenset({"Conv2D", "Conv2DV2"})
 PERM0 = [0, 2, 3, 1]
@@ -78,10 +85,24 @@ def _judge_transpose_perm(perm: list[int], cnt_holder: list[int]) -> bool:
     return False
 
 
-def _remove_transpose_and_relink(graph: Graph, transpose_node: Node) -> bool:
-    data_node, data_out_idx = transpose_node.get_in_data_nodes_and_port_indexes(DATA_IDX)
-    perm_node, perm_out_idx = transpose_node.get_in_data_nodes_and_port_indexes(PERM_IDX)
-    consumers = list(transpose_node.get_out_data_nodes_and_port_indexes(TRANSPOSE_OUT_IDX))
+def _remove_transpose_and_relink(
+    graph: Graph, transpose_node: Node, context: PassContext
+) -> bool:
+    result = can_fuse([transpose_node])
+    if not result.ok:
+        context.set_error_message(result.reason)
+        print(f"RemoveTransposeAndRelink can_fuse check failed: {result.reason}")
+        return False
+
+    data_node, data_out_idx = transpose_node.get_in_data_nodes_and_port_indexes(
+        DATA_IDX
+    )
+    perm_node, perm_out_idx = transpose_node.get_in_data_nodes_and_port_indexes(
+        PERM_IDX
+    )
+    consumers = list(
+        transpose_node.get_out_data_nodes_and_port_indexes(TRANSPOSE_OUT_IDX)
+    )
     try:
         graph.remove_edge(data_node, data_out_idx, transpose_node, DATA_IDX)
         graph.remove_edge(perm_node, perm_out_idx, transpose_node, PERM_IDX)
@@ -97,6 +118,7 @@ def _remove_transpose_and_relink(graph: Graph, transpose_node: Node) -> bool:
         except RuntimeError:
             return False
         print("Remove output edges success")
+    report_fuse([transpose_node], [], context)
     try:
         graph.remove_node(perm_node)
         graph.remove_node(transpose_node)
@@ -105,7 +127,9 @@ def _remove_transpose_and_relink(graph: Graph, transpose_node: Node) -> bool:
     return True
 
 
-def _delete_transpose_pair_behind_if_exist(graph: Graph, conv_node: Node) -> bool:
+def _delete_transpose_pair_behind_if_exist(
+    graph: Graph, conv_node: Node, context: PassContext
+) -> bool:
     queue: deque[Node] = deque()
     transpose_cnt_holder = [0]
     out_sz = conv_node.get_outputs_size()
@@ -125,7 +149,7 @@ def _delete_transpose_pair_behind_if_exist(graph: Graph, conv_node: Node) -> boo
             continue
         if not _judge_transpose_perm(perm_list, transpose_cnt_holder):
             continue
-        if not _remove_transpose_and_relink(graph, node_ptr):
+        if not _remove_transpose_and_relink(graph, node_ptr, context):
             print("RemoveTransposeAndRelink failed")
             return False
         if transpose_cnt_holder[0] == 2:
@@ -147,9 +171,11 @@ def _find_nchw_conv_nodes(graph: Graph) -> list[Node]:
     return conv_nodes
 
 
-@register_fusion_pass(name="PythonConvTransFormatPass", stage=PassStage.BEFORE_INFER_SHAPE)
+@register_fusion_pass(
+    name="PythonConvTransFormatPass", stage=PassStage.BEFORE_INFER_SHAPE
+)
 class PythonConvTransFormatPass(FusionBasePass):
-    def run(self, graph: Graph, context) -> bool:
+    def run(self, graph: Graph, context: PassContext) -> bool:
         print("PythonConvTransFormatPass is starting")
         conv_nodes = _find_nchw_conv_nodes(graph)
         if not conv_nodes:
@@ -161,9 +187,13 @@ class PythonConvTransFormatPass(FusionBasePass):
             except RuntimeError:
                 print("Modify format of node failed")
                 raise
-            if not _delete_transpose_pair_behind_if_exist(graph, node):
+            if not _delete_transpose_pair_behind_if_exist(graph, node, context):
                 print("DeleteTransposePairBehindIfExist failed")
-                raise RuntimeError("DeleteTransposePairBehindIfExist failed")
+                error_message = context.get_error_message()
+                failure_message = "DeleteTransposePairBehindIfExist failed"
+                if error_message:
+                    failure_message += f": {error_message}"
+                raise RuntimeError(failure_message)
         print("PythonConvTransFormatPass completed")
         return True
 
@@ -171,4 +201,6 @@ class PythonConvTransFormatPass(FusionBasePass):
 if __name__ == "__main__":
     print("PythonConvTransFormatPass 已注册。")
     print("请通过 ASCEND_GE_PY_PASS_PATH 指向本文件，例如：")
-    print("  export ASCEND_GE_PY_PASS_PATH=$PWD/python/src/python_modify_conv_data_format_pass.py")
+    print(
+        "  export ASCEND_GE_PY_PASS_PATH=$PWD/python/src/python_modify_conv_data_format_pass.py"
+    )

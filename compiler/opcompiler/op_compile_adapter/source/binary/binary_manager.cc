@@ -1379,9 +1379,21 @@ bool BinaryManager::MatchSimplifiedKey(const OpBuildTaskPtr &opTask, string &jso
       return false;
     }
   }
+  BinaryInfoBasePtr binaryInfoPtr = iter->second;
+  return GenerateAndMatchSimpleKey(opNode, opInfo, binaryInfoPtr, isSuperKernel, jsonFilePath);
+}
 
+bool BinaryManager::GenerateAndMatchSimpleKey(ge::Node *opNode, const TbeOpInfoPtr &opInfo,
+                                              BinaryInfoBasePtr &binaryInfoPtr, bool &isSuperKernel,
+                                              std::string &jsonFilePath) const {
   const std::string &opType = opInfo->GetOpType();
   std::string deterministic = TeContextUtils::GetDeterministic();
+  std::string deterministicStr;
+  (void)ge::AttrUtils::GetStr(opNode->GetOpDesc(), kDeterministic, deterministicStr);
+  if (deterministicStr != "") {
+    TE_DBGLOG("Node[%s] _deterministic attr [%s] is not null.", opNode->GetName().c_str(), deterministic.c_str());
+    deterministic = (deterministicStr == "1") ? STR_TRUE : STR_FALSE;
+  }
   const std::vector<TbeOpParam> &inputs = opInfo->GetInputs();
   const std::vector<TbeOpParam> &outputs = opInfo->GetOutputs();
   const std::vector<TbeAttrValue> &attrValues = opInfo->GetAttrValues();
@@ -1393,7 +1405,6 @@ bool BinaryManager::MatchSimplifiedKey(const OpBuildTaskPtr &opTask, string &jso
     return false;
   }
   SimpleKeyModeType simpleKeyMode;
-  BinaryInfoBasePtr binaryInfoPtr = iter->second;
   if (!binaryInfoPtr->GetSimpleKeyMode(opType, simpleKeyMode)) {
     TE_WARNLOG("Node[%s], opType[%s] get simpleKeyMode failed.", opNode->GetName().c_str(), opType.c_str());
     return false;

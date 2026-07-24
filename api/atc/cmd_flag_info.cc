@@ -33,7 +33,7 @@ const static std::map<std::string, std::set<std::string>> kStrValueRange = {
     {"virtual_type", {"0", "1"}},
     {"status_check", {"0", "1"}},
     {"deterministic", {"0", "1"}},
-    {"deterministic_level", {"0", "1", "2"}},
+    {"deterministic_level", {"0", "1", "2", "3"}},
     {"external_weight", {"0", "1", "2"}},
     {"display_model_info", {"0", "1"}},
     {"atomic_clean_policy", {"0", "1"}},

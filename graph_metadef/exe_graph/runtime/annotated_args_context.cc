@@ -21,6 +21,10 @@
 #include "graph/utils/args_format_desc_utils.h"
 
 namespace gert {
+namespace {
+constexpr uint32_t kInvalidStreamId = std::numeric_limits<uint32_t>::max();
+}  // namespace
+
 WorkspaceAddr AnnotatedArgsContext::MallocWorkSpace(size_t size) {
   GE_ASSERT_TRUE(size > 0U, "Offline launch workspace size is zero.");
   const auto additional_input_start = GetAdditionalInputStartIndex();
@@ -49,17 +53,20 @@ WorkspaceAddr AnnotatedArgsContext::MallocWorkSpace(size_t size) {
 uint32_t AnnotatedArgsContext::GetStreamId() const {
   const auto additional_input_start = GetAdditionalInputStartIndex();
   if (additional_input_start < 0) {
-    return 0U;
+    GELOGE(ge::GRAPH_FAILED, "Annotated args context has no compute node info.");
+    return kInvalidStreamId;
   }
   const int64_t allocator_index =
       additional_input_start + static_cast<int64_t>(AdditionalInputIndex::kWorkspaceAllocator);
   const auto *allocator = GetInputValue<GertAllocator *>(allocator_index);
   if (allocator == nullptr) {
-    return 0U;
+    GELOGE(ge::GRAPH_FAILED, "Annotated args context workspace allocator is null.");
+    return kInvalidStreamId;
   }
   const int64_t stream_id = allocator->GetStreamId();
-  if ((stream_id < 0) || (stream_id > static_cast<int64_t>(std::numeric_limits<uint32_t>::max()))) {
-    return 0U;
+  if ((stream_id < 0) || (stream_id >= static_cast<int64_t>(kInvalidStreamId))) {
+    GELOGE(ge::GRAPH_FAILED, "Annotated args context stream id %ld is invalid.", stream_id);
+    return kInvalidStreamId;
   }
   return static_cast<uint32_t>(stream_id);
 }
@@ -71,6 +78,7 @@ ge::graphStatus AnnotatedArgsContext::AddLaunch(const AnnotatedKernelLaunchInfo 
   GE_ASSERT_TRUE((launch_info.kernel_bin != nullptr) && (launch_info.kernel_bin_size > 0U),
                  "Offline launch kernel bin is empty.");
   GE_ASSERT_TRUE(launch_info.block_dim > 0U, "Offline launch block dim is zero.");
+  GE_ASSERT_TRUE(launch_info.stream_id != kInvalidStreamId, "Offline launch stream id is invalid.");
 
   std::vector<uint8_t> args_data;
   std::vector<ge::ArgDesc> arg_descs;

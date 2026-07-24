@@ -1088,6 +1088,7 @@
     - [pattern](python/ge/passes/pattern.md)
     - [register\_decompose\_pass](python/ge/passes/register_decompose_pass.md)
     - [register\_fusion\_pass](python/ge/passes/register_fusion_pass.md)
+    - [report\_fuse](python/ge/passes/report_fuse.md)
 
     - [AttrValueType](python/ge/AttrValueType.md)
     - [DataType](python/ge/DataType.md)

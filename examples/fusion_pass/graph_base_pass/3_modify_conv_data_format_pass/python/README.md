@@ -4,9 +4,11 @@
 
 - 遍历图中 `Conv2D` / `Conv2DV2`，筛选 `data_format == NCHW` 的节点；
 - 将 `data_format` 改为 `NHWC`；
-- 从卷积输出做 BFS，按顺序匹配 `perm == [0,2,3,1]` 与 `[0,3,1,2]` 的 `Transpose`，删除对应 `Transpose` 与 perm 常量产点并重连数据边。
+- 从卷积输出做 BFS，按顺序匹配 `perm == [0,2,3,1]` 与 `[0,3,1,2]` 的 `Transpose`；
+- 改图前调用`can_fuse`，完成边重连后、删除旧节点前调用`report_fuse`；
+- 删除对应`Transpose`与perm常量节点。
 
-本样例继承 `FusionBasePass` 并重写 `run()`，通过 `Graph.remove_edge` / `add_data_edge` / `remove_node` 与 `Node.set_attr` 完成改写，**不使用** `SubgraphRewriter`。
+本样例继承 `FusionBasePass` 并重写 `run()`，通过 `Graph.remove_edge` / `add_data_edge` / `remove_node` 与 `Node.set_attr` 完成改写，**不使用** `SubgraphRewriter`，因此显式调用`can_fuse`和`report_fuse`。
 
 ## 与 C++ 版本的差异
 

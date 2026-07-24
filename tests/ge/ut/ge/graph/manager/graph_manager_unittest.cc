@@ -2298,6 +2298,32 @@ TEST_F(UtestGraphManagerTest, test_BuildGraph_with_fileconst) {
   GetThreadLocalContext().SetGlobalOption(global_options);
 }
 
+TEST_F(UtestGraphManagerTest, test_BuildGraph_without_deterministic_level_option) {
+  InitGeLib();
+  std::map<std::string, string> graph_options;
+  graph_options["ge.externalWeight"] = "1";
+  GetThreadLocalContext().SetGraphOption(graph_options);
+  GetThreadLocalContext().SetSessionOption({});
+  auto global_options = GetThreadLocalContext().GetAllGlobalOptions();
+  global_options.erase("ge.deterministicLevel");
+  GetThreadLocalContext().SetGlobalOption(global_options);
+
+  GraphId graph_id = 2;
+  GraphManager graph_manager;
+  GraphNodePtr graph_node = MakeShared<ge::GraphNode>(graph_id);
+  graph_manager.AddGraphNode(graph_id, graph_node);
+  std::map<std::string, std::string> options;
+  options["ge.buildStep"] = BUILD_STEP_AFTER_BUILD;
+  graph_node->SetOptions(options);
+
+  auto compute_graph = CreateGraphWithConstOutput();
+  compute_graph->SetGraphID(graph_id);
+  AttrUtils::SetStr(compute_graph, ATTR_NAME_SESSION_GRAPH_ID, "1");
+  GeRootModelPtr ge_root_model = nullptr;
+  EXPECT_EQ(graph_manager.BuildGraph(compute_graph, ge_root_model), SUCCESS);
+  EXPECT_FALSE(AttrUtils::HasAttr(compute_graph, "ge.deterministicLevel"));
+}
+
 ge::ComputeGraphPtr CreateGraphWithHcom() {
   ge::ut::GraphBuilder builder("graph");
   auto data = builder.AddNode("data1", "Data", 1, 1);

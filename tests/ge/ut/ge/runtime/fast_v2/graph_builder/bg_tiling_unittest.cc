@@ -38,6 +38,9 @@
 namespace gert {
 namespace bg {
 namespace {
+constexpr const char *kDeterministicAttr = "_deterministic";
+constexpr const char *kDeterministicLevelAttr = "_deterministic_level";
+
 using namespace ge;
 void SetTensorDesc(ge::GeTensorDesc &desc) {
   desc.SetShape(GeShape({8, 3, 224, 224}));
@@ -214,6 +217,196 @@ TEST_F(BgTilingUT, BgTiling_Ok_CachableTilingUnsupported) {
   io_shapes.emplace_back(out_shape);
   TilingTopoCorrect(exe_graph, tiling_rets, io_shapes, platform);
   ASSERT_EQ(tiling_rets.size(), static_cast<size_t>(kernel::TilingExOutputIndex::kNum));
+}
+
+TEST_F(BgTilingUT, BgTiling_UsesGraphDeterministicLevel) {
+  IMPL_OP(FakeAddN).InputsDataDependency({0});
+  SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2(true);
+
+  constexpr int64_t kInputNum = 2UL;
+  std::vector<ValueHolderPtr> input_shapes;
+  for (int64_t i = 0; i < kInputNum; ++i) {
+    input_shapes.emplace_back(ValueHolder::CreateFeed(i));
+  }
+  auto out_shape = ValueHolder::CreateFeed(2);
+  auto platform = ValueHolder::CreateFeed(3);
+  auto graph = BuildGraphWithManyInputs("FakeAddN", kInputNum);
+  ASSERT_NE(graph, nullptr);
+  ASSERT_TRUE(ge::AttrUtils::SetInt(graph, "ge.deterministicLevel", 2));
+  auto add_node = graph->FindNode("FakeAddN");
+  ASSERT_NE(add_node, nullptr);
+  AddCompiledJson(add_node);
+
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("FakeAddN", false).Build();
+  bg::LowerConstDataNode(global_data);
+  auto tiling_rets = Tiling(add_node, input_shapes, {out_shape}, {platform, global_data, fake_launch_arg_});
+  ASSERT_FALSE(tiling_rets.empty());
+  EXPECT_NE(global_data.GetUniqueValueHolder("DeterministicLevel_2"), nullptr);
+  EXPECT_EQ(global_data.GetUniqueValueHolder("DeterministicLevel_0"), nullptr);
+}
+
+TEST_F(BgTilingUT, BgTiling_UsesNodeDeterministicLevelAndReuseHolder) {
+  IMPL_OP(FakeAddN).InputsDataDependency({0});
+  SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2(true);
+
+  constexpr int64_t kInputNum = 2UL;
+  std::vector<ValueHolderPtr> input_shapes;
+  for (int64_t i = 0; i < kInputNum; ++i) {
+    input_shapes.emplace_back(ValueHolder::CreateFeed(i));
+  }
+  auto out_shape = ValueHolder::CreateFeed(2);
+  auto platform = ValueHolder::CreateFeed(3);
+  auto graph = BuildGraphWithManyInputs("FakeAddN", kInputNum);
+  ASSERT_NE(graph, nullptr);
+  ASSERT_TRUE(ge::AttrUtils::SetInt(graph, "ge.deterministicLevel", 2));
+  auto add_node = graph->FindNode("FakeAddN");
+  ASSERT_NE(add_node, nullptr);
+  ASSERT_TRUE(ge::AttrUtils::SetStr(add_node->GetOpDesc(), kDeterministicLevelAttr, "3"));
+  AddCompiledJson(add_node);
+
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("FakeAddN", false).Build();
+  bg::LowerConstDataNode(global_data);
+  auto tiling_rets = Tiling(add_node, input_shapes, {out_shape}, {platform, global_data, fake_launch_arg_});
+  ASSERT_FALSE(tiling_rets.empty());
+  auto holder = global_data.GetUniqueValueHolder("DeterministicLevel_3");
+  EXPECT_NE(holder, nullptr);
+  EXPECT_EQ(global_data.GetUniqueValueHolder("DeterministicLevel_2"), nullptr);
+
+  auto tiling_rets2 = Tiling(add_node, input_shapes, {out_shape}, {platform, global_data, fake_launch_arg_});
+  ASSERT_FALSE(tiling_rets2.empty());
+  EXPECT_EQ(global_data.GetUniqueValueHolder("DeterministicLevel_3"), holder);
+}
+
+TEST_F(BgTilingUT, BgTiling_UsesNodeDeterministicWithoutLevelOption) {
+  IMPL_OP(FakeAddN).InputsDataDependency({0});
+  SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2(true);
+
+  constexpr int64_t kInputNum = 2UL;
+  std::vector<ValueHolderPtr> input_shapes;
+  for (int64_t i = 0; i < kInputNum; ++i) {
+    input_shapes.emplace_back(ValueHolder::CreateFeed(i));
+  }
+  auto out_shape = ValueHolder::CreateFeed(2);
+  auto platform = ValueHolder::CreateFeed(3);
+  auto graph = BuildGraphWithManyInputs("FakeAddN", kInputNum);
+  ASSERT_NE(graph, nullptr);
+  auto add_node = graph->FindNode("FakeAddN");
+  ASSERT_NE(add_node, nullptr);
+  ASSERT_TRUE(ge::AttrUtils::SetStr(add_node->GetOpDesc(), kDeterministicAttr, "1"));
+  AddCompiledJson(add_node);
+
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("FakeAddN", false).Build();
+  bg::LowerConstDataNode(global_data);
+  auto tiling_rets = Tiling(add_node, input_shapes, {out_shape}, {platform, global_data, fake_launch_arg_});
+  ASSERT_FALSE(tiling_rets.empty());
+  EXPECT_NE(global_data.GetUniqueValueHolder("Deterministic_1"), nullptr);
+  EXPECT_EQ(global_data.GetUniqueValueHolder("Deterministic_0"), nullptr);
+  EXPECT_NE(global_data.GetUniqueValueHolder("DeterministicLevel_0"), nullptr);
+}
+
+TEST_F(BgTilingUT, BgTiling_FailedWhenNodeDeterministicLevelInvalid) {
+  IMPL_OP(FakeAddN).InputsDataDependency({0});
+  SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2(true);
+
+  constexpr int64_t kInputNum = 2UL;
+  std::vector<ValueHolderPtr> input_shapes;
+  for (int64_t i = 0; i < kInputNum; ++i) {
+    input_shapes.emplace_back(ValueHolder::CreateFeed(i));
+  }
+  auto out_shape = ValueHolder::CreateFeed(2);
+  auto platform = ValueHolder::CreateFeed(3);
+  auto graph = BuildGraphWithManyInputs("FakeAddN", kInputNum);
+  ASSERT_NE(graph, nullptr);
+  auto add_node = graph->FindNode("FakeAddN");
+  ASSERT_NE(add_node, nullptr);
+  ASSERT_TRUE(ge::AttrUtils::SetStr(add_node->GetOpDesc(), kDeterministicLevelAttr, "4"));
+  AddCompiledJson(add_node);
+
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("FakeAddN", false).Build();
+  bg::LowerConstDataNode(global_data);
+  auto tiling_rets = Tiling(add_node, input_shapes, {out_shape}, {platform, global_data, fake_launch_arg_});
+  EXPECT_TRUE(tiling_rets.empty() || (tiling_rets[0] == nullptr));
+  EXPECT_EQ(global_data.GetUniqueValueHolder("DeterministicLevel_4"), nullptr);
+}
+
+TEST_F(BgTilingUT, BgTiling_FailedWhenNodeDeterministicLevelNotString) {
+  IMPL_OP(FakeAddN).InputsDataDependency({0});
+  SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2(true);
+
+  constexpr int64_t kInputNum = 2UL;
+  std::vector<ValueHolderPtr> input_shapes;
+  for (int64_t i = 0; i < kInputNum; ++i) {
+    input_shapes.emplace_back(ValueHolder::CreateFeed(i));
+  }
+  auto out_shape = ValueHolder::CreateFeed(2);
+  auto platform = ValueHolder::CreateFeed(3);
+  auto graph = BuildGraphWithManyInputs("FakeAddN", kInputNum);
+  ASSERT_NE(graph, nullptr);
+  auto add_node = graph->FindNode("FakeAddN");
+  ASSERT_NE(add_node, nullptr);
+  ASSERT_TRUE(ge::AttrUtils::SetInt(add_node->GetOpDesc(), kDeterministicLevelAttr, 1));
+  AddCompiledJson(add_node);
+
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("FakeAddN", false).Build();
+  bg::LowerConstDataNode(global_data);
+  auto tiling_rets = Tiling(add_node, input_shapes, {out_shape}, {platform, global_data, fake_launch_arg_});
+  EXPECT_TRUE(tiling_rets.empty() || (tiling_rets[0] == nullptr));
+}
+
+TEST_F(BgTilingUT, BgTiling_FailedWhenNodeDeterministicInvalid) {
+  IMPL_OP(FakeAddN).InputsDataDependency({0});
+  SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2(true);
+
+  constexpr int64_t kInputNum = 2UL;
+  std::vector<ValueHolderPtr> input_shapes;
+  for (int64_t i = 0; i < kInputNum; ++i) {
+    input_shapes.emplace_back(ValueHolder::CreateFeed(i));
+  }
+  auto out_shape = ValueHolder::CreateFeed(2);
+  auto platform = ValueHolder::CreateFeed(3);
+  auto graph = BuildGraphWithManyInputs("FakeAddN", kInputNum);
+  ASSERT_NE(graph, nullptr);
+  auto add_node = graph->FindNode("FakeAddN");
+  ASSERT_NE(add_node, nullptr);
+  ASSERT_TRUE(ge::AttrUtils::SetStr(add_node->GetOpDesc(), kDeterministicAttr, "2"));
+  AddCompiledJson(add_node);
+
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("FakeAddN", false).Build();
+  bg::LowerConstDataNode(global_data);
+  auto tiling_rets = Tiling(add_node, input_shapes, {out_shape}, {platform, global_data, fake_launch_arg_});
+  EXPECT_TRUE(tiling_rets.empty() || (tiling_rets[0] == nullptr));
+  EXPECT_EQ(global_data.GetUniqueValueHolder("Deterministic_2"), nullptr);
+}
+
+TEST_F(BgTilingUT, BgTiling_FailedWhenNodeDeterministicNotString) {
+  IMPL_OP(FakeAddN).InputsDataDependency({0});
+  SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2(true);
+
+  constexpr int64_t kInputNum = 2UL;
+  std::vector<ValueHolderPtr> input_shapes;
+  for (int64_t i = 0; i < kInputNum; ++i) {
+    input_shapes.emplace_back(ValueHolder::CreateFeed(i));
+  }
+  auto out_shape = ValueHolder::CreateFeed(2);
+  auto platform = ValueHolder::CreateFeed(3);
+  auto graph = BuildGraphWithManyInputs("FakeAddN", kInputNum);
+  ASSERT_NE(graph, nullptr);
+  auto add_node = graph->FindNode("FakeAddN");
+  ASSERT_NE(add_node, nullptr);
+  ASSERT_TRUE(ge::AttrUtils::SetInt(add_node->GetOpDesc(), kDeterministicAttr, 1));
+  AddCompiledJson(add_node);
+
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("FakeAddN", false).Build();
+  bg::LowerConstDataNode(global_data);
+  auto tiling_rets = Tiling(add_node, input_shapes, {out_shape}, {platform, global_data, fake_launch_arg_});
+  EXPECT_TRUE(tiling_rets.empty() || (tiling_rets[0] == nullptr));
 }
 
 }  // namespace bg

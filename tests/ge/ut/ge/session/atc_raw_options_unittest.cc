@@ -59,6 +59,7 @@ Status FilterAndValidateRawGeOptions(std::map<std::string, std::string> &raw_opt
 Status LoadRawGeOptions(std::map<std::string, std::string> &raw_options);
 void MergeRawGeOptions(const std::map<std::string, std::string> &raw_options,
                        std::map<std::string, std::string> &options);
+void AppendDeterministicLevelOption(std::map<std::string, std::string> &options);
 
 namespace {
 constexpr const char *kRawUtInt32Flag = "raw_options_ut_int32";
@@ -282,6 +283,23 @@ TEST_F(AtcRawOptionsUTest, ApplyRawGeOptionsSetsFlagsAndRecordsAppliedRawFlags) 
   flgs::GetUserOptions()["log"] = "warning";
   EXPECT_EQ(ApplyRawGeOptionsToFlags({{"log", "info"}}), ge::SUCCESS);
   EXPECT_EQ(GetRawAppliedFlagNames().count("log"), 0U);
+}
+
+TEST_F(AtcRawOptionsUTest, AppendDeterministicLevelOnlyWhenExplicitlySet) {
+  std::map<std::string, std::string> options;
+  AppendDeterministicLevelOption(options);
+  EXPECT_EQ(options.count(DETERMINISTIC_LEVEL), 0U);
+
+  flgs::GetUserOptions()["deterministic_level"] = "0";
+  AppendDeterministicLevelOption(options);
+  EXPECT_EQ(options[DETERMINISTIC_LEVEL], "0");
+
+  options.clear();
+  flgs::GetUserOptions().clear();
+  FLAGS_deterministic_level = "3";
+  GetRawAppliedFlagNames().emplace("deterministic_level");
+  AppendDeterministicLevelOption(options);
+  EXPECT_EQ(options[DETERMINISTIC_LEVEL], "3");
 }
 
 TEST_F(AtcRawOptionsUTest, LoadRawGeOptionsReadsFileFiltersAndValidatesOptions) {

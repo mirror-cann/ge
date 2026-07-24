@@ -828,6 +828,8 @@ ge::OpDescPtr FusionOpComm::SetMultiKernelTBEFusionOp(const vector<ge::NodePtr> 
   SetStrAttrToFusionOp(fus_nodelist, fus_opdef, FUSION_OP_SLICE_INFO);
   SetStrAttrToFusionOp(fus_nodelist, fus_opdef, ge::ATTR_NAME_ENGINE_NAME_FOR_LX);
   SetStrAttrToFusionOp(fus_nodelist, fus_opdef, ge::ATTR_NAME_KKERNEL_LIB_NAME_FOR_LX);
+  SetStrAttrToFusionOp(fus_nodelist, fus_opdef, DETERMINISTIC);
+  SetStrAttrToFusionOp(fus_nodelist, fus_opdef, DETERMINISTIC_LEVEL);
   SetListInt64AttrToFusionOp(fus_nodelist, fus_opdef, ATTR_NAME_THREAD_TBE_KERNEL_SIZE);
   SetListBytesAttrToFusionOp(fus_nodelist, fus_opdef, ge::ATTR_NAME_THREAD_TBE_KERNEL_BUFFER);
   SetListInt64AttrToFusionOp(fus_nodelist, fus_opdef, ge::TVM_ATTR_NAME_THREAD_BLOCKDIM);
@@ -1001,6 +1003,8 @@ ge::OpDescPtr FusionOpComm::SetTBEFusionOp(const vector<ge::NodePtr> &fus_nodeli
   SetStrAttrToFusionOp(fus_nodelist, fus_opdef, fe::ATTR_NAME_CUBE_VECTOR_CORE_TYPE);
   SetStrAttrToFusionOp(fus_nodelist, fus_opdef, ge::ATTR_NAME_OM_BINARY_PATH);
   SetStrAttrToFusionOp(fus_nodelist, fus_opdef, kAttrKernelBinId);
+  SetStrAttrToFusionOp(fus_nodelist, fus_opdef, DETERMINISTIC);
+  SetStrAttrToFusionOp(fus_nodelist, fus_opdef, DETERMINISTIC_LEVEL);
   SetInt64AttrToFusionOp(fus_nodelist, fus_opdef, kAttrScheduleMode);
   SetInt64AttrToFusionOp(fus_nodelist, fus_opdef, kLocalMemorySize);
   SetGroupIdToFusionOp(fus_nodelist, fus_opdef, engine_name);

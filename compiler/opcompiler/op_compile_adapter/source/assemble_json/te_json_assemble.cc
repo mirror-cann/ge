@@ -1690,6 +1690,20 @@ void TeJsonAssemble::GenerateSocInfoJson(const std::vector<ConstTbeOpInfoPtr> &t
       socInfoJson[kVectorCoreCnt] = custAivNum;
       TE_DBGLOG("OpNode: %s, cust_aiv_num: %s", firstOpInfo->GetName().c_str(), custAivNum.c_str());
     }
+    std::string deterministic;
+    (void)ge::AttrUtils::GetStr(firstOpInfo->GetNode()->GetOpDesc(), kDeterministic, deterministic);
+    if (deterministic != "") {
+      TE_DBGLOG("Node[%s] _deterministic attr [%s] is not null, set it to soc_info.", firstOpInfo->GetName().c_str(),
+                deterministic.c_str());
+      socInfoJson["deterministic"] = (deterministic == "1") ? STR_TRUE : STR_FALSE;
+    }
+    std::string deterministicLevel;
+    (void)ge::AttrUtils::GetStr(firstOpInfo->GetNode()->GetOpDesc(), kDeterministicLevel, deterministicLevel);
+    if (deterministicLevel != "") {
+      TE_DBGLOG("Node[%s] _deterministic_level attr [%s] is not null, set it to soc_info.",
+                firstOpInfo->GetName().c_str(), deterministicLevel.c_str());
+      socInfoJson["deterministic_level"] = deterministicLevel;
+    }
   }
 }
 
@@ -2095,8 +2109,7 @@ bool TeJsonAssemble::GenerateOptionsMap(const std::vector<ConstTbeOpInfoPtr> &tb
   options.emplace("deterministic", TeContextUtils::GetDeterministic());
   options.emplace("device_id", TeConfigInfo::Instance().GetDeviceId());
   options.emplace("deterministic_level", TeContextUtils::GetDeterministicLevel());
-  TE_INFOLOG("Get deterministic_level as %s", TeContextUtils::GetDeterministicLevel().c_str());
-
+  TE_INFOLOG("Get deterministic_level from context is %s", TeContextUtils::GetDeterministicLevel().c_str());
   if (tbeOpInfoVec.size() == 1) {
     if (firstTbeOpInfo->GetNode() != nullptr) {
       std::string opBuildConfig;
@@ -2104,7 +2117,12 @@ bool TeJsonAssemble::GenerateOptionsMap(const std::vector<ConstTbeOpInfoPtr> &tb
       options.emplace("single_op_build_cfg", opBuildConfig);
     }
   }
+  SetCustomCoreCountAndLevel(firstTbeOpInfo, options);
+  return true;
+}
 
+void TeJsonAssemble::SetCustomCoreCountAndLevel(const ConstTbeOpInfoPtr &firstTbeOpInfo,
+                                                std::map<std::string, std::string> &options) {
   std::map<std::string, std::string> hardwareInfoMap;
   TeConfigInfo::Instance().GetHardwareInfoMap(hardwareInfoMap);
   for (const std::pair<const std::string, std::string> &hardwareItem : hardwareInfoMap) {
@@ -2113,22 +2131,40 @@ bool TeJsonAssemble::GenerateOptionsMap(const std::vector<ConstTbeOpInfoPtr> &tb
 
   bool isValidOpInfo = (firstTbeOpInfo != nullptr) && (firstTbeOpInfo->GetNode() != nullptr) &&
                        (firstTbeOpInfo->GetNode()->GetOpDesc() != nullptr);
-  if (isValidOpInfo) {
-    std::string custAicNum;
-    (void)ge::AttrUtils::GetStr(firstTbeOpInfo->GetNode()->GetOpDesc(), kAicCntKeyOp, custAicNum);
-    if (custAicNum != "" && std::stoi(custAicNum) >= 0) {
-      options[kAiCoreCnt] = custAicNum;
-      options[kCubeCoreCnt] = custAicNum;
-      TE_DBGLOG("OpNode: %s, set options.ai_core_cnt: %s", firstTbeOpInfo->GetName().c_str(), custAicNum.c_str());
-    }
-    std::string custAivNum;
-    (void)ge::AttrUtils::GetStr(firstTbeOpInfo->GetNode()->GetOpDesc(), kAivCntKeyOp, custAivNum);
-    if (custAivNum != "" && std::stoi(custAivNum) >= 0) {
-      options[kVectorCoreCnt] = custAivNum;
-      TE_DBGLOG("OpNode: %s, set options.vector_core_cnt: %s", firstTbeOpInfo->GetName().c_str(), custAivNum.c_str());
-    }
+  if (!isValidOpInfo) {
+    return;
   }
-  return true;
+
+  std::string custAicNum;
+  (void)ge::AttrUtils::GetStr(firstTbeOpInfo->GetNode()->GetOpDesc(), kAicCntKeyOp, custAicNum);
+  if (custAicNum != "" && std::stoi(custAicNum) >= 0) {
+    options[kAiCoreCnt] = custAicNum;
+    options[kCubeCoreCnt] = custAicNum;
+    TE_DBGLOG("OpNode: %s, set options.ai_core_cnt: %s", firstTbeOpInfo->GetName().c_str(), custAicNum.c_str());
+  }
+
+  std::string custAivNum;
+  (void)ge::AttrUtils::GetStr(firstTbeOpInfo->GetNode()->GetOpDesc(), kAivCntKeyOp, custAivNum);
+  if (custAivNum != "" && std::stoi(custAivNum) >= 0) {
+    options[kVectorCoreCnt] = custAivNum;
+    TE_DBGLOG("OpNode: %s, set options.vector_core_cnt: %s", firstTbeOpInfo->GetName().c_str(), custAivNum.c_str());
+  }
+
+  std::string deterministic;
+  (void)ge::AttrUtils::GetStr(firstTbeOpInfo->GetNode()->GetOpDesc(), kDeterministic, deterministic);
+  if (deterministic != "") {
+    TE_DBGLOG("Node[%s] _deterministic attr [%s] is not null, set it to options.", firstTbeOpInfo->GetName().c_str(),
+              deterministic.c_str());
+    options["deterministic"] = (deterministic == "1") ? STR_TRUE : STR_FALSE;
+  }
+
+  std::string deterministicLevel;
+  (void)ge::AttrUtils::GetStr(firstTbeOpInfo->GetNode()->GetOpDesc(), kDeterministicLevel, deterministicLevel);
+  if (deterministicLevel != "") {
+    TE_DBGLOG("Node[%s] _deterministic_level attr [%s] is not null, set it to options.",
+              firstTbeOpInfo->GetName().c_str(), deterministicLevel.c_str());
+    options["deterministic_level"] = deterministicLevel;
+  }
 }
 }  // namespace fusion
 }  // namespace te

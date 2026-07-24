@@ -81,8 +81,3 @@ def test_can_fuse_returns_reason_for_nodes_from_different_graphs():
     assert graph2 is not None
     assert result.ok is False
     assert "different graphs" in result.reason
-
-
-def test_can_fuse_rejects_non_node_elements():
-    with pytest.raises(TypeError, match="ge.graph.Node"):
-        can_fuse([object()])

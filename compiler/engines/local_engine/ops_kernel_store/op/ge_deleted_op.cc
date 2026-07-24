@@ -18,44 +18,68 @@
 
 namespace ge {
 namespace ge_local {
+namespace {
+const char_t *const kOptionEnabledValue = "true";
+}  // namespace
+
 GeDeletedOp::GeDeletedOp(const Node &node, RunContext &run_context) : Op(node, run_context) {}
 
 Status GeDeletedOp::Run() {
-  static const std::map<std::string, std::string> kOpToExpectedOptimization = {
-      {"Size", OO_CONSTANT_FOLDING},
-      {"Shape", OO_CONSTANT_FOLDING},
-      {"ShapeN", OO_CONSTANT_FOLDING},
-      {"Rank", OO_CONSTANT_FOLDING}
-      // 可以继续扩展
-  };
+  // Op 类型与负责删除该类型节点的图优化选项的映射，可以继续扩展
+  static const std::map<std::string, std::string> kOpTypeToOptimizationOption = {{"Size", OO_CONSTANT_FOLDING},
+                                                                                 {"Shape", OO_CONSTANT_FOLDING},
+                                                                                 {"ShapeN", OO_CONSTANT_FOLDING},
+                                                                                 {"Rank", OO_CONSTANT_FOLDING}};
 
-  // 默认提示信息
-  std::string reason = "Node:" + name_ + " type is " + type_ +
-                       ", should be deleted by ge. Please check your "
-                       "graph optimization settings.";
-
-  auto it = kOpToExpectedOptimization.find(type_);
-  if (it != kOpToExpectedOptimization.end()) {
-    const std::string &ge_option_key = it->second;
-    std::string option_name = ge::GetContext().GetReadableName(ge_option_key);
-
-    // 定制提示信息
-    std::string opt_value;
-    if (GetThreadLocalContext().GetOption(ge_option_key, opt_value) != GRAPH_SUCCESS || opt_value != "true") {
-      reason = "Node:" + name_ + " type is " + type_ + ", should be deleted ge. But the [" + option_name +
-               "] "
-               "optimization option is disabled, please enable it to remove redundant nodes.";
-    } else {
-      // Option开启了但节点还存在，提示可能是关联的Pass未生效或通过optimization_switch关闭了
-      reason = "Node:" + name_ + " type is " + type_ +
-               ", should be deleted by ge. But it still exists, "
-               "Please check if the [" +
-               option_name + "] optimization option relevant passes are working correctly.";
-    }
+  const auto iter = kOpTypeToOptimizationOption.find(type_);
+  if (iter == kOpTypeToOptimizationOption.cend()) {
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Node %s with type %s should have been removed during graph optimization, but it still "
+                         "exists and cannot be executed by the GE local engine.",
+                         name_.c_str(), type_.c_str());
+    GELOGE(FAILED,
+           "[Check][Node] node %s with type %s should have been removed during graph optimization, but it still "
+           "exists.",
+           name_.c_str(), type_.c_str());
+    return FAILED;
   }
-  REPORT_INNER_ERR_MSG("E19999", "%s", reason.c_str());
-  GELOGE(FAILED, "[Delete][Node] %s", reason.c_str());
-  // Do nothing
+
+  const std::string &option_key = iter->second;
+  const std::string option_name = GetContext().GetReadableName(option_key);
+  std::string option_value;
+  if (GetThreadLocalContext().GetOption(option_key, option_value) != GRAPH_SUCCESS) {
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Failed to get the value of optimization option %s, which is expected to remove node %s "
+                         "with type %s during graph optimization.",
+                         option_name.c_str(), name_.c_str(), type_.c_str());
+    GELOGE(FAILED, "[Get][Option] failed to get the value of optimization option %s for node %s with type %s.",
+           option_name.c_str(), name_.c_str(), type_.c_str());
+    return FAILED;
+  }
+
+  if (option_value != kOptionEnabledValue) {
+    // 用户关闭了该优化选项导致冗余节点残留，属于用户可修复的外部错误
+    const std::string reported_value = option_value.empty() ? std::string("\"\"") : option_value;
+    const std::string reason = "node " + name_ + " with type " + type_ +
+                               " is removed only when this optimization option is enabled, otherwise it cannot be "
+                               "executed by the GE local engine.";
+    (void)REPORT_PREDEFINED_ERR_MSG(
+        "E10001", std::vector<const char_t *>({"value", "parameter", "reason"}),
+        std::vector<const char_t *>({reported_value.c_str(), option_name.c_str(), reason.c_str()}));
+    GELOGE(FAILED, "[Check][Option] the value %s of optimization option %s is invalid. %s", reported_value.c_str(),
+           option_name.c_str(), reason.c_str());
+    return FAILED;
+  }
+
+  // 优化选项已开启但节点仍然残留，说明关联的图优化 pass 未按预期生效
+  REPORT_INNER_ERR_MSG("E19999",
+                       "Node %s with type %s should have been removed by the enabled optimization option %s, but it "
+                       "still exists and cannot be executed by the GE local engine.",
+                       name_.c_str(), type_.c_str(), option_name.c_str());
+  GELOGE(FAILED,
+         "[Check][Node] node %s with type %s should have been removed by the enabled optimization option %s, but it "
+         "still exists.",
+         name_.c_str(), type_.c_str(), option_name.c_str());
   return FAILED;
 }
 
